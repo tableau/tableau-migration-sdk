@@ -1,0 +1,119 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.33213.308
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tableau.Migration", "src\Tableau.Migration\Tableau.Migration.csproj", "{54C357A4-ED58-4E3A-9E5D-47DA17D9BD4B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{9BF466A2-E00F-4F2C-AD23-591E9159AD11}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tableau.Migration.Tests", "tests\Tableau.Migration.Tests\Tableau.Migration.Tests.csproj", "{E71B1084-8907-4070-AD26-2189C80A2C34}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{C5BD8316-60C9-4C96-9B15-820E8BA4DF7F}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+		.gitignore = .gitignore
+		CODEOWNERS = CODEOWNERS
+		CODE_OF_CONDUCT.md = CODE_OF_CONDUCT.md
+		CONTRIBUTING.md = CONTRIBUTING.md
+		Directory.Build.props = Directory.Build.props
+		global.json = global.json
+		README.md = README.md
+		SECURITY.md = SECURITY.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".config", ".config", "{1D53209C-9F3D-4F64-ABDF-FEA30F0C3D5D}"
+	ProjectSection(SolutionItems) = preProject
+		.config\dotnet-tools.json = .config\dotnet-tools.json
+	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Documentation", "src\Documentation\Documentation.csproj", "{94BB1843-8A7E-4E4D-93BE-5EAB701288C5}"
+EndProject
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "Python", "src\Python\Python.pyproj", "{BE5883A2-623A-417D-80CE-013425D26482}"
+	ProjectSection(ProjectDependencies) = postProject
+		{54C357A4-ED58-4E3A-9E5D-47DA17D9BD4B} = {54C357A4-ED58-4E3A-9E5D-47DA17D9BD4B}
+	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tableau.Migration.TestApplication", "tests\Tableau.Migration.TestApplication\Tableau.Migration.TestApplication.csproj", "{9B20E6B0-E733-4280-9D63-0BAFA0A23276}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tableau.Migration.TestComponents", "tests\Tableau.Migration.TestComponents\Tableau.Migration.TestComponents.csproj", "{0454E8DE-D973-4E8F-95C7-9F6F02EF26FD}"
+EndProject
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "Python.TestApplication", "tests\Python.TestApplication\Python.TestApplication.pyproj", "{BCA30617-0CAF-405C-A26B-522CF20DB027}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Examples", "Examples", "{00B78B56-BF89-4F26-AF75-435A4B88D43F}"
+EndProject
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "Python.ExampleApplication", "examples\Python.ExampleApplication\Python.ExampleApplication.pyproj", "{9C94FBC9-AE67-4A26-BDDA-EB2CE9FE5C25}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tableau.Migration.TestComponents.Tests", "tests\Tableau.Migration.TestComponents.Tests\Tableau.Migration.TestComponents.Tests.csproj", "{A00DC50C-4184-4658-A437-00AD2A07412C}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Csharp.ExampleApplication", "examples\Csharp.ExampleApplication\Csharp.ExampleApplication.csproj", "{B0D16449-BC58-4873-8B95-F62E805EE39C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "scripts", "scripts", "{92044843-B4D7-4062-B1D5-DE7596072E33}"
+	ProjectSection(SolutionItems) = preProject
+		scripts\generate-docs.ps1 = scripts\generate-docs.ps1
+	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DependencyInjection.ExampleApplication", "examples\DependencyInjection.ExampleApplication\DependencyInjection.ExampleApplication.csproj", "{99DA12FB-BB16-4EE1-9C9C-047755210255}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{54C357A4-ED58-4E3A-9E5D-47DA17D9BD4B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{54C357A4-ED58-4E3A-9E5D-47DA17D9BD4B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{54C357A4-ED58-4E3A-9E5D-47DA17D9BD4B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{54C357A4-ED58-4E3A-9E5D-47DA17D9BD4B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E71B1084-8907-4070-AD26-2189C80A2C34}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E71B1084-8907-4070-AD26-2189C80A2C34}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E71B1084-8907-4070-AD26-2189C80A2C34}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E71B1084-8907-4070-AD26-2189C80A2C34}.Release|Any CPU.Build.0 = Release|Any CPU
+		{94BB1843-8A7E-4E4D-93BE-5EAB701288C5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{94BB1843-8A7E-4E4D-93BE-5EAB701288C5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BE5883A2-623A-417D-80CE-013425D26482}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BE5883A2-623A-417D-80CE-013425D26482}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9B20E6B0-E733-4280-9D63-0BAFA0A23276}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9B20E6B0-E733-4280-9D63-0BAFA0A23276}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9B20E6B0-E733-4280-9D63-0BAFA0A23276}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9B20E6B0-E733-4280-9D63-0BAFA0A23276}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0454E8DE-D973-4E8F-95C7-9F6F02EF26FD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0454E8DE-D973-4E8F-95C7-9F6F02EF26FD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0454E8DE-D973-4E8F-95C7-9F6F02EF26FD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0454E8DE-D973-4E8F-95C7-9F6F02EF26FD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BCA30617-0CAF-405C-A26B-522CF20DB027}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BCA30617-0CAF-405C-A26B-522CF20DB027}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9C94FBC9-AE67-4A26-BDDA-EB2CE9FE5C25}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9C94FBC9-AE67-4A26-BDDA-EB2CE9FE5C25}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A00DC50C-4184-4658-A437-00AD2A07412C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A00DC50C-4184-4658-A437-00AD2A07412C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A00DC50C-4184-4658-A437-00AD2A07412C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A00DC50C-4184-4658-A437-00AD2A07412C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B0D16449-BC58-4873-8B95-F62E805EE39C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B0D16449-BC58-4873-8B95-F62E805EE39C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B0D16449-BC58-4873-8B95-F62E805EE39C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B0D16449-BC58-4873-8B95-F62E805EE39C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{99DA12FB-BB16-4EE1-9C9C-047755210255}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{99DA12FB-BB16-4EE1-9C9C-047755210255}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{99DA12FB-BB16-4EE1-9C9C-047755210255}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{99DA12FB-BB16-4EE1-9C9C-047755210255}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{E71B1084-8907-4070-AD26-2189C80A2C34} = {9BF466A2-E00F-4F2C-AD23-591E9159AD11}
+		{1D53209C-9F3D-4F64-ABDF-FEA30F0C3D5D} = {C5BD8316-60C9-4C96-9B15-820E8BA4DF7F}
+		{9B20E6B0-E733-4280-9D63-0BAFA0A23276} = {9BF466A2-E00F-4F2C-AD23-591E9159AD11}
+		{0454E8DE-D973-4E8F-95C7-9F6F02EF26FD} = {9BF466A2-E00F-4F2C-AD23-591E9159AD11}
+		{BCA30617-0CAF-405C-A26B-522CF20DB027} = {9BF466A2-E00F-4F2C-AD23-591E9159AD11}
+		{9C94FBC9-AE67-4A26-BDDA-EB2CE9FE5C25} = {00B78B56-BF89-4F26-AF75-435A4B88D43F}
+		{A00DC50C-4184-4658-A437-00AD2A07412C} = {9BF466A2-E00F-4F2C-AD23-591E9159AD11}
+		{B0D16449-BC58-4873-8B95-F62E805EE39C} = {00B78B56-BF89-4F26-AF75-435A4B88D43F}
+		{92044843-B4D7-4062-B1D5-DE7596072E33} = {C5BD8316-60C9-4C96-9B15-820E8BA4DF7F}
+		{99DA12FB-BB16-4EE1-9C9C-047755210255} = {00B78B56-BF89-4F26-AF75-435A4B88D43F}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {2C9E9FF4-E825-47A4-90BE-5499D5EDF3CC}
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,9 @@
+- name: API Reference
+  href: api/
+  homepage: api/index.md
+- name: Python Wrapper
+  href: python_wrapper/tableau_migration.md  
+- name: Code Samples
+  href: samples/
+- name: Articles
+  href: articles/

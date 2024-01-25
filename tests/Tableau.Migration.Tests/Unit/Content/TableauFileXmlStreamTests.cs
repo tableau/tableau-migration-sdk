@@ -1,0 +1,87 @@
+﻿using System;
+using System.IO;
+using System.Text;
+using System.Threading.Tasks;
+using System.Xml.Linq;
+using Moq;
+using Tableau.Migration.Content.Files;
+using Xunit;
+
+namespace Tableau.Migration.Tests.Unit.Content
+{
+    public class TableauFileXmlStreamTests
+    {
+        public class TableauFileXmlStreamTest : AutoFixtureTestBase
+        { }
+
+        public class Ctor : TableauFileXmlStreamTest
+        {
+            [Fact]
+            public void RequiresSeekableStream()
+            {
+                var stream = new MemoryStream(Array.Empty<byte>(), writable: false);
+                Assert.Throws<ArgumentException>(() => new TableauFileXmlStream(stream, Cancel));
+            }
+
+            [Fact]
+            public async Task InitializesAsync()
+            {
+                var stream = new MemoryStream();
+                await using var xmlStream = new TableauFileXmlStream(stream, Cancel);
+
+                Assert.Same(stream, xmlStream.XmlContent);
+            }
+        }
+
+        public class GetXmlAsync : TableauFileXmlStreamTest
+        {
+            [Fact]
+            public async Task GetsOrCreatesAsync()
+            {
+                var stream = new MemoryStream();
+                stream.Write(Encoding.UTF8.GetBytes("<workbook />"));
+                stream.Seek(0, SeekOrigin.Begin);
+
+                await using var xmlStream = new TableauFileXmlStream(stream, Cancel);
+
+                var xmlDoc1 = await xmlStream.GetXmlAsync(Cancel);
+                var xmlDoc2 = await xmlStream.GetXmlAsync(Cancel);
+
+                Assert.Same(xmlDoc1, xmlDoc2);
+            }
+        }
+
+        public class DisposeAsync : TableauFileXmlStreamTest
+        {
+            [Fact]
+            public async Task SavesXmlAsync()
+            {
+                var stream = new MemoryStream();
+                stream.Write(Encoding.UTF8.GetBytes("<workbook />"));
+                stream.Seek(0, SeekOrigin.Begin);
+
+                await using (var xmlStream = new TableauFileXmlStream(stream, Cancel, leaveOpen: true))
+                {
+                    var xml = await xmlStream.GetXmlAsync(Cancel);
+                    xml.Root!.SetAttributeValue("test", "changed");
+                }
+
+                stream.Seek(0, SeekOrigin.Begin);
+                var resultXml = await XDocument.LoadAsync(stream, LoadOptions.None, Cancel);
+                Assert.Equal("changed", resultXml.Root!.Attribute("test")!.Value);
+            }
+
+            [Fact]
+            public async Task ClosesStreamAsync()
+            {
+                var mockStream = new Mock<MemoryStream>() { CallBase = true };
+                var stream = mockStream.Object;
+
+                await using (var xmlStream = new TableauFileXmlStream(stream, Cancel, leaveOpen: false))
+                { }
+
+                mockStream.Verify(x => x.DisposeAsync(), Times.Once);
+            }
+        }
+    }
+}

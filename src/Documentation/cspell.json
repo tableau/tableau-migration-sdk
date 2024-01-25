@@ -1,0 +1,18 @@
+{
+    "version": "0.2",
+    "ignorePaths": [],
+    "dictionaryDefinitions": [],
+    "dictionaries": [],
+    "words": [],
+    "ignoreWords": [
+        "configparser",
+        "docfx",
+        "statictoc",
+        "MIGRATIONSDK",
+        "Serilog",
+        "api",
+        "md",
+        "markdownlint"
+    ],
+    "import": []
+}

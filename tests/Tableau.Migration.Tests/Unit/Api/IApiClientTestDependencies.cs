@@ -1,0 +1,38 @@
+﻿using Microsoft.Extensions.Logging;
+using Moq;
+using Tableau.Migration.Api;
+using Tableau.Migration.Api.Permissions;
+using Tableau.Migration.Api.Publishing;
+using Tableau.Migration.Config;
+using Tableau.Migration.Content;
+using Tableau.Migration.Content.Search;
+using Tableau.Migration.Net;
+using Tableau.Migration.Net.Rest;
+
+namespace Tableau.Migration.Tests.Unit.Api
+{
+    internal interface IApiClientTestDependencies
+    {
+        Mock<IApiClientInput> MockApiClientInput { get; }
+        Mock<IConfigReader> MockConfigReader { get; }
+        Mock<IContentReferenceFinderFactory> MockContentFinderFactory { get; }
+        MockHttpClient MockHttpClient { get; }
+        Mock<ILogger> MockLogger { get; }
+        Mock<ILoggerFactory> MockLoggerFactory { get; }
+        Mock<IPermissionsApiClientFactory> MockPermissionsClientFactory { get; }
+        Mock<IContentReferenceFinder<IProject>> MockProjectFinder { get; }
+        Mock<IRequestBuilderFactoryInput> MockRequestBuilderInput { get; }
+        Mock<IServerSessionProvider> MockSessionProvider { get; }
+        MockSharedResourcesLocalizer MockSharedResourcesLocalizer { get; }
+        TestHttpStreamProcessor HttpStreamProcessor { get; }
+        Mock<ITaskDelayer> MockTaskDelayer { get; }
+        Mock<IDataSourcePublisher> MockDataSourcePublisher { get; }
+        Mock<IWorkbookPublisher> MockWorkbookPublisher { get; }
+        Mock<IAuthenticationTokenProvider> MockTokenProvider { get; }
+        Mock<ITableauServerVersionProvider> MockVersionProvider { get; }
+        IRestRequestBuilderFactory RestRequestBuilderFactory { get; }
+        IHttpContentSerializer Serializer { get; }
+        TableauServerVersion TableauServerVersion { get; }
+        TableauSiteConnectionConfiguration SiteConnectionConfiguration { get; }
+    }
+}

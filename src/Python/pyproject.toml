@@ -1,0 +1,105 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "tableau_migration"
+dynamic = ["version"]
+
+authors = [
+  { name="Tableau a Salesforce Product" },
+]
+description = "Tableau Migration SDK"
+readme = "README.md"
+# https://devguide.python.org/versions/
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+
+dependencies = [
+    "typing_extensions==4.9.0",
+    "cffi==1.16.0",
+    "clr-loader==0.2.6",
+    "pycparser==2.21",
+    "pythonnet==3.0.3"
+]
+
+# Get the version from Directory.Build.props file, which is where the nuget package version comes from.
+[tool.hatch.version]
+path = "../../Directory.Build.props"
+pattern = "(?<=<Version>)(?P<version>[^<]*)"
+scheme = "standard"
+validate-bump = false
+
+[tool.hatch.envs.docs]
+dependencies = [
+  "sphinx-markdown-builder==0.6.5"
+]
+
+[tool.hatch.envs.docs.scripts]
+docs = "sphinx-build -M markdown .\\Documentation\\ ..\\Documentation\\python\\"
+
+[tool.hatch.envs.lint]
+detached = true
+
+dependencies = [
+  "ruff==0.1.11"
+]
+
+[tool.hatch.envs.lint.scripts]
+lint = "ruff ." 
+
+[tool.hatch.envs.test]
+dev-mode = false
+dependencies = [
+  "pytest==7.4.4",
+  "pytest-cov==4.1.0"
+]
+
+[tool.hatch.envs.test.scripts]
+# Deselecting lifetime tests
+# W-14457586-Flaky Test - Python Hook Lifetime Test Fails on MacOS Only
+test = "pytest --deselect=tests/test_migrations_engine_hooks_lifetime.py --deselect=tests/test_migrations_engine_hooks_filters_lifetime.py --deselect=tests/test_migrations_engine_hooks_mappings_lifetime.py --deselect=tests/test_migrations_engine_hooks_transformers_lifetime.py"
+testcov = "test --cov-config=pyproject.toml --cov=tableau_migration"
+
+[[tool.hatch.envs.test.matrix]]
+python = ["3.8", "3.9", "3.10", "3.11", "3.12"]
+
+[project.urls]
+"Homepage" = "http://www.tableau.com"
+"Bug Tracker" = "http://www.tableau.com"
+
+[tool.hatch.build]
+artifacts = [
+  "src/tableau_migration/bin"
+]
+
+exclude = [
+    "scripts",
+    "CONTRIBUTING.md",
+    "DOCUMENTATION.md",
+    "Documentation",
+    "tests",
+    "pytest.ini",
+    "Python.pyproj"
+]
+
+[tool.ruff]
+# https://beta.ruff.rs/docs/rules/
+# Enable pycodestyle (`E`) and Pyflakes (`F`) codes by default.
+# TODO: Look into turning "ANN" on once we understand why type hinting does't work for dotnet types
+select = ["D", "E", "F", "N"]
+ignore = ["D401", "D407", "E501"]
+
+exclude = [
+  "tests"
+]
+
+[tool.ruff.pydocstyle]
+# Use Google-style docstrings.
+convention = "google"
+
+[tool.pyright]
+reportMissingImports = false

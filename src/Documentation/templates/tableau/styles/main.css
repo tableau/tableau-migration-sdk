@@ -1,0 +1,100 @@
+@import url(https://fonts.googleapis.com/css?family=Open+Sans);
+
+body {
+  font-family: "Open Sans", Helvetica, Arial, sans-serif;
+}
+
+.toc .nav>li>a {
+  color: #337ab7;
+  margin-left: 5px;
+  display: block;
+  padding: 0;
+}
+
+/* Table of Contents*/
+.sidetoc {
+  background-color: #ffffff;
+  border-right: 1px solid #e3e3e3;
+  border-top: 1px solid #f7f7f7;
+  border-left: none;
+  border-bottom: none;
+  overflow-wrap: break-word;
+}
+
+/* Table of Contents container*/
+body .toc {
+  background-color: #ffffff;
+}
+
+/*Search box container*/
+.sidefilter {
+  background-color: #ffffff;
+  padding: 15px;
+  border-right: 1px solid #e3e3e3;
+  border-top: none;
+  border-left: none;
+  border-bottom: none;
+}
+
+/*Search box*/
+.toc-filter {
+  border: 1px solid #e7e7e7;
+  border-radius: 4px;
+}
+
+.toc-filter>input {
+  color: #555
+}
+
+.toc .level1>li {
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.toc .level2 {
+  font-size: 14px;
+}
+
+.navbar-inverse {
+  background-color: #ffffff;
+  border-color: #e7e7e7;
+}
+
+.navbar-inverse .navbar-nav>li>a {
+  color: #777;
+}
+
+.navbar-inverse .navbar-nav>.active>a {
+  background-color: transparent;
+  font-weight: bold;
+  color: #777
+}
+
+.navbar-inverse .navbar-nav>li>a:focus,
+.navbar-inverse .navbar-nav>li>a:hover {
+  color: #337ab7;
+  background-color: transparent;
+}
+
+.navbar-inverse .navbar-nav>.active>a:focus,
+.navbar-inverse .navbar-nav>.active>a:hover {
+  color: #337ab7;
+  background-color: transparent;
+}
+
+/*Setting widths to make more sense given namespace lengths*/
+.container {
+  width: 100%;
+}
+
+.sidefilter {  
+  width: 20%;
+}
+
+.sidetoc {
+  width: 20%;
+}
+
+.article.grid-right {  
+  margin-left: 21%;
+}

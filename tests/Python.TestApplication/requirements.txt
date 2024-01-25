@@ -1,0 +1,6 @@
+﻿typing_extensions==4.9.0
+cffi==1.16.0
+clr-loader==0.2.6
+pycparser==2.21
+pythonnet==3.0.3
+configparser==6.0.0

@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPublishable>False</IsPublishable>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="api\**" />
+    <Compile Remove="python\doctrees\**" />
+    <Compile Remove="python_wrapper\**" />
+    <Compile Remove="_python\**" />
+    <EmbeddedResource Remove="api\**" />
+    <EmbeddedResource Remove="python\doctrees\**" />
+    <EmbeddedResource Remove="python_wrapper\**" />
+    <EmbeddedResource Remove="_python\**" />
+    <None Remove="api\**" />
+    <None Remove="python\doctrees\**" />
+    <None Remove="python_wrapper\**" />
+    <None Remove="_python\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="api\.gitignore" />
+    <None Include="api\index.md" />
+    <None Include="api\toc.yml" />
+  </ItemGroup>
+</Project>

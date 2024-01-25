@@ -1,0 +1,89 @@
+{
+  "metadata": [
+    {
+      "src": [
+        {
+          "files": [
+            "**.csproj"
+          ],
+          "exclude": [
+            "**/bin/**",
+            "**/obj/**",
+            "README.md"
+          ],
+          "src": "../"
+        }
+      ],
+      "filter": "filterConfig.yml",
+      "dest": "api",
+      "force": true,
+      "disableGitFeatures": false,
+      "disableDefaultFilter": false,
+      "namespaceLayout": "nested"
+    }
+  ],
+  "build": {
+    "sitemap": {
+      "baseUrl": "http://tableau.github.io/migration-sdk",
+      "priority": 0.1,
+      "changefreq": "monthly"
+    },
+    "content": [
+      {
+        "files": [
+          "api/**.yml",
+          "api/index.md",
+          "samples/**.md",
+          "python_wrapper/**.md",
+          "python_wrapper/toc.yml",
+          "samples/**/toc.yml",
+          "toc.yml",
+          "*.md",
+          "articles/**.yml",
+          "articles/**.md"
+        ],
+        "exclude": [
+          "README.md"
+        ]
+      }
+    ],
+    "resource": [
+      {
+        "files": [
+          "images/**",
+          "*.svg",
+          "*.ico"
+        ]
+      }
+    ],
+    "overwrite": [
+      {
+        "exclude": [
+          "obj/**",
+          "docs/**"
+        ]
+      }
+    ],
+    "dest": "../../docs",
+    "globalMetadataFiles": [],
+    "globalMetadata": {
+      "_appTitle": "Tableau Migration SDK",
+      "_appLogoPath": "tableau.svg",
+      "_appFaviconPath": "tableau_favicon.ico",
+      "_disableContribution": true,
+      "_disableFooter": true
+    },
+    "fileMetadataFiles": [],
+    "template": [
+      "default",
+      "statictoc",
+      "templates/tableau"
+    ],
+    "postProcessors": [],
+    "markdownEngineName": "markdig",
+    "noLangKeyword": false,
+    "keepFileLink": false,
+    "cleanupCacheHistory": true,
+    "disableGitFeatures": true
+  }
+}

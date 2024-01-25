@@ -1,0 +1,124 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
+
+namespace Tableau.Migration.Engine.Hooks
+{
+    /// <summary>
+    /// Base implementation for <see cref="IMigrationHookBuilder"/>
+    /// </summary>
+    public abstract class MigrationHookBuilderBase
+    {
+        private readonly Dictionary<Type, ImmutableArray<IMigrationHookFactory>.Builder> _factoriesByType;
+
+        /// <summary>
+        /// Creates a new empty <see cref="MigrationHookBuilderBase"/> object.
+        /// </summary>
+        protected MigrationHookBuilderBase() => _factoriesByType = new();
+
+        #region - Private Hook Type Detection Methods -
+
+        private static ImmutableArray<Type> GetHookTypes(Type t)
+        {
+            var results = t.GetInterfaces()
+                .Where(IsHookLikeInterface);
+
+            if (IsHookLikeInterface(t))
+            {
+                results = results.Append(t);
+            }
+
+            return results.Distinct()
+                .ToImmutableArray();
+        }
+
+
+        private static bool IsHookInterface(Type t)
+            => t.IsInterface && t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IMigrationHook<>);
+
+        private static bool IsHookLikeInterface(Type t)
+        {
+            if (!t.IsInterface)
+            {
+                return false;
+            }
+
+            //Don't want an exact match to IMigrationHook<T>, which could be ambiguous if context type if shared between different hooks.
+            if (IsHookInterface(t))
+            {
+                return false;
+            }
+
+            //interface derived from IMigrationHook<T>
+            return t.GetInterfaces().Any(IsHookInterface);
+        }
+
+        #endregion
+
+        #region - Protected Methods -
+
+        /// <summary>
+        /// Clears all registered hook factories for all hook types.
+        /// </summary>
+        protected void ClearFactories()
+        {
+            _factoriesByType.Clear();
+        }
+
+        /// <summary>
+        /// Adds a hook factory for the given hook type(s).
+        /// </summary>
+        /// <param name="hookType">The type to detect hook types from.</param>
+        /// <param name="initializer">The hook factory.</param>
+        /// <exception cref="ArgumentException">If <paramref name="hookType"/> does not implement any hook types.</exception>
+        protected void AddFactoriesByType(Type hookType, Func<IServiceProvider, object> initializer)
+        {
+            var hookInterfaceTypes = GetHookTypes(hookType);
+            if (hookInterfaceTypes.IsNullOrEmpty())
+                throw new ArgumentException($"Type {hookType} does not implement any migration hook types.");
+
+            var factory = new MigrationHookFactory(initializer);
+            void AddForHookInterface(Type hookInterfaceType)
+            {
+                if (!_factoriesByType.TryGetValue(hookInterfaceType, out var factoryList))
+                {
+                    _factoriesByType.Add(hookInterfaceType, factoryList = ImmutableArray.CreateBuilder<IMigrationHookFactory>());
+                }
+
+                factoryList.Add(factory);
+            }
+
+            foreach (var hookInterfaceType in hookInterfaceTypes)
+            {
+                AddForHookInterface(hookInterfaceType);
+            }
+        }
+
+        #endregion
+
+        /// <inheritdoc />
+        public virtual IMigrationHookFactoryCollection Build()
+        {
+            var immutableDict = ImmutableDictionary.CreateBuilder<Type, ImmutableArray<IMigrationHookFactory>>();
+            foreach (var kvp in _factoriesByType)
+            {
+                immutableDict.Add(kvp.Key, kvp.Value.ToImmutable());
+            }
+
+            return new MigrationHookFactoryCollection(immutableDict.ToImmutable());
+        }
+
+        /// <summary>
+        /// Gets the currently registered hook factories.
+        /// </summary>
+        /// <returns>The hook factories, by their hook type.</returns>
+        protected IEnumerable<KeyValuePair<Type, IEnumerable<IMigrationHookFactory>>> GetFactories()
+        {
+            foreach (var kvp in _factoriesByType)
+            {
+                yield return new KeyValuePair<Type, IEnumerable<IMigrationHookFactory>>(kvp.Key, kvp.Value);
+            }
+        }
+    }
+}

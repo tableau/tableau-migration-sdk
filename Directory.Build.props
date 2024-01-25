@@ -1,0 +1,12 @@
+<Project>
+	<PropertyGroup>
+		<LangVersion>12.0</LangVersion>
+		<Nullable>enable</Nullable>
+		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+		<Version>0.5.0</Version>
+		<Authors>Tableau Software, LLC</Authors>
+		<Company>Tableau Software, LLC</Company>
+		<Copyright>Copyright (c) 2023, Tableau Software, LLC and its licensors</Copyright>
+	</PropertyGroup>
+</Project>

@@ -1,0 +1,185 @@
+﻿using System.IO.Abstractions;
+using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
+using Tableau.Migration.Api;
+using Tableau.Migration.Api.Permissions;
+using Tableau.Migration.Api.Search;
+using Tableau.Migration.Api.Tags;
+using Tableau.Migration.Config;
+using Tableau.Migration.Content;
+using Tableau.Migration.Content.Files;
+using Tableau.Migration.Content.Search;
+using Tableau.Migration.Net;
+using Xunit;
+
+namespace Tableau.Migration.Tests.Unit.Api
+{
+    public class IServiceCollectionExtensionsTests
+    {
+        public class AddMigrationApiClient : IServiceCollectionExtensionsTestBase
+        {
+            protected override void ConfigureServices(IServiceCollection services)
+            {
+                services
+                    .AddLocalization()
+                    .AddSharedResourcesLocalization()
+                    .AddMigrationApiClient();
+            }
+
+            protected AsyncServiceScope InitializeApiScope(TableauSiteConnectionConfiguration? config = null,
+                IContentReferenceFinderFactory? finderFactoryOverride = null)
+            {
+                config ??= Create<TableauSiteConnectionConfiguration>();
+                var scope = ServiceProvider.CreateAsyncScope();
+
+                var input = scope.ServiceProvider.GetRequiredService<IApiClientInputInitializer>();
+                input.Initialize(config.Value, finderFactoryOverride);
+
+                return scope;
+            }
+
+            [Fact]
+            public async Task Registers_expected_services()
+            {
+                await AssertServiceAsync<IFileSystem, FileSystem>(ServiceLifetime.Singleton);
+                await AssertServiceAsync<ITaskDelayer, TaskDelayer>(ServiceLifetime.Singleton);
+                await AssertServiceAsync<IPermissionsApiClientFactory, PermissionsApiClientFactory>(ServiceLifetime.Scoped);
+                await AssertServiceAsync<ITagsApiClientFactory, TagsApiClientFactory>(ServiceLifetime.Scoped);
+            }
+
+            [Fact]
+            public async Task RegistersScopedApiClientInputAndInitializer()
+            {
+                await using var scope1 = ServiceProvider.CreateAsyncScope();
+                await using var scope2 = ServiceProvider.CreateAsyncScope();
+
+                var concreteInput1 = scope1.ServiceProvider.GetRequiredService<ApiClientInput>();
+                var concreteInputRepeat = scope1.ServiceProvider.GetRequiredService<ApiClientInput>();
+                var concreteInput2 = scope2.ServiceProvider.GetRequiredService<ApiClientInput>();
+
+                Assert.Same(concreteInput1, concreteInputRepeat);
+                Assert.NotSame(concreteInput1, concreteInput2);
+
+                var interfaceInput1 = scope1.ServiceProvider.GetRequiredService<IApiClientInput>();
+                var interfaceInputRepeat = scope1.ServiceProvider.GetRequiredService<IApiClientInput>();
+                var interfaceInput2 = scope2.ServiceProvider.GetRequiredService<IApiClientInput>();
+
+                Assert.Same(interfaceInput1, interfaceInputRepeat);
+                Assert.NotSame(interfaceInput2, interfaceInput1);
+
+                Assert.Same(concreteInput1, interfaceInput1);
+                Assert.Same(concreteInput2, interfaceInput2);
+
+                var initializer1 = scope1.ServiceProvider.GetRequiredService<IApiClientInputInitializer>();
+                var initializerRepeat = scope1.ServiceProvider.GetRequiredService<IApiClientInputInitializer>();
+                var initializer2 = scope2.ServiceProvider.GetRequiredService<IApiClientInputInitializer>();
+
+                Assert.Same(initializer1, initializerRepeat);
+                Assert.NotSame(initializer2, initializer1);
+
+                Assert.Same(concreteInput1, initializer1);
+                Assert.Same(concreteInput2, initializer2);
+            }
+
+            [Fact]
+            public async Task RegistersTransientApiClients()
+            {
+                await using var scope = InitializeApiScope();
+
+                AssertService<IApiClient, ApiClient>(scope, ServiceLifetime.Transient);
+                AssertService<IDataSourcesApiClient, DataSourcesApiClient>(scope, ServiceLifetime.Transient);
+                AssertService<IGroupsApiClient, GroupsApiClient>(scope, ServiceLifetime.Transient);
+                AssertService<IJobsApiClient, JobsApiClient>(scope, ServiceLifetime.Transient);
+                AssertService<IProjectsApiClient, ProjectsApiClient>(scope, ServiceLifetime.Transient);
+                AssertService<ISitesApiClient, SitesApiClient>(scope, ServiceLifetime.Transient);
+                AssertService<IUsersApiClient, UsersApiClient>(scope, ServiceLifetime.Transient);
+                AssertService<IWorkbooksApiClient, WorkbooksApiClient>(scope, ServiceLifetime.Transient);
+                AssertService<IViewsApiClient, ViewsApiClient>(scope, ServiceLifetime.Transient);
+            }
+
+            [Fact]
+            public async Task RegistersScopedApiFinderFactoryAsync()
+            {
+                await AssertServiceAsync<ApiContentReferenceFinderFactory>(ServiceLifetime.Scoped);
+            }
+
+            [Fact]
+            public async Task RegistersScopedBulkContentCacheAsync()
+            {
+                await using var scope = InitializeApiScope();
+
+                AssertService<BulkApiContentReferenceCache<IProject>>(scope, ServiceLifetime.Scoped);
+            }
+
+            [Fact]
+            public async Task FinderFactoryRedirectFromInputAsync()
+            {
+                await using var scope = InitializeApiScope();
+
+                var apiInput = scope.ServiceProvider.GetRequiredService<IApiClientInput>();
+                var finderFactory = scope.ServiceProvider.GetRequiredService<IContentReferenceFinderFactory>();
+
+                Assert.Same(apiInput.ContentReferenceFinderFactory, finderFactory);
+            }
+
+            [Fact]
+            public void Adds_http_services_if_not_previously_added()
+            {
+                using var serviceProvider = new ServiceCollection()
+                    .AddLocalization()
+                    .AddSharedResourcesLocalization()
+                    .AddMigrationApiClient()
+                    .BuildServiceProvider();
+
+                Assert.NotNull(serviceProvider.GetService<IHttpClient>());
+            }
+
+            [Fact]
+            public async void Uses_existing_DefaultPermissionsContentTypeOptions()
+            {
+                var existingOptions = new DefaultPermissionsContentTypeOptions();
+
+                Services.AddScoped(_ => existingOptions);
+
+                await using var scope = ServiceProvider.CreateAsyncScope();
+
+                var options = scope.ServiceProvider.GetService<DefaultPermissionsContentTypeOptions>();
+
+                Assert.NotNull(options);
+                Assert.IsType<DefaultPermissionsContentTypeOptions>(options);
+                Assert.Same(existingOptions, options);
+            }
+
+            [Fact]
+            public async Task RegistersSingletonPathResolver()
+            {
+                await AssertServiceAsync<IContentFilePathResolver, ContentTypeFilePathResolver>(ServiceLifetime.Singleton);
+            }
+
+            [Fact]
+            public async Task RegistersSingletonEncryptionFactory()
+            {
+                await AssertServiceAsync<ISymmetricEncryptionFactory, Aes256EncryptionFactory>(ServiceLifetime.Singleton);
+            }
+
+            [Fact]
+            public async Task RegistersScopedTempFileStoreAsync()
+            {
+                await using var scope = InitializeApiScope();
+
+                AssertService<TemporaryDirectoryContentFileStore>(scope, ServiceLifetime.Scoped);
+            }
+
+            [Fact]
+            public async Task FileStoreRedirectFromInputAsync()
+            {
+                await using var scope = InitializeApiScope();
+
+                var apiInput = scope.ServiceProvider.GetRequiredService<IApiClientInput>();
+                var contentFileStore = scope.ServiceProvider.GetRequiredService<IContentFileStore>();
+
+                Assert.Same(apiInput.FileStore, contentFileStore);
+            }
+        }
+    }
+}

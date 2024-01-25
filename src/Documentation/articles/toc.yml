@@ -1,0 +1,23 @@
+- name: Introduction
+  href: intro.md
+- name: Configuration
+  href: configuration.md  
+- name: Advanced Configuration
+  items:
+  - name: Hooks
+    href: advanced_config/hooks/index.md  
+    items:
+    - name: Custom Hooks
+      href: advanced_config/hooks/custom_hooks.md
+    - name: Hooks in Python
+      href: advanced_config/hooks/python_hooks.md         
+  - name: User Authentication
+    href: advanced_config/user_authentication.md
+- name: Logging
+  href: logging.md  
+- name: Dependency Injection
+  href: dependency_injection.md
+- name: Python Wrapper
+  href: python_wrapper.md    
+- name: Troubleshooting
+  href: troubleshooting.md  

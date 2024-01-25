@@ -1,0 +1,105 @@
+﻿using System;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using Tableau.Migration.Api.Rest.Models;
+using Tableau.Migration.Api.Rest.Models.Responses;
+
+namespace Tableau.Migration.Net
+{
+    internal class HttpContentSerializer : IHttpContentSerializer
+    {
+        public static readonly HttpContentSerializer Instance = new(TableauSerializer.Instance);
+
+        private readonly ITableauSerializer _serializer;
+
+        public HttpContentSerializer(ITableauSerializer serializer)
+        {
+            _serializer = serializer;
+        }
+
+        public virtual async Task<T?> DeserializeAsync<T>(HttpContent content, CancellationToken cancel)
+        {
+            var data = default(T);
+
+            if (content.IsXmlContent())
+            {
+                var stringContent = await content.ReadAsEncodedStringAsync(cancel).ConfigureAwait(false);
+
+                if (stringContent is null || stringContent.Length == 0)
+                    return data;
+
+                data = _serializer.DeserializeFromXml<T>(stringContent);
+            }
+            else if (content.IsJsonContent())
+            {
+                //UF8 deserialization is much faster and common enough to special-case.
+                if (content.IsUtf8Content())
+                {
+                    var utf8Data = await content.ReadAsByteArrayAsync(cancel).ConfigureAwait(false);
+                    return _serializer.DeserializeFromJson<T>(utf8Data);
+                }
+                else
+                {
+                    var stringContent = await content.ReadAsEncodedStringAsync(cancel).ConfigureAwait(false);
+
+                    if (stringContent is null || stringContent.Length == 0)
+                        return data;
+
+                    return _serializer.DeserializeFromJson<T>(stringContent);
+                }
+            }
+            else
+            {
+                throw new NotSupportedException($"Content Type {content.Headers.ContentType?.MediaType ?? "<null>"} not supported");
+            }
+
+            return data;
+        }
+
+        public virtual StringContent? Serialize<TContent>(TContent content, MediaTypeWithQualityHeaderValue contentType)
+            where TContent : class
+        {
+            string? stringContent = null;
+
+            if (contentType.IsXml())
+            {
+                stringContent = _serializer.SerializeToXml(content);
+            }
+            else if (contentType.IsJson())
+            {
+                stringContent = _serializer.SerializeToJson(content);
+            }
+
+            if (stringContent is null)
+                return null;
+
+#if NET7_0_OR_GREATER
+            return new StringContent(stringContent, Encoding.UTF8, contentType);
+#else
+            return new StringContent(stringContent, Encoding.UTF8, contentType.MediaType);
+#endif
+        }
+
+        public virtual async Task<Error?> TryDeserializeErrorAsync(HttpContent content, CancellationToken cancel)
+        {
+            if (content is null || (content.Headers?.ContentLength ?? 0) == 0)
+                return null;
+
+            EmptyTableauServerResponse? tsResponse = null;
+
+            try
+            {
+                tsResponse = await DeserializeAsync<EmptyTableauServerResponse>(content, cancel).ConfigureAwait(false);
+            }
+            catch (Exception)
+            {
+                // No-op, deserialization failures are fine here since it might not be a TableauServerResponse at all.
+            }
+
+            return tsResponse?.Error;
+        }
+    }
+}

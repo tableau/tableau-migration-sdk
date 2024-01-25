@@ -1,0 +1,100 @@
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>be5883a2-623a-417d-80ce-013425d26482</ProjectGuid>
+    <ProjectHome>.</ProjectHome>
+    <StartupFile>
+    </StartupFile>
+    <WorkingDirectory>.</WorkingDirectory>
+    <OutputPath>.</OutputPath>
+    <Name>Python</Name>
+    <RootNamespace>Python</RootNamespace>
+    <InterpreterId>MSBuild|env|$(MSBuildProjectFullPath)</InterpreterId>
+    <TestFramework>pytest</TestFramework>
+    <UnitTestPattern>test*.py</UnitTestPattern>
+    <UnitTestRootDirectory>.</UnitTestRootDirectory>
+    <SearchPath>src</SearchPath>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <DebugSymbols>true</DebugSymbols>
+    <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <DebugSymbols>true</DebugSymbols>
+    <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Documentation\conf.py" />
+    <Compile Include="scripts\build_binaries.py" />
+    <Compile Include="scripts\build_tests.py" />
+    <Compile Include="scripts\import_modules.py" />
+    <Compile Include="src\tableau_migration\migration.py" />
+    <Compile Include="src\tableau_migration\migration_engine_hooks.py" />
+    <Compile Include="src\tableau_migration\migration_engine_hooks_filters.py" />
+    <Compile Include="src\tableau_migration\migration_engine_hooks_mappings.py" />
+    <Compile Include="src\tableau_migration\migration_engine_hooks_transformers.py" />
+    <Compile Include="src\tableau_migration\migration_engine_migrators.py" />
+    <Compile Include="src\tableau_migration\migration_engine_options.py" />
+    <Compile Include="src\tableau_migration\migration_logger.py" />
+    <Compile Include="src\tableau_migration\migration_engine.py" />
+    <Compile Include="src\tableau_migration\__init__.py" />
+    <Compile Include="tests\test_migrations_engine_hooks_filters_lifetime.py" />
+    <Compile Include="tests\test_migrations_engine_hooks_lifetime.py" />
+    <Compile Include="tests\test_migrations_engine_hooks_mappings_lifetime.py" />
+    <Compile Include="tests\test_migrations_engine_hooks_transformers.py" />
+    <Compile Include="tests\test_migrations_engine_hooks_mappings.py" />
+    <Compile Include="tests\test_migrations_engine_hooks_filters.py" />
+    <Compile Include="tests\test_migrations_engine_hooks.py" />
+    <Compile Include="tests\test_migrations_engine_hooks_transformers_lifetime.py" />
+    <Compile Include="tests\test_migrations_engine_options.py" />
+    <Compile Include="tests\test_migration_engine.py" />
+    <Compile Include="tests\test_other.py" />
+    <Compile Include="tests\__init__.py" />
+    <Compile Include="tests\test_classes.py" />
+    <Compile Include="tests\test_migration.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Documentation\index.rst" />
+    <Content Include="Documentation\make.bat" />
+    <Content Include="Documentation\Makefile" />
+    <Content Include="Documentation\_templates\custom-class-template.rst" />
+    <Content Include="Documentation\_templates\custom-module-template.rst" />
+    <Content Include="LICENSE" />
+    <Content Include="pyproject.toml" />
+    <Content Include="pytest.ini" />
+    <Content Include="README.md" />
+    <Content Include="CONTRIBUTING.md" />
+    <Content Include="DOCUMENTATION.md" />
+    <Content Include="requirements.txt" />
+    <Content Include="scripts\build-package.ps1" />
+    <Content Include="scripts\publish-package.ps1" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Documentation\_templates\" />
+    <Folder Include="scripts\" />
+    <Folder Include="tests\" />
+    <Folder Include="src\" />
+    <Folder Include="src\tableau_migration\" />
+    <Folder Include="Documentation\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Interpreter Include="env\">
+      <Id>env</Id>
+      <Version>3.11</Version>
+      <Description>env (Python 3.11 (64-bit))</Description>
+      <InterpreterPath>Scripts\python.exe</InterpreterPath>
+      <WindowsInterpreterPath>Scripts\pythonw.exe</WindowsInterpreterPath>
+      <PathEnvironmentVariable>PYTHONPATH</PathEnvironmentVariable>
+      <Architecture>X64</Architecture>
+    </Interpreter>
+  </ItemGroup>
+  <!-- Uncomment the CoreCompile target to enable the Build command in
+       Visual Studio and specify your pre- and post-build commands in
+       the BeforeBuild and AfterBuild targets below. -->
+  <Target Name="CoreCompile" />
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+</Project>
