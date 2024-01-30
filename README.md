@@ -25,10 +25,10 @@ After cloning the repo:
 - Preparing your migration
 - Migrating to Tableau Cloud
 
-[Migration SDK API References](https://help.tableau.com/current/api/migration_sdk/en-us/sdk_reference/index.html)
+[Migration SDK API References](https://tableau.github.io/migration-sdk/)
 
 ## Documentation
 
-[Contributing Guide for Migration SDK developers](https://github.com/tableau/tableau-migration-sdk/blob/main/CONTRIBUTING.md)
+[Contributing Guide for Migration SDK Developers](https://github.com/tableau/tableau-migration-sdk/blob/main/CONTRIBUTING.md)
 
 [Migration SDK Security Considerations](https://github.com/tableau/tableau-migration-sdk/blob/main/SECURITY.md)

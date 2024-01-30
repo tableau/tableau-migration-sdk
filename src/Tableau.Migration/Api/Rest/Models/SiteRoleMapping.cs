@@ -37,6 +37,7 @@ namespace Tableau.Migration.Api.Rest.Models
         /// <item><term><see cref='SiteRoles.ExplorerCanPublish'/></term><term><see cref='AdministratorLevels.None'/></term><term><see cref='LicenseLevels.Explorer'/></term> <term>TRUE</term></item>
         /// <item><term><see cref='SiteRoles.Guest'/></term><term><see cref='AdministratorLevels.None'/></term><term><see cref='LicenseLevels.Viewer'/></term> <term>FALSE</term></item>
         /// <item><term><see cref='SiteRoles.SiteAdministratorCreator'/></term><term><see cref='AdministratorLevels.Site'/></term><term><see cref='LicenseLevels.Creator'/></term> <term>TRUE</term></item>
+        /// <item><term><see cref='SiteRoles.ServerAdministrator'/></term><term><see cref='AdministratorLevels.Site'/></term><term><see cref='LicenseLevels.Creator'/></term> <term>TRUE</term></item>
         /// <item><term><see cref='SiteRoles.SiteAdministratorExplorer'/></term><term><see cref='AdministratorLevels.Site'/></term><term><see cref='LicenseLevels.Explorer'/></term> <term>TRUE</term></item>
         /// <item><term><see cref='SiteRoles.SupportUser'/></term><term><see cref='AdministratorLevels.None'/></term><term><see cref='LicenseLevels.Viewer'/></term> <term>FALSE</term></item>
         /// <item><term><see cref='SiteRoles.Unlicensed'/></term><term><see cref='AdministratorLevels.None'/></term><term><see cref='LicenseLevels.Unlicensed'/></term> <term>FALSE</term></item>
@@ -47,6 +48,7 @@ namespace Tableau.Migration.Api.Rest.Models
         {
             new SiteRoleMappingItem(SiteRoles.SiteAdministratorExplorer, AdministratorLevels.Site, LicenseLevels.Explorer, true),
             new SiteRoleMappingItem(SiteRoles.SiteAdministratorCreator, AdministratorLevels.Site, LicenseLevels.Creator, true),
+            new SiteRoleMappingItem(SiteRoles.ServerAdministrator, AdministratorLevels.Site, LicenseLevels.Creator, true),
             new SiteRoleMappingItem(SiteRoles.Creator, AdministratorLevels.None, LicenseLevels.Creator, true),
             new SiteRoleMappingItem(SiteRoles.Explorer, AdministratorLevels.None, LicenseLevels.Explorer,false),
             new SiteRoleMappingItem(SiteRoles.ExplorerCanPublish, AdministratorLevels.None, LicenseLevels.Explorer, true),
