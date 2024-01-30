@@ -176,6 +176,7 @@ appsettings.Development.json
 launchSettings.json
 UpgradeLog.htm
 *.DEV.ini
+*.DEV.json
 /src/Python/Documentation/_build
 /src/Python/Documentation/_static
 /src/Python/Python.pyproj.user
@@ -183,4 +184,5 @@ UpgradeLog.htm
 /src/Python/Documentation/generated
 /tests/Python.TestApplication/manifest.json
 /.github
+/.git2gus
 /src/Python/scripts/publish-package.ps1
