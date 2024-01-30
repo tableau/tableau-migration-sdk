@@ -20,12 +20,6 @@ Python port for the Tableau Migration SDK
 * _Optional_ for hatch: Install the required modules for run tests on the virtual environment to run tests on Visual Studio:
   * `python -m pip install -r .\requirements.txt`
 
-If things aren't working, try this
-
-1. open PowerShell to migration-sdk/src/Python
-1. If you have not installed hatch, `pytest` - and check output
-1. If you installed hatch, `hatch --version` - and check output
-
 ## Linting
 
 Linting is static code analysis. It's used a lot in Python to catch errors before the modules are run.
@@ -71,13 +65,21 @@ To generate the documentation locally:
 
 ## Testing
 
+### Prereqs
+
+* Set `MIG_SDK_PYTHON_BUILD` env variable, else it won't build the dotnet binaries for the tests
+
 All unit tests are located in the tests directory in the Python directory.
 
 Visual Studio test runner should see the Python tests and be able to run them.
 
 Python tests also run in the CI/CD pipeline on all supported OS types.
 
-To run tests manually:
+### Liftime tests
+The lifetime tests are unstable. If they crash or create too many issues, create a `SKIP_PYTHON_LIFETIME_TESTS` variable
+then the lifetime tests will be skipped.
+
+### To run tests manually
 
 * **Without hatch**:
   * Activate the virtual environment:
@@ -96,7 +98,20 @@ To run tests manually:
   * Execute tests:
     * Execute the command `python -m hatch run test:test`.
 
-## Building
+### If things aren't working, try this
+
+1. Verify the `MIG_SDK_PYTHON_BUILD` is set
+1. open PowerShell to migration-sdk/src/Python
+1. If you have not installed hatch, `pytest` - and check output
+1. If you installed hatch, `hatch --version` - and check output
+
+## Building and publishing
+
+Overriding an existing package version is not supported in `artifactory`.
+
+This script will build the package and upload it to `artifactory`. `scripts/publish-package.ps1`.
+
+Use the flag **$SkipPublish** to disable the `python -m twine upload` if you don't want to upload.
 
 To run manually the build process, execute the following commands:
 

@@ -1,0 +1,28 @@
+{
+  "source": {
+    "url": "",
+    "site_content_url": "",
+    "access_token_name": "",
+    "access_token": ""
+  },
+  "destination": {
+    "url": "",
+    "site_content_url": "",
+    "access_token_name": "",
+    "access_token": ""
+  },
+  "log": {
+    "folder_path": "",
+    "manifest_folder_path": ""
+  },
+  "test_tableau_cloud_username_options": {
+    "base_override_mail_address": "",
+    "always_override_address": true
+  },
+  "special_users": {
+    "admin_domain": "",
+    "admin_username": "",
+    "emails": [ ]
+  },
+  "previous_manifest": ""
+}

@@ -70,6 +70,7 @@ python = ["3.8", "3.9", "3.10", "3.11", "3.12"]
 [project.urls]
 "Homepage" = "http://www.tableau.com"
 "Bug Tracker" = "http://www.tableau.com"
+"Repository" = "https://github.com/tableau/tableau-migration-sdk"
 
 [tool.hatch.build]
 artifacts = [

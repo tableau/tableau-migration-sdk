@@ -3,7 +3,7 @@ using Tableau.Migration.Api;
 
 #region namespace
 
-namespace MyMigrationApplication.Config
+namespace Csharp.ExampleApplication.Config
 {
     public class EndpointOptions
     {

@@ -28,11 +28,16 @@
     <Compile Include="helper.py" />
     <Compile Include="main.py" />
     <Compile Include="migration_testcomponents_engine_manifest.py" />
+    <Compile Include="migration_testcomponents_filters.py" />
+    <Compile Include="migration_testcomponents_hooks.py" />
+    <Compile Include="migration_testcomponents_mappings.py" />
     <Compile Include="testapplication_tests\test_classes.py" />
     <Compile Include="testapplication_tests\__init__.py" />
+    <Compile Include="test_tableau_cloud_username_mapping.py" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="config*.ini" />
+    <Content Include="config.DEV.json" />
+    <Content Include="config.json" />
     <Content Include="pyproject.toml" />
     <Content Include="pytest.ini" />
     <Content Include="README.md" />

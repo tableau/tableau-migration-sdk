@@ -39,6 +39,7 @@
     <Compile Include="src\tableau_migration\migration_logger.py" />
     <Compile Include="src\tableau_migration\migration_engine.py" />
     <Compile Include="src\tableau_migration\__init__.py" />
+    <Compile Include="tests\conftest.py" />
     <Compile Include="tests\test_migrations_engine_hooks_filters_lifetime.py" />
     <Compile Include="tests\test_migrations_engine_hooks_lifetime.py" />
     <Compile Include="tests\test_migrations_engine_hooks_mappings_lifetime.py" />

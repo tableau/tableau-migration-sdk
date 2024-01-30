@@ -144,18 +144,17 @@ Content in Tab 3
 [!code-csharp[CS](../../../../examples/Csharp.ExampleApplication/MyMigrationApplication.cs#DefaultProjectsFilter-Registration)]
 ```
 
-```markdown
-[!code-python[](../../../examples/Python.ExampleApplication/Python.ExampleApplication.py#script)]
-```
-
 ##### Using line numbers
 
 > [!WARNING]
-> Use these very sparingly. When the code is edited, it can change line numbers and mess up code snippets.
+> Use these very sparingly for C#. When the code is edited, it can change line numbers and mess up code snippets.
 
 ```markdown
 [!code-csharp[CS](../../../../examples/Csharp.ExampleApplication/Hooks/Mappings/EmailDomainMapping.cs#L8-)]
 ```
+
+> [!IMPORTANT]
+> Regions do not work for Python code snippets. So, the options are to include the whole file or using line numbers.
 
 ```markdown
 [!code-python[](../../../examples/Python.ExampleApplication/Python.ExampleApplication.py#L3-)]

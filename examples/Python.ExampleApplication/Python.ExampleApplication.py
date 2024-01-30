@@ -1,16 +1,18 @@
 # This application is meant to mimic what an actual user would write
-
-#region script
-
 # This application assumes you have already installed the Tableau Migration SDK Python package.
+
 
 import configparser         # configuration parser
 import os                   # environment variables
+import tableau_migration
+from threading import Thread
 
 from tableau_migration.migration_engine import PyMigrationPlanBuilder
 from tableau_migration.migration_engine_migrators import PyMigrator
 
-if __name__ == '__main__':
+def migrate():
+    """This function does the actual migration"""
+    
     planBuilder = PyMigrationPlanBuilder()
     migration = PyMigrator()
 
@@ -41,4 +43,27 @@ if __name__ == '__main__':
 
     print("All done")
 
-#endregion    
+
+if __name__ == '__main__':
+    
+    # Create a thread that will run the migration and start it
+    migration_thread = Thread(target = migrate)
+    migration_thread.start();
+    done = False
+
+    # Create a busy-wait look to continue checking if Ctrl+C was pressed to cancel the migration
+    while not done:
+        try:
+            migration_thread.join(1)
+            sys.exit(0)
+        except KeyboardInterrupt:
+            # Ctrl+C was caught, request migration to cancel. 
+            print("Caught Ctrl+C, shutting down...")
+            
+            # This will cause the migration-sdk to cleanup and finish
+            # which will cause the thread to finish
+            tableau_migration.cancellation_token_source.Cancel()
+            
+            # Wait for the migration thread to finish and then quit the app
+            migration_thread.join()
+            done = True

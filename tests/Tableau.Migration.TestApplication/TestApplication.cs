@@ -1,18 +1,38 @@
-﻿using System;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
+﻿// Copyright (c) 2023, Salesforce, Inc.
+//  SPDX-License-Identifier: Apache-2
+//  
+//  Licensed under the Apache License, Version 2.0 (the ""License"") 
+//  you may not use this file except in compliance with the License.
+//  You may obtain a copy of the License at
+//  
+//  http://www.apache.org/licenses/LICENSE-2.0
+//  
+//  Unless required by applicable law or agreed to in writing, software
+//  distributed under the License is distributed on an ""AS IS"" BASIS,
+//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//  See the License for the specific language governing permissions and
+//  limitations under the License.
+//
+
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using System;
+using System.Diagnostics;
+using System.Linq;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using Tableau.Migration.Content;
 using Tableau.Migration.Engine.Pipelines;
 using Tableau.Migration.TestApplication.Config;
 using Tableau.Migration.TestComponents.Engine.Manifest;
-using Tableau.Migration.TestComponents.Hooks.Mappings;
+using Tableau.Migration.TestApplication.Hooks;
+using Tableau.Migration.Engine.Manifest;
 
 namespace Tableau.Migration.TestApplication
 {
+
     internal sealed class TestApplication : IHostedService
     {
         private readonly Stopwatch _timer;
@@ -43,42 +63,72 @@ namespace Tableau.Migration.TestApplication
 
         public async Task StartAsync(CancellationToken cancel)
         {
-            var manifestFilepath = @"C:\temp\Manifest.json";
+            var manifestFilepath = $@"{_options.Log.FolderPath}\Manifest-{Program.StartTime.ToString("yyyy-MM-dd-HH-mm-ss")}.json"; 
 
-            var startTime = DateTime.UtcNow;
-            _timer.Start();
-
+            Console.WriteLine("Starting app");
+            _logger.LogInformation("Starting app log");
+            
             _planBuilder = _planBuilder
                 .FromSourceTableauServer(_options.Source.ServerUrl, _options.Source.SiteContentUrl, _options.Source.AccessTokenName, Environment.GetEnvironmentVariable("TABLEAU_MIGRATION_SOURCE_TOKEN") ?? string.Empty)
                 .ToDestinationTableauCloud(_options.Destination.ServerUrl, _options.Destination.SiteContentUrl, _options.Destination.AccessTokenName, Environment.GetEnvironmentVariable("TABLEAU_MIGRATION_DESTINATION_TOKEN") ?? string.Empty)
-                .ForServerToCloud()
-                .WithTableauIdAuthenticationType()
-                .WithTableauCloudUsernames<TestTableauCloudUsernameMapping>();
+                .ForServerToCloud();
 
-            var plan = _planBuilder.Build();
+            
+            if(_options.Destination.SiteContentUrl != "")
+            { // Most likely means it's a Cloud site not a Server
+                _planBuilder = ((IServerToCloudMigrationPlanBuilder)_planBuilder)
+                    .WithTableauIdAuthenticationType()
+                    .WithTableauCloudUsernames<TestTableauCloudUsernameMapping>();
 
-            var manifest = await _manifestSerializer.LoadAsync(manifestFilepath, cancel);
-            if (manifest is not null)
-            {
-                ConsoleKey key;
-                do
-                {
-                    Console.Write($"Existing Manifest found at {manifestFilepath}. Should it be used? [Y/n] ");
-                    key = Console.ReadKey().Key;
-                    Console.WriteLine(); // make Console logs prettier
-                } while (key is not ConsoleKey.Enter && key is not ConsoleKey.Y && key is not ConsoleKey.N);
-
-                if (key is ConsoleKey.N)
-                    manifest = null;
+                _planBuilder.Filters.Add<UnlicensedUserFilter, IUser>();
+            }
+            else
+            { // Most likely means it's a Server
+                _planBuilder.Filters.Add<NonDomainUserFilter, IUser>();
             }
 
-            var result = await _migrator.ExecuteAsync(plan, manifest, cancel);
+            // A user has non-ASCII names in their username, which causes issues for now. 
+            // Filtering to make it past the issue.
+            _planBuilder.Filters.Add<SpecialUserFilter, IUser>();
+            _planBuilder.Mappings.Add<SpecialUserMapping, IUser>();
+
+            // Map unlicensed users to single admin
+            _planBuilder.Mappings.Add<UnlicensedUserMapping, IUser>();
+
+            // Save manifest every every batch of every content type
+            _planBuilder.Hooks.Add<SaveManifestAfterBatchMigrationCompletedHook<IUser>>();
+            _planBuilder.Hooks.Add<SaveManifestAfterBatchMigrationCompletedHook<IGroup>>();
+            _planBuilder.Hooks.Add<SaveManifestAfterBatchMigrationCompletedHook<IProject>>();
+            _planBuilder.Hooks.Add<SaveManifestAfterBatchMigrationCompletedHook<IDataSource>>();
+            _planBuilder.Hooks.Add<SaveManifestAfterBatchMigrationCompletedHook<IWorkbook>>();
+
+            // Log when a content type is done
+            _planBuilder.Hooks.Add<TimeLoggerAfterActionHook>();
+
+            // Skip content types we've already done. 
+            // Uncomment as needed
+            //_planBuilder.Filters.Add(new SkipFilter<IUser>());
+            //_planBuilder.Filters.Add(new SkipFilter<IGroup>());
+            //_planBuilder.Filters.Add(new SkipFilter<IProject>());
+            //_planBuilder.Filters.Add(new SkipFilter<IDataSource>());
+            //_planBuilder.Filters.Add(new SkipFilter<IWorkbook>());
+
+            var prevManifest = await LoadManifest(_options.PreviousManifestPath, cancel);
+
+            // Start timer 
+            var startTime = DateTime.UtcNow;
+            _timer.Start();
+
+            // Build plan
+            var plan = _planBuilder.Build();
+
+            // Execute plan
+            var result = await _migrator.ExecuteAsync(plan, prevManifest, cancel);
 
             _timer.Stop();
 
+            await _manifestSerializer.SaveAsync(result.Manifest, manifestFilepath);
             PrintResult(result);
-
-            await _manifestSerializer.SaveAsync(result.Manifest, manifestFilepath, cancel);
 
             _logger.LogInformation($"Migration Started: {startTime}");
             _logger.LogInformation($"Migration Finished: {DateTime.UtcNow}");
@@ -95,39 +145,55 @@ namespace Tableau.Migration.TestApplication
         {
             _logger.LogInformation($"Result: {result.Status}");
 
-            if (result.Manifest.Errors.Any())
-            {
-                _logger.LogError("## Errors detected! ##");
-                foreach (var error in result.Manifest.Errors)
-                {
-                    _logger.LogError(error, "Processing Error.");
-                }
-            }
-
+            // Print out total results
             foreach (var type in ServerToCloudMigrationPipeline.ContentTypes)
             {
                 var contentType = type.ContentType;
 
-                _logger.LogInformation($"## {contentType.Name} ##");
-                foreach (var entry in result.Manifest.Entries.ForContentType(contentType))
-                {
-                    _logger.LogInformation($"{contentType.Name} {entry.Source.Location} Migration Status: {entry.Status}");
+                var typeResult = result.Manifest.Entries.ForContentType(contentType);
 
-                    if (entry.Errors.Any())
-                    {
-                        _logger.LogError($"## {contentType.Name} Errors detected! ##");
-                        foreach (var error in entry.Errors)
-                        {
-                            _logger.LogError(error, "Processing Error.");
-                        }
-                    }
+                var countTotal = typeResult.Count;
+                var countMigrated = typeResult.Where(x => x.Status == Engine.Manifest.MigrationManifestEntryStatus.Migrated).Count();
+                var countSkipped = typeResult.Where(x => x.Status == Engine.Manifest.MigrationManifestEntryStatus.Skipped).Count();
+                var countErrored = typeResult.Where(x => x.Status == Engine.Manifest.MigrationManifestEntryStatus.Error).Count();
+                var countCancelled = typeResult.Where(x => x.Status == Engine.Manifest.MigrationManifestEntryStatus.Canceled).Count();
+                var countPending = typeResult.Where(x => x.Status == Engine.Manifest.MigrationManifestEntryStatus.Pending).Count();
 
-                    if (entry.Destination is not null)
-                    {
-                        _logger.LogInformation($"{contentType.Name} {entry.Source.Location} migrated to {entry.Destination.Location}");
-                    }
-                }
+                StringBuilder sb = new StringBuilder();
+                sb.AppendLine($"{contentType.Name}");
+                sb.AppendLine($"\t{countMigrated}/{countTotal} succeeded");
+                sb.AppendLine($"\t{countSkipped}/{countTotal} skipped");
+                sb.AppendLine($"\t{countErrored}/{countTotal} errored");
+                sb.AppendLine($"\t{countCancelled}/{countTotal} cancelled");
+                sb.AppendLine($"\t{countPending}/{countTotal} pending");
+
+                _logger.LogInformation(sb.ToString());
             }
+        }
+
+        private async Task<MigrationManifest?> LoadManifest(string manifestFilepath, CancellationToken cancel)
+        {
+            var manifest = await _manifestSerializer.LoadAsync(manifestFilepath, cancel);
+            if (manifest is not null)
+            {
+                ConsoleKey key;
+                do
+                {
+                    Console.Write($"Existing Manifest found at {manifestFilepath}. Should it be used? [Y/n] ");
+                    key = Console.ReadKey().Key;
+                    Console.WriteLine(); // make Console logs prettier
+                } while (key is not ConsoleKey.Enter && key is not ConsoleKey.Y && key is not ConsoleKey.N);
+
+                if (key is ConsoleKey.N)
+                {
+                    return null;
+                }
+
+                _logger.LogInformation($"Using previous manifest from {manifestFilepath}");
+                return manifest;
+            }
+
+            return null;
         }
     }
 }

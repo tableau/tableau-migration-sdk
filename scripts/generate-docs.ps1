@@ -1,3 +1,20 @@
+<# 
+Copyright (c) 2023, Salesforce, Inc.
+SPDX-License-Identifier: Apache-2
+
+Licensed under the Apache License, Version 2.0 (the ""License"") 
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an ""AS IS"" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+#>
+
 <#
 .SYNOPSIS
 	Generate Python and C# documentation.
@@ -56,6 +73,9 @@ function Clear-Directory {
 #>
 	if ($SkipPreClean) {
 		Write-Host("Skipping directory clean since SkipPreClean flag is on: " + $path)
+	}
+	elseif (-Not (Test-Path $path)) {
+		Write-Host("Skipping directory clean since the folder does not exist: " + $path)
 	}
 	else {
 		Write-Host("Cleaning directory: " + $path)
@@ -141,20 +161,21 @@ function Write-Final-Docs {
 
 	# Docfx related paths
 	$docfx_config_path = Join-Path $main_docs_dir "docfx.json"
-	$docfx_cmd = "dotnet docfx $docfx_config_path  -t statictoc,templates\tableau --logLevel warning"
+	$docfx_cmd = "dotnet docfx $docfx_config_path -t statictoc,templates\tableau --logLevel warning"
 
 	# Run the docfx command to generate the final output	
 	if ($Serve) {
 		Write-Host("Generating final documentation output and hosting it locally.") 
 		& Run-Command ($docfx_cmd + " --serve") 
-		& Write-Host("Finished: Documentation generated and hosted.") 
+		& Write-Host-With-Timestamp("Finished: Documentation generated and hosted.") 
 	}
 	else {
 		$docs_output_dir = Join-Path (Split-Path $PSScriptRoot -Parent) "docs"
 
 		Write-Host("Generating final documentation output.")	
+		& Run-Command ("Clear-Directory -Path $docs_output_dir")	
 		& Run-Command ($docfx_cmd)
-		& Write-Host("Finished: API Reference documentation has been generated to : " + $docs_output_dir) 
+		& Write-Host-With-Timestamp("Finished: API Reference documentation has been generated to: " + $docs_output_dir) 
 	}
 	if ($LASTEXITCODE -ne 0) {
 		Throw "Failed: Generating final documentation output."
@@ -167,6 +188,13 @@ function Format-Console {
 	PROCESS { 
 		Write-Host "     $inputObject"
 	}
+}
+
+function Write-Host-With-Timestamp {
+	param([string]$message)
+
+	$timestamp = Get-Date -Format "MM/dd/yyyy HH:mm:ss"
+	Write-Host "${timestamp}: ${message}"
 }
 
 Restore-Tools && Write-Python-docs && Copy-Python-Docs && Write-Python-Docs-Toc && Write-Final-Docs

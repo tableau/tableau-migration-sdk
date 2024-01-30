@@ -123,6 +123,15 @@
   <data name="AuthenticationTypeDomainMappingValidationMessage" xml:space="preserve">
     <value>An authentication type domain mapping is required for server to cloud migrations.</value>
   </data>
+  <data name="ContentFilterBaseDebugMessage" xml:space="preserve">
+    <value>{TypeName} filtered {ContentItem}</value>
+  </data>
+  <data name="ContentMappingBaseDebugMessage" xml:space="preserve">
+    <value>{TypeName} mapped {ContentItem} to {MappedLocation}</value>
+  </data>
+  <data name="ContentTransformerBaseDebugMessage" xml:space="preserve">
+    <value>{TypeName} transformed {ContentItem}</value>
+  </data>
   <data name="EndpointInitializationError" xml:space="preserve">
     <value>One or more endpoints could not be initialized. Migration cannot start.</value>
   </data>
@@ -131,6 +140,12 @@
   </data>
   <data name="FileEncryptionDisabledLogMessage" xml:space="preserve">
     <value>File encryption is disabled and should be re-enabled for production migrations.</value>
+  </data>
+  <data name="GroupUsersTransformerCannotMapWarning" xml:space="preserve">
+    <value>Group {GroupName} cannot map {UserLocation}</value>
+  </data>
+  <data name="GroupUsersTransformerMessage" xml:space="preserve">
+    <value>Group {GroupName} cannot map {UserLocation}</value>
   </data>
   <data name="InvalidTransformerPublishTypeValidationMessage" xml:space="preserve">
     <value>Migration transformer for publish type {0} is not supported by the migration pipeline. Did you mean {1}? Count: {2}</value>

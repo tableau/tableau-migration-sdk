@@ -1,3 +1,18 @@
+# Copyright (c) 2023, Salesforce, Inc.
+# SPDX-License-Identifier: Apache-2
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 # Make sure the test can find the module
 import pytest
 from tableau_migration.migration import get_service
@@ -36,7 +51,7 @@ class TestContentMappingBuilderLifetimeTests():
         del TestContentMappingBuilderLifetimeTests.SubMappingImplementation
         del TestContentMappingBuilderLifetimeTests.MappingImplementation
         
-    def test_lifetime_buildandcreate_object(self):
+    def test_lifetime_buildandcreate_object(self, skip_by_python_lifetime_env_var):
         try:
             # Arrange
             provider = ServiceCollectionContainerBuilderExtensions.BuildServiceProvider(ServiceCollection())
@@ -69,7 +84,7 @@ class TestContentMappingBuilderLifetimeTests():
         finally:
             provider.Dispose()
 
-    def test_lifetime_buildandcreate_noinitializersingleton(self):
+    def test_lifetime_buildandcreate_noinitializersingleton(self, skip_by_python_lifetime_env_var):
         try:
             # Arrange
             servicecollection = ServiceCollection()
@@ -101,7 +116,7 @@ class TestContentMappingBuilderLifetimeTests():
         finally:
             provider.Dispose()
 
-    def test_lifetime_buildandcreate_noinitializerscoped(self):
+    def test_lifetime_buildandcreate_noinitializerscoped(self, skip_by_python_lifetime_env_var):
         try:
             # Arrange
             servicecollection = ServiceCollection()
@@ -132,7 +147,7 @@ class TestContentMappingBuilderLifetimeTests():
         finally:
             provider.Dispose()
 
-    def test_lifetime_buildandcreate_noinitializertransient(self):
+    def test_lifetime_buildandcreate_noinitializertransient(self, skip_by_python_lifetime_env_var):
         try:
             # Arrange
             servicecollection = ServiceCollection()
@@ -162,7 +177,7 @@ class TestContentMappingBuilderLifetimeTests():
         finally:
             provider.Dispose()
 
-    def test_lifetime_buildandcreate_initializerobjectreference(self):
+    def test_lifetime_buildandcreate_initializerobjectreference(self, skip_by_python_lifetime_env_var):
         try:
             # Arrange
             hook = TestContentMappingBuilderLifetimeTests.SubMappingImplementation()
@@ -195,7 +210,7 @@ class TestContentMappingBuilderLifetimeTests():
         finally:
             provider.Dispose()
 
-    def test_lifetime_buildandcreate_initializernewobject(self):
+    def test_lifetime_buildandcreate_initializernewobject(self, skip_by_python_lifetime_env_var):
         try:
             # Arrange
             def subsubclassinitialize(provider: IServiceProvider):
@@ -225,7 +240,7 @@ class TestContentMappingBuilderLifetimeTests():
         finally:
             provider.Dispose()
 
-    def test_lifetime_buildandcreate_initializersingleton(self):
+    def test_lifetime_buildandcreate_initializersingleton(self, skip_by_python_lifetime_env_var):
         try:
             # Arrange
             def subsubclassinitialize(provider: IServiceProvider):
@@ -259,7 +274,7 @@ class TestContentMappingBuilderLifetimeTests():
         finally:
             provider.Dispose()
 
-    def test_lifetime_buildandcreate_initializerscoped(self):
+    def test_lifetime_buildandcreate_initializerscoped(self, skip_by_python_lifetime_env_var):
         try:
             # Arrange
             def classinitialize(provider: IServiceProvider):
@@ -292,7 +307,7 @@ class TestContentMappingBuilderLifetimeTests():
         finally:
             provider.Dispose()
 
-    def test_lifetime_buildandcreate_initializertransient(self):
+    def test_lifetime_buildandcreate_initializertransient(self, skip_by_python_lifetime_env_var):
         try:
             # Arrange
             def subclassinitialize(provider: IServiceProvider):
@@ -324,7 +339,7 @@ class TestContentMappingBuilderLifetimeTests():
         finally:
             provider.Dispose()
 
-    def test_lifetime_buildandcreate_callback(self):
+    def test_lifetime_buildandcreate_callback(self, skip_by_python_lifetime_env_var):
         try:
             # Arrange
             def classcallback(context: ContentMappingContext[IProject]):

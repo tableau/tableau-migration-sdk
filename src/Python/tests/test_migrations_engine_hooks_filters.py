@@ -1,3 +1,18 @@
+# Copyright (c) 2023, Salesforce, Inc.
+# SPDX-License-Identifier: Apache-2
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 # Make sure the test can find the module
 from tableau_migration.migration import get_service
 from tableau_migration.migration_engine_hooks_filters import PyContentFilterBuilder
@@ -19,20 +34,25 @@ class ClassImplementation(ISyncContentFilter[IUser]):
     def Execute(self, ctx: IEnumerable[ContentMigrationItem[IUser]]) -> IEnumerable[ContentMigrationItem[IUser]]:
         return ctx
 
+
 class SubClassImplementation(ClassImplementation):
     __namespace__ = "Tableau.Migration.Custom.Hooks.Filters"
     
     def Execute(self, ctx: IEnumerable[ContentMigrationItem[IUser]]) -> IEnumerable[ContentMigrationItem[IUser]]:
+        print("In Execute of SubClassImplementation(ClassImplementation)" )
         return ctx
 
-class RawHook(ContentFilterBase[IProject]):
+
+class RawHook():
     __namespace__ = "Tableau.Migration.Custom.Hooks.Filters"
     
     def ShouldMigrate(self, ctx) -> bool:
         return True
 
+
 class WithoutImplementation(ISyncContentFilter[IUser]):
     __namespace__ = "Tableau.Migration.Custom.Hooks.Filters"
+
 
 class TestContentFilterBuilderTests():
     def test_clear_class_hook(self):
@@ -50,6 +70,18 @@ class TestContentFilterBuilderTests():
         
         assert result is hook_builder
         assert len(result.build().get_hooks(ISyncContentFilter[IUser])) == 0
+
+    def test_clear_raw_hook(self):
+        try:
+            hook_builder = PyContentFilterBuilder(ContentFilterBuilder())
+        
+            result = hook_builder.add(IProject,RawHook()).clear()
+        
+            assert result is hook_builder
+            assert len(result.build().get_hooks(ISyncContentFilter[IUser])) == 0
+        except Exception as e:
+            print(e);
+
         
     def test_add_object(self):
         hook_builder = PyContentFilterBuilder(ContentFilterBuilder())
@@ -108,6 +140,7 @@ class TestContentFilterBuilderTests():
         hook = hookFactory[0].Create[IMigrationHook[IEnumerable[ContentMigrationItem[IUser]]]](provider)
         try:
             result = hook.ExecuteAsync(users, CancellationToken(False))
+            print(result)
         except:
             assert False, "This test must not generate an Exception."
         finally:

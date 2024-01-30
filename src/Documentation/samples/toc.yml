@@ -4,9 +4,7 @@
   href: csharp.md
 - name: Getting Started (Python)
   href: python.md
-- name: Hooks
+- name: Samples
   items:
-  - name: Sample EmailDomainMapping
-    href: hooks/username_email_mapping.md
-  - name: Sample Filters
-    href: hooks/filters.md
+  - name: Hooks
+    href: hooks/toc.yml

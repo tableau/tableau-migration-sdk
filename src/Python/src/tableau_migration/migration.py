@@ -1,3 +1,18 @@
+# Copyright (c) 2023, Salesforce, Inc.
+# SPDX-License-Identifier: Apache-2
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 """Wrapper for classes in Tableau.Migration namespace.
 
 Also any method required to start the sdk
@@ -70,22 +85,22 @@ def get_service_provider() -> ServiceProvider:
 
 def _initialize() -> ServiceProvider:
     """Initializes the DI container and returns the services provider."""
-    tableau_migration._services = _get_service_provider()
-    return get_service_provider()
-
-def _get_service_provider() -> ServiceProvider:
-    """Gets the IServiceProvider with the Migration SDK registered."""
     tableau_migration._service_collection = ServiceCollection()
-    _configure_services(tableau_migration._service_collection)
+    _configure_services(tableau_migration._service_collection) # moving to init
+    tableau_migration._services = _build_service_provider()
+    return tableau_migration._services
 
-    return ServiceCollectionContainerBuilderExtensions.BuildServiceProvider(tableau_migration._service_collection)
+def _build_service_provider() -> ServiceProvider:
+    """Gets the IServiceProvider with the Migration SDK registered."""
+    tableau_migration._services = ServiceCollectionContainerBuilderExtensions.BuildServiceProvider(tableau_migration._service_collection)
+    return tableau_migration._services
 
 
-def _configure_services(services: IServiceCollection) -> None:
+def _configure_services(service_collection: IServiceCollection) -> None:
     """Adds migration sdk and python logger to DI."""
     # Create the python logging provider so it's available from the beginning
-    MigrationSCE.AddTableauMigrationSdk(services)
-    InteropSCE.AddPythonSupport(services, System.Func[System.IServiceProvider, NonGenericLoggerProvider](_get_new_python_logging_provider_delegate))
+    MigrationSCE.AddTableauMigrationSdk(service_collection)
+    InteropSCE.AddPythonSupport(service_collection, System.Func[System.IServiceProvider, NonGenericLoggerProvider](_get_new_python_logging_provider_delegate))
 
 
 def _get_new_python_logging_provider_delegate(services: IServiceCollection):
@@ -130,7 +145,10 @@ class PyMigrationManifest():
 
     def __init__(self, migration_manifest: IMigrationManifestEditor) -> None:
         """Default init.
-        
+
+        Args:
+            migration_manifest: IMigrationManifest that can be edited
+            
         Returns: None.
         """
         self._migration_manifest = migration_manifest
@@ -187,6 +205,9 @@ class PyMigrationResult():
 
     def __init__(self, migration_result: MigrationResult) -> None:
         """Default init.
+
+        Args:
+            migration_result: Interface for a result of a migration.
         
         Returns: None.
         """
@@ -209,6 +230,9 @@ class PyResult():
         
     def __init__(self, result: IResult) -> None:
         """Default init.
+
+        Args:
+            result: Representation of the result of an operation
         
         Returns: None.
         """

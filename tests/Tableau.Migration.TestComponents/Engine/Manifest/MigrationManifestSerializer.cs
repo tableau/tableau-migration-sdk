@@ -1,4 +1,20 @@
-﻿using System.Collections.Immutable;
+﻿// Copyright (c) 2023, Salesforce, Inc.
+//  SPDX-License-Identifier: Apache-2
+//  
+//  Licensed under the Apache License, Version 2.0 (the ""License"") 
+//  you may not use this file except in compliance with the License.
+//  You may obtain a copy of the License at
+//  
+//  http://www.apache.org/licenses/LICENSE-2.0
+//  
+//  Unless required by applicable law or agreed to in writing, software
+//  distributed under the License is distributed on an ""AS IS"" BASIS,
+//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//  See the License for the specific language governing permissions and
+//  limitations under the License.
+//
+
+using System.Collections.Immutable;
 using System.IO.Abstractions;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -25,7 +41,7 @@ namespace Tableau.Migration.TestComponents.Engine.Manifest
 
             _converters = new JsonConverter[]
             {
-                new ExceptionJsonConverter(),
+                new ExceptionJsonConverter(_loggerFactory.CreateLogger<ExceptionJsonConverter>()),
                 new MigrationManifestEntryCollectionWriter(),
                 new MigrationManifestEntryCollectionReader(localizer, loggerFactory)
             }.ToImmutableArray();
@@ -53,7 +69,7 @@ namespace Tableau.Migration.TestComponents.Engine.Manifest
         /// <param name="path">The file path to save the manifest to.</param>
         /// <param name="cancel">A cancellation token to obey.</param>
         /// <param name="jsonOptions">Optional JSON options to use.</param>
-        public async Task SaveAsync(IMigrationManifest manifest, string path, CancellationToken cancel, JsonSerializerOptions? jsonOptions = null)
+        public async Task SaveAsync(IMigrationManifest manifest, string path, JsonSerializerOptions? jsonOptions = null)
         {
             jsonOptions = MergeJsonOptions(jsonOptions);
 
@@ -66,20 +82,10 @@ namespace Tableau.Migration.TestComponents.Engine.Manifest
             var file = _fileSystem.File.Create(path);
             await using (file.ConfigureAwait(false))
             {
-                if (!cancel.IsCancellationRequested)
-                {
-                    // If cancellation was not requested use the normal cancellation token.
-                    await JsonSerializer.SerializeAsync(file, manifest, jsonOptions, cancel)
-                        .ConfigureAwait(false);
-                }
-                else
-                {
-                    // If cancellation was requested, we still need to save the file, so use the default token.
-                    await JsonSerializer.SerializeAsync(file, manifest, jsonOptions, default)
-                        .ConfigureAwait(false);
-                }
-
-            }
+                // If cancellation was requested, we still need to save the file, so use the default token.
+                await JsonSerializer.SerializeAsync(file, manifest, jsonOptions, default)
+                    .ConfigureAwait(false);
+        }
         }
 
         /// <summary>

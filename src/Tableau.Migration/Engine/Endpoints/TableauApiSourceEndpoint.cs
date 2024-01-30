@@ -1,11 +1,23 @@
-﻿using System;
-using System.Collections.Immutable;
+﻿// Copyright (c) 2023, Salesforce, Inc.
+//  SPDX-License-Identifier: Apache-2
+//  
+//  Licensed under the Apache License, Version 2.0 (the ""License"") 
+//  you may not use this file except in compliance with the License.
+//  You may obtain a copy of the License at
+//  
+//  http://www.apache.org/licenses/LICENSE-2.0
+//  
+//  Unless required by applicable law or agreed to in writing, software
+//  distributed under the License is distributed on an ""AS IS"" BASIS,
+//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//  See the License for the specific language governing permissions and
+//  limitations under the License.
+//
+
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
-using Tableau.Migration.Content;
 using Tableau.Migration.Content.Files;
-using Tableau.Migration.Content.Permissions;
 using Tableau.Migration.Engine.Endpoints.Search;
 
 namespace Tableau.Migration.Engine.Endpoints
@@ -35,30 +47,6 @@ namespace Tableau.Migration.Engine.Endpoints
         {
             var apiClient = SiteApi.GetPullApiClient<TContent, TPublish>();
             return await apiClient.PullAsync(contentItem, cancel).ConfigureAwait(false);
-        }
-
-        /// <inheritdoc />
-        public async Task<IResult<IPermissions>> GetPermissionsAsync<TContent>(IContentReference contentItem, CancellationToken cancel)
-            where TContent : IPermissionsContent
-        {
-            return await GetPermissionsAsync(typeof(TContent), contentItem, cancel).ConfigureAwait(false);
-        }
-
-        /// <inheritdoc />
-        public async Task<IResult<IPermissions>> GetPermissionsAsync(Type type, IContentReference contentItem, CancellationToken cancel)
-        {
-            var apiClient = SiteApi.GetPermissionsApiClient(type);
-            return await apiClient.GetPermissionsAsync(contentItem.Id, cancel).ConfigureAwait(false);
-        }
-
-        /// <inheritdoc />
-        public async Task<IResult<ImmutableList<IConnection>>> ListConnectionsAsync<TContent>(
-            Guid contentItemId,
-            CancellationToken cancel)
-            where TContent : IWithConnections
-        {
-            var apiClient = SiteApi.GetConnectionsApiClient<TContent>();
-            return await apiClient.GetConnectionsAsync(contentItemId, cancel).ConfigureAwait(false);
         }
     }
 }

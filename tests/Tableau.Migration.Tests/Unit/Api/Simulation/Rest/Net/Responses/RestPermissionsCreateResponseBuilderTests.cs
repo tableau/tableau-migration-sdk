@@ -1,10 +1,27 @@
-﻿using System;
+﻿// Copyright (c) 2023, Salesforce, Inc.
+//  SPDX-License-Identifier: Apache-2
+//  
+//  Licensed under the Apache License, Version 2.0 (the ""License"") 
+//  you may not use this file except in compliance with the License.
+//  You may obtain a copy of the License at
+//  
+//  http://www.apache.org/licenses/LICENSE-2.0
+//  
+//  Unless required by applicable law or agreed to in writing, software
+//  distributed under the License is distributed on an ""AS IS"" BASIS,
+//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//  See the License for the specific language governing permissions and
+//  limitations under the License.
+//
+
+using System;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Tableau.Migration.Api.Rest.Models;
 using Tableau.Migration.Api.Rest.Models.Requests;
 using Tableau.Migration.Api.Rest.Models.Responses;
+using Tableau.Migration.Api.Rest.Models.Types;
 using Tableau.Migration.Api.Simulation;
 using Tableau.Migration.Api.Simulation.Rest.Net.Responses;
 using Tableau.Migration.Content.Permissions;
@@ -38,7 +55,7 @@ namespace Tableau.Migration.Tests.Unit.Api.Simulation.Rest.Net.Responses
                     "projects",
                     d => d.Projects);
 
-                var capability = new Capability(new() { Name = PermissionsCapabilityNames.ProjectLeader, Mode = PermissionsCapabilityModes.Deny });
+                var capability = new Capability(new CapabilityType { Name = PermissionsCapabilityNames.ProjectLeader, Mode = PermissionsCapabilityModes.Deny });
                 var grantee = new GranteeCapability(GranteeType.User, data.SignIn.User!.Id, new[] { capability });
                 var permissions = new Migration.Content.Permissions.Permissions(proj.Id, new[] { grantee });
                 var requestContent = new PermissionsAddRequest(permissions);

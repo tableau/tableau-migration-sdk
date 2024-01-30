@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Tableau.Migration.Content;
 using Tableau.Migration.Engine;
 using Tableau.Migration.Engine.Hooks.Filters;
+using Tableau.Migration.Resources;
 
 namespace DependencyInjection.ExampleApplication.Hooks.Filters
 {
@@ -15,7 +16,8 @@ namespace DependencyInjection.ExampleApplication.Hooks.Filters
 
         // The logger instance here will be injected when a ProjectsFilter is 
         // retrieved from the service provider.
-        public ProjectsFilter(ILogger<ProjectsFilter> logger)
+        public ProjectsFilter(ISharedResourcesLocalizer localizer, ILogger<ProjectsFilter> logger) 
+            : base (localizer, logger)
         {
             _logger = logger;
 

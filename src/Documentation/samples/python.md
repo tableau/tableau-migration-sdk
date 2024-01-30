@@ -2,7 +2,7 @@
 
 ## [Startup Script](#tab/startup)
 
-[!code-python[](../../../examples/Python.ExampleApplication/Python.ExampleApplication.py#script)]
+[!code-python[](../../../examples/Python.ExampleApplication/Python.ExampleApplication.py)]
 
 ## [config.ini](#tab/config)
 

@@ -35,8 +35,8 @@
           "api/index.md",
           "samples/**.md",
           "python_wrapper/**.md",
-          "python_wrapper/toc.yml",
-          "samples/**/toc.yml",
+          "python_wrapper/**.yml",
+          "samples/**.yml",
           "toc.yml",
           "*.md",
           "articles/**.yml",
@@ -71,9 +71,19 @@
       "_appLogoPath": "tableau.svg",
       "_appFaviconPath": "tableau_favicon.ico",
       "_disableContribution": true,
-      "_disableFooter": true
+      "_disableFooter": true,
+      "_enableNewTab": true,
+      "_gitContribute": {
+        "repo": "https://github.com/tableau/tableau-migration-sdk",
+        "branch": "main"
+      }
     },
-    "fileMetadataFiles": [],
+    "fileMetadata": {
+      "_disableContribution": {
+        "articles/**/*.md": false,
+        "samples/**/*.md" :false
+      }
+    },
     "template": [
       "default",
       "statictoc",
@@ -84,6 +94,6 @@
     "noLangKeyword": false,
     "keepFileLink": false,
     "cleanupCacheHistory": true,
-    "disableGitFeatures": true
+    "disableGitFeatures": false
   }
 }

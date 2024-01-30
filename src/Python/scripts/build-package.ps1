@@ -38,16 +38,7 @@ try
 {
 	Remove-Item -Recurse -ErrorAction SilentlyContinue dist/* 
 	
-	if(($Fast -and $IsWindows) -or (!$Fast)) {
-		dotnet publish /p:DebugType=None /p:DebugSymbols=false  $projectToBuild -a win-x64 -c $Configuration -o .\src\tableau_migration\bin\win-x64 -f net7.0	
-	}
-	if(($Fast -and $IsMacOS) -or (!$Fast)){
-		dotnet publish /p:DebugType=None /p:DebugSymbols=false $projectToBuild -a osx-x64 -c $Configuration -o .\src\tableau_migration\bin\osx-x64 -f net7.0
-	}
-	if(($Fast -and $IsLinux) -or (!$Fast)){
-		dotnet publish /p:DebugType=None /p:DebugSymbols=false $projectToBuild -a linux-x64 -c $Configuration -o .\src\tableau_migration\bin\linux-x64 -f net7.0
-	}
-	
+	dotnet publish /p:DebugType=None /p:DebugSymbols=false  $projectToBuild -c $Configuration -o .\src\tableau_migration\bin -f net7.0		
 }
 finally
 {

@@ -1,4 +1,20 @@
-﻿using System;
+﻿// Copyright (c) 2023, Salesforce, Inc.
+//  SPDX-License-Identifier: Apache-2
+//  
+//  Licensed under the Apache License, Version 2.0 (the ""License"") 
+//  you may not use this file except in compliance with the License.
+//  You may obtain a copy of the License at
+//  
+//  http://www.apache.org/licenses/LICENSE-2.0
+//  
+//  Unless required by applicable law or agreed to in writing, software
+//  distributed under the License is distributed on an ""AS IS"" BASIS,
+//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//  See the License for the specific language governing permissions and
+//  limitations under the License.
+//
+
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -6,6 +22,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Moq;
 using Tableau.Migration.Api.Rest.Models;
+using Tableau.Migration.Api.Rest.Models.Types;
 using Tableau.Migration.Content;
 using Tableau.Migration.Content.Permissions;
 using Tableau.Migration.Engine.Endpoints.Search;
@@ -236,8 +253,8 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
             public async Task Excludes_project_leader_deny()
             {
                 var capabilities = CreateMany<ICapability>()
-                    .Append(new Capability(new() { Name = PermissionsCapabilityNames.ProjectLeader, Mode = PermissionsCapabilityModes.Allow }))
-                    .Append(new Capability(new() { Name = PermissionsCapabilityNames.ProjectLeader, Mode = PermissionsCapabilityModes.Deny }))
+                    .Append(new Capability(new CapabilityType { Name = PermissionsCapabilityNames.ProjectLeader, Mode = PermissionsCapabilityModes.Allow }))
+                    .Append(new Capability(new CapabilityType { Name = PermissionsCapabilityNames.ProjectLeader, Mode = PermissionsCapabilityModes.Deny }))
                     .ToImmutableArray();
 
                 var grantee = new GranteeCapability(GranteeType.User, Guid.NewGuid(), capabilities);
@@ -258,7 +275,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
             public async Task Excludes_inherited_project_leader()
             {
                 var capabilities = CreateMany<ICapability>()
-                    .Append(new Capability(new() { Name = PermissionsCapabilityNames.InheritedProjectLeader, Mode = PermissionsCapabilityModes.Allow }))
+                    .Append(new Capability(new CapabilityType { Name = PermissionsCapabilityNames.InheritedProjectLeader, Mode = PermissionsCapabilityModes.Allow }))
                     .ToImmutableArray();
 
                 var grantee = new GranteeCapability(GranteeType.User, Guid.NewGuid(), capabilities);

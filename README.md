@@ -1,20 +1,34 @@
 # Tableau Migration SDK
 
-The Tableau Migration SDK is a client library to facilitate migration of user data between Tableau environments.
+[![Tableau Supported](https://img.shields.io/badge/Support%20Level-Tableau%20Supported-53bd92.svg)](https://www.tableau.com/support-levels-it-and-developer-tools)
+[![NuGet version](https://badge.fury.io/nu/Tableau.Migration.svg)](https://badge.fury.io/nu/Tableau.Migration)
+[![PyPI version](https://badge.fury.io/py/tableau-migration.svg)](https://pypi.python.org/pypi/tableau-migration/)
+
+The Tableau Migration SDK is a client library to build an application to facilitate migration of content between Tableau environments. It is designed for moving from Tableau Server to Tableau Cloud.
 
 ## Get started
 
-### Logging
+First, clone the repo:
 
-This SDK logging uses [Microsoft.Extensions.Logging.Abstractions](https://github.com/dotnet/runtime/tree/main/src/libraries/Microsoft.Extensions.Logging.Abstractions).
-With this, you can use the Logging implementation of your choice, like:
+- Open a command line interface
+- `cd` to the parent directory where the repo directory will live
+- `git clone https://github.com/tableau/tableau-migration-sdk.git`
 
-- [Microsoft Logging](https://learn.microsoft.com/en-us/dotnet/core/extensions/logging?tabs=command-line)
-- [Serilog](https://github.com/serilog/serilog)
-- [NLog](https://github.com/NLog/NLog.Extensions.Logging)
+After cloning the repo:
 
-## Configuration: Environment Variables
+- Open `Migration SDK.sln` using Visual Studio
+
+## Introduction
+
+[Migration SDK Overview](https://help.tableau.com/current/api/migration_sdk/en-us/index.html)
+- Understanding the Migration SDK
+- Preparing your migration
+- Migrating to Tableau Cloud
+
+[Migration SDK API References](https://help.tableau.com/current/api/migration_sdk/en-us/sdk_reference/index.html)
 
 ## Documentation
 
-See [The docs README](/src/Documentation/README.md) for how to generate, edit and preview docs.
+[Contributing Guide for Migration SDK developers](https://github.com/tableau/tableau-migration-sdk/blob/main/CONTRIBUTING.md)
+
+[Migration SDK Security Considerations](https://github.com/tableau/tableau-migration-sdk/blob/main/SECURITY.md)

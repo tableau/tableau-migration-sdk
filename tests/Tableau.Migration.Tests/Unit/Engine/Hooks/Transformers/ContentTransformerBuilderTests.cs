@@ -1,29 +1,57 @@
-﻿using System;
+﻿// Copyright (c) 2023, Salesforce, Inc.
+//  SPDX-License-Identifier: Apache-2
+//  
+//  Licensed under the Apache License, Version 2.0 (the ""License"") 
+//  you may not use this file except in compliance with the License.
+//  You may obtain a copy of the License at
+//  
+//  http://www.apache.org/licenses/LICENSE-2.0
+//  
+//  Unless required by applicable law or agreed to in writing, software
+//  distributed under the License is distributed on an ""AS IS"" BASIS,
+//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//  See the License for the specific language governing permissions and
+//  limitations under the License.
+//
+
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Moq;
 using Tableau.Migration.Content;
 using Tableau.Migration.Engine.Hooks;
 using Tableau.Migration.Engine.Hooks.Transformers;
+using Tableau.Migration.Resources;
 using Xunit;
 
 namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers
 {
     public class ContentTransformerBuilderTests
     {
-        private class TestUserTransformer : ContentTransformerBase<IUser>
+        public class TestUserTransformer : ContentTransformerBase<IUser>
         {
-            public override Task<IUser?> ExecuteAsync(IUser itemToTransform, CancellationToken cancel)
+            public TestUserTransformer(
+                ISharedResourcesLocalizer localizer,
+                ILogger<TestUserTransformer> logger) 
+                    : base(localizer, logger) { }
+
+            public override Task<IUser?> TransformAsync(IUser itemToTransform, CancellationToken cancel)
             {
                 return Task.FromResult<IUser?>(itemToTransform);
             }
         }
 
-        private class GenericTransformer<TContent>
+        public class GenericTransformer<TContent>
             : ContentTransformerBase<TContent>
             where TContent : IContentReference
         {
-            public override Task<TContent?> ExecuteAsync(TContent itemToTransform, CancellationToken cancel)
+            public GenericTransformer(
+                ISharedResourcesLocalizer localizer, 
+                ILogger<GenericTransformer<TContent>> logger) : base(localizer, logger) { }
+
+            public override Task<TContent?> TransformAsync(TContent itemToTransform, CancellationToken cancel)
             {
                 return Task.FromResult<TContent?>(itemToTransform);
             }
@@ -62,7 +90,10 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers
             [Fact]
             public void AddFromType()
             {
-                var genericTransformer = new GenericTransformer<IUser>();
+                var mockLocalizer = new MockSharedResourcesLocalizer();
+                var mockLogger = new Mock<ILogger<GenericTransformer<IUser>>>();
+
+                var genericTransformer = new GenericTransformer<IUser>(mockLocalizer.Object, mockLogger.Object);
                 var builder = new ContentTransformerBuilder().Add(genericTransformer);
 
                 var result = builder.Build();
@@ -174,12 +205,15 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers
 
         public class Lifetime
         {
+            MockSharedResourcesLocalizer _mockLocalizer = new();
+            Mock<ILogger<TestUserTransformer>> _mockLogger = new();
+
             [Fact]
             public void BuildAndCreateObject()
             {
                 // Arrange
                 var serviceProvider = new ServiceCollection().BuildServiceProvider();
-                var hook = new TestUserTransformer();
+                var hook = new TestUserTransformer(_mockLocalizer.Object, _mockLogger.Object);
                 var hookFactory = new ContentTransformerBuilder()
                     .Add(hook)
                     .Build()
@@ -212,6 +246,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers
             {
                 // Arrange
                 var serviceProvider = new ServiceCollection()
+                    .AddSharedResourcesLocalization()
                     .AddSingleton<TestUserTransformer>()
                     .BuildServiceProvider();
                 var hookFactory = new ContentTransformerBuilder()
@@ -246,6 +281,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers
             {
                 // Arrange
                 var serviceProvider = new ServiceCollection()
+                    .AddSharedResourcesLocalization()
                     .AddScoped<TestUserTransformer>()
                     .BuildServiceProvider();
                 var hookFactory = new ContentTransformerBuilder()
@@ -280,6 +316,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers
             {
                 // Arrange
                 var serviceProvider = new ServiceCollection()
+                    .AddSharedResourcesLocalization()
                     .AddTransient<TestUserTransformer>()
                     .BuildServiceProvider();
                 var hookFactory = new ContentTransformerBuilder()
@@ -313,7 +350,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers
             public void BuildAndCreateWithInitializerObjectReference()
             {
                 // Arrange
-                var hook = new TestUserTransformer();
+                var hook = new TestUserTransformer(_mockLocalizer.Object, _mockLogger.Object);
                 var serviceProvider = new ServiceCollection().BuildServiceProvider();
                 var hookFactory = new ContentTransformerBuilder()
                     .Add<IContentTransformer<IUser>, IUser>(provider => hook)
@@ -349,7 +386,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers
                 // Arrange
                 var serviceProvider = new ServiceCollection().BuildServiceProvider();
                 var hookFactory = new ContentTransformerBuilder()
-                    .Add<IContentTransformer<IUser>, IUser>(provider => new TestUserTransformer())
+                    .Add<IContentTransformer<IUser>, IUser>(provider => new TestUserTransformer(_mockLocalizer.Object, _mockLogger.Object))
                     .Build()
                     .GetHooks<IContentTransformer<IUser>>();
                 Assert.Single(hookFactory);
@@ -380,6 +417,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers
             {
                 // Arrange
                 var serviceProvider = new ServiceCollection()
+                    .AddSharedResourcesLocalization()
                     .AddSingleton<TestUserTransformer>()
                     .BuildServiceProvider();
                 var hookFactory = new ContentTransformerBuilder()
@@ -414,6 +452,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers
             {
                 // Arrange
                 var serviceProvider = new ServiceCollection()
+                    .AddSharedResourcesLocalization()
                     .AddScoped<TestUserTransformer>()
                     .BuildServiceProvider();
                 var hookFactory = new ContentTransformerBuilder()
@@ -448,6 +487,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers
             {
                 // Arrange
                 var serviceProvider = new ServiceCollection()
+                    .AddSharedResourcesLocalization()
                     .AddTransient<TestUserTransformer>()
                     .BuildServiceProvider();
                 var hookFactory = new ContentTransformerBuilder()

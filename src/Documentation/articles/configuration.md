@@ -246,7 +246,7 @@ The [`IMigrationPlan`](xref:Tableau.Migration.IMigrationPlan) interface defines 
 
 *Reload on Edit?:* **Yes**. The update will apply the next time the Migration SDK makes a new HTTP request.
 
-*Description:* The Migration SDK uses [Polly](https://github.com/App-vNext/Polly) as a resilience and transient-fault layer. With only the previous configuration values ([Network.Resilience.MaxReadRequests](#network.resilience.maxreadrequests) and [Network.Resilience.MaxReadRequestsInterval](#network.resilience.maxreadrequestsinterval)), the SDK will calculate the minimum interval to complete a single request. Any other request at the same period will be blocked. The SDK uses the **MaxBurstReadRequests** property to define the maximum quantity of GET requests on the calculated period.
+*Description:* The Migration SDK uses [Polly](https://github.com/App-vNext/Polly) as a resilience and transient-fault layer. With only the previous configuration values (`Network.Resilience.MaxReadRequests` and `Network.Resilience.MaxReadRequestsInterval`), the SDK will calculate the minimum interval to complete a single request. Any other request at the same period will be blocked. The SDK uses the **MaxBurstReadRequests** property to define the maximum quantity of GET requests on the calculated period.
 
 
 ### Network.Resilience.MaxPublishRequests
@@ -276,7 +276,7 @@ The [`IMigrationPlan`](xref:Tableau.Migration.IMigrationPlan) interface defines 
 
 *Reload on Edit?:* **Yes**. The update will apply the next time the Migration SDK makes a new HTTP request.
 
-*Description:* The Migration SDK uses [Polly](https://github.com/App-vNext/Polly) as a resilience and transient-fault layer. With only the previous configuration values ([Network.Resilience.MaxPublishRequests](#network.resilience.maxpublishrequests) and [Network.Resilience.MaxPublishRequestsInterval](#network.resilience.maxpublishrequestsinterval)), the SDK will calculate the minimum interval to complete a single request. Any other request at the same period will be blocked. The SDK uses the **MaxBurstPublishRequests** property to define the maximum quantity of non-GET requests on the calculated period.
+*Description:* The Migration SDK uses [Polly](https://github.com/App-vNext/Polly) as a resilience and transient-fault layer. With only the previous configuration values (`Network.Resilience.MaxPublishRequests` and `Network.Resilience.MaxPublishRequestsInterval`), the SDK will calculate the minimum interval to complete a single request. Any other request at the same period will be blocked. The SDK uses the **MaxBurstPublishRequests** property to define the maximum quantity of non-GET requests on the calculated period.
 
 
 ### Network.Resilience.ServerThrottleEnabled
@@ -306,7 +306,7 @@ The [`IMigrationPlan`](xref:Tableau.Migration.IMigrationPlan) interface defines 
 
 *Reload on Edit?:* **Yes**. The update will apply the next time the Migration SDK makes a new HTTP request.
 
-*Description:* The Migration SDK uses [Polly](https://github.com/App-vNext/Polly) as a resilience and transient-fault layer. The SDK uses the **ServerThrottleRetryIntervals** property to define the interval between each retry for throttled requests without the 'Retry-After' header. If [ServerThrottleLimitRetries](#network.resilience.serverthrottlelimitretries) is enabled, this configuration defines the maximum number of retries. Otherwise, the subsequent retries use the last interval value.
+*Description:* The Migration SDK uses [Polly](https://github.com/App-vNext/Polly) as a resilience and transient-fault layer. The SDK uses the **ServerThrottleRetryIntervals** property to define the interval between each retry for throttled requests without the 'Retry-After' header. If `ServerThrottleLimitRetries` is enabled, this configuration defines the maximum number of retries. Otherwise, the subsequent retries use the last interval value.
 
 
 ### Network.Resilience.PerRequestTimeout

@@ -1,13 +1,34 @@
-﻿using System;
+﻿// Copyright (c) 2023, Salesforce, Inc.
+//  SPDX-License-Identifier: Apache-2
+//  
+//  Licensed under the Apache License, Version 2.0 (the ""License"") 
+//  you may not use this file except in compliance with the License.
+//  You may obtain a copy of the License at
+//  
+//  http://www.apache.org/licenses/LICENSE-2.0
+//  
+//  Unless required by applicable law or agreed to in writing, software
+//  distributed under the License is distributed on an ""AS IS"" BASIS,
+//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//  See the License for the specific language governing permissions and
+//  limitations under the License.
+//
+
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Tableau.Migration.Content;
 using Tableau.Migration.Engine;
 using Tableau.Migration.Engine.Hooks;
 using Tableau.Migration.Engine.Hooks.Filters;
+using Moq;
 using Xunit;
+using Polly;
+using Tableau.Migration.Resources;
+using Microsoft.Extensions.Localization;
 
 namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Filters
 {
@@ -15,12 +36,19 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Filters
     {
         private class UserFilter : ContentFilterBase<IUser>
         {
+            public UserFilter(
+                ISharedResourcesLocalizer localizer,
+                ILogger<IContentFilter<IUser>> logger) : base(localizer, logger) { }
+
             public override bool ShouldMigrate(ContentMigrationItem<IUser> item) => true;
         }
 
         private class GenericFilter<TContent> : ContentFilterBase<TContent>
             where TContent : IContentReference
         {
+            public GenericFilter(ISharedResourcesLocalizer localizer, ILogger<IContentFilter<TContent>> logger) 
+                : base (localizer, logger) { }
+
             public override bool ShouldMigrate(ContentMigrationItem<TContent> item) => true;
         }
 
@@ -54,10 +82,13 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Filters
 
         public class AddMappingGenericInstance
         {
+            protected readonly MockSharedResourcesLocalizer _mockLocalizer = new();
+            protected readonly Mock<ILogger<IContentFilter<IUser>>> _mockLogger = new();
+
             [Fact]
             public void AddFromType()
             {
-                var genericFilter = new GenericFilter<IUser>();
+                var genericFilter = new GenericFilter<IUser>(_mockLocalizer.Object, _mockLogger.Object);
                 var builder = new ContentFilterBuilder().Add(genericFilter);
 
                 var result = builder.Build();
@@ -151,12 +182,15 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Filters
 
         public class Lifetime
         {
+            private readonly MockSharedResourcesLocalizer _mockLocalizer = new();
+            private readonly Mock<ILogger<IContentFilter<IUser>>> _mockLogger = new();
+
             [Fact]
             public void BuildAndCreateObject()
             {
                 // Arrange
                 var serviceProvider = new ServiceCollection().BuildServiceProvider();
-                var hook = new UserFilter();
+                var hook = new UserFilter(_mockLocalizer.Object, _mockLogger.Object);
                 var hookFactory = new ContentFilterBuilder()
                     .Add(hook)
                     .Build()
@@ -189,6 +223,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Filters
             {
                 // Arrange
                 var serviceProvider = new ServiceCollection()
+                    .AddSharedResourcesLocalization()
                     .AddSingleton<UserFilter>()
                     .BuildServiceProvider();
                 var hookFactory = new ContentFilterBuilder()
@@ -223,6 +258,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Filters
             {
                 // Arrange
                 var serviceProvider = new ServiceCollection()
+                    .AddSharedResourcesLocalization()
                     .AddScoped<UserFilter>()
                     .BuildServiceProvider();
                 var hookFactory = new ContentFilterBuilder()
@@ -257,6 +293,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Filters
             {
                 // Arrange
                 var serviceProvider = new ServiceCollection()
+                    .AddSharedResourcesLocalization()
                     .AddTransient<UserFilter>()
                     .BuildServiceProvider();
                 var hookFactory = new ContentFilterBuilder()
@@ -290,7 +327,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Filters
             public void BuildAndCreateWithInitializerObjectReference()
             {
                 // Arrange
-                var hook = new UserFilter();
+                var hook = new UserFilter(_mockLocalizer.Object, _mockLogger.Object);
                 var serviceProvider = new ServiceCollection().BuildServiceProvider();
                 var hookFactory = new ContentFilterBuilder()
                     .Add<IContentFilter<IUser>, IUser>(provider => hook)
@@ -326,7 +363,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Filters
                 // Arrange
                 var serviceProvider = new ServiceCollection().BuildServiceProvider();
                 var hookFactory = new ContentFilterBuilder()
-                    .Add<IContentFilter<IUser>, IUser>(provider => new UserFilter())
+                    .Add<IContentFilter<IUser>, IUser>(provider => new UserFilter(_mockLocalizer.Object, _mockLogger.Object))
                     .Build()
                     .GetHooks<IContentFilter<IUser>>();
                 Assert.Single(hookFactory);
@@ -357,6 +394,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Filters
             {
                 // Arrange
                 var serviceProvider = new ServiceCollection()
+                    .AddSharedResourcesLocalization()
                     .AddSingleton<UserFilter>()
                     .BuildServiceProvider();
                 var hookFactory = new ContentFilterBuilder()
@@ -391,6 +429,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Filters
             {
                 // Arrange
                 var serviceProvider = new ServiceCollection()
+                    .AddSharedResourcesLocalization()
                     .AddScoped<UserFilter>()
                     .BuildServiceProvider();
                 var hookFactory = new ContentFilterBuilder()
@@ -425,6 +464,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Filters
             {
                 // Arrange
                 var serviceProvider = new ServiceCollection()
+                    .AddSharedResourcesLocalization()
                     .AddTransient<UserFilter>()
                     .BuildServiceProvider();
                 var hookFactory = new ContentFilterBuilder()

@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<Title>Tableau Migration SDK</Title>
-		<RepositoryUrl>https://github.com/tableau/migration-sdk</RepositoryUrl>
+		<RepositoryUrl>https://github.com/tableau/tableau-migration-sdk</RepositoryUrl>
 		<TargetFrameworks>net6.0;net7.0;net8.0</TargetFrameworks>
 		
 		<PackageId>Tableau.Migration</PackageId>
@@ -13,7 +13,32 @@
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
 		<BuildInParallel>false</BuildInParallel>
+		<PackageReadmeFile>NUGET.md</PackageReadmeFile>
+		<PackageTags>Tableau;migration;API;REST;workbook;datasource;project;group;user;permission</PackageTags>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+		<PackageIcon>TableauLogoColor.png</PackageIcon>
+		<Description>Customers worldwide are migrating to Tableau Cloud to take advantage of the innovation, reduced cost, security, and scalability of Tableau’s managed data service. The Migration Software Development Kit (SDK) helps you migrate to Tableau Cloud in a seamless and predictable way. You can use the Migration SDK to build your own migration application to do the following:
+- Migrate users and groups
+- Migrate content like data sources and workbooks
+- Migrate and, in some cases, modify your robust governance structure for your content in Tableau Cloud
+Note: This SDK is specific for migrating from Tableau Server to Tableau Cloud. If you're looking to increase your productivity as you interact with the Tableau Server REST API for regular Tableau Server usage, see Tableau Server Client.</Description>
+		<PackageProjectUrl>https://github.com/tableau/tableau-migration-sdk</PackageProjectUrl>
 	</PropertyGroup>
+	<ItemGroup>
+	  <None Remove="Properties\NUGET.md" />
+	  <None Remove="Properties\TableauLogoColor.png" />
+	</ItemGroup>
+	<ItemGroup>
+	  <EmbeddedResource Include="Properties\NUGET.md">
+	    <Pack>True</Pack>
+	    <PackagePath>\</PackagePath>
+	  </EmbeddedResource>
+	  <EmbeddedResource Include="Properties\TableauLogoColor.png">
+	    <Pack>True</Pack>
+	    <PackagePath>\</PackagePath>
+	  </EmbeddedResource>
+	</ItemGroup>
 	<ItemGroup>
 		<InternalsVisibleTo Include="$(AssemblyName).Tests" />
 	</ItemGroup>

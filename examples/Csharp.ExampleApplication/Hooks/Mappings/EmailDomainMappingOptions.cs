@@ -1,4 +1,4 @@
-﻿namespace MyMigrationApplication.Hooks.Mappings
+﻿namespace Csharp.ExampleApplication.Hooks.Mappings
 {
     public sealed class EmailDomainMappingOptions
     {

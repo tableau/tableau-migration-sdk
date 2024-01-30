@@ -22,7 +22,15 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="hooks.py" />
+    <Compile Include="hooks_factory.py" />
+    <Compile Include="hooks_callback.py" />
     <Compile Include="Python.ExampleApplication.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="config*.ini" />
+    <Content Include="pyproject.toml" />
+    <Content Include="requirements.txt" />
   </ItemGroup>
   <ItemGroup>
     <Interpreter Include="env\">
@@ -34,11 +42,6 @@
       <PathEnvironmentVariable>PYTHONPATH</PathEnvironmentVariable>
       <Architecture>X64</Architecture>
     </Interpreter>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="config*.ini" />
-    <Content Include="pyproject.toml" />
-    <Content Include="requirements.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in

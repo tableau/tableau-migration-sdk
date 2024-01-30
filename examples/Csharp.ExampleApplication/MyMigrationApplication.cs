@@ -3,19 +3,23 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Csharp.ExampleApplication.Config;
+using Csharp.ExampleApplication.Hooks.BatchMigrationCompleted;
+using Csharp.ExampleApplication.Hooks.Filters;
+using Csharp.ExampleApplication.Hooks.Mappings;
+using Csharp.ExampleApplication.Hooks.MigrationActionCompleted;
+using Csharp.ExampleApplication.Hooks.PostPublish;
+using Csharp.ExampleApplication.Hooks.Transformers;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using MyMigrationApplication.Config;
-using MyMigrationApplication.Hooks.Filters;
-using MyMigrationApplication.Hooks.Mappings;
 using Tableau.Migration;
 using Tableau.Migration.Content;
 using Tableau.Migration.Engine.Pipelines;
 
 #region namespace
 
-namespace MyMigrationApplication
+namespace Csharp.ExampleApplication
 {
     internal sealed class MyMigrationApplication : IHostedService
     {
@@ -72,6 +76,20 @@ namespace MyMigrationApplication
                 _appLifetime.StopApplication();
             }
 
+            // Add mappings
+            #region UnlicensedUsersMapping-Registration
+            _planBuilder.Mappings.Add<UnlicensedUsersMapping, IUser>();
+            #endregion
+
+            #region ProjectRenameMapping-Registration
+            _planBuilder.Mappings.Add<ProjectRenameMapping, IProject>();
+            #endregion
+
+            #region ChangeProjectMapping-Registration
+            _planBuilder.Mappings.Add<ChangeProjectMapping, IDataSource>();
+            _planBuilder.Mappings.Add<ChangeProjectMapping, IWorkbook>();
+            #endregion
+
             // Add filters
             #region DefaultProjectsFilter-Registration
             _planBuilder.Filters.Add<DefaultProjectsFilter, IProject>();
@@ -81,6 +99,34 @@ namespace MyMigrationApplication
             _planBuilder.Filters.Add<UnlicensedUsersFilter, IUser>();
             #endregion
 
+            // Add post-publish hooks
+            #region UpdatePermissionsHook-Registration
+            _planBuilder.Hooks.Add<UpdatePermissionsHook<IPublishableDataSource, IDataSource>>();
+            _planBuilder.Hooks.Add<UpdatePermissionsHook<IPublishableWorkbook, IResultWorkbook>>();
+            #endregion
+
+            #region BulkLoggingHook-Registration
+            _planBuilder.Hooks.Add<BulkLoggingHook<IUser>>();
+            #endregion
+
+            // Add transformers
+            #region MigratedTagTransformer-Registration
+            _planBuilder.Transformers.Add<MigratedTagTransformer, IPublishableDataSource>();
+            _planBuilder.Transformers.Add<MigratedTagTransformer, IPublishableWorkbook>();
+            #endregion
+
+            // Add migration action completed hooks
+            #region LogMigrationActionsHook-Registration
+            _planBuilder.Hooks.Add<LogMigrationActionsHook>();
+            #endregion
+
+            //Add batch migration completed hooks
+            #region LogMigrationBatchesHook-Registration
+            _planBuilder.Hooks.Add<LogMigrationBatchesHook<IUser>>();
+            _planBuilder.Hooks.Add<LogMigrationBatchesHook<IProject>>();
+            _planBuilder.Hooks.Add<LogMigrationBatchesHook<IDataSource>>();
+            _planBuilder.Hooks.Add<LogMigrationBatchesHook<IWorkbook>>();
+            #endregion
 
             // Build the plan
             var plan = _planBuilder.Build();

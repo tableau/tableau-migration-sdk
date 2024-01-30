@@ -3,7 +3,7 @@
 
 This will install the tableau_migration package
 ```
-pip install tableau_migration --index-url <package url from pypi>
+pip install tableau_migration
 ```
 
 Once installed, you can use it the REPL or your own code

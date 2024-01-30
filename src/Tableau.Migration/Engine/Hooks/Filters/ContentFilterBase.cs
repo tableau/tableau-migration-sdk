@@ -1,7 +1,26 @@
-﻿using System.Collections.Generic;
+﻿// Copyright (c) 2023, Salesforce, Inc.
+//  SPDX-License-Identifier: Apache-2
+//  
+//  Licensed under the Apache License, Version 2.0 (the ""License"") 
+//  you may not use this file except in compliance with the License.
+//  You may obtain a copy of the License at
+//  
+//  http://www.apache.org/licenses/LICENSE-2.0
+//  
+//  Unless required by applicable law or agreed to in writing, software
+//  distributed under the License is distributed on an ""AS IS"" BASIS,
+//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//  See the License for the specific language governing permissions and
+//  limitations under the License.
+//
+
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Localization;
+using Microsoft.Extensions.Logging;
+using Tableau.Migration.Resources;
 
 namespace Tableau.Migration.Engine.Hooks.Filters
 {
@@ -12,6 +31,25 @@ namespace Tableau.Migration.Engine.Hooks.Filters
     public abstract class ContentFilterBase<TContent> : IContentFilter<TContent>
         where TContent : IContentReference
     {
+        private readonly ISharedResourcesLocalizer? _localizer;
+        private readonly ILogger<IContentFilter<TContent>>? _logger;
+        private readonly string _typeName;
+
+        /// <summary>
+        /// Default constructor for ContentFilterBase
+        /// </summary>
+        /// <param name="localizer">A string localizer.</param>
+        /// <param name="logger">Default logger.</param>
+        public ContentFilterBase(
+            ISharedResourcesLocalizer? localizer,
+            ILogger<IContentFilter<TContent>>? logger
+            )
+        {
+            _localizer = localizer;
+            _logger = logger;
+            _typeName = this.GetType().Name;
+        }
+
         /// <inheritdoc />
         public Task<IEnumerable<ContentMigrationItem<TContent>>?> ExecuteAsync(IEnumerable<ContentMigrationItem<TContent>> unfilteredItems,
                                                                                      CancellationToken cancel)
@@ -22,6 +60,20 @@ namespace Tableau.Migration.Engine.Hooks.Filters
             if (!Disabled)
             {
                 result = unfilteredItems.Where(ShouldMigrate);
+
+                // Log the filtered items if requested
+                if ((_logger?.IsEnabled(LogLevel.Debug) ?? false) && _localizer is not null) 
+                {
+                    // Don't do the work if the logger is not enabled for this level
+                    var filteredItems = unfilteredItems.Except(result).ToList();
+                    if (filteredItems.Count() > 0)
+                    {
+                        foreach (var filteredItem in filteredItems)
+                        {
+                            _logger?.LogDebug(_localizer.GetString(SharedResourceKeys.ContentFilterBaseDebugMessage), _typeName, filteredItem.SourceItem.ToStringForLog());
+                        }
+                    }
+                }
             }
 
             return Task.FromResult((IEnumerable<ContentMigrationItem<TContent>>?)result);

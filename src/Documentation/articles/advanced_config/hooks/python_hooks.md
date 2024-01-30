@@ -2,7 +2,17 @@
 
 Because the Migration SDK is primarily written in C#, it uses [Python.NET](https://pythonnet.github.io/) to enable the implementation of hooks in Python. The Python hooks interoperate with the C# binaries to achieve the same results as writing hooks in C#.
 
-The SDK's C# hook classes and interfaces are [asynchronous](https://learn.microsoft.com/en-us/dotnet/csharp/asynchronous-programming/). Due to the limitations of [Python.NET](https://pythonnet.github.io/), the SDK provides synchronous wrappers to said interfaces. The names of these wrappers start with the keyword `ISync`. You will find references to those in the below examples.
+The SDK's C# hook classes and interfaces are [asynchronous](https://learn.microsoft.com/en-us/dotnet/csharp/asynchronous-programming/). Due to the limitations of [Python.NET](https://pythonnet.github.io/), the SDK provides synchronous wrappers to these interfaces. The names of these wrappers start with the keyword `ISync`. You will find references to those in the following examples. 
+
+Various C# interfaces and classes are used in hooks. You will need to import them just like you do Python classes. You can search for them in the [API Reference](~/api/index.md) section of the documentation.
+
+Example:
+
+Here is one of the import statements you will need for filters
+```python
+from Tableau.Migration.Interop.Hooks.Filters import ISyncContentFilter
+```
+The namespace for `ISyncContentFilter` is `Tableau.Migration.Interop.Hooks.Filters`. 
 
 ## Object Registration
 
@@ -11,6 +21,19 @@ Python.NET allows Python objects to be registered as hooks, with some limitation
 Examples of Python object implementation:
 
 ```python
+
+from Tableau.Migration.Interop.Hooks import ISyncMigrationHook
+from Tableau.Migration.Engine.Hooks import IMigrationActionCompletedHook
+from Tableau.Migration.Engine.Actions import IMigrationActionResult
+from Tableau.Migration.Interop.Hooks.Filters import ISyncContentFilter
+from Tableau.Migration.Interop.Hooks.Mappings import ISyncContentMapping
+from Tableau.Migration.Interop.Hooks.Transformers import ISyncContentTransformer
+from Tableau.Migration.Content import(
+    IGroup,
+    IUser,
+    IProject)
+from Tableau.Migration.Engine import ContentMigrationItem
+
 class PyLogActionHook(ISyncMigrationHook[IMigrationActionResult], IMigrationActionCompletedHook):
     __namespace__ = "MyNamespace"
     
@@ -25,7 +48,7 @@ class PyTestGroupFilter(ISyncContentFilter[IGroup]):
         filtered = List[ContentMigrationItem[IGroup]]()
         for item in ctx:
             if "Test" not in item.SourceItem.Name:
-                filtered.Add(item)
+                filtered.add(item)
         return filtered
 
 class PyTestUsernameMapping(ISyncContentMapping[IUser]):
@@ -41,6 +64,7 @@ class PyTestProjectTransformer(ISyncContentTransformer[IProject]):
     def Execute(self, ctx):
         ctx.Description = "[From Server]\n" + ctx.Description
         return ctx
+
 ```
 
 An example of Python plan builder hook binding for the above examples of object implementation:
@@ -52,13 +76,13 @@ mapping_hook = PyTestUsernameMapping()
 transformer_hook = PyTestProjectTransformer()
 planBuilder = PyMigrationPlanBuilder()
 # For hooks
-planBuilder._hooks.Add(log_hook)
+planBuilder._hooks.add(log_hook)
 # For filters
-planBuilder._filters.Add(IGroup, filter_hook)
+planBuilder._filters.add(IGroup, filter_hook)
 # For mappings
-planBuilder._mappings.Add(IUser, mapping_hook)
+planBuilder._mappings.add(IUser, mapping_hook)
 # For transformers
-planBuilder._transformers.Add(IProject, transformer_hook)
+planBuilder._transformers.add(IProject, transformer_hook)
 ```
 
 ## Callback Registration
@@ -71,6 +95,10 @@ Due to Python.NET’s ability to cast Python functions to the C# Func type, Pyth
 Examples of Python Callback implementation:
 
 ```python
+from Tableau.Migration.Content import IGroup
+from Tableau.Migration.Engine import ContentMigrationItem
+from System.Collections.Generic import List
+
 def log_callback(ctx):
     print("ACTION COMPLETED")
     return ctx
@@ -79,7 +107,7 @@ def filter_group(ctx):
     filtered = List[ContentMigrationItem[IGroup]]()
     for item in ctx:
         if "Test" not in item.SourceItem.Name:
-            filtered.Add(item)
+            filtered.add(item)
     return filtered
 
 def map_test_user(ctx):
@@ -96,13 +124,13 @@ An example of Python plan builder hook binding for the above examples of callbac
 ```python
 planBuilder = PyMigrationPlanBuilder()
 # For hooks
-planBuilder._hooks.Add(ISyncMigrationActionCompletedHook, IMigrationActionResult, Func[IMigrationActionResult, IMigrationActionResult](log_callback))
+planBuilder._hooks.add(ISyncMigrationActionCompletedHook, IMigrationActionResult, Func[IMigrationActionResult, IMigrationActionResult](log_callback))
 # For filters
-planBuilder._filters.Add(IGroup, Func[IEnumerable[ContentMigrationItem[IGroup]], IEnumerable[ContentMigrationItem[IGroup]]](filter_group))
+planBuilder._filters.add(IGroup, Func[IEnumerable[ContentMigrationItem[IGroup]], IEnumerable[ContentMigrationItem[IGroup]]](filter_group))
 # For mappings
-planBuilder._mappings.Add(IUser, Func[ContentMappingContext[IUser], ContentMappingContext[IUser]](map_test_user))
+planBuilder._mappings.add(IUser, Func[ContentMappingContext[IUser], ContentMappingContext[IUser]](map_test_user))
 # For transformers
-planBuilder._transformers.Add(IProject, Func[IProject, IProject](add_project_origin_desc))
+planBuilder._transformers.add(IProject, Func[IProject, IProject](add_project_origin_desc))
 ```
 
 ## Factory Registration
@@ -112,6 +140,19 @@ Python.NET does not provide out-of-the-box interoperability for Microsoft depend
 For a Factory Registration, we can keep the same examples from Python object implementation:
 
 ```python
+from Tableau.Migration.Interop.Hooks import ISyncMigrationHook
+from Tableau.Migration.Engine.Actions import IMigrationActionResult
+from Tableau.Migration.Engine.Hooks import IMigrationActionCompletedHook
+from Tableau.Migration.Interop.Hooks.Filters import ISyncContentFilter
+from Tableau.Migration.Interop.Hooks.Mappings import ISyncContentMapping
+from Tableau.Migration.Interop.Hooks.Transformers import ISyncContentTransformer
+from Tableau.Migration.Content import (
+    IGroup,
+    IUser,
+    IProject)
+from Tableau.Migration.Engine import ContentMigrationItem
+from System.Collections.Generic import List
+
 class PyLogActionHook(ISyncMigrationHook[IMigrationActionResult], IMigrationActionCompletedHook):
     __namespace__ = "MyNamespace"
     
@@ -126,7 +167,7 @@ class PyTestGroupFilter(ISyncContentFilter[IGroup]):
         filtered = List[ContentMigrationItem[IGroup]]()
         for item in ctx:
             if "Test" not in item.SourceItem.Name:
-                filtered.Add(item)
+                filtered.add(item)
         return filtered
 
 class PyTestUsernameMapping(ISyncContentMapping[IUser]):
@@ -162,12 +203,12 @@ ServiceCollectionServiceExtensions.AddSingleton[PyTestProjectTransformer](tablea
 
 planBuilder = PyMigrationPlanBuilder()
 # For hooks
-planBuilder._hooks.Add(PyLogActionHook)
+planBuilder._hooks.add(PyLogActionHook)
 # For filters
-planBuilder._filters.Add(PyTestGroupFilter, IGroup)
+planBuilder._filters.add(PyTestGroupFilter, IGroup)
 # For mappings
-planBuilder._mappings.Add(PyTestUsernameMapping, IUser)
+planBuilder._mappings.add(PyTestUsernameMapping, IUser)
 # For transformers
-planBuilder._transformers.Add(PyTestProjectTransformer, IProject)
+planBuilder._transformers.add(PyTestProjectTransformer, IProject)
 
 ```

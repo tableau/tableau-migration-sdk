@@ -12,18 +12,18 @@ Here are some important things you should be aware of when writing custom hooks.
 
 | Type | Base Class | Interface| Code Samples|
 | --- | --- |--- |--|
-| [Filters](xref:Tableau.Migration.Engine.Hooks.Filters) | [`ContentFilterBase<TContent>`](xref:Tableau.Migration.Engine.Hooks.Filters.ContentFilterBase`1) |[`IContentFilter<TContent>`](xref:Tableau.Migration.Engine.Hooks.Filters.IContentFilter`1) |[Samples/Hooks/Filters](~/samples/hooks/filters.md) |
-|[Mappings](xref:Tableau.Migration.Engine.Hooks.Mappings)| [`ContentMappingBase<TContent>`](xref:Tableau.Migration.Engine.Hooks.Mappings.ContentMappingBase`1) |[`IContentMapping<TContent>`](xref:Tableau.Migration.Engine.Hooks.Mappings.IContentMapping`1)|[Samples/Hooks/Mappings](~/samples/hooks/mappings.md) |
-|[Transformers](xref:Tableau.Migration.Engine.Hooks.Transformers) | [`ContentTransformerBase<TPublish>`](xref:Tableau.Migration.Engine.Hooks.Transformers.ContentTransformerBase`1) |[`IContentTransformer<TPublish>`](xref:Tableau.Migration.Engine.Hooks.Transformers.IContentTransformer`1)|[Samples/Hooks/Transformers](~/samples/hooks/transformers.md)|
+|[Filters](xref:Tableau.Migration.Engine.Hooks.Filters) | [`ContentFilterBase<TContent>`](xref:Tableau.Migration.Engine.Hooks.Filters.ContentFilterBase`1) |[`IContentFilter<TContent>`](xref:Tableau.Migration.Engine.Hooks.Filters.IContentFilter`1) |[Samples/Hooks/Filters](~/samples/hooks/filters/intro.md) |
+|[Mappings](xref:Tableau.Migration.Engine.Hooks.Mappings)| [`ContentMappingBase<TContent>`](xref:Tableau.Migration.Engine.Hooks.Mappings.ContentMappingBase`1) |[`IContentMapping<TContent>`](xref:Tableau.Migration.Engine.Hooks.Mappings.IContentMapping`1)|[Samples/Hooks/Mappings](~/samples/hooks/mappings/intro.md) |
+|[Transformers](xref:Tableau.Migration.Engine.Hooks.Transformers) | [`ContentTransformerBase<TPublish>`](xref:Tableau.Migration.Engine.Hooks.Transformers.ContentTransformerBase`1) |[`IContentTransformer<TPublish>`](xref:Tableau.Migration.Engine.Hooks.Transformers.IContentTransformer`1)|[Samples/Hooks/Transformers](~/samples/hooks/transformers/intro.md)|
 
 ### Post-migration
 
 | Type | Base Class | Interface| Code Samples|
 | --- | --- |--- |--|
-|[Post-Publish](xref:Tableau.Migration.Engine.Hooks.PostPublish)|[`ContentItemPostPublishHookBase<TPublish, TResult>`](xref:Tableau.Migration.Engine.Hooks.PostPublish.ContentItemPostPublishHookBase`1) |[`IContentItemPostPublishHook<TContent>`](xref:Tableau.Migration.Engine.Hooks.PostPublish.IContentItemPostPublishHook`2) | [Samples/Hooks/Post-Publish Hooks](~/samples/hooks/post_publish.md)|
-|[Bulk Post-Publish](xref:Tableau.Migration.Engine.Hooks.PostPublish)|[`BulkPostPublishHookBase<TSource>`](xref:Tableau.Migration.Engine.Hooks.PostPublish.BulkPostPublishHookBase`1)| [`IBulkPostPublishHook<TSource>`](xref:Tableau.Migration.Engine.Hooks.PostPublish.IBulkPostPublishHook`1)|[Samples/Hooks/Bulk Post-Publish](~/samples/hooks/bulk_post_publish.md)|
-|[Batch Migration Completed](xref:Tableau.Migration.Engine.Hooks)| none| [`IContentBatchMigrationCompletedHook<TContent>`](xref:Tableau.Migration.Engine.Hooks.IContentBatchMigrationCompletedHook`1)|[Samples/Hooks/Batch Migration Completed](~/samples/hooks/batch_migration_completed.md)|
-|[Migration Action Completed](xref:Tableau.Migration.Engine.Hooks)| none| [`IMigrationActionCompletedHook`](xref:Tableau.Migration.Engine.Hooks.IMigrationActionCompletedHook)|[Samples/Hooks/Batch Migration Completed](~/samples/hooks/migration_completed.md)|
+|[Post-Publish](xref:Tableau.Migration.Engine.Hooks.PostPublish)|[`ContentItemPostPublishHookBase<TPublish, TResult>`](xref:Tableau.Migration.Engine.Hooks.PostPublish.ContentItemPostPublishHookBase`1) |[`IContentItemPostPublishHook<TContent>`](xref:Tableau.Migration.Engine.Hooks.PostPublish.IContentItemPostPublishHook`2) | [Samples/Hooks/Post-Publish Hooks](~/samples/hooks/post-publish/intro.md)|
+|[Bulk Post-Publish](xref:Tableau.Migration.Engine.Hooks.PostPublish)|[`BulkPostPublishHookBase<TSource>`](xref:Tableau.Migration.Engine.Hooks.PostPublish.BulkPostPublishHookBase`1)| [`IBulkPostPublishHook<TSource>`](xref:Tableau.Migration.Engine.Hooks.PostPublish.IBulkPostPublishHook`1)|[Samples/Hooks/Bulk Post-Publish](~/samples/hooks/bulk-post-publish/intro.md)|
+|[Batch Migration Completed](xref:Tableau.Migration.Engine.Hooks)| none| [`IContentBatchMigrationCompletedHook<TContent>`](xref:Tableau.Migration.Engine.Hooks.IContentBatchMigrationCompletedHook`1)|[Samples/Hooks/Batch Completed](~/samples/hooks/batch-migration-completed/intro.md)|
+|[Migration Action Completed](xref:Tableau.Migration.Engine.Hooks)| none| [`IMigrationActionCompletedHook`](xref:Tableau.Migration.Engine.Hooks.IMigrationActionCompletedHook)|[Samples/Hooks/Action Completed](~/samples/hooks/migration-action-completed/intro.md)|
 
 ## Registration
 

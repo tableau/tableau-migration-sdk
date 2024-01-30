@@ -1,3 +1,19 @@
+# Copyright (c) 2023, Salesforce, Inc.
+# SPDX-License-Identifier: Apache-2
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""Testing classes for the Python.TestApplication."""
 ### 
 # WARNING
 # 
@@ -10,9 +26,6 @@
 # If this happens, always check the "Test Output" for errors
 ###
 import pytest
-import sys
-from os.path import abspath
-from pathlib import Path
 import inspect
 from enum import Enum
 from typing import List
@@ -20,8 +33,19 @@ from typing import List
 from migration_testcomponents_engine_manifest import (
     PyMigrationManifestSerializer)
 
+from migration_testcomponents_filters import(
+    PySpecialUserFilter,
+    PyUnlicensedUserFilter)
+
+from migration_testcomponents_mappings import(
+    PySpecialUserMapping,
+    PyUnlicensedUserMapping)
+from migration_testcomponents_hooks import(
+    PyTimeLoggerAfterActionHook)
+
 def get_class_methods(cls):
-    """Gets all the methods in a class.
+    """
+    Gets all the methods in a class.
 
     https://stackoverflow.com/a/4241225.
     """
@@ -31,7 +55,8 @@ def get_class_methods(cls):
     
 
 def get_class_properties(cls):
-    """Gets all the properties in a class.
+    """
+    Gets all the properties in a class.
     
     https://stackoverflow.com/a/34643176.
     """
@@ -39,22 +64,24 @@ def get_class_properties(cls):
                 if isinstance(item[1], property)]
 
 
-def get_enum(enumType: Enum):
-    """Returns list of enum name and value"""
-    return [(item.name, item.value) for item in enumType]
+def get_enum(enum_type: Enum):
+    """Returns list of enum name and value."""
+    return [(item.name, item.value) for item in enum_type]
 
 def normalize_name(name: str) -> str:
+    """Removes _ from string.""" 
     return name.replace("_", "").lower()
 
 def remove_suffix(input: str, suffix_to_remove: str) -> str:
-    """str.removesuffix() was introduced in python 3.9"""
+    """str.removesuffix() was introduced in python 3.9."""
     if(input.endswith(suffix_to_remove)):
         return input[:-len(suffix_to_remove)]
     else:
         return input
 
 def compare_names(dotnet_names: List[str], python_names: List[str]) -> str:
-    """Compares dotnet names with python names
+    """
+    Compares dotnet names with python names.
 
     dotnet names look like 'DoWalk'
     python names look like 'do_walk'
@@ -117,7 +144,8 @@ def compare_lists(expected, actual) -> str:
     return message
 
 def verify_enum(python_enum, dotnet_enum):
-    """Verify that dotnet and python enum are the same
+    """
+    Verify that dotnet and python enum are the same.
     
     Currently this is only verified working for 'int' type enums. But should be easily
     modified to support more types if needed
@@ -131,7 +159,10 @@ def verify_enum(python_enum, dotnet_enum):
     assert not message
 
 class TestNameComparison():
+    """Testing class to verify the tests themselves."""
+    
     def test_valid(self):
+        """Verifies that method names."""
         dotnet_names = ["DoWalk", "RunAsync", "RunAsync"]
         python_names = ["do_walk", "run", "run"]
 
@@ -139,6 +170,7 @@ class TestNameComparison():
         assert not message
 
     def test_python_extra(self):
+        """Verifies that extra python methods are found."""
         dotnet_names = ["DoWalk", "RunAsync", "RunAsync"]
         python_names = ["do_walk", "run", "run", "crawl"]
 
@@ -146,6 +178,7 @@ class TestNameComparison():
         assert message == "Python has extra elements ['(crawl: (py:crawl->net:???))']\n" 
 
     def test_dotnet_extra(self): # meaning python is missing it
+        """Verifies that extra dotnet method are found."""
         dotnet_names = ["DoWalk", "RunAsync", "RunAsync"]
         python_names = ["run", "run"]
 
@@ -153,6 +186,7 @@ class TestNameComparison():
         assert message == "Python lacks elements ['(dowalk: (py:???->net:DoWalk))']\n"
 
     def test_overloaded_missing(self):
+        """Verifies that overloaded method are handled correctly."""
         # Python does not support multiple method with the same name
         # So we need to be smart about how we call them. 
         # This test makes sure that overloaded methods show up at least once in python
@@ -164,7 +198,12 @@ class TestNameComparison():
 
 
 @pytest.mark.parametrize("python_class, ignored_methods", [                          
-                          (PyMigrationManifestSerializer, None)
+                          (PyMigrationManifestSerializer, None),
+                          (PySpecialUserFilter, "ExecuteAsync"),
+                          (PySpecialUserMapping, None),
+                          (PyUnlicensedUserMapping, None),
+                          (PyUnlicensedUserFilter, "ExecuteAsync"),
+                          (PyTimeLoggerAfterActionHook, None)
                           ])
 def test_classes(python_class, ignored_methods):
     """Verify that all the python wrapper classes actually wrap all the dotnet methods and properties."""

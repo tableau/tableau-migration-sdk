@@ -1,3 +1,5 @@
+--index-url https://artifactory.prod.tableautools.com/artifactory/api/pypi/tabpypi/simple
+--pre
 pip==23.3.2
 setuptools==69.0.3
 configparser==6.0.0

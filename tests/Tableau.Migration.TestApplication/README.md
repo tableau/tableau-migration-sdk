@@ -6,9 +6,5 @@ This is a console application used to test the Migration SDK .Net Features.
 supported by default.
 
 ## Logging configuration
-Logging configuration is handled via the `appsettings.json` file. 
-
-More information on how to adjust serilog configuration can be found on the [Serilog.Settings.Configuration](https://github.com/serilog/serilog-settings-configuration#serilogsettingsconfiguration--) site.
-
-
+Logging configuration is handled in the `Program.cs` file `services.AddLogging(...)` method
 

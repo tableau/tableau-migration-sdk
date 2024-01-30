@@ -1,26 +1,53 @@
-﻿using System;
+﻿// Copyright (c) 2023, Salesforce, Inc.
+//  SPDX-License-Identifier: Apache-2
+//  
+//  Licensed under the Apache License, Version 2.0 (the ""License"") 
+//  you may not use this file except in compliance with the License.
+//  You may obtain a copy of the License at
+//  
+//  http://www.apache.org/licenses/LICENSE-2.0
+//  
+//  Unless required by applicable law or agreed to in writing, software
+//  distributed under the License is distributed on an ""AS IS"" BASIS,
+//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//  See the License for the specific language governing permissions and
+//  limitations under the License.
+//
+
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Moq;
 using Tableau.Migration.Content;
 using Tableau.Migration.Engine.Hooks;
 using Tableau.Migration.Engine.Hooks.Mappings;
+using Tableau.Migration.Resources;
 using Xunit;
 
 namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Mappings
 {
     public class ContentMappingBuilderTests
     {
-        private class UserMapping : ContentMappingBase<IUser>
+        public class UserMapping : ContentMappingBase<IUser>
         {
-            public override Task<ContentMappingContext<IUser>?> ExecuteAsync(ContentMappingContext<IUser> ctx, CancellationToken cancel)
+            public UserMapping(ISharedResourcesLocalizer localizer, ILogger<UserMapping> logger)
+                : base(localizer, logger)
+            { }
+
+            public override Task<ContentMappingContext<IUser>?> MapAsync(ContentMappingContext<IUser> ctx, CancellationToken cancel)
                 => ctx.ToTask();
         }
 
-        private class GenericMapping<TContent> : ContentMappingBase<TContent>
+        public class GenericMapping<TContent> : ContentMappingBase<TContent>
             where TContent : IContentReference
         {
-            public override Task<ContentMappingContext<TContent>?> ExecuteAsync(ContentMappingContext<TContent> ctx, CancellationToken cancel)
+            public GenericMapping(ISharedResourcesLocalizer localizer, ILogger<GenericMapping<TContent>> logger) 
+                : base(localizer, logger) 
+            { }
+
+            public override Task<ContentMappingContext<TContent>?> MapAsync(ContentMappingContext<TContent> ctx, CancellationToken cancel)
                 => ctx.ToTask();
         }
 
@@ -57,7 +84,10 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Mappings
             [Fact]
             public void AddFromType()
             {
-                var genericMapping = new GenericMapping<IUser>();
+                MockSharedResourcesLocalizer mockLocalizer = new MockSharedResourcesLocalizer();
+                Mock<ILogger<GenericMapping<IUser>>> mockLogger = new();
+
+                var genericMapping = new GenericMapping<IUser>(mockLocalizer.Object, mockLogger.Object);
                 var builder = new ContentMappingBuilder().Add(genericMapping);
 
                 var result = builder.Build();
@@ -150,12 +180,15 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Mappings
 
         public class Lifetime
         {
+            private readonly MockSharedResourcesLocalizer _mockLocalizer = new();
+            private readonly Mock<ILogger<UserMapping>> _mockLogger = new();
+
             [Fact]
             public void BuildAndCreateObject()
             {
                 // Arrange
                 var serviceProvider = new ServiceCollection().BuildServiceProvider();
-                var hook = new UserMapping();
+                var hook = new UserMapping(_mockLocalizer.Object, _mockLogger.Object);
                 var hookFactory = new ContentMappingBuilder()
                     .Add(hook)
                     .Build()
@@ -188,6 +221,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Mappings
             {
                 // Arrange
                 var serviceProvider = new ServiceCollection()
+                    .AddSharedResourcesLocalization()
                     .AddSingleton<UserMapping>()
                     .BuildServiceProvider();
                 var hookFactory = new ContentMappingBuilder()
@@ -222,6 +256,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Mappings
             {
                 // Arrange
                 var serviceProvider = new ServiceCollection()
+                    .AddSharedResourcesLocalization()
                     .AddScoped<UserMapping>()
                     .BuildServiceProvider();
                 var hookFactory = new ContentMappingBuilder()
@@ -256,6 +291,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Mappings
             {
                 // Arrange
                 var serviceProvider = new ServiceCollection()
+                    .AddSharedResourcesLocalization()
                     .AddTransient<UserMapping>()
                     .BuildServiceProvider();
                 var hookFactory = new ContentMappingBuilder()
@@ -289,7 +325,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Mappings
             public void BuildAndCreateWithInitializerObjectReference()
             {
                 // Arrange
-                var hook = new UserMapping();
+                var hook = new UserMapping(_mockLocalizer.Object, _mockLogger.Object);
                 var serviceProvider = new ServiceCollection().BuildServiceProvider();
                 var hookFactory = new ContentMappingBuilder()
                     .Add<IContentMapping<IUser>, IUser>(provider => hook)
@@ -325,7 +361,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Mappings
                 // Arrange
                 var serviceProvider = new ServiceCollection().BuildServiceProvider();
                 var hookFactory = new ContentMappingBuilder()
-                    .Add<IContentMapping<IUser>, IUser>(provider => new UserMapping())
+                    .Add<IContentMapping<IUser>, IUser>(provider => new UserMapping(_mockLocalizer.Object, _mockLogger.Object))
                     .Build()
                     .GetHooks<IContentMapping<IUser>>();
                 Assert.Single(hookFactory);
@@ -356,6 +392,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Mappings
             {
                 // Arrange
                 var serviceProvider = new ServiceCollection()
+                    .AddSharedResourcesLocalization()
                     .AddSingleton<UserMapping>()
                     .BuildServiceProvider();
                 var hookFactory = new ContentMappingBuilder()
@@ -390,6 +427,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Mappings
             {
                 // Arrange
                 var serviceProvider = new ServiceCollection()
+                    .AddSharedResourcesLocalization()
                     .AddScoped<UserMapping>()
                     .BuildServiceProvider();
                 var hookFactory = new ContentMappingBuilder()
@@ -424,6 +462,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Mappings
             {
                 // Arrange
                 var serviceProvider = new ServiceCollection()
+                    .AddSharedResourcesLocalization()
                     .AddTransient<UserMapping>()
                     .BuildServiceProvider();
                 var hookFactory = new ContentMappingBuilder()

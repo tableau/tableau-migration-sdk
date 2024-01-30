@@ -1,3 +1,18 @@
+# Copyright (c) 2023, Salesforce, Inc.
+# SPDX-License-Identifier: Apache-2
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 """Wrapper for classes in Tableau.Migration.Engine.Options namespace."""
 from typing import Type
 from typing_extensions import Self, TypeVar
@@ -17,6 +32,9 @@ class PyMigrationPlanOptionsCollection:
     
     def __init__(self, migration_plan_options_collection: IMigrationPlanOptionsCollection):
         """Default init.
+
+        Args:
+            migration_plan_options_collection: An object that contains plan-specific options objects
         
         Returns: None.
         """
@@ -27,6 +45,11 @@ class PyMigrationPlanOptionsCollection:
         """Gets the options for the given type.
         
         or null if no options for the given type have been registered.
+        
+
+        Args:
+            type_to_get: The option type
+            services: A service provider
 
         Returns:
             The options for the given type, or null.
@@ -40,6 +63,9 @@ class PyMigrationPlanOptionsBuilder():
 
     def __init__(self, migration_plan_options_builder: IMigrationPlanOptionsBuilder):
         """Default init.
+
+        Args:
+            migration_plan_options_builder: An object that can build a set of per-plan options.
         
         Returns: None.
         """
@@ -48,6 +74,9 @@ class PyMigrationPlanOptionsBuilder():
     
     def configure(self, options: Type[T]) -> Self:
         """Sets the configuration for a given options type.
+
+        Args:
+            options: The option type
 
         Returns:
             The same options builder, for fluent API usage.

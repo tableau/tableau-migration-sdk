@@ -1,4 +1,20 @@
-﻿using System;
+﻿// Copyright (c) 2023, Salesforce, Inc.
+//  SPDX-License-Identifier: Apache-2
+//  
+//  Licensed under the Apache License, Version 2.0 (the ""License"") 
+//  you may not use this file except in compliance with the License.
+//  You may obtain a copy of the License at
+//  
+//  http://www.apache.org/licenses/LICENSE-2.0
+//  
+//  Unless required by applicable law or agreed to in writing, software
+//  distributed under the License is distributed on an ""AS IS"" BASIS,
+//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//  See the License for the specific language governing permissions and
+//  limitations under the License.
+//
+
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -25,7 +41,6 @@ namespace Tableau.Migration.Engine.Endpoints
         Task<IResult<TPublishResult>> PublishAsync<TPublish, TPublishResult>(TPublish publishItem, CancellationToken cancel)
             where TPublishResult : class, IContentReference;
 
-
         /// <summary>
         /// Publishes a batch of content items.
         /// </summary>
@@ -34,6 +49,26 @@ namespace Tableau.Migration.Engine.Endpoints
         /// <param name="cancel">A cancellation token to obey.</param>
         /// <returns>The results of the publishing.</returns>
         Task<IResult> PublishBatchAsync<TPublish>(IEnumerable<TPublish> publishItems, CancellationToken cancel);
+
+        /// <summary>
+        /// Gets permissions for the content item.
+        /// </summary>
+        /// <typeparam name="TContent">The content type.</typeparam>
+        /// <param name="contentItem">The content item to get permissions for.</param>
+        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <returns>The result of the permissions operation.</returns>
+        Task<IResult<IPermissions>> GetPermissionsAsync<TContent>(IContentReference contentItem, CancellationToken cancel)
+            where TContent : IPermissionsContent;
+
+        /// <summary>
+        /// Gets permissions for the content item.
+        /// </summary>
+        /// <param name="type">The content type.</param>
+        /// <param name="contentItem">The content item to get permissions for.</param>
+        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <returns>The result of the permissions operation.</returns>
+        Task<IResult<IPermissions>> GetPermissionsAsync(Type type, IContentReference contentItem,
+            CancellationToken cancel);
 
         /// <summary>
         /// Updates the permissions for the content item.
