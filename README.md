@@ -8,15 +8,22 @@ The Tableau Migration SDK is a client library to build an application to facilit
 
 ## Get started
 
-First, clone the repo:
+Quickstart:
+- For Python install using PIP `pip install tableau-migration`
+- For C# install using NuGet `dotnet add package Tableau.Migration --version 1.0.0`
 
-- Open a command line interface
-- `cd` to the parent directory where the repo directory will live
-- `git clone https://github.com/tableau/tableau-migration-sdk.git`
+To look at sourcecode and delve deeper:
+  First, clone the repo:
+  
+  - Open a command line interface
+  - `cd` to the parent directory where the repo directory will live
+  - `git clone https://github.com/tableau/tableau-migration-sdk.git`
+  
+  After cloning the repo:
+  
+  - Open `Migration SDK.sln` using Visual Studio
 
-After cloning the repo:
-
-- Open `Migration SDK.sln` using Visual Studio
+    Not using Visual Studio? Check out our [code samples](https://tableau.github.io/migration-sdk/samples/intro.html)
 
 ## Introduction
 
