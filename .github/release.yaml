@@ -1,0 +1,20 @@
+changelog:
+  exclude:
+    labels:
+      - internal
+  categories:
+    - title: Breaking Changes
+      labels:
+        - breaking-change
+    - title: New Features
+      labels:
+        - feature
+    - title: Fixes
+      labels:
+        - fix
+    - title: Documentation
+      labels:
+        - documentation 
+    - title: Other Changes
+      labels:
+        - "*"

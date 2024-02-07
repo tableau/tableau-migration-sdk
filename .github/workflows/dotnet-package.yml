@@ -1,0 +1,57 @@
+# This workflow will publish a package to a Nuget Repository
+name: .Net Publish Package Workflow
+
+on:
+  workflow_call:
+    secrets:
+      NUGET_PUBLISH_API_KEY:
+        required: false
+    inputs:
+      published-os:
+        required: true
+        type: string
+      runs-on-config:
+        required: true
+        type: string
+      build-config:
+        required: true
+        type: string
+      publish-environment:
+        required: true
+        type: string
+      package-version:
+        required: false
+        type: string
+        default: ''
+
+env:
+  PUBLISH_PACKAGE_KEY: ${{ secrets.NUGET_PUBLISH_API_KEY }}
+  
+jobs:
+  publish-package:
+    environment:
+      name: ${{ inputs.publish-environment }}
+    runs-on: ${{ inputs.runs-on-config }}
+    name: Publish Package from ${{ inputs.published-os }} with ${{ inputs.build-config }} configuration
+    steps:
+    - uses: actions/checkout@v3
+      if: ${{ env.PUBLISH_PACKAGE_KEY != '' }}
+    - uses: ./.github/actions/setup-dotnet
+      if: ${{ env.PUBLISH_PACKAGE_KEY != '' && inputs.runs-on-config != 'self-hosted' }} 
+    - uses: actions/download-artifact@v3
+      if: ${{ env.PUBLISH_PACKAGE_KEY != '' }}
+      with:
+        name: nuget-package
+    - name: Publish the package to a Nuget Repository
+      if: ${{ env.PUBLISH_PACKAGE_KEY != '' }}
+      shell: pwsh
+      env:
+        NUGET_API_KEY: ${{ secrets.NUGET_PUBLISH_API_KEY }}
+      run: dotnet nuget push Tableau.Migration.*.nupkg -k $env:NUGET_API_KEY -s ${{ vars.NUGET_PACKAGE_REPOSITORY }} --skip-duplicate
+    - name: Remove the package from Nuget Repository
+      if: ${{ env.PUBLISH_PACKAGE_KEY != '' && inputs.package-version != '' && inputs.publish-environment == 'public-dryrun' }}
+      shell: pwsh
+      env:
+        NUGET_API_KEY: ${{ secrets.NUGET_PUBLISH_API_KEY }}
+      run: dotnet nuget delete Tableau.Migration '${{ inputs.package-version }}' -k $env:NUGET_API_KEY -s ${{ vars.NUGET_PACKAGE_REPOSITORY }} --non-interactive
+    
