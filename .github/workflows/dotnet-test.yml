@@ -1,0 +1,41 @@
+# This workflow will test a .NET project
+name: .Net Test Workflow
+
+on:
+  workflow_call:
+
+env:
+  MIGRATIONSDK_BUILD_DOCS: 'no'
+  MIGRATIONSDK_SKIP_GITHUB_RUNNER_TESTS: ${{ vars.MIGRATIONSDK_SKIP_GITHUB_RUNNER_TESTS }}
+  MIGRATIONSDK_SKIP_FLAKY_TESTS: ${{ vars.MIGRATIONSDK_SKIP_FLAKY_TESTS }}
+  MIGRATIONSDK_TEST_CANCELLATION_TIMEOUT_TIMESPAN: ${{ vars.MIGRATIONSDK_TEST_CANCELLATION_TIMEOUT_TIMESPAN }}
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ${{ fromJSON(vars.BUILD_OS) }}
+        config: ${{ fromJSON(vars.BUILD_CONFIGURATIONS) }}
+    runs-on: ${{ matrix.os }}
+    name: .Net Test ${{ matrix.os }}, ${{ matrix.config }}
+    steps:
+    - uses: actions/checkout@v3
+    - uses: ./.github/actions/setup-dotnet
+    - name: Test ${{ matrix.config }}
+      run: |
+        dotnet test '${{ vars.BUILD_SOLUTION }}' -c ${{ matrix.config }} -p:CollectCoverage=true -p:CoverletOutputFormat=cobertura -p:CoverletOutput=./artifacts/ --verbosity normal --logger trx --results-directory "TestResults-${{ matrix.os }}-${{ matrix.config }}"
+    - name: Upload test results
+      # Use always() to always run this step to publish test results when there are test failures
+      if: ${{ always() }}
+      uses: actions/upload-artifact@v3
+      with:
+        name: dotnet-results-${{ matrix.os }}-${{ matrix.config }}
+        path: TestResults-${{ matrix.os }}-${{ matrix.config }}
+        if-no-files-found: error
+    - name: Upload Code Coverage
+      uses: actions/upload-artifact@v3
+      with:
+        name: coverage-${{ matrix.os }}-${{ matrix.config }}
+        path: '**/artifacts/coverage*.cobertura.xml'
+        if-no-files-found: error
