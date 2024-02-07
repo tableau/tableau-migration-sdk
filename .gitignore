@@ -183,6 +183,5 @@ UpgradeLog.htm
 /src/Documentation/_python
 /src/Python/Documentation/generated
 /tests/Python.TestApplication/manifest.json
-/.github
 /.git2gus
 /src/Python/scripts/publish-package.ps1

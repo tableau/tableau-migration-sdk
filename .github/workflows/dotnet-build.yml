@@ -1,0 +1,69 @@
+# This workflow will build a .NET project
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
+name: .Net Build Workflow
+
+on:
+  workflow_call:
+    inputs:
+      beta-version:
+        required: true
+        type: string
+
+env:
+  MIGRATIONSDK_BUILD_DOCS: 'no'
+  VERSION_REPLACE_ARGS: ''
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ${{ fromJSON(vars.BUILD_OS) }}
+        config: ${{ fromJSON(vars.BUILD_CONFIGURATIONS) }}
+    runs-on: ${{ matrix.os }}
+    name: .Net Build ${{ matrix.os }}, ${{ matrix.config }}
+    steps:
+    - uses: actions/checkout@v3
+    - uses: ./.github/actions/setup-dotnet
+    - name: Set Replaced Version Windows
+      if: ${{ runner.os == 'Windows' &&  inputs.beta-version != '' }}
+      run: echo "VERSION_REPLACE_ARGS=-p:Version='${{ inputs.beta-version }}'" | Out-File -FilePath $env:GITHUB_ENV -Append # no need for -Encoding utf8- uses: actions/checkout@v3
+    - name: Set Replaced Version Not Windows
+      if: ${{ runner.os != 'Windows' &&  inputs.beta-version != '' }}
+      run: echo "VERSION_REPLACE_ARGS=-p:Version='${{ inputs.beta-version }}'" >> $GITHUB_ENV
+    - name: Net Build Library ${{ matrix.config }} Beta Version ${{ inputs.beta-version }}
+      run: dotnet build '${{ vars.BUILD_SOLUTION }}' -c ${{ matrix.config }} ${{ env.VERSION_REPLACE_ARGS }}
+    - name: Net Publish Library ${{ matrix.config }}
+      if: ${{ matrix.os == vars.PUBLISH_OS && matrix.config == 'Release' }}
+      run: dotnet publish --no-build -p:DebugType=None -p:DebugSymbols=false -c ${{ matrix.config }} -f ${{ vars.PYTHON_NETPACKAGE_FRAMEWORK }} -o './src/Python/src/tableau_migration/bin/' '${{ vars.BUILD_PROJECT }}'
+    - name: Net Publish Tests ${{ matrix.config }}
+      if: ${{ matrix.os == vars.PUBLISH_OS && matrix.config == 'Release' }}
+      run: dotnet publish --no-build -p:DebugType=None -p:DebugSymbols=false -c ${{ matrix.config }} -f ${{ vars.PYTHON_NETPACKAGE_FRAMEWORK }} -o './dist/tests/' './tests/Tableau.Migration.Tests/Tableau.Migration.Tests.csproj'
+    - name: Net Publish TestComponents ${{ matrix.config }}
+      if: ${{ matrix.os == vars.PUBLISH_OS && matrix.config == 'Release' }}
+      run: dotnet publish --no-build -p:DebugType=None -p:DebugSymbols=false -c ${{ matrix.config }} -f ${{ vars.PYTHON_NETPACKAGE_FRAMEWORK }} -o './dist/testcomponents/' './tests/Tableau.Migration.TestComponents/Tableau.Migration.TestComponents.csproj'
+    - name: Upload Published Artifacts 
+      uses: actions/upload-artifact@v3
+      if: ${{ matrix.os == vars.PUBLISH_OS && matrix.config == 'Release' }}
+      with:
+        name: published-${{ matrix.config }}
+        path: './src/Python/src/tableau_migration/bin/**'
+    - name: Upload Tests Artifacts 
+      uses: actions/upload-artifact@v3
+      if: ${{ matrix.os == vars.PUBLISH_OS && matrix.config == 'Release' }}
+      with:
+        name: tests-published-${{ matrix.config }}
+        path: './dist/tests/**'
+    - name: Upload TestComponents Artifacts 
+      uses: actions/upload-artifact@v3
+      if: ${{ matrix.os == vars.PUBLISH_OS && matrix.config == 'Release' }}
+      with:
+        name: testcomponents-published-${{ matrix.config }}
+        path: './dist/testcomponents/**'
+    - name: Upload Nupkg Artifact 
+      uses: actions/upload-artifact@v3
+      if: ${{ matrix.os == vars.PUBLISH_OS && matrix.config == 'Release' }}
+      with:
+        name: nuget-package
+        path: './src/${{ vars.NUGET_PACKAGE_FOLDER }}/bin/${{ matrix.config }}/*.nupkg'
+        if-no-files-found: error
