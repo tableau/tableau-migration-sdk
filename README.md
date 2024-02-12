@@ -10,7 +10,9 @@ The Tableau Migration SDK is a client library to build an application to facilit
 
 Quickstart:
 - For Python install using PIP `pip install tableau-migration`
-- For C# install using NuGet `dotnet add package Tableau.Migration --version 1.0.0`
+- For C# install using NuGet 
+   - [dotnet CLI](https://learn.microsoft.com/en-us/nuget/quickstart/install-and-use-a-package-using-the-dotnet-cli): `dotnet add package Tableau.Migration --version 1.0.0`
+   - [Nuget Package Manager](https://learn.microsoft.com/en-us/nuget/quickstart/install-and-use-a-package-in-visual-studio): Search for Tableau.Migration
 
 To look at sourcecode and delve deeper:
   First, clone the repo:
