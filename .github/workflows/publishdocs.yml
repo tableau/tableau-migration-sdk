@@ -1,0 +1,79 @@
+# This workflow will build a .NET project
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
+name: .Net Publish Docs
+
+on:
+  workflow_call:
+    inputs:
+      runs-on-config:
+        required: true
+        type: string
+      build-config:
+        required: true
+        type: string
+      python-version:
+        required: true
+        type: string
+
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow one concurrent deployment
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  publish-docs:
+    environment:
+      name: docs
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ${{ inputs.runs-on-config }}
+    name: Publish docs
+    steps:
+    - uses: actions/checkout@v3
+    - uses: ./.github/actions/setup-dotnet
+    - uses: actions/download-artifact@v3
+      with:
+        name: coverage-${{ inputs.runs-on-config }}-${{ inputs.build-config }}
+    - name: Restore .NET Tools
+      run: dotnet tool restore
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ inputs.python-version }}
+    - name: Generate API Reference Docs..
+      shell: pwsh
+      run: |
+        ./scripts/generate-docs.ps1 -SkipPreClean
+        cd ./docs
+        zip -r ../docs.zip *
+        cd ..
+    - name: Generate Coverage
+      run: |
+        dotnet reportgenerator -reporttypes:"Html;Badges" -reports:**/coverage*.cobertura.xml -targetdir:./coverage
+        cd ./coverage
+        zip -r ../coverage.zip *
+        cd ..
+    - name: Upload Docs Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: docs
+        path: docs.zip
+    - name: Upload Coverage Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: coverage
+        path: coverage.zip
+    - name: Setup GitHub Pages
+      uses: actions/configure-pages@v3.0.6
+    - name: Upload Github Pages
+      uses: actions/upload-pages-artifact@v2
+      with:
+        path: './docs'
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v1.2.9
