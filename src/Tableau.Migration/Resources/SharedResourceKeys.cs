@@ -71,7 +71,7 @@ namespace Tableau.Migration.Resources
         public const string PublishedDataSourceReferenceNotFoundLogMessage = "PublishedDataSourceReferenceNotFoundLogMessage";
 
         public const string FailedJobExceptionContent = "FailedJobExceptionContent";
-        
+
         public const string TimeoutJobExceptionMessage = "TimeoutJobExceptionMessage";
 
         public const string ContentFilterBaseDebugMessage = "ContentFilterBaseDebugMessage";
@@ -79,7 +79,15 @@ namespace Tableau.Migration.Resources
         public const string ContentMappingBaseDebugMessage = "ContentMappingBaseDebugMessage";
 
         public const string ContentTransformerBaseDebugMessage = "ContentTransformerBaseDebugMessage";
-        
-        public const string GroupUsersTransformerCannotMapWarning = "GroupUsersTransformerCannotMapWarning";       
+
+        public const string GroupUsersTransformerCannotAddUserWarning = "GroupUsersTransformerCannotAddUserWarning";
+
+        public const string PermissionsTransformerGranteeNotFoundWarning = "PermissionsTransformerGranteeNotFoundWarning";
+
+        public const string SiteSettingsSkippedDisabledLogMessage = "SiteSettingsSkippedDisabledLogMessage";
+
+        public const string SiteSettingsSkippedNoAccessLogMessage = "SiteSettingsSkippedNoAccessLogMessage";
+
+        public const string SiteSettingsExtractEncryptionDisabledLogMessage = "SiteSettingsExtractEncryptionDisabledLogMessage";
     }
 }

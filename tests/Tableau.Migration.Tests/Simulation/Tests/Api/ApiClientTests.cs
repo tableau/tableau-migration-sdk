@@ -43,10 +43,11 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
                 assert(sessionProvider);
             }
 
-            protected void AssertAuthenticationToken(Action<IAuthenticationTokenProvider> assert)
+            protected async Task AssertAuthenticationTokenAsync(Action<string?> assert)
             {
                 var tokenProvider = ServiceProvider.GetRequiredService<IAuthenticationTokenProvider>();
-                assert(tokenProvider);
+                var token = await tokenProvider.GetAsync(Cancel);
+                assert(token);
             }
         }
 
@@ -116,9 +117,9 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
                     Assert.Equal(signIn.Site.ContentUrl, p.SiteContentUrl);
                 });
 
-                AssertAuthenticationToken(p =>
+                await AssertAuthenticationTokenAsync(token =>
                 {
-                    Assert.Equal(signIn.Token, p.Token);
+                    Assert.Equal(signIn.Token, token);
                 });
             }
 
@@ -142,9 +143,9 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
                     Assert.Null(p.SiteContentUrl);
                 });
 
-                AssertAuthenticationToken(p =>
+                await AssertAuthenticationTokenAsync(token =>
                 {
-                    Assert.Null(p.Token);
+                    Assert.Null(token);
                 });
             }
 
@@ -178,9 +179,9 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
                     Assert.Null(p.SiteContentUrl);
                 });
 
-                AssertAuthenticationToken(p =>
+                await AssertAuthenticationTokenAsync(token =>
                 {
-                    Assert.Null(p.Token);
+                    Assert.Null(token);
                 });
             }
         }
@@ -198,9 +199,9 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
 
                 Assert.True(result.Success);
 
-                AssertAuthenticationToken(p =>
+                await AssertAuthenticationTokenAsync(token =>
                 {
-                    Assert.Null(p.Token);
+                    Assert.Null(token);
                 });
             }
 
@@ -220,9 +221,9 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
                 var error = Assert.Single(result.Errors);
                 Assert.IsType<RestException>(error);
 
-                AssertAuthenticationToken(p =>
+                await AssertAuthenticationTokenAsync(token =>
                 {
-                    Assert.Null(p.Token);
+                    Assert.Null(token);
                 });
             }
         }

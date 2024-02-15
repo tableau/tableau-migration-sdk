@@ -15,6 +15,7 @@
 //
 
 using System;
+using Tableau.Migration.Api.Rest.Models;
 using Tableau.Migration.Api.Rest.Models.Responses;
 using Tableau.Migration.Content;
 using Xunit;
@@ -33,7 +34,8 @@ namespace Tableau.Migration.Tests.Unit.Content
                     {
                         Id = Create<Guid>(),
                         Name = Create<string>(),
-                        ContentUrl = Create<string>()
+                        ContentUrl = Create<string>(),
+                        ExtractEncryptionMode = ExtractEncryptionModes.Disabled
                     }
                 };
             }
@@ -92,6 +94,16 @@ namespace Tableau.Migration.Tests.Unit.Content
                 {
                     var site = new Site(response);
                 }
+            }
+
+            [Theory]
+            [NullEmptyWhiteSpaceData]
+            public void ExtractEncryptionModeRequired(string? s)
+            {
+                var response = CreateTestResponse();
+                response.Item!.ExtractEncryptionMode = s;
+
+                Assert.Throws<ArgumentException>(() => new Site(response));
             }
         }
     }

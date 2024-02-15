@@ -14,9 +14,14 @@
 //  limitations under the License.
 //
 
+using System;
+using System.Linq;
+using System.Net.Http;
 using System.Text.RegularExpressions;
+using Tableau.Migration.Api.Rest.Models.Requests;
 using Tableau.Migration.Api.Rest.Models.Responses;
 using Tableau.Migration.Api.Simulation.Rest.Net;
+using Tableau.Migration.Api.Simulation.Rest.Net.Requests;
 using Tableau.Migration.Net.Simulation;
 
 using static Tableau.Migration.Api.Simulation.Rest.Net.Requests.RestUrlPatterns;
@@ -39,6 +44,11 @@ namespace Tableau.Migration.Api.Simulation.Rest.Api
         public MethodSimulator QuerySiteByContentUrl { get; }
 
         /// <summary>
+        /// Gets the simulated update site API method.
+        /// </summary>
+        public MethodSimulator UpdateSite { get; }
+
+        /// <summary>
         /// Creates a new <see cref="SitesRestApiSimulator"/> object.
         /// </summary>
         /// <param name="simulator">A response simulator to setup with REST API methods.</param>
@@ -47,6 +57,36 @@ namespace Tableau.Migration.Api.Simulation.Rest.Api
             QuerySiteById = simulator.SetupRestGetById<SiteResponse, SiteResponse.SiteType>(RestApiUrl($"sites/{SiteId}"), d => d.Sites);
             QuerySiteByContentUrl = simulator.SetupRestGetByContentUrl<SiteResponse, SiteResponse.SiteType>(RestApiUrl($"sites/{ContentUrlPattern}"), d => d.Sites,
                 queryStringPatterns: new[] { ("key", new Regex("contentUrl")) });
+
+            UpdateSite = simulator.SetupRestPut<SiteResponse, SiteResponse.SiteType>(RestApiUrl($"sites/{SiteId}"), UpdateSiteFromRequest);
+        }
+
+        private static SiteResponse.SiteType? UpdateSiteFromRequest(TableauData data, HttpRequestMessage request)
+        {
+            var id = request.GetIdAfterSegment("sites");
+            if (id is null)
+            {
+                throw new InvalidOperationException("Site ID should not be null");
+            }
+
+            var site = data.Sites.SingleOrDefault(s => s.Id == id.Value);
+            if (site is null)
+            {
+                return null;
+            }
+
+            var updateRequest = request.GetTableauServerRequest<UpdateSiteRequest>()?.Site;
+            if (updateRequest is null)
+            {
+                return null;
+            }
+
+            if (updateRequest.ExtractEncryptionMode is not null)
+            {
+                site.ExtractEncryptionMode = updateRequest.ExtractEncryptionMode;
+            }
+
+            return site;
         }
     }
 }

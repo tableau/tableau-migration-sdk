@@ -22,6 +22,7 @@ using System.Threading.Tasks;
 using Moq;
 using Tableau.Migration.Api;
 using Tableau.Migration.Api.Rest.Models.Responses;
+using Tableau.Migration.Content;
 using Xunit;
 
 namespace Tableau.Migration.Tests.Unit.Api
@@ -213,7 +214,7 @@ namespace Tableau.Migration.Tests.Unit.Api
 
                 request.AssertRelativeUri($"/api/{TableauServerVersion.RestApiVersion}/auth/signout");
 
-                MockSessionProvider.Verify(p => p.ClearCurrentUserAndSite(), Times.Once);
+                MockSessionProvider.Verify(p => p.ClearCurrentUserAndSiteAsync(Cancel), Times.Once);
             }
 
             [Fact]
@@ -236,7 +237,7 @@ namespace Tableau.Migration.Tests.Unit.Api
 
                 request.AssertRelativeUri($"/api/{TableauServerVersion.RestApiVersion}/auth/signout");
 
-                MockSessionProvider.Verify(p => p.ClearCurrentUserAndSite(), Times.Once);
+                MockSessionProvider.Verify(p => p.ClearCurrentUserAndSiteAsync(Cancel), Times.Once);
             }
 
             [Fact]
@@ -287,6 +288,74 @@ namespace Tableau.Migration.Tests.Unit.Api
                 await SitesApiClient.DisposeAsync();
 
                 MockHttpClient.Verify(c => c.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()), Times.Once);
+            }
+        }
+
+        #endregion
+
+        #region - UpdateSiteAsync -
+
+        public class UpdateSiteAsync : SitesApiClientTest
+        {
+            [Fact]
+            public async Task ErrorAsync()
+            {
+                var exception = new Exception();
+
+                var mockResponse = new MockHttpResponseMessage<SiteResponse>(HttpStatusCode.InternalServerError, null);
+                mockResponse.Setup(r => r.EnsureSuccessStatusCode()).Throws(exception);
+
+                MockHttpClient.SetupResponse(mockResponse);
+
+                var update = new SiteSettingsUpdate(Guid.NewGuid());
+                var result = await SitesApiClient.UpdateSiteAsync(update, Cancel);
+
+                result.AssertFailure();
+
+                var resultError = Assert.Single(result.Errors);
+                Assert.Same(exception, resultError);
+
+                var request = MockHttpClient.AssertSingleRequest();
+                request.AssertHttpMethod(HttpMethod.Put);
+                request.AssertRelativeUri($"/api/{TableauServerVersion.RestApiVersion}/sites/{update.SiteId}");
+            }
+
+            [Fact]
+            public async Task FailureResponseAsync()
+            {
+                var mockResponse = new MockHttpResponseMessage<SiteResponse>(HttpStatusCode.NotFound, null);
+                MockHttpClient.SetupResponse(mockResponse);
+
+                var update = new SiteSettingsUpdate(Guid.NewGuid());
+                var result = await SitesApiClient.UpdateSiteAsync(update, Cancel);
+
+                result.AssertFailure();
+
+                Assert.Null(result.Value);
+                Assert.Single(result.Errors);
+
+                var request = MockHttpClient.AssertSingleRequest();
+                request.AssertHttpMethod(HttpMethod.Put);
+                request.AssertRelativeUri($"/api/{TableauServerVersion.RestApiVersion}/sites/{update.SiteId}");
+            }
+
+            [Fact]
+            public async Task SuccessAsync()
+            {
+                var siteResponse = AutoFixture.CreateResponse<SiteResponse>();
+
+                var mockResponse = new MockHttpResponseMessage<SiteResponse>(siteResponse);
+                MockHttpClient.SetupResponse(mockResponse);
+
+                var update = new SiteSettingsUpdate(Guid.NewGuid());
+                var result = await SitesApiClient.UpdateSiteAsync(update, Cancel);
+
+                result.AssertSuccess();
+                Assert.NotNull(result.Value);
+
+                var request = MockHttpClient.AssertSingleRequest();
+                request.AssertHttpMethod(HttpMethod.Put);
+                request.AssertRelativeUri($"/api/{TableauServerVersion.RestApiVersion}/sites/{update.SiteId}");
             }
         }
 

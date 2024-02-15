@@ -54,11 +54,16 @@ The [`IMigrationPlan`](xref:Tableau.Migration.IMigrationPlan) interface defines 
 
 [`MigrationSdkOptions`](xref:Tableau.Migration.Config.MigrationSdkOptions) is the configuration class the Migration SDK uses internally to process a migration. It contains adjustable properties that change some engine behaviors. These properties are useful tools to troubleshoot and tune a migration process. Start with this class and others in the [Config](xref:Tableau.Migration.Config) section for more details.
 
+When writting a C# application, it is recommended that a [.NET Generic Host](https://learn.microsoft.com/en-us/dotnet/core/extensions/generic-host?tabs=appbuilder) is used to initialize the application. This will enable setting configuration values via `appsettings.json` which can be passed into `userOptions` in [`.AddTableauMigrationSdk`](xref:Tableau.Migration.IServiceCollectionExtensions.html#Tableau_Migration_IServiceCollectionExtensions_AddTableauMigrationSdk_Microsoft_Extensions_DependencyInjection_IServiceCollection_Microsoft_Extensions_Configuration_IConfiguration_). See  [.NET getting started examples](..\samples\csharp.md) for more info.
+
+When writting a python application, configuration values are set via environment variables. The `:` delimiter doesn't work with environment variable hierarchical keys on all platforms. For example, the `:` delimiter is not supported by Bash. The double underscore (`__`), which is supported on all platforms, automatically replaces any `:` delimiters in environment variables. All configuration environment variables start with `MigrationSDK__`.
 
 ### BatchSize
 *Reference:* [`MigrationSdkOptions.BatchSize`](xref:Tableau.Migration.Config.MigrationSdkOptions#Tableau_Migration_Config_MigrationSdkOptions_BatchSize).
 
 *Default:* [`MigrationSdkOptions.Defaults.BATCH_SIZE`](xref:Tableau.Migration.Config.MigrationSdkOptions.Defaults#Tableau_Migration_Config_MigrationSdkOptions_Defaults_BATCH_SIZE).
+
+*Python Environment Variable:* `MigrationSDK__BatchSize`
 
 *Reload on Edit?:* **Yes**. The update will apply next time the Migration SDK requests a list of objects.
 
@@ -69,6 +74,8 @@ The [`IMigrationPlan`](xref:Tableau.Migration.IMigrationPlan) interface defines 
 *Reference:* [`MigrationSdkOptions.MigrationParallelism`](xref:Tableau.Migration.Config.MigrationSdkOptions#Tableau_Migration_Config_MigrationSdkOptions_MigrationParallelism).
 
 *Default:* [`MigrationSdkOptions.Defaults.MIGRATION_PARALLELISM`](xref:Tableau.Migration.Config.MigrationSdkOptions.Defaults#Tableau_Migration_Config_MigrationSdkOptions_Defaults_MIGRATION_PARALLELISM).
+
+*Python Environment Variable:* `MigrationSDK__MigrationParallelism`
 
 *Reload on Edit?:* **Yes**. The update will apply the next time the Migration SDK publishes a new batch.
 
@@ -82,6 +89,8 @@ The [`IMigrationPlan`](xref:Tableau.Migration.IMigrationPlan) interface defines 
 
 *Default:* [`FileOptions.Defaults.DISABLE_FILE_ENCRYPTION`](xref:Tableau.Migration.Config.FileOptions.Defaults#Tableau_Migration_Config_FileOptions_Defaults_DISABLE_FILE_ENCRYPTION).
 
+*Python Environment Variable:* `MigrationSDK__Files__DisableFileEncryption`
+
 *Reload on Edit?:* **Yes**. The update will apply the next time the Migration SDK executes a migration plan.
 
 *Description:* As part of the migration process, the Migration SDK has to adjust existing references for file-based content types like Workbooks and Data Sources. The SDK has to download and temporarily store the content in the migration machine to be able to read and edit these files. The Migration SDK uses the **DisableFileEncryption** property to define whether it will encrypt the temporary file.
@@ -94,6 +103,8 @@ The [`IMigrationPlan`](xref:Tableau.Migration.IMigrationPlan) interface defines 
 
 *Default:* [`FileOptions.Defaults.ROOT_PATH`](xref:Tableau.Migration.Config.FileOptions.Defaults#Tableau_Migration_Config_FileOptions_Defaults_ROOT_PATH).
 
+*Python Environment Variable:* `MigrationSDK__Files__RootPath`
+
 *Reload on Edit?:* **Yes**. The update will apply the next time the Migration SDK executes a migration plan.
 
 *Description:* As part of the migration process, the Migration SDK has to adjust existing references for file-based content types like Workbooks and Data Sources. The SDK has to download and temporarily store the content in the migration machine to be able to read and edit these files. The Migration SDK uses the **RootPath** property to define the location where it will store the temporary files.
@@ -103,6 +114,8 @@ The [`IMigrationPlan`](xref:Tableau.Migration.IMigrationPlan) interface defines 
 *Reference:* [`NetworkOptions.FileChunkSizeKB`](xref:Tableau.Migration.Config.NetworkOptions#Tableau_Migration_Config_NetworkOptions_FileChunkSizeKB).
 
 *Default:* [`NetworkOptions.Defaults.FILE_CHUNK_SIZE_KB`](xref:Tableau.Migration.Config.NetworkOptions.Defaults#Tableau_Migration_Config_NetworkOptions_Defaults_FILE_CHUNK_SIZE_KB).
+
+*Python Environment Variable:* `MigrationSDK__Network__FileChunkSizeKB`
 
 *Reload on Edit?:* **Yes**. The update will apply the next time the Migration SDK publishes a new file.
 
@@ -114,6 +127,8 @@ The [`IMigrationPlan`](xref:Tableau.Migration.IMigrationPlan) interface defines 
 
 *Default:* [`NetworkOptions.Defaults.LOG_HEADERS_ENABLED`](xref:Tableau.Migration.Config.NetworkOptions.Defaults#Tableau_Migration_Config_NetworkOptions_Defaults_LOG_HEADERS_ENABLED).
 
+*Python Environment Variable:* `MigrationSDK__Network__HeadersLoggingEnabled`
+
 *Reload on Edit?:* **Yes**. The update will apply the next time the Migration SDK logs a new HTTP request.
 
 *Description:* Check the [logging article](logging.md) for more details.
@@ -123,6 +138,8 @@ The [`IMigrationPlan`](xref:Tableau.Migration.IMigrationPlan) interface defines 
 *Reference:* [`NetworkOptions.ContentLoggingEnabled`](xref:Tableau.Migration.Config.NetworkOptions#Tableau_Migration_Config_NetworkOptions_ContentLoggingEnabled).
 
 *Default:* [`NetworkOptions.Defaults.LOG_CONTENT_ENABLED`](xref:Tableau.Migration.Config.NetworkOptions.Defaults#Tableau_Migration_Config_NetworkOptions_Defaults_LOG_CONTENT_ENABLED).
+
+*Python Environment Variable:* `MigrationSDK__Network__ContentLoggingEnabled`
 
 *Reload on Edit?:* **Yes**. The update will apply the next time the Migration SDK logs a new HTTP request.
 
@@ -134,6 +151,8 @@ The [`IMigrationPlan`](xref:Tableau.Migration.IMigrationPlan) interface defines 
 
 *Default:* [`NetworkOptions.Defaults.LOG_BINARY_CONTENT_ENABLED`](xref:Tableau.Migration.Config.NetworkOptions.Defaults#Tableau_Migration_Config_NetworkOptions_Defaults_LOG_BINARY_CONTENT_ENABLED).
 
+*Python Environment Variable:* `MigrationSDK__Network__BinaryContentLoggingEnabled`
+
 *Reload on Edit?:* **Yes**. The update will apply the next time the Migration SDK logs a new HTTP request.
 
 *Description:* Check the [logging article](logging.md) for more details.
@@ -143,6 +162,8 @@ The [`IMigrationPlan`](xref:Tableau.Migration.IMigrationPlan) interface defines 
 *Reference:* [`NetworkOptions.ExceptionsLoggingEnabled`](xref:Tableau.Migration.Config.NetworkOptions#Tableau_Migration_Config_NetworkOptions_ExceptionsLoggingEnabled).
 
 *Default:* [`NetworkOptions.Defaults.LOG_EXCEPTIONS_ENABLED`](xref:Tableau.Migration.Config.NetworkOptions.Defaults#Tableau_Migration_Config_NetworkOptions_Defaults_LOG_EXCEPTIONS_ENABLED).
+
+*Python Environment Variable:* `MigrationSDK__Network__ExceptionsLoggingEnabled`
 
 *Reload on Edit?:* **Yes**. The update will apply the next time the Migration SDK logs a new HTTP request.
 
@@ -154,6 +175,8 @@ The [`IMigrationPlan`](xref:Tableau.Migration.IMigrationPlan) interface defines 
 
 *Default:* [`ResilienceOptions.Defaults.RETRY_ENABLED`](xref:Tableau.Migration.Config.ResilienceOptions.Defaults#Tableau_Migration_Config_ResilienceOptions_Defaults_RETRY_ENABLED).
 
+*Python Environment Variable:* `MigrationSDK__Network__Resilience__RetryEnabled`
+
 *Reload on Edit?:* **Yes**. The update will apply the next time the Migration SDK makes a new HTTP request.
 
 *Description:* The Migration SDK uses [Polly](https://github.com/App-vNext/Polly) as a resilience and transient-fault layer. The SDK uses the **RetryEnabled** property to define whether it will retry failed requests.
@@ -163,6 +186,8 @@ The [`IMigrationPlan`](xref:Tableau.Migration.IMigrationPlan) interface defines 
 *Reference:* [`ResilienceOptions.RetryIntervals`](xref:Tableau.Migration.Config.ResilienceOptions#Tableau_Migration_Config_ResilienceOptions_RetryIntervals).
 
 *Default:* [`ResilienceOptions.Defaults.RETRY_INTERVALS`](xref:Tableau.Migration.Config.ResilienceOptions.Defaults#Tableau_Migration_Config_ResilienceOptions_Defaults_RETRY_INTERVALS).
+
+*Python Environment Variable:* **Not Supported**
 
 *Reload on Edit?:* **Yes**. The update will apply the next time the Migration SDK makes a new HTTP request.
 
@@ -174,6 +199,8 @@ The [`IMigrationPlan`](xref:Tableau.Migration.IMigrationPlan) interface defines 
 
 *Default:* [`ResilienceOptions.Defaults.RETRY_OVERRIDE_RESPONSE_CODES`](xref:Tableau.Migration.Config.ResilienceOptions.Defaults#Tableau_Migration_Config_ResilienceOptions_Defaults_RETRY_OVERRIDE_RESPONSE_CODES).
 
+*Python Environment Variable:* **Not Supported**
+
 *Reload on Edit?:* **Yes**. The update will apply the next time the Migration SDK makes a new HTTP request.
 
 *Description:* The Migration SDK uses [Polly](https://github.com/App-vNext/Polly) as a resilience and transient-fault layer. The SDK uses the **RetryOverrideResponseCodes** property to override the default list of error status codes for retries with a specific list of status codes.
@@ -183,6 +210,8 @@ The [`IMigrationPlan`](xref:Tableau.Migration.IMigrationPlan) interface defines 
 *Reference:* [`ResilienceOptions.ConcurrentRequestsLimitEnabled`](xref:Tableau.Migration.Config.ResilienceOptions#Tableau_Migration_Config_ResilienceOptions_ConcurrentRequestsLimitEnabled).
 
 *Default:* [`ResilienceOptions.Defaults.CONCURRENT_REQUESTS_LIMIT_ENABLED`](xref:Tableau.Migration.Config.ResilienceOptions.Defaults#Tableau_Migration_Config_ResilienceOptions_Defaults_CONCURRENT_REQUESTS_LIMIT_ENABLED).
+
+*Python Environment Variable:* `MigrationSDK__Network__Resilience__ConcurrentRequestsLimitEnabled`
 
 *Reload on Edit?:* **Yes**. The update will apply the next time the Migration SDK makes a new HTTP request.
 
@@ -194,6 +223,8 @@ The [`IMigrationPlan`](xref:Tableau.Migration.IMigrationPlan) interface defines 
 
 *Default:* [`ResilienceOptions.Defaults.MAX_CONCURRENT_REQUESTS`](xref:Tableau.Migration.Config.ResilienceOptions.Defaults#Tableau_Migration_Config_ResilienceOptions_Defaults_MAX_CONCURRENT_REQUESTS).
 
+*Python Environment Variable:* `MigrationSDK__Network__Resilience__MaxConcurrentRequests`
+
 *Reload on Edit?:* **Yes**. The update will apply the next time the Migration SDK makes a new HTTP request.
 
 *Description:* The Migration SDK uses [Polly](https://github.com/App-vNext/Polly) as a resilience and transient-fault layer. The SDK uses the **MaxConcurrentRequests** property to define the maximum quantity of concurrent API requests.
@@ -203,6 +234,8 @@ The [`IMigrationPlan`](xref:Tableau.Migration.IMigrationPlan) interface defines 
 *Reference:* [`ResilienceOptions.ConcurrentWaitingRequestsOnQueue`](xref:Tableau.Migration.Config.ResilienceOptions#Tableau_Migration_Config_ResilienceOptions_ConcurrentWaitingRequestsOnQueue).
 
 *Default:* [`ResilienceOptions.Defaults.CONCURRENT_WAITING_REQUESTS_QUEUE`](xref:Tableau.Migration.Config.ResilienceOptions.Defaults#Tableau_Migration_Config_ResilienceOptions_Defaults_CONCURRENT_WAITING_REQUESTS_QUEUE).
+
+*Python Environment Variable:* `MigrationSDK__Network__Resilience__ConcurrentWaitingRequestsOnQueue`
 
 *Reload on Edit?:* **Yes**. The update will apply the next time the Migration SDK makes a new HTTP request.
 
@@ -214,6 +247,8 @@ The [`IMigrationPlan`](xref:Tableau.Migration.IMigrationPlan) interface defines 
 
 *Default:* [`ResilienceOptions.Defaults.CLIENT_THROTTLE_ENABLED`](xref:Tableau.Migration.Config.ResilienceOptions.Defaults#Tableau_Migration_Config_ResilienceOptions_Defaults_CLIENT_THROTTLE_ENABLED).
 
+*Python Environment Variable:* `MigrationSDK__Network__Resilience__ClientThrottleEnabled`
+
 *Reload on Edit?:* **Yes**. The update will apply the next time the Migration SDK makes a new HTTP request.
 
 *Description:* The Migration SDK uses [Polly](https://github.com/App-vNext/Polly) as a resilience and transient-fault layer. The SDK uses the **ClientThrottleEnabled** property to define whether it will limit requests to a given endpoint on the client side.
@@ -223,6 +258,8 @@ The [`IMigrationPlan`](xref:Tableau.Migration.IMigrationPlan) interface defines 
 *Reference:* [`ResilienceOptions.MaxReadRequests`](xref:Tableau.Migration.Config.ResilienceOptions#Tableau_Migration_Config_ResilienceOptions_MaxReadRequests).
 
 *Default:* [`ResilienceOptions.Defaults.MAX_READ_REQUESTS`](xref:Tableau.Migration.Config.ResilienceOptions.Defaults#Tableau_Migration_Config_ResilienceOptions_Defaults_MAX_READ_REQUESTS).
+
+*Python Environment Variable:* `MigrationSDK__Network__Resilience__MaxReadRequests`
 
 *Reload on Edit?:* **Yes**. The update will apply the next time the Migration SDK makes a new HTTP request.
 
@@ -234,6 +271,8 @@ The [`IMigrationPlan`](xref:Tableau.Migration.IMigrationPlan) interface defines 
 
 *Default:* [`ResilienceOptions.Defaults.MAX_READ_REQUESTS_INTERVAL`](xref:Tableau.Migration.Config.ResilienceOptions.Defaults#Tableau_Migration_Config_ResilienceOptions_Defaults_MAX_READ_REQUESTS_INTERVAL).
 
+*Python Environment Variable:* `MigrationSDK__Network__Resilience__MaxReadRequestsInterval`
+
 *Reload on Edit?:* **Yes**. The update will apply the next time the Migration SDK makes a new HTTP request.
 
 *Description:* The Migration SDK uses [Polly](https://github.com/App-vNext/Polly) as a resilience and transient-fault layer. The SDK uses the **MaxReadRequestsInterval** property to define the interval for the limit of GET requests on the client side.
@@ -243,6 +282,8 @@ The [`IMigrationPlan`](xref:Tableau.Migration.IMigrationPlan) interface defines 
 *Reference:* [`ResilienceOptions.MaxBurstReadRequests`](xref:Tableau.Migration.Config.ResilienceOptions#Tableau_Migration_Config_ResilienceOptions_MaxBurstReadRequests).
 
 *Default:* [`ResilienceOptions.Defaults.MAX_BURST_READ_REQUESTS`](xref:Tableau.Migration.Config.ResilienceOptions.Defaults#Tableau_Migration_Config_ResilienceOptions_Defaults_MAX_BURST_READ_REQUESTS).
+
+*Python Environment Variable:* `MigrationSDK__Network__Resilience__MaxBurstReadRequests`
 
 *Reload on Edit?:* **Yes**. The update will apply the next time the Migration SDK makes a new HTTP request.
 
@@ -254,6 +295,8 @@ The [`IMigrationPlan`](xref:Tableau.Migration.IMigrationPlan) interface defines 
 
 *Default:* [`ResilienceOptions.Defaults.MAX_PUBLISH_REQUESTS`](xref:Tableau.Migration.Config.ResilienceOptions.Defaults#Tableau_Migration_Config_ResilienceOptions_Defaults_MAX_PUBLISH_REQUESTS).
 
+*Python Environment Variable:* `MigrationSDK__Network__Resilience__MaxPublishRequests`
+
 *Reload on Edit?:* **Yes**. The update will apply the next time the Migration SDK makes a new HTTP request.
 
 *Description:* The Migration SDK uses [Polly](https://github.com/App-vNext/Polly) as a resilience and transient-fault layer. The SDK uses the **MaxPublishRequests** property to define the maximum quantity of non-GET requests on the client side.
@@ -263,6 +306,8 @@ The [`IMigrationPlan`](xref:Tableau.Migration.IMigrationPlan) interface defines 
 *Reference:* [`ResilienceOptions.MaxPublishRequestsInterval`](xref:Tableau.Migration.Config.ResilienceOptions#Tableau_Migration_Config_ResilienceOptions_MaxPublishRequestsInterval).
 
 *Default:* [`ResilienceOptions.Defaults.MAX_PUBLISH_REQUESTS_INTERVAL`](xref:Tableau.Migration.Config.ResilienceOptions.Defaults#Tableau_Migration_Config_ResilienceOptions_Defaults_MAX_PUBLISH_REQUESTS_INTERVAL).
+
+*Python Environment Variable:* `MigrationSDK__Network__Resilience__MaxPublishRequestsInterval`
 
 *Reload on Edit?:* **Yes**. The update will apply the next time the Migration SDK makes a new HTTP request.
 
@@ -274,6 +319,8 @@ The [`IMigrationPlan`](xref:Tableau.Migration.IMigrationPlan) interface defines 
 
 *Default:* [`ResilienceOptions.Defaults.MAX_BURST_PUBLISH_REQUESTS`](xref:Tableau.Migration.Config.ResilienceOptions.Defaults#Tableau_Migration_Config_ResilienceOptions_Defaults_MAX_BURST_PUBLISH_REQUESTS).
 
+*Python Environment Variable:* `MigrationSDK__Network__Resilience__MaxBurstPublishRequests`
+
 *Reload on Edit?:* **Yes**. The update will apply the next time the Migration SDK makes a new HTTP request.
 
 *Description:* The Migration SDK uses [Polly](https://github.com/App-vNext/Polly) as a resilience and transient-fault layer. With only the previous configuration values (`Network.Resilience.MaxPublishRequests` and `Network.Resilience.MaxPublishRequestsInterval`), the SDK will calculate the minimum interval to complete a single request. Any other request at the same period will be blocked. The SDK uses the **MaxBurstPublishRequests** property to define the maximum quantity of non-GET requests on the calculated period.
@@ -283,6 +330,8 @@ The [`IMigrationPlan`](xref:Tableau.Migration.IMigrationPlan) interface defines 
 *Reference:* [`ResilienceOptions.ServerThrottleEnabled`](xref:Tableau.Migration.Config.ResilienceOptions#Tableau_Migration_Config_ResilienceOptions_ServerThrottleEnabled).
 
 *Default:* [`ResilienceOptions.Defaults.SERVER_THROTTLE_ENABLED`](xref:Tableau.Migration.Config.ResilienceOptions.Defaults#Tableau_Migration_Config_ResilienceOptions_Defaults_SERVER_THROTTLE_ENABLED).
+
+*Python Environment Variable:* `MigrationSDK__Network__Resilience__ServerThrottleEnabled`
 
 *Reload on Edit?:* **Yes**. The update will apply the next time the Migration SDK makes a new HTTP request.
 
@@ -294,6 +343,8 @@ The [`IMigrationPlan`](xref:Tableau.Migration.IMigrationPlan) interface defines 
 
 *Default:* [`ResilienceOptions.Defaults.SERVER_THROTTLE_LIMIT_RETRIES`](xref:Tableau.Migration.Config.ResilienceOptions.Defaults#Tableau_Migration_Config_ResilienceOptions_Defaults_SERVER_THROTTLE_LIMIT_RETRIES).
 
+*Python Environment Variable:* `MigrationSDK__Network__Resilience__ServerThrottleLimitRetries`
+
 *Reload on Edit?:* **Yes**. The update will apply the next time the Migration SDK makes a new HTTP request.
 
 *Description:* The Migration SDK uses [Polly](https://github.com/App-vNext/Polly) as a resilience and transient-fault layer. The SDK uses the **ServerThrottleLimitRetries** property to define whether it will have a limit of retries to a throttled request.
@@ -303,6 +354,8 @@ The [`IMigrationPlan`](xref:Tableau.Migration.IMigrationPlan) interface defines 
 *Reference:* [`ResilienceOptions.ServerThrottleRetryIntervals`](xref:Tableau.Migration.Config.ResilienceOptions#Tableau_Migration_Config_ResilienceOptions_ServerThrottleRetryIntervals).
 
 *Default:* [`ResilienceOptions.Defaults.SERVER_THROTTLE_RETRY_INTERVALS`](xref:Tableau.Migration.Config.ResilienceOptions.Defaults#Tableau_Migration_Config_ResilienceOptions_Defaults_SERVER_THROTTLE_RETRY_INTERVALS).
+
+*Python Environment Variable:* **Not Supported**
 
 *Reload on Edit?:* **Yes**. The update will apply the next time the Migration SDK makes a new HTTP request.
 
@@ -314,6 +367,8 @@ The [`IMigrationPlan`](xref:Tableau.Migration.IMigrationPlan) interface defines 
 
 *Default:* [`ResilienceOptions.Defaults.REQUEST_TIMEOUT`](xref:Tableau.Migration.Config.ResilienceOptions.Defaults#Tableau_Migration_Config_ResilienceOptions_Defaults_REQUEST_TIMEOUT).
 
+*Python Environment Variable:* `MigrationSDK__Network__Resilience__PerRequestTimeout`
+
 *Reload on Edit?:* **Yes**. The update will apply the next time the Migration SDK makes a new HTTP request.
 
 *Description:* The Migration SDK uses [Polly](https://github.com/App-vNext/Polly) as a resilience and transient-fault layer. The SDK uses the **PerRequestTimeout** property to define the maximum duration of non-FileTransfer requests.
@@ -323,6 +378,8 @@ The [`IMigrationPlan`](xref:Tableau.Migration.IMigrationPlan) interface defines 
 *Reference:* [`ResilienceOptions.PerFileTransferRequestTimeout`](xref:Tableau.Migration.Config.ResilienceOptions#Tableau_Migration_Config_ResilienceOptions_PerFileTransferRequestTimeout).
 
 *Default:* [`ResilienceOptions.Defaults.FILE_TRANSFER_REQUEST_TIMEOUT`](xref:Tableau.Migration.Config.ResilienceOptions.Defaults#Tableau_Migration_Config_ResilienceOptions_Defaults_FILE_TRANSFER_REQUEST_TIMEOUT).
+
+*Python Environment Variable:* `MigrationSDK__Network__Resilience__PerFileTransferRequestTimeout`
 
 *Reload on Edit?:* **Yes**. The update will apply the next time the Migration SDK makes a new HTTP request.
 
@@ -334,6 +391,8 @@ The [`IMigrationPlan`](xref:Tableau.Migration.IMigrationPlan) interface defines 
 
 *Default:* [`DefaultPermissionsContentTypeUrlSegments`](xref:Tableau.Migration.Content.Permissions.DefaultPermissionsContentTypeUrlSegments).
 
+*Python Environment Variable:* **Not Supported**
+
 *Reload on Edit?:* **No**. Any changes to this configuration will reflect on the next time the application starts.
 
 *Description:* The SDK uses the **UrlSegments** property as a list of types of default permissions of given project. For more details, check the [Query Default Permissions documentation](https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_permissions.htm#query_default_permissions).
@@ -343,6 +402,8 @@ The [`IMigrationPlan`](xref:Tableau.Migration.IMigrationPlan) interface defines 
 *Reference:* [`JobOptions.JobPollRate`](xref:Tableau.Migration.Config.JobOptions#Tableau_Migration_Config_JobOptions_JobPollRate).
 
 *Default:* [`JobOptions.Defaults.JOB_POLL_RATE`](xref:Tableau.Migration.Config.JobOptions.Defaults#Tableau_Migration_Config_JobOptions_Defaults_JOB_POLL_RATE).
+
+*Python Environment Variable:* `MigrationSDK__Jobs__JobPollRate`
 
 *Reload on Edit?:* **Yes**. The update will apply the next time the Migration SDK delays the processing status recheck.
 
@@ -355,6 +416,8 @@ The [`IMigrationPlan`](xref:Tableau.Migration.IMigrationPlan) interface defines 
 *Reference:* [`JobOptions.JobTimeout`](xref:Tableau.Migration.Config.JobOptions#Tableau_Migration_Config_JobOptions_JobTimeout).
 
 *Default:* [`JobOptions.Defaults.JOB_TIMEOUT`](xref:Tableau.Migration.Config.JobOptions.Defaults#Tableau_Migration_Config_JobOptions_Defaults_JOB_TIMEOUT).
+
+*Python Environment Variable:* `MigrationSDK__Jobs__JobTimeout`
 
 *Reload on Edit?:* **Yes**. The update will apply the next time the Migration SDK validates the total time it has waited for the job to complete.
 

@@ -20,6 +20,7 @@ using Microsoft.Extensions.Logging;
 using Tableau.Migration.Api.Models;
 using Tableau.Migration.Api.Rest.Models.Requests;
 using Tableau.Migration.Api.Rest.Models.Responses;
+using Tableau.Migration.Content;
 using Tableau.Migration.Net.Rest;
 using Tableau.Migration.Resources;
 
@@ -57,14 +58,17 @@ namespace Tableau.Migration.Api
             tokenProvider.RefreshRequestedAsync += async (cancel) =>
             {
                 var signInResult = await GetSignInResultAsync(cancel).ConfigureAwait(false);
-
-                if (signInResult.Success)
+                
+                if(!signInResult.Success)
                 {
-                    tokenProvider.Set(signInResult.Value.Token);
+                    return signInResult.CastFailure<string>();
                 }
+
+                return Result<string>.Succeeded(signInResult.Value.Token);
             };
         }
 
+        /// <inheritdoc />
         public async Task<IAsyncDisposableResult<ISitesApiClient>> SignInAsync(CancellationToken cancel)
         {
             // Set the default API version if it hasn't been set already so we know which sign-in API version to call.
@@ -83,7 +87,7 @@ namespace Tableau.Migration.Api
                 return AsyncDisposableResult<ISitesApiClient>.Failed(signInResult.Errors);
             }
 
-            _sessionProvider.SetCurrentUserAndSite(signInResult.Value);
+            await _sessionProvider.SetCurrentUserAndSiteAsync(signInResult.Value, cancel).ConfigureAwait(false);
 
             return AsyncDisposableResult<ISitesApiClient>.Succeeded(_sitesApiClient);
         }
@@ -102,6 +106,7 @@ namespace Tableau.Migration.Api
             return signInResult;
         }
 
+        /// <inheritdoc />
         public async Task<IResult<IServerInfo>> GetServerInfoAsync(CancellationToken cancel)
         {
             // The first version this endpoint is available.
@@ -121,6 +126,20 @@ namespace Tableau.Migration.Api
                 _sessionProvider.SetVersion(serverInfoResult.Value.TableauServerVersion);
 
             return serverInfoResult;
+        }
+
+        /// <inheritdoc />
+        public async Task<IResult<IServerSession>> GetCurrentServerSessionAsync(CancellationToken cancel)
+        {
+            var serverSessionResult = await RestRequestBuilderFactory
+                .CreateUri("/sessions/current")
+                .WithSiteId(null)
+                .ForGetRequest()
+                .SendAsync<ServerSessionResponse>(cancel)
+                .ToResultAsync<ServerSessionResponse, IServerSession>(r => new ServerSession(r), SharedResourcesLocalizer)
+                .ConfigureAwait(false);
+
+            return serverSessionResult;
         }
     }
 }

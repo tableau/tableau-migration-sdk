@@ -14,21 +14,26 @@
 //  limitations under the License.
 //
 
-namespace Tableau.Migration.Api.Rest.Models
-{
-    /// <summary>
-    /// The Administrator level for the user to be derived from a siterole in <see cref="SiteRoles"/>.
-    /// </summary>
-    public class AdministratorLevels : StringEnum<AdministratorLevels>
-    {
-        /// <summary>
-        /// Name for the level when a user has Site administrator permissions.
-        /// </summary>
-        public const string Site = "Site";
+using Tableau.Migration.Api.Rest.Models.Requests;
+using Tableau.Migration.Content;
+using Xunit;
 
-        /// <summary>
-        /// Name for the level when a user has no administrator permissions.
-        /// </summary>
-        public const string None = "None";
+namespace Tableau.Migration.Tests.Unit.Api.Rest.Models.Requests
+{
+    public class UpdateSiteRequestTests
+    {
+        public class Ctor : AutoFixtureTestBase
+        {
+            [Fact]
+            public void Initializes()
+            {
+                var update = Create<ISiteSettingsUpdate>();
+
+                var req = new UpdateSiteRequest(update);
+
+                Assert.NotNull(req.Site);
+                Assert.Equal(update.ExtractEncryptionMode, req.Site.ExtractEncryptionMode);
+            }
+        }
     }
 }

@@ -80,15 +80,19 @@ namespace Tableau.Migration.Tests.Unit.Net
             [InlineData("password", "test")]
             [InlineData("password", "te&quot;st")]
             [InlineData("password", "te'st")]
+            [InlineData("password", "")]
             [InlineData("token", "test")]
             [InlineData("token", "te&quot;st")]
             [InlineData("token", "te'st")]
+            [InlineData("token", "")]
             [InlineData("jwt", "test")]
             [InlineData("jwt", "te&quot;st")]
             [InlineData("jwt", "te'st")]
+            [InlineData("jwt", "")]
             [InlineData("personalAccessTokenSecret", "test")]
             [InlineData("personalAccessTokenSecret", "te&quot;st")]
             [InlineData("personalAccessTokenSecret", "te'st")]
+            [InlineData("personalAccessTokenSecret", "")]
             public void ReplaceXmlAttributes(
                 string attributeName,
                 string secret)
@@ -102,12 +106,15 @@ namespace Tableau.Migration.Tests.Unit.Net
             [InlineData("authenticity_token", "test")]
             [InlineData("authenticity_token", "te\\\"st")]
             [InlineData("authenticity_token", "te\\'st")]
+            [InlineData("authenticity_token", "")]
             [InlineData("modulus", "test")]
             [InlineData("modulus", "te\\\"st")]
             [InlineData("modulus", "te\\'st")]
+            [InlineData("modulus", "")]
             [InlineData("exponent", "test")]
             [InlineData("exponent", "te\\\"st")]
             [InlineData("exponent", "te\\'st")]
+            [InlineData("exponent", "")]
             public void ReplaceXmlElement(
                 string elementName,
                 string secret)
@@ -121,6 +128,7 @@ namespace Tableau.Migration.Tests.Unit.Net
             [InlineData("test")]
             [InlineData("te&quot;st")]
             [InlineData("te'st")]
+            [InlineData("")]
             public void ReplaceMultipleSecrets(string secret)
             {
                 TestValue(
@@ -142,10 +150,15 @@ namespace Tableau.Migration.Tests.Unit.Net
                 string sensitiveValue)
             {
                 // Arrange
-                var expectedResult = input.Replace(
-                    sensitiveValue,
-                    NetworkTraceRedactor.SENSITIVE_DATA_PLACEHOLDER,
-                    StringComparison.Ordinal);
+                var expectedResult = input;
+
+                if (!sensitiveValue.IsNullOrEmpty())
+                {
+                    expectedResult = input.Replace(
+                        sensitiveValue,
+                        NetworkTraceRedactor.SENSITIVE_DATA_PLACEHOLDER,
+                        StringComparison.Ordinal);
+                }
 
                 // Act
                 var result = _networkTraceRedactor.ReplaceSensitiveData(input);

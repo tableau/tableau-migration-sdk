@@ -131,12 +131,20 @@ namespace Tableau.Migration.Engine.Endpoints
         /// <param name="connectionId">The ID of the connection to be updated.</param>
         /// <param name="options">The update connetion options.</param>
         /// <param name="cancel">The cancellation token to obey.</param>
-        /// <returns></returns>
+        /// <returns>The result of the connection update operation.</returns>
         Task<IResult<IConnection>> UpdateConnectionAsync<TContent>(
             Guid contentItemId,
             Guid connectionId,
             IUpdateConnectionOptions options,
             CancellationToken cancel)
             where TContent : IWithConnections;
+
+        /// <summary>
+        /// Update the settings of a site.
+        /// </summary>
+        /// <param name="newSiteSettings">The site settings to update.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
+        /// <returns>The result of the site update operation.</returns>
+        Task<IResult<ISite>> UpdateSiteSettingsAsync(ISiteSettingsUpdate newSiteSettings, CancellationToken cancel);
     }
 }

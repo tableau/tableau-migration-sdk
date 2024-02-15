@@ -17,6 +17,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Tableau.Migration.Content;
 using Tableau.Migration.Paging;
 
 namespace Tableau.Migration.Engine.Endpoints
@@ -40,5 +41,12 @@ namespace Tableau.Migration.Engine.Endpoints
         /// <param name="pageSize">The page size to use.</param>
         /// <returns>A pager to list content with.</returns>
         IPager<TContent> GetPager<TContent>(int pageSize);
+
+        /// <summary>
+        /// Gets the current server session information.
+        /// </summary>
+        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <returns>An awaitable task with the server session result.</returns>
+        Task<IResult<IServerSession>> GetSessionAsync(CancellationToken cancel);
     }
 }

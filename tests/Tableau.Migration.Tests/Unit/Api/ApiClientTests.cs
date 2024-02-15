@@ -108,7 +108,7 @@ namespace Tableau.Migration.Tests.Unit.Api
 
                 request.AssertUri(SiteConnectionConfiguration.ServerUrl, $"/api/{TableauServerVersion.RestApiVersion}/serverinfo");
 
-                MockSessionProvider.Verify(p => p.SetCurrentUserAndSite(It.IsAny<ISignInResult>()), Times.Never);
+                MockSessionProvider.Verify(p => p.SetCurrentUserAndSiteAsync(It.IsAny<ISignInResult>(), Cancel), Times.Never);
             }
         }
 
@@ -141,11 +141,11 @@ namespace Tableau.Migration.Tests.Unit.Api
                         Assert.Equal(r.Credentials.PersonalAccessTokenSecret, SiteConnectionConfiguration.AccessToken);
                     });
 
-                MockSessionProvider.Verify(p => p.SetCurrentUserAndSite(It.Is<SignInResult>(r =>
+                MockSessionProvider.Verify(p => p.SetCurrentUserAndSiteAsync(It.Is<SignInResult>(r =>
                     r.SiteId == signInResponse.Item!.Site!.Id &&
                     r.SiteContentUrl == signInResponse.Item.Site.ContentUrl &&
                     r.UserId == signInResponse.Item.User!.Id &&
-                    r.Token == signInResponse.Item.Token)),
+                    r.Token == signInResponse.Item.Token), Cancel),
                     Times.Once);
             }
 
@@ -194,6 +194,41 @@ namespace Tableau.Migration.Tests.Unit.Api
                 var request = MockHttpClient.AssertSingleRequest();
 
                 request.AssertRelativeUri($"/api/{TableauServerVersion.RestApiVersion}/auth/signin");
+            }
+        }
+
+        public class GetCurrentServerSessionAsync : ApiClientTest
+        {
+            [Fact]
+            public async Task ReturnsServerSessionAsync()
+            {
+                var sessionResponse = AutoFixture.CreateResponse<ServerSessionResponse>();
+                var mockResponse = new MockHttpResponseMessage<ServerSessionResponse>(sessionResponse);
+                MockHttpClient.SetupResponse(mockResponse);
+
+                var result = await ApiClient.GetCurrentServerSessionAsync(Cancel);
+
+                Assert.True(result.Success);
+
+                var request = MockHttpClient.AssertSingleRequest();
+
+                request.AssertRelativeUri($"/api/{TableauServerVersion.RestApiVersion}/sessions/current");
+            }
+
+            [Fact]
+            public async Task Returns_error()
+            {
+                var sessionResponse = AutoFixture.CreateErrorResponse<ServerSessionResponse>();
+                var mockResponse = new MockHttpResponseMessage<ServerSessionResponse>(sessionResponse);
+                MockHttpClient.SetupResponse(mockResponse);
+
+                var result = await ApiClient.GetCurrentServerSessionAsync(Cancel);
+
+                Assert.False(result.Success);
+
+                var request = MockHttpClient.AssertSingleRequest();
+
+                request.AssertUri(SiteConnectionConfiguration.ServerUrl, $"/api/{TableauServerVersion.RestApiVersion}/sessions/current");
             }
         }
     }

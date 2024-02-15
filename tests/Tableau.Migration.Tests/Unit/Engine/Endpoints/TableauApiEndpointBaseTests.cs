@@ -20,6 +20,7 @@ using AutoFixture;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Tableau.Migration.Api;
+using Tableau.Migration.Content;
 using Tableau.Migration.Content.Files;
 using Tableau.Migration.Content.Search;
 using Tableau.Migration.Engine;
@@ -197,6 +198,30 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints
                 var result = Endpoint.GetPager<TestContentType>(1523);
 
                 Assert.Same(mockPager.Object, result);
+            }
+        }
+
+        #endregion
+
+        #region - GetSessionAsync -
+
+        public class GetSessionAsync : TableauApiEndpointBaseTest
+        {
+            [Fact]
+            public async Task GetsSessionAsync()
+            {
+                await Endpoint.InitializeAsync(Cancel);
+
+                var session = Create<IServerSession>();
+                var apiResult = Result<IServerSession>.Succeeded(session);
+
+                MockServerApi.Setup(x => x.GetCurrentServerSessionAsync(Cancel))
+                    .ReturnsAsync(apiResult);
+
+                var result = await Endpoint.GetSessionAsync(Cancel);
+
+                Assert.Same(apiResult, result);
+                MockServerApi.Verify(x => x.GetCurrentServerSessionAsync(Cancel), Times.Once);
             }
         }
 

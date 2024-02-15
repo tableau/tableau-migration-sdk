@@ -141,11 +141,8 @@
   <data name="FileEncryptionDisabledLogMessage" xml:space="preserve">
     <value>File encryption is disabled and should be re-enabled for production migrations.</value>
   </data>
-  <data name="GroupUsersTransformerCannotMapWarning" xml:space="preserve">
-    <value>Group {GroupName} cannot map {UserLocation}</value>
-  </data>
-  <data name="GroupUsersTransformerMessage" xml:space="preserve">
-    <value>Group {GroupName} cannot map {UserLocation}</value>
+  <data name="GroupUsersTransformerCannotAddUserWarning" xml:space="preserve">
+    <value>Could not add a user to the destination Group {GroupName}. Reason: Could not find the destination user for {UserLocation}.</value>
   </data>
   <data name="InvalidTransformerPublishTypeValidationMessage" xml:space="preserve">
     <value>Migration transformer for publish type {0} is not supported by the migration pipeline. Did you mean {1}? Count: {2}</value>
@@ -157,10 +154,10 @@
     <value>An error occurred migrating {ContentType} item "{SourcePath}". Error: {Exception}</value>
   </data>
   <data name="NetworkTraceExceptionLogMessage" xml:space="preserve">
-    <value>HTTP {Method} {RequestUri} failed. Error: "{ErrorMessage}".{Details}</value>
+    <value>HTTP {Method} {RequestUri} failed. Error: "{ErrorMessage}". Details: {Details}</value>
   </data>
   <data name="NetworkTraceLogMessage" xml:space="preserve">
-    <value>HTTP {Method} {RequestUri} responded {ResponseStatus}.{Details}</value>
+    <value>HTTP {Method} {RequestUri} responded {ResponseStatus}. Details: {Details}</value>
   </data>
   <data name="NetworkTraceNotDisplayedDetails" xml:space="preserve">
     <value>&lt;Not Displayed&gt;</value>
@@ -202,6 +199,15 @@ Detail: {3}</value>
   <data name="SectionResponseHeaders" xml:space="preserve">
     <value># Response Headers</value>
   </data>
+  <data name="SiteSettingsSkippedDisabledLogMessage" xml:space="preserve">
+    <value>Destination site settings were not validated - disabled by configuration.</value>
+  </data>
+  <data name="SiteSettingsSkippedNoAccessLogMessage" xml:space="preserve">
+    <value>Destination site settings were not validated - administrator access is required in both source and destination sites.</value>
+  </data>
+  <data name="SiteSettingsExtractEncryptionDisabledLogMessage" xml:space="preserve">
+    <value>The destination site has extract encryption disabled. This may cause migration errors for content with encrypted extracts. Enable extract encryption on the destination site, or register a transformer that disables extract encryption during migration.</value>
+  </data>
   <data name="SourceUserNotFoundLogMessage" xml:space="preserve">
     <value>Could not find destination user to map for source user {SourceUsername} (ID: {SourceUserId}).</value>
   </data>
@@ -219,5 +225,8 @@ Detail: {3}</value>
   </data>
   <data name="UnknownTransformerPublishTypeValidationMessage" xml:space="preserve">
     <value>Migration transformer for publish type {0} is not supported by the migration pipeline. Count: {1}</value>
+  </data>
+  <data name="PermissionsTransformerGranteeNotFoundWarning" xml:space="preserve">
+    <value>Could not transform permissions. The {granteeType} for {UserOrGroupName} was not found at the destination.</value>
   </data>
 </root>

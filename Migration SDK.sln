@@ -55,6 +55,33 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "scripts", "scripts", "{9204
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DependencyInjection.ExampleApplication", "examples\DependencyInjection.ExampleApplication\DependencyInjection.ExampleApplication.csproj", "{99DA12FB-BB16-4EE1-9C9C-047755210255}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{90102C4B-EC3B-4279-A6C6-A6CFDFCD4DB4}"
+	ProjectSection(SolutionItems) = preProject
+		.github\pull_request_template.md = .github\pull_request_template.md
+		.github\release.yaml = .github\release.yaml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "actions", "actions", "{6B735E6E-1FFB-4C37-8CF6-BD979B4F8D9B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{EDD52CC0-7289-4167-A01E-E88B015FC67F}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\create-release.yml = .github\workflows\create-release.yml
+		.github\workflows\dotnet-build.yml = .github\workflows\dotnet-build.yml
+		.github\workflows\dotnet-package.yml = .github\workflows\dotnet-package.yml
+		.github\workflows\dotnet-test.yml = .github\workflows\dotnet-test.yml
+		.github\workflows\publishdocs-dryrun.yml = .github\workflows\publishdocs-dryrun.yml
+		.github\workflows\publishdocs.yml = .github\workflows\publishdocs.yml
+		.github\workflows\python-package.yml = .github\workflows\python-package.yml
+		.github\workflows\python-test.yml = .github\workflows\python-test.yml
+		.github\workflows\README.md = .github\workflows\README.md
+		.github\workflows\sdk-workflow.yml = .github\workflows\sdk-workflow.yml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "setup-dotnet", "setup-dotnet", "{454EF272-D967-4668-A20D-AD6B3EE96C1A}"
+	ProjectSection(SolutionItems) = preProject
+		.github\actions\setup-dotnet\action.yml = .github\actions\setup-dotnet\action.yml
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -112,6 +139,10 @@ Global
 		{B0D16449-BC58-4873-8B95-F62E805EE39C} = {00B78B56-BF89-4F26-AF75-435A4B88D43F}
 		{92044843-B4D7-4062-B1D5-DE7596072E33} = {C5BD8316-60C9-4C96-9B15-820E8BA4DF7F}
 		{99DA12FB-BB16-4EE1-9C9C-047755210255} = {00B78B56-BF89-4F26-AF75-435A4B88D43F}
+		{90102C4B-EC3B-4279-A6C6-A6CFDFCD4DB4} = {C5BD8316-60C9-4C96-9B15-820E8BA4DF7F}
+		{6B735E6E-1FFB-4C37-8CF6-BD979B4F8D9B} = {90102C4B-EC3B-4279-A6C6-A6CFDFCD4DB4}
+		{EDD52CC0-7289-4167-A01E-E88B015FC67F} = {90102C4B-EC3B-4279-A6C6-A6CFDFCD4DB4}
+		{454EF272-D967-4668-A20D-AD6B3EE96C1A} = {6B735E6E-1FFB-4C37-8CF6-BD979B4F8D9B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {2C9E9FF4-E825-47A4-90BE-5499D5EDF3CC}

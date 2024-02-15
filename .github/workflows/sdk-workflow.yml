@@ -13,7 +13,6 @@ on:
       - .gitignore
       - '**/.gitignore'
       - 'CODEOWNERS'
-      - '.git2gus/config.json'
   pull_request:
     branches:
       - main
@@ -30,7 +29,6 @@ on:
       - .gitignore
       - '**/.gitignore'
       - 'CODEOWNERS'
-      - '.git2gus/config.json'
   workflow_dispatch:
     inputs:
       publish-release:
@@ -129,15 +127,15 @@ jobs:
   publish-docs-dry-run:
     needs: [ dotnet-test, dotnet-publish-package-internal-dryrun, dotnet-publish-package-public-dryrun, python-publish-package-internal-dryrun, python-publish-package-public-dryrun ]
     uses: ./.github/workflows/publishdocs-dryrun.yml
-    if: ${{ (inputs.publish-release != 'Prod' && inputs.publish-release != 'Prod-Internal' && inputs.publish-docs == false) || (github.ref != 'refs/heads/main' && !startsWith(github.ref, 'refs/heads/release/')) }}
+    if: ${{ (inputs.publish-release != 'Prod' && inputs.publish-release != 'Prod-Internal' && inputs.publish-docs == false) || (github.ref != 'refs/heads/main' && !startsWith(github.ref, 'refs/heads/release/') && !startsWith(github.ref, 'refs/tags/release/')) }}
     with:
       runs-on-config: ${{ vars.PUBLISH_OS }}
       build-config: ${{ vars.PUBLISH_CONFIGURATION }}
       python-version: ${{ vars.PYTHON_PUBLISH_DOCS_VERSION }}
   publish-docs:
-    needs: [ dotnet-test, dotnet-publish-package-internal-dryrun, dotnet-publish-package-public-dryrun, python-publish-package-internal-dryrun, python-publish-package-public-dryrun ]
+    needs: [ dotnet-test, python-test, dotnet-publish-package-internal-dryrun, dotnet-publish-package-public-dryrun, python-publish-package-internal-dryrun, python-publish-package-public-dryrun ]
     uses: ./.github/workflows/publishdocs.yml
-    if: ${{ (inputs.publish-release == 'Prod' || inputs.publish-release == 'Prod-Internal' || inputs.publish-docs == true) && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/')) }}
+    if: ${{ (inputs.publish-release == 'Prod' || inputs.publish-release == 'Prod-Internal' || inputs.publish-docs == true) && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/') || startsWith(github.ref, 'refs/tags/release/')) }}
     with:
       runs-on-config: ${{ vars.PUBLISH_OS }}
       build-config: ${{ vars.PUBLISH_CONFIGURATION }}
@@ -159,7 +157,7 @@ jobs:
       release-version: ${{ needs.define-version.outputs.beta-version != '' && needs.define-version.outputs.beta-version || needs.define-version.outputs.code-version }}
       is-pre-release: ${{ inputs.publish-release != 'Prod' && inputs.publish-release != 'Prod-Internal' }}
   dotnet-publish-package-internal-beta:
-    needs: [ dotnet-publish-package-internal-dryrun, dotnet-publish-package-public-dryrun, python-publish-package-internal-dryrun, python-publish-package-public-dryrun ]
+    needs: [ dotnet-test, python-test, dotnet-publish-package-internal-dryrun, dotnet-publish-package-public-dryrun, python-publish-package-internal-dryrun, python-publish-package-public-dryrun ]
     uses: ./.github/workflows/dotnet-package.yml
     secrets: inherit
     if: ${{ inputs.publish-release == 'Beta' || inputs.publish-release == 'Beta-Internal' }}
@@ -169,7 +167,7 @@ jobs:
       build-config: ${{ vars.PUBLISH_CONFIGURATION }}
       publish-environment: internal-beta
   dotnet-publish-package-public-beta:
-    needs: [ dotnet-publish-package-internal-dryrun, dotnet-publish-package-public-dryrun, python-publish-package-internal-dryrun, python-publish-package-public-dryrun ]
+    needs: [ dotnet-test, python-test, dotnet-publish-package-internal-dryrun, dotnet-publish-package-public-dryrun, python-publish-package-internal-dryrun, python-publish-package-public-dryrun ]
     uses: ./.github/workflows/dotnet-package.yml
     secrets: inherit
     if: ${{ inputs.publish-release == 'Beta' }}
@@ -179,27 +177,27 @@ jobs:
       build-config: ${{ vars.PUBLISH_CONFIGURATION }}
       publish-environment: public-beta
   dotnet-publish-package-internal-prod:
-    needs: [ dotnet-publish-package-internal-dryrun, dotnet-publish-package-public-dryrun, python-publish-package-internal-dryrun, python-publish-package-public-dryrun ]
+    needs: [ dotnet-test, python-test, dotnet-publish-package-internal-dryrun, dotnet-publish-package-public-dryrun, python-publish-package-internal-dryrun, python-publish-package-public-dryrun ]
     uses: ./.github/workflows/dotnet-package.yml
     secrets: inherit
-    if: ${{ (inputs.publish-release == 'Prod' || inputs.publish-release == 'Prod-Internal') && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/')) }}
+    if: ${{ (inputs.publish-release == 'Prod' || inputs.publish-release == 'Prod-Internal') && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/') || startsWith(github.ref, 'refs/tags/release/')) }}
     with:
       published-os: ${{ vars.PUBLISH_OS }}
       runs-on-config: ${{ vars.PUBLISH_PACKAGE_OS }}
       build-config: ${{ vars.PUBLISH_CONFIGURATION }}
       publish-environment: internal-prod
   dotnet-publish-package-public-prod:
-    needs: [ dotnet-publish-package-internal-dryrun, dotnet-publish-package-public-dryrun, python-publish-package-internal-dryrun, python-publish-package-public-dryrun ]
+    needs: [ dotnet-test, python-test, dotnet-publish-package-internal-dryrun, dotnet-publish-package-public-dryrun, python-publish-package-internal-dryrun, python-publish-package-public-dryrun ]
     uses: ./.github/workflows/dotnet-package.yml
     secrets: inherit
-    if: ${{ inputs.publish-release == 'Prod' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/')) }}
+    if: ${{ inputs.publish-release == 'Prod' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/') || startsWith(github.ref, 'refs/tags/release/')) }}
     with:
       published-os: ${{ vars.PUBLISH_OS }}
       runs-on-config: ${{ vars.PUBLISH_OS }}
       build-config: ${{ vars.PUBLISH_CONFIGURATION }}
       publish-environment: public-prod
   python-publish-package-internal-beta:
-    needs: [ define-version, dotnet-publish-package-internal-dryrun, dotnet-publish-package-public-dryrun, python-publish-package-internal-dryrun, python-publish-package-public-dryrun ]
+    needs: [ define-version, dotnet-test, python-test, dotnet-publish-package-internal-dryrun, dotnet-publish-package-public-dryrun, python-publish-package-internal-dryrun, python-publish-package-public-dryrun ]
     uses: ./.github/workflows/python-package.yml
     secrets: inherit
     if: ${{ inputs.publish-release == 'Beta' || inputs.publish-release == 'Beta-Internal' }}
@@ -209,7 +207,7 @@ jobs:
       publish-environment: internal-beta
       beta-version: ${{ needs.define-version.outputs.beta-version }}
   python-publish-package-public-beta:
-    needs: [ define-version, dotnet-publish-package-internal-dryrun, dotnet-publish-package-public-dryrun, python-publish-package-internal-dryrun, python-publish-package-public-dryrun ]
+    needs: [ define-version, dotnet-test, python-test, dotnet-publish-package-internal-dryrun, dotnet-publish-package-public-dryrun, python-publish-package-internal-dryrun, python-publish-package-public-dryrun ]
     uses: ./.github/workflows/python-package.yml
     secrets: inherit
     if: ${{ inputs.publish-release == 'Beta' }}
@@ -219,20 +217,20 @@ jobs:
       publish-environment: public-beta
       beta-version: ${{ needs.define-version.outputs.beta-version }}
   python-publish-package-internal-prod:
-    needs: [ define-version, dotnet-publish-package-internal-dryrun, dotnet-publish-package-public-dryrun, python-publish-package-internal-dryrun, python-publish-package-public-dryrun ]
+    needs: [ define-version, dotnet-test, python-test, dotnet-publish-package-internal-dryrun, dotnet-publish-package-public-dryrun, python-publish-package-internal-dryrun, python-publish-package-public-dryrun ]
     uses: ./.github/workflows/python-package.yml
     secrets: inherit
-    if: ${{ (inputs.publish-release == 'Prod' || inputs.publish-release == 'Prod-Internal') && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/')) }}
+    if: ${{ (inputs.publish-release == 'Prod' || inputs.publish-release == 'Prod-Internal') && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/') || startsWith(github.ref, 'refs/tags/release/')) }}
     with:
       runs-on-config: ${{ vars.PUBLISH_PACKAGE_OS }}
       build-config: ${{ vars.PUBLISH_CONFIGURATION }}
       publish-environment: internal-prod
       beta-version: ${{ needs.define-version.outputs.beta-version }}
   python-publish-package-public-prod:
-    needs: [ define-version, dotnet-publish-package-internal-dryrun, dotnet-publish-package-public-dryrun, python-publish-package-internal-dryrun, python-publish-package-public-dryrun ]
+    needs: [ define-version, dotnet-test, python-test, dotnet-publish-package-internal-dryrun, dotnet-publish-package-public-dryrun, python-publish-package-internal-dryrun, python-publish-package-public-dryrun ]
     uses: ./.github/workflows/python-package.yml
     secrets: inherit
-    if: ${{ inputs.publish-release == 'Prod' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/')) }}
+    if: ${{ inputs.publish-release == 'Prod' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/') || startsWith(github.ref, 'refs/tags/release/')) }}
     with:
       runs-on-config: ${{ vars.PUBLISH_OS }}
       build-config: ${{ vars.PUBLISH_CONFIGURATION }}

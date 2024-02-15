@@ -14,30 +14,32 @@
 //  limitations under the License.
 //
 
-using System;
-
-namespace Tableau.Migration.Content
+namespace Tableau.Migration.Config
 {
     /// <summary>
-    /// Interface for a site.
+    /// Options releated to the preflight step before content is migrated.
     /// </summary>
-    public interface ISite //We don't implement IContentReference because sites aren't a true 'content type.'
-        : ISiteSettings
+    public class PreflightOptions
     {
         /// <summary>
-        /// Gets the unique identifier of the site, 
-        /// corresponding to the LUID in the Tableau REST API.
+        /// Defaults for preflight options.
         /// </summary>
-        Guid Id { get; }
+        public static class Defaults
+        {
+            /// <summary>
+            /// Whether to validate supported site settings during the preflight step.
+            /// </summary>
+            public const bool VALIDATE_SETTINGS = true;
+        }
 
         /// <summary>
-        /// Gets the site's friendly name.
+        /// Get or sets whether to validate supported site settings during the preflight step. Defaults to true.
         /// </summary>
-        string Name { get; set; }
-
-        /// <summary>
-        /// Gets the site's "content URL".
-        /// </summary>
-        string ContentUrl { get; }
+        public bool ValidateSettings
+        {
+            get => _validateSettings ?? Defaults.VALIDATE_SETTINGS;
+            set => _validateSettings = value;
+        }
+        private bool? _validateSettings;
     }
 }

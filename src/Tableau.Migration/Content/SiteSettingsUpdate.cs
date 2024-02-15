@@ -18,26 +18,24 @@ using System;
 
 namespace Tableau.Migration.Content
 {
-    /// <summary>
-    /// Interface for a site.
-    /// </summary>
-    public interface ISite //We don't implement IContentReference because sites aren't a true 'content type.'
-        : ISiteSettings
+    internal sealed class SiteSettingsUpdate : ISiteSettingsUpdate
     {
         /// <summary>
-        /// Gets the unique identifier of the site, 
-        /// corresponding to the LUID in the Tableau REST API.
+        /// Creates a new <see cref="SiteSettingsUpdate"/> object.
         /// </summary>
-        Guid Id { get; }
+        /// <param name="siteId">The ID of the site to update.</param>
+        public SiteSettingsUpdate(Guid siteId)
+        {
+            SiteId = siteId;
+        }
 
-        /// <summary>
-        /// Gets the site's friendly name.
-        /// </summary>
-        string Name { get; set; }
+        /// <inheritdoc />
+        public Guid SiteId { get; }
 
-        /// <summary>
-        /// Gets the site's "content URL".
-        /// </summary>
-        string ContentUrl { get; }
+        /// <inheritdoc />
+        public string? ExtractEncryptionMode { get; set; }
+
+        /// <inheritdoc />
+        public bool NeedsUpdate() => ExtractEncryptionMode is not null;
     }
 }

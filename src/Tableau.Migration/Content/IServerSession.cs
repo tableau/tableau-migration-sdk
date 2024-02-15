@@ -14,30 +14,29 @@
 //  limitations under the License.
 //
 
-using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Tableau.Migration.Content
 {
     /// <summary>
-    /// Interface for a site.
+    /// Interface for the current server session information.
     /// </summary>
-    public interface ISite //We don't implement IContentReference because sites aren't a true 'content type.'
-        : ISiteSettings
+    public interface IServerSession
     {
         /// <summary>
-        /// Gets the unique identifier of the site, 
-        /// corresponding to the LUID in the Tableau REST API.
+        /// Gets the current session's site.
         /// </summary>
-        Guid Id { get; }
+        IContentReference Site { get; }
 
         /// <summary>
-        /// Gets the site's friendly name.
+        /// Gets the site settings, or null if the user does not have access to the settings.
         /// </summary>
-        string Name { get; set; }
+        ISiteSettings? Settings { get; }
 
         /// <summary>
-        /// Gets the site's "content URL".
+        /// Gets whether or not the current user has administrator access.
         /// </summary>
-        string ContentUrl { get; }
+        [MemberNotNullWhen(true, nameof(Settings))]
+        bool IsAdministrator { get; }
     }
 }
