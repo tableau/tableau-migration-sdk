@@ -95,7 +95,7 @@ namespace Tableau.Migration.Tests.Unit.Net.Handlers
             {
                 var token = Create<string>();
 
-                MockTokenProvider.SetupGet(p => p.Token).Returns(token);
+                MockTokenProvider.Setup(p => p.GetAsync(Cancel)).ReturnsAsync(token);
 
                 var mockHandler = CreateMockDelegatingHandler(
                     HttpStatusCode.OK,
@@ -110,7 +110,7 @@ namespace Tableau.Migration.Tests.Unit.Net.Handlers
 
                 await invoker.SendAsync(new HttpRequestMessage(HttpMethod.Get, "http://localhost/api/3.20/test"), Cancel);
 
-                MockTokenProvider.Verify(p => p.RequestRefreshAsync(It.IsAny<CancellationToken>()), Times.Never());
+                MockTokenProvider.Verify(p => p.RequestRefreshAsync(It.IsAny<string?>(), It.IsAny<CancellationToken>()), Times.Never());
             }
 
             [Fact]
@@ -118,7 +118,7 @@ namespace Tableau.Migration.Tests.Unit.Net.Handlers
             {
                 var token = Create<string>();
 
-                MockTokenProvider.SetupGet(p => p.Token).Returns(token);
+                MockTokenProvider.Setup(p => p.GetAsync(Cancel)).ReturnsAsync(token);
 
                 var mockHandler = CreateMockDelegatingHandler(
                     HttpStatusCode.OK,
@@ -143,11 +143,11 @@ namespace Tableau.Migration.Tests.Unit.Net.Handlers
                 var token1 = Create<string>();
                 var token2 = Create<string>();
 
-                MockTokenProvider.SetupGet(p => p.Token).Returns(token1);
+                MockTokenProvider.Setup(p => p.GetAsync(Cancel)).ReturnsAsync(token1);
 
                 MockTokenProvider
-                    .Setup(p => p.RequestRefreshAsync(Cancel))
-                    .Callback(() => MockTokenProvider.SetupGet(p => p.Token).Returns(token2));
+                    .Setup(p => p.RequestRefreshAsync(It.IsAny<string?>(), Cancel))
+                    .Callback(() => MockTokenProvider.Setup(p => p.GetAsync(Cancel)).ReturnsAsync(token2));
 
                 var mockHandler = CreateMockDelegatingHandler(
                     HttpStatusCode.Unauthorized,
@@ -162,7 +162,7 @@ namespace Tableau.Migration.Tests.Unit.Net.Handlers
 
                 await invoker.SendAsync(new HttpRequestMessage(HttpMethod.Get, "http://localhost/api/3.20/test"), Cancel);
 
-                MockTokenProvider.Verify(p => p.RequestRefreshAsync(It.IsAny<CancellationToken>()), Times.Once());
+                MockTokenProvider.Verify(p => p.RequestRefreshAsync(It.IsAny<string?>(), It.IsAny<CancellationToken>()), Times.Once());
             }
 
             [Fact]

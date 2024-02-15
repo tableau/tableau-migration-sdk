@@ -102,5 +102,11 @@ namespace Tableau.Migration.Engine.Endpoints
             var apiClient = SiteApi.GetConnectionsApiClient<TContent>();
             return await apiClient.UpdateConnectionAsync(contentItemId, connectionId, options, cancel).ConfigureAwait(false);
         }
+
+        /// <inheritdoc />
+        public async Task<IResult<ISite>> UpdateSiteSettingsAsync(ISiteSettingsUpdate newSiteSettings, CancellationToken cancel)
+        {
+            return await SiteApi.UpdateSiteAsync(newSiteSettings, cancel).ConfigureAwait(false);
+        }
     }
 }

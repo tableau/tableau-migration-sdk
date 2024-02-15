@@ -20,35 +20,46 @@ using System.Threading.Tasks;
 namespace Tableau.Migration.Api
 {
     /// <summary>
-    /// Interface for a class representing the current authentication token.
+    /// Interface for a thread safe class representing the current authentication token.
     /// </summary>
     public interface IAuthenticationTokenProvider
     {
         /// <summary>
         /// Event that fires when an authentication token refresh is requested.
         /// </summary>
-        event AsyncEventHandler? RefreshRequestedAsync;
+        event RefreshAuthenticationTokenDelegate? RefreshRequestedAsync;
 
         /// <summary>
         /// Gets the authentication token.
         /// </summary>
-        string? Token { get; }
+        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <returns>A task to await for the current authentication token.</returns>
+        Task<string?> GetAsync(CancellationToken cancel);
 
         /// <summary>
         /// Sets the authentication token.
         /// </summary>
         /// <param name="token">The authentication token received from the server.</param>
-        void Set(string token);
+        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <returns>The task to await.</returns>
+        Task SetAsync(string token, CancellationToken cancel);
 
         /// <summary>
         /// Clears the authentication token.
         /// </summary>
-        void Clear();
+        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <returns>The task to await.</returns>
+        Task ClearAsync(CancellationToken cancel);
 
         /// <summary>
         /// Requests an authentication token refresh.
         /// </summary>
-        /// <param name="cancel"> A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
-        Task RequestRefreshAsync(CancellationToken cancel);
+        /// <param name="previousToken">
+        /// The token that was previously used before the refresh was requested.
+        /// Used to de-duplicate refresh requests.
+        /// </param>
+        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <returns>The task to await.</returns>
+        Task RequestRefreshAsync(string? previousToken, CancellationToken cancel);
     }
 }

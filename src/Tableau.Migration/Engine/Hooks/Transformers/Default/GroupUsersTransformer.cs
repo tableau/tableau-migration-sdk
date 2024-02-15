@@ -50,27 +50,27 @@ namespace Tableau.Migration.Engine.Hooks.Transformers.Default
 
         /// <inheritdoc />
         public override async Task<IPublishableGroup?> TransformAsync(
-            IPublishableGroup ctx,
+            IPublishableGroup sourceGroup,
             CancellationToken cancel)
         {
-            var contentFinder = _migrationPipeline.CreateDestinationFinder<IUser>();
+            var userFinder = _migrationPipeline.CreateDestinationFinder<IUser>();
 
-            foreach (var user in ctx.Users)
+            foreach (var user in sourceGroup.Users)
             {
-                var contentDestination = await contentFinder
+                var destinationUser = await userFinder
                     .FindDestinationReferenceAsync(user.User.Location, cancel)
                     .ConfigureAwait(false);
 
-                if (contentDestination is not null)
+                if (destinationUser is not null)
                 {
-                    user.User = contentDestination;
+                    user.User = destinationUser;
                 }
                 else
                 {
-                    _logger.LogWarning(_localizer[SharedResourceKeys.GroupUsersTransformerCannotMapWarning], ctx.Name, user.User.Location);
+                    _logger.LogWarning(_localizer[SharedResourceKeys.GroupUsersTransformerCannotAddUserWarning], sourceGroup.Name, user.User.Location);
                 }
             }
-            return ctx;
+            return sourceGroup;
         }
     }
 }

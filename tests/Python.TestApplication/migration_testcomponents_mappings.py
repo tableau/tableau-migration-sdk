@@ -21,14 +21,14 @@ import helper
 from Tableau.Migration import ContentLocation
 from Tableau.Migration.Api.Rest.Models import LicenseLevels
 from Tableau.Migration.Content import IUser
-from Tableau.Migration.Interop.Hooks.Mappings import SyncTableauCloudUsernameMapping, ISyncContentMapping
+from Tableau.Migration.Interop.Hooks.Mappings import ISyncContentMapping
 from Tableau.Migration.Engine.Hooks.Mappings.Default import ITableauCloudUsernameMapping
 
-class PyTestTableauCloudUsernameMapping(SyncTableauCloudUsernameMapping):
+class PyTestTableauCloudUsernameMapping(ISyncContentMapping[IUser]):
     """Mapping that takes a base email and appends the source item name to the email username."""
     
     __namespace__ = "Python.TestApplication"
-    _dotnet_base = ITableauCloudUsernameMapping
+    _dotnet_base = ISyncContentMapping[IUser]
 
     def __init__(self):
         """Default init to set up logging."""

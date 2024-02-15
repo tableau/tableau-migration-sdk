@@ -14,6 +14,7 @@
 //  limitations under the License.
 //
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -21,18 +22,83 @@ namespace Tableau.Migration.Api
 {
     internal sealed class AuthenticationTokenProvider : IAuthenticationTokenProvider
     {
-        public event AsyncEventHandler? RefreshRequestedAsync;
+        private readonly SemaphoreSlim _tokenSemaphore = new(1, 1);
 
-        public string? Token { get; private set; }
+        private string? _token;
 
-        public void Set(string token) => Token = token;
+        /// <inheritdoc />
+        public event RefreshAuthenticationTokenDelegate? RefreshRequestedAsync;
 
-        public void Clear() => Token = null;
-
-        public async Task RequestRefreshAsync(CancellationToken cancel)
+        /// <inheritdoc />
+        public async Task<string?> GetAsync(CancellationToken cancel)
         {
-            if (RefreshRequestedAsync is not null)
-                await RefreshRequestedAsync.Invoke(cancel).ConfigureAwait(false);
+            await _tokenSemaphore.WaitAsync(cancel).ConfigureAwait(false);
+            try
+            {
+                return _token;
+            }
+            finally
+            {
+                _tokenSemaphore.Release();
+            }
+        }
+
+        /// <inheritdoc />
+        public async Task SetAsync(string token, CancellationToken cancel)
+        {
+            await _tokenSemaphore.WaitAsync(cancel).ConfigureAwait(false);
+            try
+            {
+                _token = token;
+            }
+            finally
+            {
+                _tokenSemaphore.Release();
+            }
+        }
+
+        /// <inheritdoc />
+        public async Task ClearAsync(CancellationToken cancel)
+        {
+            await _tokenSemaphore.WaitAsync(cancel).ConfigureAwait(false);
+            try
+            {
+                _token = null;
+            }
+            finally
+            {
+                _tokenSemaphore.Release();
+            }
+        }
+
+        /// <inheritdoc />
+        public async Task RequestRefreshAsync(string? previousToken, CancellationToken cancel)
+        {
+            if (RefreshRequestedAsync is null)
+            {
+                return;
+            }
+
+            await _tokenSemaphore.WaitAsync(cancel).ConfigureAwait(false);
+            try
+            {
+                // Another thread refreshed the token while we waited for the refresh lock.
+                if(!string.Equals(previousToken, _token, StringComparison.Ordinal))
+                {
+                    return;
+                }
+
+                var newTokenResult = await RefreshRequestedAsync.Invoke(cancel).ConfigureAwait(false);
+                
+                if(newTokenResult.Success)
+                {
+                    _token = newTokenResult.Value;
+                }
+            }
+            finally
+            {
+                _tokenSemaphore.Release();
+            }
         }
     }
 }

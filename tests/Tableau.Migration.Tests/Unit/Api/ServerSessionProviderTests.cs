@@ -15,6 +15,7 @@
 //
 
 using System;
+using System.Threading.Tasks;
 using Moq;
 using Tableau.Migration.Api;
 using Tableau.Migration.Api.Models;
@@ -37,16 +38,16 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
         }
 
-        public class AuthenticationToken : ServerSessionProviderTest
+        public class GetAuthenticationTokenAsync : ServerSessionProviderTest
         {
             [Fact]
-            public void Returns_token()
+            public async Task GetsTokenAsync()
             {
                 var token = Create<string>();
 
-                MockTokenProvider.SetupGet(p => p.Token).Returns(token);
+                MockTokenProvider.Setup(p => p.GetAsync(Cancel)).ReturnsAsync(token);
 
-                Assert.Equal(token, Provider.AuthenticationToken);
+                Assert.Equal(token, await Provider.GetAuthenticationTokenAsync(Cancel));
             }
         }
 
@@ -63,62 +64,56 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
         }
 
-        public class SetCurrentUserAndSite
+        public class SetCurrentUserAndSiteAsync : ServerSessionProviderTest
         {
-            public class ISignInResult_Overload : ServerSessionProviderTest
+            [Fact]
+            public async Task SetsUserAndSiteWithSignInResultAsync()
             {
-                [Fact]
-                public void Sets_user_and_site()
-                {
-                    var signInResult = Create<ISignInResult>();
+                var signInResult = Create<ISignInResult>();
 
-                    Provider.SetCurrentUserAndSite(signInResult);
+                await Provider.SetCurrentUserAndSiteAsync(signInResult, Cancel);
 
-                    Assert.Equal(signInResult.UserId, Provider.UserId);
-                    Assert.Equal(signInResult.SiteContentUrl, Provider.SiteContentUrl);
-                    Assert.Equal(signInResult.SiteId, Provider.SiteId);
+                Assert.Equal(signInResult.UserId, Provider.UserId);
+                Assert.Equal(signInResult.SiteContentUrl, Provider.SiteContentUrl);
+                Assert.Equal(signInResult.SiteId, Provider.SiteId);
 
-                    MockTokenProvider.Verify(p => p.Set(signInResult.Token), Times.Once);
-                }
+                MockTokenProvider.Verify(p => p.SetAsync(signInResult.Token, Cancel), Times.Once);
             }
 
-            public class Values_Overload : ServerSessionProviderTest
+            [Fact]
+            public async Task SetsUserAndSiteFromValuesAsync()
             {
-                [Fact]
-                public void Sets_user_and_site()
-                {
-                    var userId = Create<Guid>();
-                    var siteContentUrl = Create<string>();
-                    var siteId = Create<Guid>();
-                    var token = Create<string>();
+                var userId = Create<Guid>();
+                var siteContentUrl = Create<string>();
+                var siteId = Create<Guid>();
+                var token = Create<string>();
 
-                    Provider.SetCurrentUserAndSite(userId, siteId, siteContentUrl, token);
+                await Provider.SetCurrentUserAndSiteAsync(userId, siteId, siteContentUrl, token, Cancel);
 
-                    Assert.Equal(userId, Provider.UserId);
-                    Assert.Equal(siteContentUrl, Provider.SiteContentUrl);
-                    Assert.Equal(siteId, Provider.SiteId);
+                Assert.Equal(userId, Provider.UserId);
+                Assert.Equal(siteContentUrl, Provider.SiteContentUrl);
+                Assert.Equal(siteId, Provider.SiteId);
 
-                    MockTokenProvider.Verify(p => p.Set(token), Times.Once);
-                }
+                MockTokenProvider.Verify(p => p.SetAsync(token, Cancel), Times.Once);
             }
         }
 
         public class ClearCurrentUserAndSite : ServerSessionProviderTest
         {
             [Fact]
-            public void Clears_user()
+            public async Task ClearsUserAsync()
             {
                 var signInResult = Create<ISignInResult>();
 
-                Provider.SetCurrentUserAndSite(signInResult);
+                await Provider.SetCurrentUserAndSiteAsync(signInResult, Cancel);
 
-                Provider.ClearCurrentUserAndSite();
+                await Provider.ClearCurrentUserAndSiteAsync(Cancel);
 
                 Assert.Null(Provider.UserId);
                 Assert.Null(Provider.SiteContentUrl);
                 Assert.Null(Provider.SiteId);
 
-                MockTokenProvider.Verify(p => p.Clear(), Times.Once);
+                MockTokenProvider.Verify(p => p.ClearAsync(Cancel), Times.Once);
             }
         }
 

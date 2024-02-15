@@ -15,6 +15,8 @@
 //
 
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 using Tableau.Migration.Api.Models;
 
 namespace Tableau.Migration.Api
@@ -48,7 +50,9 @@ namespace Tableau.Migration.Api
         /// Sets the current user and site information.
         /// </summary>
         /// <param name="signInResult">The sign-in result containing the current user and site information.</param>
-        void SetCurrentUserAndSite(ISignInResult signInResult);
+        /// <param name="cancel">The cancellation token to obey.</param>
+        /// <returns>The task to await.</returns>
+        Task SetCurrentUserAndSiteAsync(ISignInResult signInResult, CancellationToken cancel);
 
         /// <summary>
         /// Sets the current user and site information.
@@ -57,12 +61,16 @@ namespace Tableau.Migration.Api
         /// <param name="siteId">The current site's ID.</param>
         /// <param name="siteContentUrl">The current site's content URL.</param>
         /// <param name="authenticationToken">The current user's authentication token.</param>
-        void SetCurrentUserAndSite(Guid userId, Guid siteId, string siteContentUrl, string authenticationToken);
+        /// <param name="cancel">The cancellation token to obey.</param>
+        /// <returns>The task to await.</returns>
+        Task SetCurrentUserAndSiteAsync(Guid userId, Guid siteId, string siteContentUrl, string authenticationToken, CancellationToken cancel);
 
         /// <summary>
         /// Clears the current user and site information.
         /// </summary>
-        void ClearCurrentUserAndSite();
+        /// <param name="cancel">The cancellation token to obey.</param>
+        /// <returns>The task to await.</returns>
+        Task ClearCurrentUserAndSiteAsync(CancellationToken cancel);
 
         /// <summary>
         /// Sets the current version information.

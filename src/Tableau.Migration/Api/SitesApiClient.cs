@@ -21,6 +21,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Tableau.Migration.Api.Permissions;
+using Tableau.Migration.Api.Rest.Models.Requests;
 using Tableau.Migration.Api.Rest.Models.Responses;
 using Tableau.Migration.Api.Tags;
 using Tableau.Migration.Content;
@@ -168,6 +169,21 @@ namespace Tableau.Migration.Api
         public async Task<IResult<ISite>> GetSiteAsync(string contentUrl, CancellationToken cancel)
             => await GetSiteAsync(r => r.WithSiteId(contentUrl).WithQuery(q => q.AddOrUpdate("key", "contentUrl")), cancel).ConfigureAwait(false);
 
+        /// <inheritdoc />
+        public async Task<IResult<ISite>> UpdateSiteAsync(ISiteSettingsUpdate update, CancellationToken cancel)
+        {
+            var updateResult = await RestRequestBuilderFactory
+                .CreateUri("/") //"sites" URL segment added by WithSiteId
+                .WithSiteId(update.SiteId)
+                .ForPutRequest()
+                .WithXmlContent(new UpdateSiteRequest(update))
+                .SendAsync<SiteResponse>(cancel)
+                .ToResultAsync<SiteResponse, ISite>(r => new Site(r), SharedResourcesLocalizer)
+                .ConfigureAwait(false);
+
+            return updateResult;
+        }
+
         #endregion
 
         #region - SignOutAsync -
@@ -190,7 +206,7 @@ namespace Tableau.Migration.Api
                 .ToResultAsync(_serializer, SharedResourcesLocalizer, cancel)
                 .ConfigureAwait(false);
 
-            _sessionProvider.ClearCurrentUserAndSite();
+            await _sessionProvider.ClearCurrentUserAndSiteAsync(cancel).ConfigureAwait(false);
 
             return signOutResult;
         }

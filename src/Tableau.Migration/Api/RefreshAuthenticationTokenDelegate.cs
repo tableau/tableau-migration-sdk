@@ -17,12 +17,12 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Tableau.Migration
+namespace Tableau.Migration.Api
 {
     /// <summary>
-    /// Delegate for asynchronous events.
+    /// Delegate for refreshing an authentication token.
     /// </summary>
-    /// <param name="cancel"> A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
-    /// <returns></returns>
-    public delegate Task AsyncEventHandler(CancellationToken cancel);
+    /// <param name="cancel">The cancellation token to obey.</param>
+    /// <returns>The result of the token refresh operation.</returns>
+    public delegate Task<IResult<string>> RefreshAuthenticationTokenDelegate(CancellationToken cancel);
 }

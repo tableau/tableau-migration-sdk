@@ -13,12 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
+import os
 import logging
 import tableau_migration
 
 from tableau_migration.migration_engine import (
     PyMigrationPlanBuilder)
+
+from Tableau.Migration.Config import IConfigReader
 
 class TestEndToEnd():
     def test_main(self):
@@ -48,3 +50,20 @@ class TestLogging():
         for name in tableau_migration._logger_names:
             # Given that we have a name, we should have a logger
             assert logging.getLogger(name)            
+
+class TestConfig():
+    def test_config(self):
+        '''
+        Verify that the MigrationSDK__BatchSize variable has been changed
+        
+        Environment variables act different in different operating systems. For this reason we 
+        must set the MigrationSDK_BatchSize in pytest.ini, as that is set before the python
+        process starts and hence the env variables take and that way an int can be set to a env var.
+        '''
+
+        services = tableau_migration.migration.get_service_provider()
+        config_reader = tableau_migration.migration.get_service(services, IConfigReader)
+
+        batch_size = config_reader.Get().BatchSize
+
+        assert batch_size==102

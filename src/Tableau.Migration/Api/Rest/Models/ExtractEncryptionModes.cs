@@ -14,30 +14,28 @@
 //  limitations under the License.
 //
 
-using System;
-
-namespace Tableau.Migration.Content
+namespace Tableau.Migration.Api.Rest.Models
 {
-    /// <summary>
-    /// Interface for a site.
+    /// <summary>    
+    /// Class containing extract encryption mode constants.
+    /// See <see href="https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_extract_and_encryption.htm">Tableau API Reference</see> 
+    /// for documentation.
     /// </summary>
-    public interface ISite //We don't implement IContentReference because sites aren't a true 'content type.'
-        : ISiteSettings
+    public class ExtractEncryptionModes : StringEnum<ExtractEncryptionModes>
     {
         /// <summary>
-        /// Gets the unique identifier of the site, 
-        /// corresponding to the LUID in the Tableau REST API.
+        /// The mode to enforce encryption of all extracts on the site. 
         /// </summary>
-        Guid Id { get; }
+        public const string Enforced = "enforced";
 
         /// <summary>
-        /// Gets the site's friendly name.
+        /// The mode to allow users to specify to encrypt all extracts associated with specific published workbooks or data sources.
         /// </summary>
-        string Name { get; set; }
+        public const string Enabled = "enabled";
 
         /// <summary>
-        /// Gets the site's "content URL".
+        /// The mode to disable extract encryption on the site.
         /// </summary>
-        string ContentUrl { get; }
+        public const string Disabled = "disabled";
     }
 }

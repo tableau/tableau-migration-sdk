@@ -14,40 +14,27 @@
 //  limitations under the License.
 //
 
-using System.Threading.Tasks;
+using System;
+using Tableau.Migration.Api.Rest.Models.Responses;
+using Tableau.Migration.Content;
 using Xunit;
 
-namespace Tableau.Migration.Tests.Unit
+namespace Tableau.Migration.Tests.Unit.Content
 {
-    public class AsyncEventHandlerTests
+    public class ServerSessionSettingsTests
     {
-        private class TestClass
+        public class Ctor
         {
-            public event AsyncEventHandler? EventTriggered;
-
-            public async void TriggerEvent()
+            [Theory]
+            [NullEmptyWhiteSpaceData]
+            public void RequiresExtractEncryptionMode(string? s)
             {
-                if (EventTriggered is not null)
-                    await EventTriggered.Invoke(default);
+                var response = new ServerSessionResponse.SessionType.SiteType()
+                {
+                    ExtractEncryptionMode = s
+                };
+                Assert.Throws<ArgumentException>(() => new ServerSessionSettings(response));
             }
-        }
-
-        [Fact]
-        public void Calls_handler()
-        {
-            var obj = new TestClass();
-
-            var count = 0;
-
-            obj.EventTriggered += async (c) =>
-            {
-                count++;
-                await Task.CompletedTask;
-            };
-
-            obj.TriggerEvent();
-
-            Assert.Equal(1, count);
         }
     }
 }

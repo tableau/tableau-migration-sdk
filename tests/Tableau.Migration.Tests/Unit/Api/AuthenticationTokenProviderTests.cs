@@ -14,6 +14,10 @@
 //  limitations under the License.
 //
 
+using System.Collections.Immutable;
+using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 using Tableau.Migration.Api;
 using Xunit;
@@ -30,56 +34,90 @@ namespace Tableau.Migration.Tests.Unit.Api
         public class RequestRefreshAsync : AuthenticationTokenProviderTest
         {
             [Fact]
-            public async Task Handles_null_event()
+            public async Task HandlesNullEventAsync()
             {
                 // Does not throw
-                await Provider.RequestRefreshAsync(default);
+                await Provider.RequestRefreshAsync(null, default);
             }
 
             [Fact]
-            public async Task Calls_refresh()
+            public async Task CallsRefreshAsync()
             {
                 var count = 0;
 
                 Provider.RefreshRequestedAsync += _ =>
                 {
                     count++;
-                    return Task.CompletedTask;
+                    return Task.FromResult<IResult<string>>(Result<string>.Succeeded(Create<string>()));
                 };
 
-                await Provider.RequestRefreshAsync(default);
+                await Provider.RequestRefreshAsync(null, Cancel);
 
                 Assert.Equal(1, count);
+            }
+
+            [Fact]
+            public async Task SingleRefreshWithConcurrentCallsAsync()
+            {
+                var refreshCount = 0;
+
+                Provider.RefreshRequestedAsync += _ =>
+                {
+                    refreshCount++;
+                    return Task.FromResult<IResult<string>>(Result<string>.Succeeded(Create<string>()));
+                };
+
+                var oldToken = Create<string>();
+                await Provider.SetAsync(oldToken, Cancel);
+
+                var syncWait = new ManualResetEventSlim();
+
+                async Task RefreshTokenAsync()
+                {
+                    syncWait.Wait(Cancel);
+
+                    await Provider.RequestRefreshAsync(oldToken, Cancel);
+                }
+
+                var tasks = Enumerable.Range(0, 20)
+                    .Select(i => Task.Run(RefreshTokenAsync))
+                    .ToImmutableArray();
+
+                syncWait.Set();
+
+                await Task.WhenAll(tasks);
+
+                Assert.Equal(1, refreshCount);
             }
         }
 
         public class Set : AuthenticationTokenProviderTest
         {
             [Fact]
-            public void Sets_token()
+            public async Task SetsTokenAsync()
             {
                 var token = Create<string>();
 
-                Provider.Set(token);
+                await Provider.SetAsync(token, Cancel);
 
-                Assert.Equal(token, Provider.Token);
+                Assert.Equal(token, await Provider.GetAsync(Cancel));
             }
         }
 
         public class Clear : AuthenticationTokenProviderTest
         {
             [Fact]
-            public void Clears_token()
+            public async Task ClearsTokenAsync()
             {
                 var token = Create<string>();
 
-                Provider.Set(token);
+                await Provider.SetAsync(token, Cancel);
 
-                Assert.Equal(token, Provider.Token);
+                Assert.Equal(token, await Provider.GetAsync(Cancel));
 
-                Provider.Clear();
+                await Provider.ClearAsync(Cancel);
 
-                Assert.Null(Provider.Token);
+                Assert.Null(await Provider.GetAsync(Cancel));
             }
         }
     }

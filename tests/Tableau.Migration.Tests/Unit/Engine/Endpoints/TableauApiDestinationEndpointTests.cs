@@ -14,10 +14,12 @@
 //  limitations under the License.
 //
 
+using System.Net;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Tableau.Migration.Api;
+using Tableau.Migration.Content;
 using Tableau.Migration.Content.Files;
 using Tableau.Migration.Engine.Endpoints;
 using Tableau.Migration.Engine.Endpoints.Search;
@@ -100,6 +102,30 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints
 
                 MockSiteApi.Verify(x => x.GetBatchPublishApiClient<TestContentType>(), Times.Once);
                 _mockBatchPublishClient.Verify(x => x.PublishBatchAsync(items, Cancel), Times.Once);
+            }
+        }
+
+        #endregion
+
+        #region - UpdateSiteSettingsAsync -
+
+        public class UpdateSiteSettingsAsync : TableauApiDestinationEndpointTest
+        {
+            [Fact]
+            public async Task UpdatesSiteSettingsAsync()
+            {
+                await Endpoint.InitializeAsync(Cancel);
+
+                var update = Create<ISiteSettingsUpdate>();
+                var apiResult = Create<IResult<ISite>>();
+
+                MockSiteApi.Setup(x => x.UpdateSiteAsync(update, Cancel))
+                    .ReturnsAsync(apiResult);
+
+                var result = await Endpoint.UpdateSiteSettingsAsync(update, Cancel);
+
+                Assert.Same(apiResult, result);
+                MockSiteApi.Verify(x => x.UpdateSiteAsync(update, Cancel), Times.Once);
             }
         }
 

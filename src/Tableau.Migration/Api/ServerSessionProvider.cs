@@ -15,6 +15,8 @@
 //
 
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 using Tableau.Migration.Api.Models;
 
 namespace Tableau.Migration.Api
@@ -24,12 +26,19 @@ namespace Tableau.Migration.Api
         private readonly ITableauServerVersionProvider _versionProvider;
         private readonly IAuthenticationTokenProvider _tokenProvider;
 
-        public TableauServerVersion? Version => _versionProvider.Version;
-        public string? AuthenticationToken => _tokenProvider.Token;
+        internal async Task<string?> GetAuthenticationTokenAsync(CancellationToken cancel) 
+            => await _tokenProvider.GetAsync(cancel).ConfigureAwait(false);
 
-        public Guid? SiteId { get; private set; }
+        /// <inheritdoc />
+        public TableauServerVersion? Version => _versionProvider.Version;
+
+        /// <inheritdoc />
         public string? SiteContentUrl { get; private set; }
 
+        /// <inheritdoc />
+        public Guid? SiteId { get; private set; }
+
+        /// <inheritdoc />
         public Guid? UserId { get; private set; }
 
         public ServerSessionProvider(
@@ -40,27 +49,31 @@ namespace Tableau.Migration.Api
             _tokenProvider = tokenProvider;
         }
 
-        public void SetCurrentUserAndSite(ISignInResult signInResult)
-            => SetCurrentUserAndSite(signInResult.UserId, signInResult.SiteId, signInResult.SiteContentUrl, signInResult.Token);
+        /// <inheritdoc />
+        public async Task SetCurrentUserAndSiteAsync(ISignInResult signInResult, CancellationToken cancel)
+            => await SetCurrentUserAndSiteAsync(signInResult.UserId, signInResult.SiteId, signInResult.SiteContentUrl, signInResult.Token, cancel).ConfigureAwait(false);
 
-        public void SetCurrentUserAndSite(Guid userId, Guid siteId, string siteContentUrl, string authenticationToken)
+        /// <inheritdoc />
+        public async Task SetCurrentUserAndSiteAsync(Guid userId, Guid siteId, string siteContentUrl, string authenticationToken, CancellationToken cancel)
         {
             SiteId = siteId;
             SiteContentUrl = siteContentUrl;
             UserId = userId;
 
-            _tokenProvider.Set(authenticationToken);
+            await _tokenProvider.SetAsync(authenticationToken, cancel).ConfigureAwait(false);
         }
 
-        public void ClearCurrentUserAndSite()
+        /// <inheritdoc />
+        public async Task ClearCurrentUserAndSiteAsync(CancellationToken cancel)
         {
             SiteId = null;
             SiteContentUrl = null;
             UserId = null;
 
-            _tokenProvider.Clear();
+            await _tokenProvider.ClearAsync(cancel).ConfigureAwait(false);
         }
 
+        /// <inheritdoc />
         public void SetVersion(TableauServerVersion version) => _versionProvider.Set(version);
     }
 }

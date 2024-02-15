@@ -15,9 +15,11 @@
 //
 
 using System;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
+using Tableau.Migration.Config;
 using Tableau.Migration.Interop.Logging;
 
 namespace Tableau.Migration.Interop
@@ -28,7 +30,8 @@ namespace Tableau.Migration.Interop
     public static class IServiceCollectionExtensions
     {
         /// <summary>
-        /// Add python support. This will clear all existing <see cref="ILoggerProvider"/>s. All other logger provider should be added after this call.
+        /// Add python support by adding python logging and configuration via environment variables.
+        /// This will clear all existing <see cref="ILoggerProvider"/>s. All other logger provider should be added after this call.
         /// </summary>
         /// <param name="services"></param>
         /// <param name="pythonProviderFactory"></param>
@@ -39,7 +42,9 @@ namespace Tableau.Migration.Interop
                 // Replace the default IUserAgentSuffixProvider with the python one
                 .Replace(new ServiceDescriptor(typeof(IUserAgentSuffixProvider), typeof(PythonUserAgentSuffixProvider), ServiceLifetime.Singleton))
                 // Add Python Logging
-                .AddLogging(b => b.AddPythonLogging(pythonProviderFactory));
+                .AddLogging(b => b.AddPythonLogging(pythonProviderFactory))
+                // Add environment variable configuration
+                .AddEnvironmentVariableConfiguration();
             return services;
         }
 
@@ -59,6 +64,24 @@ namespace Tableau.Migration.Interop
             builder.AddFilter<NonGenericLoggerProvider>(null, LogLevel.Trace);
 
             return builder;
+        }
+
+        /// <summary>
+        /// Adds support for setting configuration values via environment variables.
+        /// Environment variables start with "MigrationSDK__".
+        /// </summary>
+        /// <param name="services"></param>
+        /// <returns></returns>
+        public static IServiceCollection AddEnvironmentVariableConfiguration(this IServiceCollection services)
+        {
+            var configBuilder =
+                new ConfigurationBuilder()
+                    .AddEnvironmentVariables("MigrationSDK__");
+            var config = configBuilder.Build();
+
+            services.Configure<MigrationSdkOptions>(nameof(MigrationSdkOptions), config);
+
+            return services;
         }
     }
 }

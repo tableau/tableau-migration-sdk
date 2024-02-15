@@ -25,7 +25,7 @@ from Tableau.Migration.Content import IUser, IProject, IWorkbook
 from Tableau.Migration.Engine.Hooks import IMigrationHook
 from Tableau.Migration.Engine.Hooks.Transformers import ContentTransformerBuilder, IContentTransformer, ContentTransformerBase
 from Tableau.Migration.Interop.Hooks.Transformers import ISyncContentTransformer, ISyncXmlContentTransformer
-from Tableau.Migration.Tests import TestFileContentType
+from Tableau.Migration.Tests import TestFileContentType as PyTestFileContentType # Needed as this class name starts with Test, which means pytest wants to pick it up
 
 class ClassImplementation(ISyncContentTransformer[IUser]):
     __namespace__ = "Tableau.Migration.Custom.Hooks.Transformers"
@@ -51,16 +51,17 @@ class WithImplementation(ISyncContentTransformer[str]):
     def Execute(self, ctx: str) -> str:
         return ctx
     
-class TestXmlTransformer(ISyncXmlContentTransformer[TestFileContentType]):
+class TestXmlTransformer(ISyncXmlContentTransformer[PyTestFileContentType]):
     __namespace__ = "Tableau.Migration.Custom.Hooks.Transformers"
-    
+    __test__ = False # Needed as this class name starts with Test, which means pytest wants to pick it up 
+
     def __init__(self):
         self.called = False
 
-    def NeedsXmlTransforming(self, ctx: TestFileContentType) -> bool:
+    def NeedsXmlTransforming(self, ctx: PyTestFileContentType) -> bool:
         return True
     
-    def Execute(self, ctx: TestFileContentType, xml) -> None:
+    def Execute(self, ctx: PyTestFileContentType, xml) -> None:
         self.called = True
 
 class TestContentTransformerBuilderTests():
@@ -240,13 +241,13 @@ class TestContentTransformerBuilderTests():
         
     def test_xml_execute(self):
 
-        content = TestFileContentType()
+        content = PyTestFileContentType()
 
         provider = ServiceCollectionContainerBuilderExtensions.BuildServiceProvider(ServiceCollection())
         pyTransformer = TestXmlTransformer()
-        hookFactory = PyContentTransformerBuilder(ContentTransformerBuilder()).add(TestFileContentType, pyTransformer).build().get_hooks(IContentTransformer[TestFileContentType])
+        hookFactory = PyContentTransformerBuilder(ContentTransformerBuilder()).add(PyTestFileContentType, pyTransformer).build().get_hooks(IContentTransformer[PyTestFileContentType])
         assert len(hookFactory) == 1
-        hook = hookFactory[0].Create[IMigrationHook[TestFileContentType]](provider)
+        hook = hookFactory[0].Create[IMigrationHook[PyTestFileContentType]](provider)
         try:
             result = hook.ExecuteAsync(content, CancellationToken(False)).GetAwaiter().GetResult()
         except Exception:

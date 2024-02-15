@@ -17,6 +17,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Tableau.Migration.Api.Models;
+using Tableau.Migration.Content;
 
 namespace Tableau.Migration.Api
 {
@@ -26,17 +27,24 @@ namespace Tableau.Migration.Api
     public interface IApiClient
     {
         /// <summary>
-        /// Signs into Tableau Server
+        /// Signs into Tableau Server.
         /// </summary>
-        /// <param name="cancel">The cancellation token</param>
-        /// <returns>An authenticated <see cref="ISitesApiClient"/></returns>
+        /// <param name="cancel">The cancellation token.</param>
+        /// <returns>An authenticated <see cref="ISitesApiClient"/>.</returns>
         Task<IAsyncDisposableResult<ISitesApiClient>> SignInAsync(CancellationToken cancel);
 
         /// <summary>
-        /// Gets the version information for the Tableau Server
+        /// Gets the version information for the Tableau Server.
         /// </summary>
-        /// <param name="cancel">The cancellation token</param>
-        /// <returns>The information for the current Tableau Server</returns>
+        /// <param name="cancel">The cancellation token.</param>
+        /// <returns>The information for the current Tableau Server.</returns>
         Task<IResult<IServerInfo>> GetServerInfoAsync(CancellationToken cancel);
+
+        /// <summary>
+        /// Gets the current session information.
+        /// </summary>
+        /// <param name="cancel">The cancellation token.</param>
+        /// <returns>The session information.</returns>
+        Task<IResult<IServerSession>> GetCurrentServerSessionAsync(CancellationToken cancel);
     }
 }

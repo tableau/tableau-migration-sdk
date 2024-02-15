@@ -19,11 +19,14 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Localization;
+using Microsoft.Extensions.Logging;
 using Tableau.Migration.Api.Rest.Models;
 using Tableau.Migration.Content;
 using Tableau.Migration.Content.Permissions;
 using Tableau.Migration.Engine.Endpoints.Search;
 using Tableau.Migration.Engine.Pipelines;
+using Tableau.Migration.Resources;
 
 namespace Tableau.Migration.Engine.Hooks.Transformers.Default
 {
@@ -34,15 +37,21 @@ namespace Tableau.Migration.Engine.Hooks.Transformers.Default
     {
         private readonly IMappedContentReferenceFinder<IUser> _userContentFinder;
         private readonly IMappedContentReferenceFinder<IGroup> _groupContentFinder;
+        private readonly ILogger<PermissionsTransformer> _logger;
+        private readonly ISharedResourcesLocalizer _localizer;
 
         /// <summary>
         /// Creates a new <see cref="PermissionsTransformer"/> object.
         /// </summary>
         /// <param name="migrationPipeline">Destination content finder object.</param>
-        public PermissionsTransformer(IMigrationPipeline migrationPipeline)
+        /// <param name="logger">Default logger.</param>
+        /// <param name="localizer">A string localizer.</param>
+        public PermissionsTransformer(IMigrationPipeline migrationPipeline, ILogger<PermissionsTransformer> logger, ISharedResourcesLocalizer localizer)
         {
             _userContentFinder = migrationPipeline.CreateDestinationFinder<IUser>();
             _groupContentFinder = migrationPipeline.CreateDestinationFinder<IGroup>();
+            _logger = logger;
+            _localizer = localizer;
         }
 
         private static bool ShouldMigrateCapability(ICapability c)
@@ -78,7 +87,7 @@ namespace Tableau.Migration.Engine.Hooks.Transformers.Default
             var groupsById = new HashSet<IGranteeCapability>(granteeCapabilities).GroupBy(c => c.GranteeId);
 
             foreach (var group in groupsById)
-            {               
+            {
                 var granteeType = group.First().GranteeType;
 
                 IMappedContentReferenceFinder contentFinder = granteeType is GranteeType.User
@@ -90,6 +99,7 @@ namespace Tableau.Migration.Engine.Hooks.Transformers.Default
 
                 if (destinationGrantee is null)
                 {
+                    _logger.LogWarning(_localizer.GetString(SharedResourceKeys.PermissionsTransformerGranteeNotFoundWarning), granteeType.ToString(), group.Key);
                     continue;
                 }
 

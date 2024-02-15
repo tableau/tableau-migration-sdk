@@ -20,6 +20,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Moq;
 using Tableau.Migration.Api.Rest.Models;
 using Tableau.Migration.Api.Rest.Models.Types;
@@ -28,6 +29,7 @@ using Tableau.Migration.Content.Permissions;
 using Tableau.Migration.Engine.Endpoints.Search;
 using Tableau.Migration.Engine.Hooks.Transformers.Default;
 using Tableau.Migration.Engine.Pipelines;
+using Tableau.Migration.Resources;
 using Tableau.Migration.Tests.Content.Permissions;
 using Xunit;
 
@@ -45,12 +47,15 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
 
             protected readonly PermissionsTransformer Transformer;
 
+            protected readonly Mock<ILogger<PermissionsTransformer>> MockLogger = new();
+            protected readonly MockSharedResourcesLocalizer MockLocalizer = new();
+
             public PermissionsTransformerTest()
             {
                 MockMigrationPipeline.Setup(p => p.CreateDestinationFinder<IUser>()).Returns(MockUserContentFinder.Object);
                 MockMigrationPipeline.Setup(p => p.CreateDestinationFinder<IGroup>()).Returns(MockGroupContentFinder.Object);
 
-                Transformer = new(MockMigrationPipeline.Object);
+                Transformer = new(MockMigrationPipeline.Object, MockLogger.Object, MockLocalizer.Object);
             }
         }
 
@@ -247,6 +252,8 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
                 Assert.NotNull(result);
 
                 Assert.DoesNotContain(unfoundGranteeCapability, result);
+
+                MockLocalizer.Verify(x => x[SharedResourceKeys.PermissionsTransformerGranteeNotFoundWarning], Times.Once);
             }
 
             [Fact]

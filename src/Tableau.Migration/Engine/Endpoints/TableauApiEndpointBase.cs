@@ -119,6 +119,10 @@ namespace Tableau.Migration.Engine.Endpoints
         }
 
         /// <inheritdoc />
+        public async Task<IResult<IServerSession>> GetSessionAsync(CancellationToken cancel)
+            => await ServerApi.GetCurrentServerSessionAsync(cancel).ConfigureAwait(false);
+
+        /// <inheritdoc />
         public async Task<IResult<IPermissions>> GetPermissionsAsync<TContent>(IContentReference contentItem, CancellationToken cancel)
             where TContent : IPermissionsContent
         {

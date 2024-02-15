@@ -19,25 +19,24 @@ using System;
 namespace Tableau.Migration.Content
 {
     /// <summary>
-    /// Interface for a site.
+    /// Interface for a site settings update operation.
     /// </summary>
-    public interface ISite //We don't implement IContentReference because sites aren't a true 'content type.'
-        : ISiteSettings
+    public interface ISiteSettingsUpdate
     {
         /// <summary>
-        /// Gets the unique identifier of the site, 
-        /// corresponding to the LUID in the Tableau REST API.
+        /// Gets the ID of the site to update settings for.
         /// </summary>
-        Guid Id { get; }
+        Guid SiteId { get; }
 
         /// <summary>
-        /// Gets the site's friendly name.
+        /// Gets the new extract encryption mode, or null to not update the setting.
         /// </summary>
-        string Name { get; set; }
+        string? ExtractEncryptionMode { get; set; }
 
         /// <summary>
-        /// Gets the site's "content URL".
+        /// Finds whether any settings require updates.
         /// </summary>
-        string ContentUrl { get; }
+        /// <returns>True if any setting has changes, otherwise false.</returns>
+        bool NeedsUpdate();
     }
 }

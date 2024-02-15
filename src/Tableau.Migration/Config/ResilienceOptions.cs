@@ -29,7 +29,7 @@ namespace Tableau.Migration.Config
         public static class Defaults
         {
             /// <summary>
-            /// The default Retry Flag - Enabled as Default.
+            /// The default Retry Flag. Enabled as Default.
             /// </summary>
             public const bool RETRY_ENABLED = true;
 
@@ -47,27 +47,27 @@ namespace Tableau.Migration.Config
             };
 
             /// <summary>
-            /// The default Retry Override Response Codes, Empty as Default.
+            /// The default Retry Override Response Codes. Empty by Default.
             /// </summary>
             public readonly static int[] RETRY_OVERRIDE_RESPONSE_CODES = Array.Empty<int>();
 
             /// <summary>
-            /// The default Concurrent Requests Limit Flag - Disabled as Default.
+            /// The default Concurrent Requests Limit Flag. Disabled by Default.
             /// </summary>
             public const bool CONCURRENT_REQUESTS_LIMIT_ENABLED = false;
 
             /// <summary>
-            /// The default Maximum Concurrent Requests.
+            /// The default Maximum Concurrent Requests. Default is Processor count / 2
             /// </summary>
             public readonly static int MAX_CONCURRENT_REQUESTS = Environment.ProcessorCount / 2;
 
             /// <summary>
-            /// The default Concurrent Waiting Requests on Queue.
+            /// The default Concurrent Waiting Requests on Queue. Default is Processor count / 4
             /// </summary>
             public readonly static int CONCURRENT_WAITING_REQUESTS_QUEUE = Environment.ProcessorCount / 4;
 
             /// <summary>
-            /// The default Requests Client Throttle (Rate-Limit) Flag - Disabled as Default.
+            /// The default Requests Client Throttle (Rate-Limit) Flag. Disabled as Default.
             /// </summary>
             public const bool CLIENT_THROTTLE_ENABLED = false;
 
@@ -95,24 +95,24 @@ namespace Tableau.Migration.Config
             };
 
             /// <summary>
-            /// The default Maximum Read Requests for the Client Throttle.
+            /// The default Maximum Read Requests for the Client Throttle. Default is 40000.
             /// </summary>
             public const int MAX_READ_REQUESTS = 40000;
 
             /// <summary>
-            /// The default interval for Read Requests Throttle.
+            /// The default interval for Read Requests Throttle. Default is 1 hour
             /// </summary>
             public readonly static TimeSpan MAX_READ_REQUESTS_INTERVAL = TimeSpan.FromHours(1);
 
             /// <summary>
-            /// The default Burst Read Requests for the Client Throttle.
+            /// The default Burst Read Requests for the Client Throttle. Default is 20.
             /// Without the burst configuration, it will be allowed just one request for each 90 milliseconds (1 hour / 40000 requests).
             /// This override the configuration and allow 20 requests in an interval of 90 milliseconds.
             /// </summary>
             public const int MAX_BURST_READ_REQUESTS = 20;
 
             /// <summary>
-            /// The default Maximum Publish Requests for the Client Throttle.
+            /// The default Maximum Publish Requests for the Client Throttle. Default is 5500.
             /// </summary>
             public const int MAX_PUBLISH_REQUESTS = 5500;
 
@@ -122,25 +122,25 @@ namespace Tableau.Migration.Config
             public readonly static TimeSpan MAX_PUBLISH_REQUESTS_INTERVAL = TimeSpan.FromDays(1);
 
             /// <summary>
-            /// The default Burst Publish Requests for the Client Throttle.
+            /// The default Burst Publish Requests for the Client Throttle. Default is 20.
             /// Without the burst configuration, it will be allowed just one request for each 16 seconds (1 day / 5500 requests).
             /// This overrides the configuration and allow 20 requests in an interval of 16 seconds.
             /// </summary>
             public const int MAX_BURST_PUBLISH_REQUESTS = 20;
 
             /// <summary>
-            /// The default Per-Request Timeout. 30 minutes as Default.
+            /// The default Per-Request Timeout. Default is 30 minutes.
             /// </summary>
             public readonly static TimeSpan REQUEST_TIMEOUT = TimeSpan.FromMinutes(30);
 
             /// <summary>
-            /// The default Per-FileTransferRequest Timeout. 12 hours as Default.
+            /// The default Per-FileTransferRequest Timeout. Default is 12 hours.
             /// </summary>
             public readonly static TimeSpan FILE_TRANSFER_REQUEST_TIMEOUT = TimeSpan.FromHours(12);
         }
 
         /// <summary>
-        /// Indicates if we retry requests in case of errors or not. The default is `true`.
+        /// Indicates if we retry requests in case of errors or not.
         /// </summary>
         public bool RetryEnabled
         {

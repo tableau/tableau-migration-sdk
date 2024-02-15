@@ -34,29 +34,34 @@ namespace Tableau.Migration.Net.Handlers
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
-            if (request.RequestUri.IsRest() && !request.RequestUri.IsRestSignIn())
+            // Send request without auth token for non-REST API or sign in requests.
+            if (!request.RequestUri.IsRest() || request.RequestUri.IsRestSignIn())
             {
-                // Use the current token
-                if (_tokenProvider.Token is not null)
-                    request.SetRestAuthenticationToken(_tokenProvider.Token);
+                return await base.SendAsync(request, cancellationToken).ConfigureAwait(false);
+            }
+            
+            // Use the current token.
+            var requestAuthToken = await _tokenProvider.GetAsync(cancellationToken).ConfigureAwait(false);
+            if (requestAuthToken is not null)
+                request.SetRestAuthenticationToken(requestAuthToken);
 
-                var response = await base.SendAsync(request, cancellationToken).ConfigureAwait(false);
+            var response = await base.SendAsync(request, cancellationToken).ConfigureAwait(false);
 
-                if (response.StatusCode == HttpStatusCode.Unauthorized)
-                {
-                    await _tokenProvider.RequestRefreshAsync(cancellationToken).ConfigureAwait(false);
-
-                    // Use the new token
-                    if (_tokenProvider.Token is not null)
-                        request.SetRestAuthenticationToken(_tokenProvider.Token);
-                }
-                else
-                {
-                    return response;
-                }
+            if (response.StatusCode is not HttpStatusCode.Unauthorized)
+            {
+                return response;
             }
 
-            return await base.SendAsync(request, cancellationToken).ConfigureAwait(false);
+            // Refresh the authentication token.
+            await _tokenProvider.RequestRefreshAsync(requestAuthToken, cancellationToken).ConfigureAwait(false);
+
+            // Set the new token for the retry.
+            var refreshedAuthToken = await _tokenProvider.GetAsync(cancellationToken).ConfigureAwait(false);
+            if (refreshedAuthToken is not null)
+                request.SetRestAuthenticationToken(refreshedAuthToken);
+
+            // Re-send a single time, and rely on other resilience to retry more than that.
+            return await base.SendAsync(request, cancellationToken).ConfigureAwait(false);            
         }
     }
 }

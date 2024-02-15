@@ -60,7 +60,7 @@ namespace Tableau.Migration.Net
                     continue;
                 }
 
-                input = regex.Replace(input, m => m.Groups["SENSITIVE_VALUE"].Success
+                input = regex.Replace(input, m => (m.Groups["SENSITIVE_VALUE"].Success && !m.Groups["SENSITIVE_VALUE"].Value.IsNullOrEmpty())
                     ? m.Value.Replace(m.Groups["SENSITIVE_VALUE"].Value, SENSITIVE_DATA_PLACEHOLDER, StringComparison.Ordinal)
                     : m.Value);
             }

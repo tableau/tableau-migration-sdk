@@ -14,6 +14,8 @@
 //  limitations under the License.
 //
 
+using System.Linq;
+using Tableau.Migration.Api.Rest.Models;
 using Tableau.Migration.Api.Rest.Models.Responses;
 using Tableau.Migration.Api.Simulation.Rest.Api;
 using Tableau.Migration.Api.Simulation.Rest.Net;
@@ -84,6 +86,42 @@ namespace Tableau.Migration.Api.Simulation.Rest
         public MethodSimulator QueryServerInfo { get; }
 
         /// <summary>
+        /// Gets the simulated current server session query API method.
+        /// </summary>
+        public MethodSimulator GetCurrentServerSession { get; }
+
+        private static ServerSessionResponse.SessionType BuildCurrentSession(TableauData data)
+        {
+            var user = data.Users.Single(u => u.Id == data.SignIn!.User!.Id);
+            var site = data.Sites.Single(s => s.Id == data.SignIn!.Site!.Id);
+
+            var response = new ServerSessionResponse.SessionType
+            {
+                Site = new()
+                {
+                    Id = site.Id,
+                    ContentUrl = site.ContentUrl,
+                    Name = site.Name
+                },
+                User = new()
+                {
+                    AuthSetting = user.AuthSetting,
+                    Id = user.Id,
+                    Name = user.Name,
+                    SiteRole = user.SiteRole
+                }
+            };
+
+            var adminLevel = SiteRoleMapping.GetAdministratorLevel(user.SiteRole);
+            if(!AdministratorLevels.IsAMatch(adminLevel, AdministratorLevels.None))
+            {
+                response.Site.ExtractEncryptionMode = site.ExtractEncryptionMode;
+            }
+
+            return response;
+        }
+
+        /// <summary>
         /// Creates a new <see cref="RestApiSimulator"/> object.
         /// </summary>
         /// <param name="simulator">A response simulator to setup with REST API methods.</param>
@@ -100,8 +138,8 @@ namespace Tableau.Migration.Api.Simulation.Rest
             Files = new(simulator);
             Views = new(simulator);
 
-
             QueryServerInfo = simulator.SetupRestGet<ServerInfoResponse, ServerInfoResponse.ServerInfoType>(RestApiUrl("serverinfo"), d => d.ServerInfo, requiresAuthentication: false);
+            GetCurrentServerSession = simulator.SetupRestGet<ServerSessionResponse, ServerSessionResponse.SessionType>(RestApiUrl("sessions/current"), BuildCurrentSession);
         }
     }
 }

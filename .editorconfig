@@ -103,4 +103,5 @@ dotnet_diagnostic.SA1208.severity = warning
 csharp_style_unused_value_assignment_preference = discard_variable:suggestion
 dotnet_diagnostic.IDE0051.severity = error
 dotnet_diagnostic.IDE0060.severity = error
+dotnet_diagnostic.IDE0073.severity = error
 csharp_style_prefer_primary_constructors = true:suggestion

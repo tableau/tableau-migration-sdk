@@ -29,7 +29,7 @@ from tableau_migration.migration_engine_options import (
 
 import System
 
-from Tableau.Migration.Tests import TestPlanOptions
+from Tableau.Migration.Tests import TestPlanOptions as PyTestPlanOptions # Needed as this class name starts with Test, which means pytest wants to pick it up
 
 from Tableau.Migration.Engine.Hooks import IMigrationHook
 
@@ -43,13 +43,14 @@ sys.path.append(_dist_path)
 
 
 class TestMigrationPlanOptions():
+    
     def test_init_collections(self):
         migration_plan_options_colllection_mock = Moq.Mock[IMigrationPlanOptionsCollection]()
         PyMigrationPlanOptionsCollection(migration_plan_options_colllection_mock.Object)
     
     def test_get(self):
         """Verify that the MigrationPlanOptionsBuilder can return the options that were configured"""
-        input_option = TestPlanOptions()
+        input_option = PyTestPlanOptions()
 
         services = get_service_provider()
         dotnet_plan_options_builder = get_service(services, IMigrationPlanOptionsBuilder)
@@ -57,6 +58,6 @@ class TestMigrationPlanOptions():
         builder = PyMigrationPlanOptionsBuilder(dotnet_plan_options_builder) 
         builder.configure(input_option)
 
-        options = builder.build().get(TestPlanOptions)
+        options = builder.build().get(PyTestPlanOptions)
 
         assert input_option == options

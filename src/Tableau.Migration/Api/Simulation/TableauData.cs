@@ -362,7 +362,10 @@ namespace Tableau.Migration.Api.Simulation
             => Sites.Add(
                 new()
                 {
-                    Id = id
+                    Id = id,
+                    ContentUrl = "",
+                    Name = "Default",
+                    ExtractEncryptionMode = ExtractEncryptionModes.Disabled
                 });
 
         private static GroupsResponse.GroupType CreateAllUsersGroup()

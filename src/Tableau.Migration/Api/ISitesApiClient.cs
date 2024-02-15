@@ -29,37 +29,37 @@ namespace Tableau.Migration.Api
     public interface ISitesApiClient : IAsyncDisposable, IContentApiClient
     {
         /// <summary>
-        /// The API client for group operations.
+        /// Gets the API client for group operations.
         /// </summary>
         IGroupsApiClient Groups { get; }
 
         /// <summary>
-        /// The API client for job operations.
+        /// Gets the API client for job operations.
         /// </summary>
         IJobsApiClient Jobs { get; }
 
         /// <summary>
-        /// The API client for project operations.
+        /// Gets the API client for project operations.
         /// </summary>
         IProjectsApiClient Projects { get; }
 
         /// <summary>
-        /// The API client for user operations.
+        /// Gets the API client for user operations.
         /// </summary>
         IUsersApiClient Users { get; }
 
         /// <summary>
-        /// The API client for data source operations.
+        /// Gets the API client for data source operations.
         /// </summary>
         IDataSourcesApiClient DataSources { get; }
 
         /// <summary>
-        /// The API client for workbook operations.
+        /// Gets the API client for workbook operations.
         /// </summary>
         IWorkbooksApiClient Workbooks { get; }
 
         /// <summary>
-        /// The API client for views operations.
+        /// Gets the API client for views operations.
         /// </summary>
         IViewsApiClient Views { get; }
 
@@ -78,6 +78,14 @@ namespace Tableau.Migration.Api
         /// <param name="cancel">The cancellation token.</param>
         /// <returns>The site with the specified content URL.</returns>
         Task<IResult<ISite>> GetSiteAsync(string contentUrl, CancellationToken cancel);
+
+        /// <summary>
+        /// Updates the site.
+        /// </summary>
+        /// <param name="update">The settings to update on the site..</param>
+        /// <param name="cancel">The cancellation token.</param>
+        /// <returns>The site information returned after the update.</returns>
+        Task<IResult<ISite>> UpdateSiteAsync(ISiteSettingsUpdate update, CancellationToken cancel);
 
         /// <summary>
         /// Gets the <see cref="IPagedListApiClient{TContent}"/> for the given content type.
