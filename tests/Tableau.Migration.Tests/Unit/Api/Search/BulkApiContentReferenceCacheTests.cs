@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Moq;
 using Tableau.Migration.Api;
@@ -32,35 +33,45 @@ namespace Tableau.Migration.Tests.Unit.Api.Search
     {
         public class SearchAsync : AutoFixtureTestBase
         {
-            protected readonly Mock<IPagedListApiClient<TestContentType>> MockApiClient;
+            protected readonly Mock<IPagedListApiClient<IUser>> MockApiClient;
+            protected readonly Mock<IReadApiClient<IUser>> MockReadApiClient;
 
-            protected int BatchSize { get; set; } = 10;
+            private static int BatchSize = 10;
 
-            protected ImmutableArray<TestContentType> Data { get; set; }
+            protected ImmutableArray<IUser> Data { get; set; }
 
-            protected readonly BulkApiContentReferenceCache<TestContentType> Cache;
+            protected readonly BulkApiContentReferenceCache<IUser> Cache;
 
             public SearchAsync()
             {
-                MockApiClient = new Mock<IPagedListApiClient<TestContentType>>
+                MockApiClient = new Mock<IPagedListApiClient<IUser>>
                 {
                     CallBase = true
                 };
                 MockApiClient.Setup(x => x.GetPager(BatchSize))
-                    .Returns((int pageSize) => new MemoryPager<TestContentType>(Data, pageSize));
+                    .Returns((int pageSize) => new MemoryPager<IUser>(Data, pageSize));
+                MockReadApiClient = new Mock<IReadApiClient<IUser>>
+                {
+                    CallBase = true
+                };
 
-                Data = CreateMany<TestContentType>()
+                Data = CreateMany<IUser>()
                     .ToImmutableArray();
 
                 var mockConfigReader = Freeze<Mock<IConfigReader>>();
-                mockConfigReader.Setup(x => x.Get())
-                    .Returns(() => new MigrationSdkOptions { BatchSize = BatchSize });
+                mockConfigReader.Setup(x => x.Get<TestContentType>())
+                    .Returns(() => new ContentTypesOptions() { BatchSize = BatchSize });
+
+                mockConfigReader.Setup(x => x.Get<IUser>())
+                    .Returns(() => new ContentTypesOptions() { BatchSize = BatchSize });
 
                 var mockSitesApi = Freeze<Mock<ISitesApiClient>>();
-                mockSitesApi.Setup(x => x.GetListApiClient<TestContentType>())
+                mockSitesApi.Setup(x => x.GetListApiClient<IUser>())
                     .Returns(MockApiClient.Object);
+                mockSitesApi.Setup(x => x.GetReadApiClient<IUser>())
+                    .Returns(MockReadApiClient.Object);
 
-                Cache = Create<BulkApiContentReferenceCache<TestContentType>>();
+                Cache = Create<BulkApiContentReferenceCache<IUser>>();
             }
 
             [Fact]
@@ -76,6 +87,16 @@ namespace Tableau.Migration.Tests.Unit.Api.Search
             }
 
             [Fact]
+            public async Task NotFoundByLocationAsync()
+            {
+                var search = Create<IUser>();
+
+                var result = await Cache.ForLocationAsync(search.Location, Cancel);
+
+                Assert.Null(result);
+            }
+
+            [Fact]
             public async Task SuccessByIdAsync()
             {
                 var search = Data.First();
@@ -88,11 +109,36 @@ namespace Tableau.Migration.Tests.Unit.Api.Search
             }
 
             [Fact]
+            public async Task NotFoundByIdAsync()
+            {
+                var search = Create<IUser>();
+
+                var result = await Cache.ForIdAsync(search.Id, Cancel);
+
+                Assert.Null(result);
+            }
+
+            [Fact]
+            public async Task NotFoundByIdWithFallbackAsync()
+            {
+                var search = Create<IUser>();
+
+                MockReadApiClient.Setup(x => x.GetByIdAsync(search.Id, It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(Result<IUser>.Succeeded(search));
+
+                var result = await Cache.ForIdAsync(search.Id, Cancel);
+
+                Assert.NotNull(result);
+                var resultStub = Assert.IsType<ContentReferenceStub>(result);
+                Assert.Equal(new ContentReferenceStub(search), resultStub);
+            }
+
+            [Fact]
             public async Task FailureByLocationReturnsEmptyAsync()
             {
-                var mockFailurePager = Create<Mock<IPager<TestContentType>>>();
+                var mockFailurePager = Create<Mock<IPager<IUser>>>();
                 mockFailurePager.Setup(x => x.NextPageAsync(Cancel))
-                    .ReturnsAsync(PagedResult<TestContentType>.Failed(new Exception()));
+                    .ReturnsAsync(PagedResult<IUser>.Failed(new Exception()));
 
                 MockApiClient.Setup(x => x.GetPager(BatchSize))
                     .Returns(mockFailurePager.Object);
@@ -105,9 +151,9 @@ namespace Tableau.Migration.Tests.Unit.Api.Search
             [Fact]
             public async Task FailureByIdReturnsEmptyAsync()
             {
-                var mockFailurePager = Create<Mock<IPager<TestContentType>>>();
+                var mockFailurePager = Create<Mock<IPager<IUser>>>();
                 mockFailurePager.Setup(x => x.NextPageAsync(Cancel))
-                    .ReturnsAsync(PagedResult<TestContentType>.Failed(new Exception()));
+                    .ReturnsAsync(PagedResult<IUser>.Failed(new Exception()));
 
                 MockApiClient.Setup(x => x.GetPager(BatchSize))
                     .Returns(mockFailurePager.Object);

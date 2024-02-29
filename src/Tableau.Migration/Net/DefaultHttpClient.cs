@@ -35,7 +35,7 @@ namespace Tableau.Migration.Net
             _innerHttpClient = httpClient;
             _serializer = serializer;
 
-            //Timeout is controlled through a request timeout policy instead of the HTTP client.
+            //Timeout is controlled through a request timeout strategy instead of the HTTP client.
             _innerHttpClient.Timeout = Timeout.InfiniteTimeSpan;
         }
 

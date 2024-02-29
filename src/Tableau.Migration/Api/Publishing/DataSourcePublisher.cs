@@ -17,6 +17,7 @@
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Tableau.Migration.Api.Models;
 using Tableau.Migration.Api.Rest;
 using Tableau.Migration.Api.Rest.Models.Requests;
@@ -29,18 +30,20 @@ using Tableau.Migration.Resources;
 
 namespace Tableau.Migration.Api.Publishing
 {
-    internal class DataSourcePublisher : FilePublisherBase<IPublishDataSourceOptions, CommitDataSourcePublishRequest, IDataSource>, IDataSourcePublisher
+    internal class DataSourcePublisher : FilePublisherBase<IPublishDataSourceOptions, CommitDataSourcePublishRequest, IDataSourceDetails>, IDataSourcePublisher
     {
         public DataSourcePublisher(
             IRestRequestBuilderFactory restRequestBuilderFactory,
             IContentReferenceFinderFactory finderFactory,
             IServerSessionProvider sessionProvider,
+            ILoggerFactory loggerFactory,
             ISharedResourcesLocalizer sharedResourcesLocalizer,
             IHttpStreamProcessor httpStreamProcessor)
             : base(
                   restRequestBuilderFactory,
                   finderFactory,
                   sessionProvider,
+                  loggerFactory,
                   sharedResourcesLocalizer,
                   httpStreamProcessor,
                   RestUrlPrefixes.DataSources)
@@ -49,30 +52,31 @@ namespace Tableau.Migration.Api.Publishing
         protected override CommitDataSourcePublishRequest BuildCommitRequest(IPublishDataSourceOptions options)
             => new(options);
 
-        protected override async Task<IResult<IDataSource>> SendCommitRequestAsync(
+        protected override async Task<IResult<IDataSourceDetails>> SendCommitRequestAsync(
             IPublishDataSourceOptions options,
             string uploadSessionId,
             MultipartContent content,
             CancellationToken cancel)
         {
-            var request = RestRequestBuilderFactory
+            var result = await RestRequestBuilderFactory
                .CreateUri(ContentTypeUrlPrefix)
                .WithQuery("uploadSessionId", uploadSessionId)
                .WithQuery("datasourceType", options.FileType)
                .WithQuery("overwrite", options.Overwrite.ToString().ToLower())
                .ForPostRequest()
-               .WithContent(content);
+               .WithContent(content)
+               .SendAsync<DataSourceResponse>(cancel)
+               .ToResultAsync<DataSourceResponse, IDataSourceDetails>(async (response, cancel) =>
+                {
+                    var dataSource = Guard.AgainstNull(response.Item, () => response.Item);
 
-            var result = await request
-                .SendAsync<DataSourceResponse>(cancel)
-                    .ToResultAsync<DataSourceResponse, IDataSource>(async (r, c) =>
-                    {
-                        var project = await ContentFinderFactory.FindProjectAsync(r.Item, c).ConfigureAwait(false);
-                        var owner = await ContentFinderFactory.FindOwnerAsync(r.Item, c).ConfigureAwait(false);
-                        return new DataSource(r.Item, project, owner);
-                    },
-                    SharedResourcesLocalizer,
-                    cancel)
+                    var project = await ContentFinderFactory.FindProjectAsync(dataSource, Logger, SharedResourcesLocalizer, true, cancel).ConfigureAwait(false);
+                    var owner = await ContentFinderFactory.FindOwnerAsync(dataSource, Logger, SharedResourcesLocalizer, true, cancel).ConfigureAwait(false);
+
+                    return new DataSourceDetails(dataSource, project, owner);
+                },
+                SharedResourcesLocalizer,
+                cancel)
                 .ConfigureAwait(false);
 
             return result;

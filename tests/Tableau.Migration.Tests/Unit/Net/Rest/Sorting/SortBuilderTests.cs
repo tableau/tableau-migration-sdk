@@ -22,7 +22,7 @@ using Xunit;
 
 namespace Tableau.Migration.Tests.Unit.Net.Rest.Sorting
 {
-    internal class SortBuilderTests
+    public class SortBuilderTests
     {
         public abstract class SortBuilderTest : AutoFixtureTestBase
         {

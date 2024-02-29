@@ -45,6 +45,29 @@ namespace Tableau.Migration.Tests
         public static TValue? GetFieldValue<TValue>(this Type type, string fieldName)
             => (TValue?)type.GetFieldValue(fieldName);
 
+        public static object? GetPropertyValue(this Type type, string fieldName, object obj)
+        {
+            return type.GetProperty(fieldName, BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(obj);
+        }
+
+        public static object? GetPropertyValue(this object obj, string fieldName)
+        {
+            return GetPropertyValue(obj.GetType(), fieldName, obj);
+        }
+
+        public static object? GetPropertyValue(this object obj, Type type, string fieldName)
+        {
+            return GetPropertyValue(type, fieldName, obj);
+        }
+
+        public static object? GetPropertyValue(this Type type, string fieldName)
+        {
+            return type.GetProperty(fieldName, BindingFlags.NonPublic | BindingFlags.Static)!.GetValue(null);
+        }
+
+        public static TValue? GetPropertyValue<TValue>(this Type type, string fieldName)
+            => (TValue?)type.GetPropertyValue(fieldName);
+
         public static bool HasGenericTypeDefinition(this Type type, Type genericTypeDefinition)
         {
             if (!genericTypeDefinition.IsGenericTypeDefinition)

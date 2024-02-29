@@ -39,7 +39,7 @@ namespace Tableau.Migration.Api.Search
 
         /// <inheritdoc />
         public IContentReferenceFinder<TContent> ForContentType<TContent>()
-            where TContent : IContentReference
+            where TContent : class, IContentReference
         {
             var cache = _services.GetRequiredService<BulkApiContentReferenceCache<TContent>>();
 

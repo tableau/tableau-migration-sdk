@@ -27,13 +27,17 @@ namespace Tableau.Migration.Tests.Simulation.Tests
 {
     public class UserMigrationTests
     {
-        public class ServerToCloud : ServerToCloudSimulationTestBase
+        public class Batch : ServerToCloud
         {
-            protected override IServiceCollection ConfigureServices(IServiceCollection services)
-            {
-                return services.AddTableauMigrationSdk();
-            }
+        }
 
+        public class Individual : ServerToCloud
+        {
+            protected override bool UsersBatchImportEnabled => false;
+        }
+
+        public abstract class ServerToCloud : ServerToCloudSimulationTestBase
+        {
             [Fact]
             public async Task MigratesAllUsersToCloudAsync()
             {
@@ -72,7 +76,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests
                     Assert.NotEqual(sourceUser.Id, destinationUser.Id);
                     Assert.Equal(sourceUser.Domain?.Name, destinationUser.Domain?.Name);
                     Assert.Equal(sourceUser.Name, destinationUser.Name);
-                    Assert.Equal(sourceUser.Email, destinationUser.Email);
+                    Assert.Null(destinationUser.Email);
 
                     if (sourceUser.SiteRole == SiteRoles.Viewer ||
                         sourceUser.SiteRole == SiteRoles.Guest ||
@@ -88,7 +92,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests
                     {
                         Assert.Equal(sourceUser.SiteRole, destinationUser.SiteRole);
                     }
-                    Assert.Equal(sourceUser.FullName, destinationUser.FullName);
+                    Assert.Null(destinationUser.FullName);
                 }
 
                 Assert.All(SourceApi.Data.Users.Where(u => u.SiteRole != SiteRoles.SupportUser), AssertUserMigrated);

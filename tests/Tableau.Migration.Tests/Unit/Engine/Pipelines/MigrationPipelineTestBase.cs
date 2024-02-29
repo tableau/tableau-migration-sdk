@@ -16,8 +16,10 @@
 
 using System;
 using System.Threading;
+using AutoFixture;
 using Moq;
 using Tableau.Migration.Engine.Actions;
+using Tableau.Migration.Engine.Endpoints;
 using Tableau.Migration.Engine.Hooks;
 
 namespace Tableau.Migration.Tests.Unit.Engine.Pipelines
@@ -26,8 +28,13 @@ namespace Tableau.Migration.Tests.Unit.Engine.Pipelines
     {
         protected readonly Mock<IServiceProvider> MockServices;
         protected readonly Mock<IMigrationHookRunner> MockHookRunner;
+        protected readonly Mock<IDestinationApiEndpoint> MockDestinationEndpoint;
+        protected readonly Mock<ISourceApiEndpoint> MockSourceEndpoint;
 
         protected readonly TPipeline Pipeline;
+
+        protected virtual TPipeline CreatePipeline()
+            => Create<TPipeline>();
 
         public MigrationPipelineTestBase()
         {
@@ -38,7 +45,13 @@ namespace Tableau.Migration.Tests.Unit.Engine.Pipelines
             MockHookRunner.Setup(x => x.ExecuteAsync<IMigrationActionCompletedHook, IMigrationActionResult>(It.IsAny<IMigrationActionResult>(), Cancel))
                 .ReturnsAsync((IMigrationActionResult r, CancellationToken c) => r);
 
-            Pipeline = Create<TPipeline>();
+            MockDestinationEndpoint = Freeze<Mock<IDestinationApiEndpoint>>();
+            MockSourceEndpoint = Freeze<Mock<ISourceApiEndpoint>>();
+
+            AutoFixture.Register<IDestinationEndpoint>(() => MockDestinationEndpoint.Object);
+            AutoFixture.Register<ISourceEndpoint>(() => MockSourceEndpoint.Object);
+
+            Pipeline = CreatePipeline();
         }
     }
 }

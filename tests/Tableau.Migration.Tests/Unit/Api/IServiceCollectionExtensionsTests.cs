@@ -98,19 +98,19 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async Task RegistersTransientApiClients()
+            public async Task RegistersScopedApiClients()
             {
                 await using var scope = InitializeApiScope();
 
-                AssertService<IApiClient, ApiClient>(scope, ServiceLifetime.Transient);
-                AssertService<IDataSourcesApiClient, DataSourcesApiClient>(scope, ServiceLifetime.Transient);
-                AssertService<IGroupsApiClient, GroupsApiClient>(scope, ServiceLifetime.Transient);
-                AssertService<IJobsApiClient, JobsApiClient>(scope, ServiceLifetime.Transient);
-                AssertService<IProjectsApiClient, ProjectsApiClient>(scope, ServiceLifetime.Transient);
-                AssertService<ISitesApiClient, SitesApiClient>(scope, ServiceLifetime.Transient);
-                AssertService<IUsersApiClient, UsersApiClient>(scope, ServiceLifetime.Transient);
-                AssertService<IWorkbooksApiClient, WorkbooksApiClient>(scope, ServiceLifetime.Transient);
-                AssertService<IViewsApiClient, ViewsApiClient>(scope, ServiceLifetime.Transient);
+                AssertService<IApiClient, ApiClient>(scope, ServiceLifetime.Scoped);
+                AssertService<IDataSourcesApiClient, DataSourcesApiClient>(scope, ServiceLifetime.Scoped);
+                AssertService<IGroupsApiClient, GroupsApiClient>(scope, ServiceLifetime.Scoped);
+                AssertService<IJobsApiClient, JobsApiClient>(scope, ServiceLifetime.Scoped);
+                AssertService<IProjectsApiClient, ProjectsApiClient>(scope, ServiceLifetime.Scoped);
+                AssertService<ISitesApiClient, SitesApiClient>(scope, ServiceLifetime.Scoped);
+                AssertService<IUsersApiClient, UsersApiClient>(scope, ServiceLifetime.Scoped);
+                AssertService<IWorkbooksApiClient, WorkbooksApiClient>(scope, ServiceLifetime.Scoped);
+                AssertService<IViewsApiClient, ViewsApiClient>(scope, ServiceLifetime.Scoped);
             }
 
             [Fact]

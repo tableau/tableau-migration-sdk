@@ -19,6 +19,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Tableau.Migration.Api.Models;
 using Tableau.Migration.Api.Rest;
 using Tableau.Migration.Api.Rest.Models.Requests;
@@ -40,6 +41,7 @@ namespace Tableau.Migration.Api.Publishing
 
         protected readonly IRestRequestBuilderFactory RestRequestBuilderFactory;
         protected readonly IContentReferenceFinderFactory ContentFinderFactory;
+        protected readonly ILogger Logger;
         protected readonly ISharedResourcesLocalizer SharedResourcesLocalizer;
 
         protected readonly string ContentTypeUrlPrefix;
@@ -48,12 +50,14 @@ namespace Tableau.Migration.Api.Publishing
             IRestRequestBuilderFactory restRequestBuilderFactory,
             IContentReferenceFinderFactory finderFactory,
             IServerSessionProvider sessionProvider,
+            ILoggerFactory loggerFactory,
             ISharedResourcesLocalizer sharedResourcesLocalizer,
             IHttpStreamProcessor httpStreamProcessor,
             string contentTypeUrlPrefix)
         {
             RestRequestBuilderFactory = restRequestBuilderFactory;
             ContentFinderFactory = finderFactory;
+            Logger = loggerFactory.CreateLogger(GetType());
             SharedResourcesLocalizer = sharedResourcesLocalizer;
             ContentTypeUrlPrefix = contentTypeUrlPrefix;
 

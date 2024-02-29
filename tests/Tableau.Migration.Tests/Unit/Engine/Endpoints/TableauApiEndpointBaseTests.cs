@@ -23,9 +23,9 @@ using Tableau.Migration.Api;
 using Tableau.Migration.Content;
 using Tableau.Migration.Content.Files;
 using Tableau.Migration.Content.Search;
-using Tableau.Migration.Engine;
 using Tableau.Migration.Engine.Endpoints;
 using Tableau.Migration.Paging;
+using Tableau.Migration.Resources;
 using Xunit;
 
 namespace Tableau.Migration.Tests.Unit.Engine.Endpoints
@@ -45,8 +45,9 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints
             public TestApiEndpoint(IServiceScopeFactory serviceScopeFactory,
                 ITableauApiEndpointConfiguration config,
                 IContentReferenceFinderFactory finderFactory,
-                IContentFileStore fileStore)
-                : base(serviceScopeFactory, config, finderFactory, fileStore)
+                IContentFileStore fileStore,
+                ISharedResourcesLocalizer localizer)
+                : base(serviceScopeFactory, config, finderFactory, fileStore, localizer)
             { }
         }
 
@@ -59,7 +60,8 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints
                 Endpoint = new(MigrationServices.GetRequiredService<IServiceScopeFactory>(),
                     Create<ITableauApiEndpointConfiguration>(),
                     Create<IContentReferenceFinderFactory>(),
-                    Create<IContentFileStore>()
+                    Create<IContentFileStore>(),
+                    Create<ISharedResourcesLocalizer>()
                 );
             }
         }
@@ -85,8 +87,9 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints
                 var config = Create<ITableauApiEndpointConfiguration>();
                 var mockFinderFactory = Create<IContentReferenceFinderFactory>();
                 var mockFileStore = Create<IContentFileStore>();
+                var mockLocalizer = Create<ISharedResourcesLocalizer>();
 
-                var endpoint = new TestApiEndpoint(serviceScopeFactory, config, mockFinderFactory, mockFileStore);
+                var endpoint = new TestApiEndpoint(serviceScopeFactory, config, mockFinderFactory, mockFileStore, mockLocalizer);
 
                 Assert.Same(apiClient, endpoint.ServerApi);
             }
@@ -106,8 +109,9 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints
                 var config = Create<ITableauApiEndpointConfiguration>();
                 var mockFinderFactory = Create<IContentReferenceFinderFactory>();
                 var mockFileStore = Create<IContentFileStore>();
+                var mockLocalizer = Create<ISharedResourcesLocalizer>();
 
-                var endpoint = new TestApiEndpoint(serviceScopeFactory, config, mockFinderFactory, mockFileStore);
+                var endpoint = new TestApiEndpoint(serviceScopeFactory, config, mockFinderFactory, mockFileStore, mockLocalizer);
 
                 Assert.Same(mockFileStore, endpoint.EndpointScope.ServiceProvider.GetService<IContentFileStore>());
             }

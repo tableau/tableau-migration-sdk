@@ -32,8 +32,6 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints.Search
         {
             public LoadStoreAsync() 
             {
-                MockDestinationEndpoint.Setup(x => x.GetPager<IProject>(It.IsAny<int>()))
-                    .Returns((int batchSize) => new BreadthFirstPathHierarchyPager<IProject>(new MemoryPager<IProject>(EndpointContent, batchSize), batchSize));
             }
 
             [Fact]
@@ -52,7 +50,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints.Search
                 mockChildProject.SetupGet(x => x.Location).Returns(new ContentLocation(mockProjects[0].Object.Name, mockChildProject.Object.Name));
 
                 EndpointContent = mockProjects.Select(m => m.Object).ToList();
-                BatchSize = EndpointContent.Count;
+                ContentTypesOptions.BatchSize = EndpointContent.Count;
                 
                 var item = EndpointContent[1];
 

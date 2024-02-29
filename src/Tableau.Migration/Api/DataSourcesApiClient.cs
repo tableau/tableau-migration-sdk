@@ -101,21 +101,24 @@ namespace Tableau.Migration.Api
                 .WithSorts(new Sort("size", false))
                 .ForGetRequest()
                 .SendAsync<DataSourcesResponse>(cancel)
-                .ToPagedResultAsync(async (r, c) =>
+                .ToPagedResultAsync(async (response, cancel) =>
                 {
                     // Take all items.
-                    var results = ImmutableArray.CreateBuilder<IDataSource>(r.Items.Length);
+                    var results = ImmutableArray.CreateBuilder<IDataSource>(response.Items.Length);
 
-                    foreach (var item in r.Items)
+                    foreach (var item in response.Items)
                     {
                         // Convert them all to type DataSource.
                         if (item.Project is not null) // Project is null if item is in a personal space
                         {
-                            var project = await FindProjectAsync(item, c).ConfigureAwait(false);
-                            var owner = await FindOwnerAsync(item, c).ConfigureAwait(false);
+                            var project = await FindProjectAsync(item, false, cancel).ConfigureAwait(false);
+                            var owner = await FindOwnerAsync(item, false, cancel).ConfigureAwait(false);
+
+                            if (project is null || owner is null)
+                                continue; //Warnings will be logged by prior method calls.
+
                             results.Add(new DataSource(item, project, owner));
                         }
-
                     }
 
                     // Produce immutable list of type IDataSource and return.
@@ -127,11 +130,7 @@ namespace Tableau.Migration.Api
         }
 
         /// <inheritdoc />
-        public async Task<IResult<IPublishableDataSource>> GetDataSourceAsync(
-            Guid dataSourceId,
-            IImmutableList<IConnection> connections,
-            IContentFileHandle dataSourceFile,
-            CancellationToken cancel)
+        public async Task<IResult<IDataSourceDetails>> GetDataSourceAsync(Guid dataSourceId, CancellationToken cancel)
         {
             var getResult = await RestRequestBuilderFactory
                 .CreateUri($"{UrlPrefix}/{dataSourceId.ToUrlSegment()}")
@@ -139,12 +138,12 @@ namespace Tableau.Migration.Api
                 .SendAsync<DataSourceResponse>(cancel)
                 .ToResultAsync(async (response, cancel) =>
                 {
-                    var project = await FindProjectAsync(response.Item, cancel).ConfigureAwait(false);
-                    var owner = await FindOwnerAsync(response.Item, cancel).ConfigureAwait(false);
+                    var dataSource = Guard.AgainstNull(response.Item, () => response.Item);
 
-                    return (IPublishableDataSource)new PublishableDataSource(
-                        response, project, owner,
-                        connections, dataSourceFile);
+                    var project = await FindProjectAsync(response.Item, true, cancel).ConfigureAwait(false);
+                    var owner = await FindOwnerAsync(response.Item, true, cancel).ConfigureAwait(false);
+
+                    return (IDataSourceDetails)new DataSourceDetails(dataSource, project, owner);
 
                 }, SharedResourcesLocalizer, cancel)
                 .ConfigureAwait(false);
@@ -169,11 +168,11 @@ namespace Tableau.Migration.Api
         }
 
         /// <inheritdoc />
-        public async Task<IResult<IDataSource>> PublishDataSourceAsync(IPublishDataSourceOptions options, CancellationToken cancel)
+        public async Task<IResult<IDataSourceDetails>> PublishDataSourceAsync(IPublishDataSourceOptions options, CancellationToken cancel)
             => await _dataSourcePublisher.PublishAsync(options, cancel).ConfigureAwait(false);
 
         /// <inheritdoc />
-        public async Task<IResult<IDataSource>> PublishAsync(IPublishableDataSource item, CancellationToken cancel)
+        public async Task<IResult<IDataSourceDetails>> PublishAsync(IPublishableDataSource item, CancellationToken cancel)
         {
             var fileStream = await item.File.OpenReadAsync(cancel).ConfigureAwait(false);
 
@@ -264,11 +263,18 @@ namespace Tableau.Migration.Api
                  * make sure the file is disposed. We clean up orphaned
                  * files at the end of the DI scope, but we don't want to 
                  * bloat disk usage when we're processing future pages of items.*/
-                var publishableDataSourceResult = await file.DisposeOnThrowOrFailureAsync( 
-                    async () => await GetDataSourceAsync(contentItem.Id, connectionsResult.Value, file, cancel).ConfigureAwait(false)
+                var dataSourceResult = await file.DisposeOnThrowOrFailureAsync( 
+                    async () => await GetDataSourceAsync(contentItem.Id, cancel).ConfigureAwait(false)
                 ).ConfigureAwait(false);
 
-                return publishableDataSourceResult;
+                if (!dataSourceResult.Success)
+                {
+                    return dataSourceResult.CastFailure<IPublishableDataSource>();
+                }
+
+                var publishDataSource = new PublishableDataSource(dataSourceResult.Value, connectionsResult.Value, file);
+
+                return Result<IPublishableDataSource>.Succeeded(publishDataSource);
             }
         }
 

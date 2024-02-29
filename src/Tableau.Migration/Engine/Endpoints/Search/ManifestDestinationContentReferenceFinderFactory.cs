@@ -39,7 +39,7 @@ namespace Tableau.Migration.Engine.Endpoints.Search
 
         /// <inheritdoc />
         public IContentReferenceFinder<TContent> ForContentType<TContent>()
-            where TContent : IContentReference
+            where TContent : class, IContentReference
             => _services.GetRequiredService<ManifestDestinationContentReferenceFinder<TContent>>();
     }
 }

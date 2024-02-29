@@ -21,7 +21,6 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Moq;
@@ -161,7 +160,7 @@ namespace Tableau.Migration.Tests.Unit.Net
             public async Task SendsRequests()
             {
                 // Arrange
-                using var memoryStream = new MemoryStream(Encoding.UTF8.GetBytes("Test"));
+                using var memoryStream = new MemoryStream(Constants.DefaultEncoding.GetBytes("Test"));
 
                 OnRequestCreated += (o, r) => SetupResponse(r, new MockHttpResponseMessage<TestResponseObject>(HttpStatusCode.OK, new()).Object);
 

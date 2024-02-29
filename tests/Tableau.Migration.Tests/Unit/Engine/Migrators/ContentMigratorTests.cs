@@ -49,13 +49,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Migrators
                 IMigrationHookRunner hooks,
                 IContentMappingRunner mappings,
                 IContentFilterRunner filters)
-                : base(
-                      pipeline,
-                      migration,
-                      configReader,
-                      hooks,
-                      mappings,
-                      filters)
+                : base(pipeline, migration, configReader, hooks, mappings, filters)
             { }
 
             new public int BatchSize => base.BatchSize;
@@ -85,9 +79,9 @@ namespace Tableau.Migration.Tests.Unit.Engine.Migrators
             public ContentMigratorTest()
             {
                 BatchSize = 2;
-
                 MockConfigReader = Freeze<Mock<IConfigReader>>();
-                MockConfigReader.Setup(x => x.Get()).Returns(() => new MigrationSdkOptions { BatchSize = BatchSize });
+                MockConfigReader.Setup(x => x.Get<TestContentType>())
+                    .Returns(() => new ContentTypesOptions() { BatchSize = BatchSize });
 
                 SourceContent = new()
                 {
@@ -179,7 +173,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Migrators
                 var batchSize = Migrator.BatchSize;
 
                 Assert.Equal(BatchSize, batchSize);
-                MockConfigReader.Verify(x => x.Get(), Times.Once);
+                MockConfigReader.Verify(x => x.Get<TestContentType>(), Times.Once);
             }
         }
 

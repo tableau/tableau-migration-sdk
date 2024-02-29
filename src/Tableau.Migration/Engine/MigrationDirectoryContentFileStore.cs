@@ -31,9 +31,15 @@ namespace Tableau.Migration.Engine
         /// <param name="fileSystem">The file system.</param>
         /// <param name="pathResolver">The path resolver.</param>
         /// <param name="configReader">The configuration reader.</param>
+        /// <param name="memoryStreamManager">The memory stream manager to user.</param>
         /// <param name="migrationInput">The migration input to get the migration ID from.</param>
-        public MigrationDirectoryContentFileStore(IFileSystem fileSystem, IContentFilePathResolver pathResolver, IConfigReader configReader, IMigrationInput migrationInput)
-            : base(fileSystem, pathResolver, configReader, $"migration-{migrationInput.MigrationId:N}")
+        public MigrationDirectoryContentFileStore(
+            IFileSystem fileSystem,
+            IContentFilePathResolver pathResolver,
+            IConfigReader configReader,
+            IMemoryStreamManager memoryStreamManager,
+            IMigrationInput migrationInput)
+            : base(fileSystem, pathResolver, configReader, memoryStreamManager, $"migration-{migrationInput.MigrationId:N}")
         { }
     }
 }

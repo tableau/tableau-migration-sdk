@@ -16,10 +16,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Tableau.Migration.Api.Search;
 using Tableau.Migration.Config;
 using Tableau.Migration.Content;
 using Tableau.Migration.Engine.Manifest;
@@ -27,105 +26,68 @@ using Tableau.Migration.Engine.Manifest;
 namespace Tableau.Migration.Engine.Endpoints.Search
 {
     /// <summary>
-    /// <see cref="DestinationManifestCacheBase{TContent}"/> implementation
+    /// <see cref="BulkApiContentReferenceCache{TContent}"/> implementation
     /// that falls back to bulk API listing when destination information is not found in the manifest.
     /// </summary>
     /// <typeparam name="TContent">The content type.</typeparam>
-    public class BulkDestinationCache<TContent> : DestinationManifestCacheBase<TContent>
-        where TContent : IContentReference
+    public class BulkDestinationCache<TContent> : BulkApiContentReferenceCache<TContent>
+        where TContent : class, IContentReference
     {
-        private readonly IMigrationManifestEditor _manifest;
-        private readonly IDestinationEndpoint _endpoint;
-        private readonly IConfigReader _configReader;
-
-        private bool _loaded;
+        private readonly IMigrationManifestContentTypePartitionEditor _manifestEntries;
 
         /// <summary>
         /// Creates a new <see cref="BulkDestinationCache{TContent}"/>
         /// </summary>
-        /// <param name="manifest">A migration manifest.</param>
-        /// <param name="endpoint">A destination endpoint.</param>
+        /// <param name="endpoint">The destination endpoint.</param>
         /// <param name="configReader">A config reader.</param>
-        public BulkDestinationCache(IMigrationManifestEditor manifest, IDestinationEndpoint endpoint, IConfigReader configReader)
-            : base(manifest)
+        /// <param name="manifest">A migration manifest.</param>
+        public BulkDestinationCache(
+            IDestinationEndpoint endpoint,
+            IConfigReader configReader, 
+            IMigrationManifestEditor manifest)
+            : base((endpoint as IDestinationApiEndpoint)?.SiteApi, configReader)
         {
-            _manifest = manifest;
-            _endpoint = endpoint;
-            _configReader = configReader;
+            _manifestEntries = manifest.Entries.GetOrCreatePartition<TContent>();
         }
 
-        /// <summary>
-        /// Gets the configured batch size.
-        /// </summary>
-        protected int BatchSize => _configReader.Get().BatchSize;
-
-        /// <summary>
-        /// Called after an item is loaded into the cache from the store.
-        /// </summary>
-        /// <param name="item">The item that was loaded.</param>
-        protected virtual void ItemLoaded(TContent item) { }
-
-        /// <summary>
-        /// Ensures that the cache is loaded.
-        /// </summary>
-        /// <param name="cancel">A cancellation token to obey.</param>
-        /// <returns>The loaded items, or an empty value if the store has already been loaded.</returns>
-        protected async ValueTask<IEnumerable<ContentReferenceStub>> LoadStoreAsync(CancellationToken cancel)
+        /// <inheritdoc />
+        protected override void ItemLoaded(TContent item)
         {
-            //Only load content a single time (unless we expire the cache)
-            //This is so failed lookups don't cause us to re-list
-            //everything just to fail the lookup again.
-            if (_loaded)
+            //Assign this info to the manifest if there's an entry with our mapped location.
+            //This updates any ID/other information that may have changed since last run.
+            if (_manifestEntries.ByMappedLocation.TryGetValue(item.Location, out var manifestEntry))
             {
-                return Enumerable.Empty<ContentReferenceStub>();
+                manifestEntry.DestinationFound(new ContentReferenceStub(item));
             }
+            base.ItemLoaded(item);
+        }
 
-            var manifestEntries = _manifest.Entries.GetOrCreatePartition<TContent>();
-            var pager = _endpoint.GetPager<TContent>(BatchSize);
-
-            cancel.ThrowIfCancellationRequested();
-
-            int loadedCount = 0;
-
-            var page = await pager.NextPageAsync(cancel).ConfigureAwait(false);
-            var results = ImmutableArray.CreateBuilder<ContentReferenceStub>(page.TotalCount);
-            while (!page.Value.IsNullOrEmpty())
+        /// <inheritdoc />
+        protected override async ValueTask<IEnumerable<ContentReferenceStub>> SearchAsync(ContentLocation searchLocation, CancellationToken cancel)
+        {
+            if (_manifestEntries.ByMappedLocation.TryGetValue(searchLocation, out var entry))
             {
-                foreach (var item in page.Value)
+                if (entry.Destination is not null)
                 {
-                    var destinationInfo = new ContentReferenceStub(item);
-
-                    //Assign this info to the manifest if there's an entry with our mapped location.
-                    //This updates any ID/other information that may have changed since last run.
-                    if (manifestEntries.ByMappedLocation.TryGetValue(item.Location, out var manifestEntry))
-                    {
-                        manifestEntry.DestinationFound(destinationInfo);
-                    }
-
-                    results.Add(destinationInfo);
-
-                    ItemLoaded(item);
-                    loadedCount++;
+                    return new[] { new ContentReferenceStub(entry.Destination) };
                 }
-
-                if (loadedCount >= page.TotalCount)
-                    break;
-
-                cancel.ThrowIfCancellationRequested();
-
-                page = await pager.NextPageAsync(cancel).ConfigureAwait(false);
             }
 
-            _loaded = true;
-            return results.ToImmutable();
+            return await base.SearchAsync(searchLocation, cancel).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        protected override async ValueTask<IEnumerable<ContentReferenceStub>> SearchStoreAsync(ContentLocation searchLocation, CancellationToken cancel)
-            => await LoadStoreAsync(cancel).ConfigureAwait(false);
+        protected override async ValueTask<IEnumerable<ContentReferenceStub>> SearchAsync(Guid searchId, CancellationToken cancel)
+        {
+            if (_manifestEntries.ByDestinationId.TryGetValue(searchId, out var entry))
+            {
+                if (entry.Destination is not null)
+                {
+                    return new[] { new ContentReferenceStub(entry.Destination) };
+                }
+            }
 
-        /// <inheritdoc />
-        protected override async ValueTask<IEnumerable<ContentReferenceStub>> SearchStoreAsync(Guid searchId, CancellationToken cancel)
-            => await LoadStoreAsync(cancel).ConfigureAwait(false);
+            return await base.SearchAsync(searchId, cancel).ConfigureAwait(false);
+        }
     }
 }

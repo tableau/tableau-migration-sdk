@@ -14,6 +14,7 @@
 //  limitations under the License.
 //
 
+using System;
 using Tableau.Migration.Api.Rest.Models.Responses;
 
 namespace Tableau.Migration.Content
@@ -33,17 +34,33 @@ namespace Tableau.Migration.Content
         public string? AuthenticationType { get; set; }
 
         public User(UsersResponse.UserType response)
+            : this(
+                  response.Id,
+                  Guard.AgainstNullEmptyOrWhiteSpace(Guard.AgainstNull(response.Domain, () => response.Domain).Name, () => response.Domain.Name),
+                  response.Email,
+                  response.Name,
+                  response.FullName,
+                  response.SiteRole,
+                  response.AuthSetting)
         {
-            var domain = Guard.AgainstNull(response.Domain, () => response.Domain);
+        }
 
-            Id = Guard.AgainstDefaultValue(response.Id, () => response.Id);
-
-            Email = response.Email ?? string.Empty;
-            Name = Guard.AgainstNullEmptyOrWhiteSpace(response.Name, () => response.Name);
-            FullName = Guard.AgainstNullEmptyOrWhiteSpace(response.FullName, () => response.FullName);
-            SiteRole = Guard.AgainstNullEmptyOrWhiteSpace(response.SiteRole, () => response.SiteRole);
-            AuthenticationType = response.AuthSetting;
-            Domain = Guard.AgainstNullEmptyOrWhiteSpace(domain.Name, () => response.Domain.Name);
+        public User(
+            Guid id,
+            string? userDomain,
+            string? email,
+            string? name,
+            string? fullName,
+            string? siteRole,
+            string? authSetting)
+        {
+            Id = Guard.AgainstDefaultValue(id, () => id);
+            Email = email ?? string.Empty;
+            Name = Guard.AgainstNullEmptyOrWhiteSpace(name, () => name);
+            FullName = fullName ?? string.Empty;
+            SiteRole = Guard.AgainstNullEmptyOrWhiteSpace(siteRole, () => siteRole);
+            AuthenticationType = authSetting;
+            Domain = userDomain ?? string.Empty;
         }
     }
 }

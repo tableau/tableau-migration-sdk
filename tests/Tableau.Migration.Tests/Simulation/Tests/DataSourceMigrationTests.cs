@@ -28,13 +28,17 @@ namespace Tableau.Migration.Tests.Simulation.Tests
 {
     public class DataSourceMigrationTests
     {
-        public class ServerToCloud : ServerToCloudSimulationTestBase
+        public class UsersBatch : ServerToCloud
         {
-            protected override IServiceCollection ConfigureServices(IServiceCollection services)
-            {
-                return services.AddTableauMigrationSdk();
-            }
+        }
 
+        public class UsersIndividual : ServerToCloud
+        {
+            protected override bool UsersBatchImportEnabled => false;
+        }
+
+        public abstract class ServerToCloud : ServerToCloudSimulationTestBase
+        {
             [Fact]
             public async Task MigratesAllDataSourcesToCloudAsync()
             {
@@ -86,7 +90,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests
                     Assert.NotEqual(destinationDataSource.Owner.Id, Guid.Empty);
                     Assert.NotEqual(destinationDataSource.Owner.Id, sourceDataSource.Owner?.Id);
 
-                    AssertTags(sourceDataSource.Tags, destinationDataSource.Tags);
+                    sourceDataSource.Tags.AssertEqual(destinationDataSource.Tags);
                 }
             }
 

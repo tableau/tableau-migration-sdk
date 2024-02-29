@@ -8,6 +8,10 @@ This page lists the operational governance model of this project, as well as the
 
 The intent and goal of open sourcing this project is to increase the contributor and user base. The governance model is one where new project leads (`admins`) will be added to the project based on their contributions and efforts, a so-called "do-acracy" or "meritocracy" similar to that used by all Apache Software Foundation projects.
 
+## Getting started
+
+Please join the community on {Here list Slack channels, Email lists, Glitter, Discord, etc... links}. Also please make sure to take a look at the project [roadmap](ROADMAP.md) to see where are headed.
+
 ## Issues, requests & ideas
 
 Use GitHub Issues page to submit issues, enhancement requests and discuss ideas.

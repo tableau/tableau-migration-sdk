@@ -14,21 +14,29 @@
 //  limitations under the License.
 //
 
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using Tableau.Migration.Api.Rest;
 using Tableau.Migration.Api.Rest.Models;
 using Tableau.Migration.Content;
 using Tableau.Migration.Content.Search;
+using Tableau.Migration.Resources;
 
 namespace Tableau.Migration.Api
 {
     internal static class IContentReferenceFinderFactoryExtensions
     {
-        public static async Task<IContentReference> FindProjectAsync(
+        public static async Task<IContentReference?> FindProjectAsync<T>(
             this IContentReferenceFinderFactory finderFactory,
-            [NotNull] IWithProjectType? response,
+            [NotNull] T? response,
+            ILogger logger,
+            ISharedResourcesLocalizer localizer,
+            [DoesNotReturnIf(true)] bool throwIfNotFound,
             CancellationToken cancel)
+            where T : IWithProjectType, INamedContent
         {
             Guard.AgainstNull(response, nameof(response));
 
@@ -39,13 +47,24 @@ namespace Tableau.Migration.Api
 
             var foundProject = await projectFinder.FindByIdAsync(projectId, cancel).ConfigureAwait(false);
 
-            return Guard.AgainstNull(foundProject, nameof(foundProject));
+            if (foundProject is not null)
+                return foundProject;
+
+            logger.LogWarning(localizer[SharedResourceKeys.ProjectReferenceNotFoundMessage], response.Project.Name, response.GetType().Name, response.Name);
+
+            return throwIfNotFound 
+                ? throw new InvalidOperationException($"The project with ID {projectId} was not found.") 
+                : null;
         }
 
-        public static async Task<IContentReference> FindOwnerAsync(
+        public static async Task<IContentReference?> FindOwnerAsync<T>(
             this IContentReferenceFinderFactory finderFactory,
-            [NotNull] IWithOwnerType? response,
+            [NotNull] T? response,
+            ILogger logger,
+            ISharedResourcesLocalizer localizer,
+            [DoesNotReturnIf(true)] bool throwIfNotFound,
             CancellationToken cancel)
+            where T : IWithOwnerType, INamedContent
         {
             Guard.AgainstNull(response, nameof(response));
 
@@ -56,7 +75,14 @@ namespace Tableau.Migration.Api
 
             var foundOwner = await userFinder.FindByIdAsync(ownerId, cancel).ConfigureAwait(false);
 
-            return Guard.AgainstNull(foundOwner, nameof(foundOwner));
+            if (foundOwner is not null)
+                return foundOwner;
+
+            logger.LogWarning(localizer[SharedResourceKeys.OwnerNotFoundMessage], ownerId, response.GetType().Name, response.Name);
+
+            return throwIfNotFound
+                ? throw new InvalidOperationException($"The owner with ID {ownerId} was not found.")
+                : null;
         }
     }
 }

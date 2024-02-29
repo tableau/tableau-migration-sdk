@@ -91,6 +91,7 @@ csharp_style_conditional_delegate_call = true:suggestion
 csharp_style_pattern_matching_over_is_with_cast_check = true:suggestion
 csharp_space_around_binary_operators = before_and_after
 dotnet_diagnostic.SA0001.severity = none
+dotnet_diagnostic.SA1201.severity = none
 dotnet_diagnostic.SA1649.severity = none
 dotnet_analyzer_diagnostic.category-StyleCop.CSharp.DocumentationRules.severity = none
 dotnet_analyzer_diagnostic.category-StyleCop.CSharp.LayoutRules.severity = none

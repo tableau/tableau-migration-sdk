@@ -20,6 +20,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.IO;
 
 namespace Tableau.Migration.Content.Files
 {
@@ -35,7 +36,7 @@ namespace Tableau.Migration.Content.Files
         private bool _disposed = false;
 
         /// <inheritdoc />
-        public MemoryStream Content { get; }
+        public RecyclableMemoryStream Content { get; }
 
         /// <inheritdoc />
         public ZipArchive? Archive { get; }
@@ -55,13 +56,18 @@ namespace Tableau.Migration.Content.Files
         /// </param>
         /// <param name="archive">The zip archive to use to manipulate the file, or null to consider the file as a single XML file.</param>
         /// <param name="disposalCancel">A cancellation token to obey, and to use when the editor is disposed.</param>
-        public TableauFileEditor(IContentFileHandle fileStoreFile, MemoryStream content,
-            ZipArchive? archive, CancellationToken disposalCancel)
+        public TableauFileEditor(
+            IContentFileHandle fileStoreFile, 
+            RecyclableMemoryStream content,
+            ZipArchive? archive,
+            CancellationToken disposalCancel)
         {
             _fileStoreFile = fileStoreFile;
             Content = content;
             Archive = archive;
             _disposalCancel = disposalCancel;
+
+            Content.Seek(0, SeekOrigin.Begin);
         }
 
         internal static bool IsXmlFile(string fileName)
@@ -99,34 +105,41 @@ namespace Tableau.Migration.Content.Files
         /// <summary>
         /// Opens a new Tableau file editor.
         /// </summary>
-        /// <param name="fileStoreFile">The file store file to edit.</param>
-        /// <param name="disposalCancel">A cancellation token to obey, and to use when the editor is disposed.</param>
+        /// <param name="handle">The file store file to edit.</param>
+        /// <param name="memoryStreamManager">The memory stream manager.</param>
+        /// <param name="cancel">A cancellation token to obey, and to use when the editor is disposed.</param>
         /// <param name="zipFormatOverride">
         /// True to consider the file a zip archive, 
         /// false to consider the file an XML file, 
         /// or null to detect whether the file is a zip archive.
         /// </param>
         /// <returns>The newly created file editor.</returns>
-        public static async Task<TableauFileEditor> OpenAsync(IContentFileHandle fileStoreFile, CancellationToken disposalCancel,
+        public static async Task<TableauFileEditor> OpenAsync(
+            IContentFileHandle handle,
+            IMemoryStreamManager memoryStreamManager,
+            CancellationToken cancel,
             bool? zipFormatOverride = null)
         {
-            var fileContent = new MemoryStream(); //Use default ctor for resizable stream.
+            var fileStream = await handle.OpenReadAsync(cancel).ConfigureAwait(false);
 
-            //Read the file into a seekable memory stream
-            //that the ZipArchive requires for update mode.
-            var fileStream = await fileStoreFile.OpenReadAsync(disposalCancel).ConfigureAwait(false);
+            var outputStream = memoryStreamManager.GetStream(handle.OriginalFileName);
+
             await using (fileStream)
             {
-                await fileStream.Content.CopyToAsync(fileContent, disposalCancel).ConfigureAwait(false);
+                //Read the file into a seekable memory stream
+                //that the ZipArchive requires for update mode.
+                await fileStream.Content.CopyToAsync(outputStream, cancel).ConfigureAwait(false);
             }
 
-            //Reset the memory stream so the user/zip archive can read it.
-            fileContent.Seek(0, SeekOrigin.Begin);
+            outputStream.Seek(0, SeekOrigin.Begin);
 
-            var isZip = zipFormatOverride ?? fileContent.IsZip();
-            ZipArchive? archive = isZip ? new ZipArchive(fileContent, ZipArchiveMode.Update, leaveOpen: true) : null;
+            var isZip = zipFormatOverride == true || await handle.IsZipAsync(cancel).ConfigureAwait(false);
 
-            return new(fileStoreFile, fileContent, archive, disposalCancel);
+            var archive = isZip ? new ZipArchive(outputStream, ZipArchiveMode.Update, leaveOpen: true) : null;
+
+            outputStream.Seek(0, SeekOrigin.Begin);
+
+            return new(handle, outputStream, archive, cancel);
         }
 
         #region - IAsyncDisposable Implementation -

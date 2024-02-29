@@ -2,20 +2,14 @@
   "version": 1,
   "isRoot": true,
   "tools": {
-    "dotnet-reportgenerator-globaltool": {
-      "version": "5.2.0",
-      "commands": [
-        "reportgenerator"
-      ]
-    },
     "docfx": {
-      "version": "2.74.1",
+      "version": "2.75.3",
       "commands": [
         "docfx"
       ]
     },
     "DocFxTocGenerator": {
-      "version": "1.17.0",
+      "version": "1.18.0",
       "commands": [
         "DocFxTocGenerator"
       ]

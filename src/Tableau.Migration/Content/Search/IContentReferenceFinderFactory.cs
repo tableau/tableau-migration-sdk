@@ -28,6 +28,6 @@ namespace Tableau.Migration.Content.Search
         /// <typeparam name="TContent">The content type.</typeparam>
         /// <returns>The content reference finder.</returns>
         IContentReferenceFinder<TContent> ForContentType<TContent>()
-            where TContent : IContentReference;
+            where TContent : class, IContentReference;
     }
 }

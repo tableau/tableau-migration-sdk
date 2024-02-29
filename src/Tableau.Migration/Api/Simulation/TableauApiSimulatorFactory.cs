@@ -15,6 +15,8 @@
 //
 
 using System;
+using Tableau.Migration.Api.Rest.Models;
+using Tableau.Migration.Api.Rest.Models.Responses;
 using Tableau.Migration.Net;
 
 namespace Tableau.Migration.Api.Simulation
@@ -47,7 +49,16 @@ namespace Tableau.Migration.Api.Simulation
                 return existing;
             }
 
-            var simulator = new TableauApiSimulator(serverUrl, _serializer);
+            var simulatorUser = new UsersResponse.UserType()
+            {
+                Id = Guid.NewGuid(),
+                Domain = new() { Name = "local" },
+                Name = "simulatorAdmin",
+                FullName = "Simulator Admin",
+                SiteRole = SiteRoles.SiteAdministratorCreator
+            };
+
+            var simulator = new TableauApiSimulator(serverUrl, _serializer, simulatorUser);
             _simulators.AddOrUpdate(simulator);
             return simulator;
         }

@@ -33,7 +33,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
                 Assert.NotNull(result.Value);
                 Assert.NotEqual(Guid.Empty, result.Value.Id);
                 Assert.Equal(user.Name, result.Value.Name);
-                Assert.Equal(user.SiteRole, result.Value.SiteRole);
+                Assert.Equal("Unlicensed", result.Value.SiteRole);
                 Assert.Equal(user.AuthSetting, result.Value.AuthSetting);
             }
         }
@@ -187,7 +187,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
                 Assert.NotNull(addResult.Value);
                 var addedUserId = addResult.Value.Id;
                 var newFullName = "newFullName";
-                var newSiteRole = "newSiteRole";
+                var newSiteRole = "Viewer";
                 var newAuthSetting = "newAuthSetting";
 
                 var updateResult = await sitesClient.Users.UpdateUserAsync(id: addedUserId,

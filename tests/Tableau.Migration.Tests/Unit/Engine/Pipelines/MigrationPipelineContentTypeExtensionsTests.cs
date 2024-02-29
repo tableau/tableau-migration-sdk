@@ -14,6 +14,9 @@
 //  limitations under the License.
 //
 
+using System;
+using System.Collections.Generic;
+using AutoFixture;
 using Tableau.Migration.Engine.Pipelines;
 using Xunit;
 
@@ -21,20 +24,33 @@ namespace Tableau.Migration.Tests.Unit.Engine.Pipelines
 {
     public class MigrationPipelineContentTypeExtensionsTests
     {
-        public class WithContentTypeInterface
+        public abstract class MigrationPipelineContentTypeExtensionsTest : AutoFixtureTestBase
         {
+            private static readonly IFixture _fixture = CreateFixture();
+
+            protected static MigrationPipelineContentType CreateContentType(
+                Type contentType,
+                Type? publishType = null,
+                Type? resultType = null)
+                => new MigrationPipelineContentType(contentType)
+                    .WithPublishType(publishType ?? _fixture.Create<Type>())
+                    .WithResultType(resultType ?? _fixture.Create<Type>());
+        }
+
+        public class WithContentTypeInterface : MigrationPipelineContentTypeExtensionsTest
+        {
+            protected static readonly IEnumerable<MigrationPipelineContentType> ContentTypes = new[]
+            {
+                CreateContentType(typeof(TestContentType)),
+                CreateContentType(typeof(object))
+            };
+
             public class NonGeneric
             {
                 [Fact]
                 public void Finds_types()
                 {
-                    var contentTypes = new[]
-                    {
-                        new MigrationPipelineContentType(typeof(TestContentType), typeof(object)),
-                        new MigrationPipelineContentType(typeof(object), typeof(TestContentType))
-                    };
-
-                    var results = contentTypes.WithContentTypeInterface(typeof(IContentReference));
+                    var results = ContentTypes.WithContentTypeInterface(typeof(IContentReference));
 
                     var result = Assert.Single(results);
 
@@ -47,13 +63,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Pipelines
                 [Fact]
                 public void Finds_types()
                 {
-                    var contentTypes = new[]
-                    {
-                        new MigrationPipelineContentType(typeof(TestContentType), typeof(object)),
-                        new MigrationPipelineContentType(typeof(object), typeof(TestContentType))
-                    };
-
-                    var results = contentTypes.WithContentTypeInterface<IContentReference>();
+                    var results = ContentTypes.WithContentTypeInterface<IContentReference>();
 
                     var result = Assert.Single(results);
 
@@ -62,20 +72,20 @@ namespace Tableau.Migration.Tests.Unit.Engine.Pipelines
             }
         }
 
-        public class WithPublishTypeInterface
+        public class WithPublishTypeInterface : MigrationPipelineContentTypeExtensionsTest
         {
+            protected static readonly IEnumerable<MigrationPipelineContentType> ContentTypes = new[]
+            {
+                CreateContentType(typeof(TestContentType)),
+                CreateContentType(typeof(object), publishType: typeof(TestContentType))
+            };
+
             public class NonGeneric
             {
                 [Fact]
                 public void Finds_types()
                 {
-                    var contentTypes = new[]
-                    {
-                        new MigrationPipelineContentType(typeof(TestContentType), typeof(object)),
-                        new MigrationPipelineContentType(typeof(object), typeof(TestContentType))
-                    };
-
-                    var results = contentTypes.WithPublishTypeInterface(typeof(IContentReference));
+                    var results = ContentTypes.WithPublishTypeInterface(typeof(IContentReference));
 
                     var result = Assert.Single(results);
 
@@ -88,13 +98,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Pipelines
                 [Fact]
                 public void Finds_types()
                 {
-                    var contentTypes = new[]
-                    {
-                        new MigrationPipelineContentType(typeof(TestContentType), typeof(object)),
-                        new MigrationPipelineContentType(typeof(object), typeof(TestContentType))
-                    };
-
-                    var results = contentTypes.WithPublishTypeInterface<IContentReference>();
+                    var results = ContentTypes.WithPublishTypeInterface<IContentReference>();
 
                     var result = Assert.Single(results);
 
@@ -103,20 +107,20 @@ namespace Tableau.Migration.Tests.Unit.Engine.Pipelines
             }
         }
 
-        public class WithPostPublishTypeInterface
+        public class WithPostPublishTypeInterface : MigrationPipelineContentTypeExtensionsTest
         {
+            protected static readonly IEnumerable<MigrationPipelineContentType> ContentTypes = new[]
+            {
+                CreateContentType(typeof(TestContentType)),
+                CreateContentType(typeof(object), publishType: typeof(TestContentType), resultType: typeof(float))
+            };
+
             public class NonGeneric
             {
                 [Fact]
                 public void Finds_types()
                 {
-                    var contentTypes = new[]
-                    {
-                        new MigrationPipelineContentType(typeof(TestContentType), typeof(object), typeof(int)),
-                        new MigrationPipelineContentType(typeof(object), typeof(TestContentType), typeof(float))
-                    };
-
-                    var results = contentTypes.WithPostPublishTypeInterface(typeof(IContentReference));
+                    var results = ContentTypes.WithPostPublishTypeInterface(typeof(IContentReference));
 
                     var result = Assert.Single(results);
 
@@ -129,13 +133,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Pipelines
                 [Fact]
                 public void Finds_types()
                 {
-                    var contentTypes = new[]
-                    {
-                        new MigrationPipelineContentType(typeof(TestContentType), typeof(object), typeof(int)),
-                        new MigrationPipelineContentType(typeof(object), typeof(TestContentType), typeof(float))
-                    };
-
-                    var results = contentTypes.WithPostPublishTypeInterface<IContentReference>();
+                    var results = ContentTypes.WithPostPublishTypeInterface<IContentReference>();
 
                     var result = Assert.Single(results);
 

@@ -16,9 +16,8 @@
 
 using System.IO;
 using System.Security.Cryptography;
-using System.Text;
 using System.Threading.Tasks;
-using AutoFixture;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Tableau.Migration.Config;
@@ -31,32 +30,25 @@ namespace Tableau.Migration.Tests.Unit.Content.Files
     {
         #region - Test Classes -
 
-        public class EncryptedFileStoreTest : AutoFixtureTestBase
+        public abstract class EncryptedFileStoreTest : ContentFileStoreTestBase<EncryptedFileStore>
         {
-            protected readonly Mock<ISymmetricEncryptionFactory> MockEncryptionFactory;
+            protected readonly Mock<ISymmetricEncryptionFactory> MockEncryptionFactory = new();
             protected readonly Mock<MemoryContentFileStore> MockInnerFileStore;
-            protected readonly Mock<ILogger<EncryptedFileStore>> MockLogger;
+            protected readonly Mock<ILogger<EncryptedFileStore>> MockLogger = new();
+            protected readonly MockSharedResourcesLocalizer MockSharedResourcesLocalizer = new();
 
             protected bool DisableFileEncryption { get; set; }
 
-            protected readonly EncryptedFileStore FileStore;
-
             public EncryptedFileStoreTest()
             {
-                MockEncryptionFactory = Freeze<Mock<ISymmetricEncryptionFactory>>();
-                MockEncryptionFactory.Setup(x => x.Create())
-                    .Returns(() => Aes.Create());
-
-                MockInnerFileStore = new Mock<MemoryContentFileStore>()
+                MockInnerFileStore = new(MemoryStreamManager.Instance)
                 {
                     CallBase = true
                 };
-                AutoFixture.Register<IContentFileStore>(() => MockInnerFileStore.Object);
 
-                MockLogger = Freeze<Mock<ILogger<EncryptedFileStore>>>();
+                MockEncryptionFactory.Setup(f => f.Create()).Returns(Aes.Create());
 
-                var mockConfig = Freeze<Mock<IConfigReader>>();
-                mockConfig.Setup(x => x.Get())
+                MockConfigReader.Setup(x => x.Get())
                     .Returns(() => new MigrationSdkOptions
                     {
                         Files = new()
@@ -64,9 +56,22 @@ namespace Tableau.Migration.Tests.Unit.Content.Files
                             DisableFileEncryption = DisableFileEncryption
                         }
                     });
-
-                FileStore = Create<EncryptedFileStore>();
             }
+
+            protected override IServiceCollection ConfigureServices(IServiceCollection services)
+            {
+                var mockLoggerFactory = new Mock<ILoggerFactory>();
+                mockLoggerFactory.Setup(f => f.CreateLogger(It.Is<string>(s => s.Contains(nameof(EncryptedFileStore)))))
+                    .Returns(MockLogger.Object);
+
+                return services
+                    .Replace(mockLoggerFactory)
+                    .Replace(MockSharedResourcesLocalizer)
+                    .Replace(MockEncryptionFactory)
+                    .AddScoped(p => new EncryptedFileStore(p, MockInnerFileStore.Object));
+            }
+
+            protected override EncryptedFileStore CreateFileStore() => Services.GetRequiredService<EncryptedFileStore>();
         }
 
         #endregion
@@ -80,7 +85,7 @@ namespace Tableau.Migration.Tests.Unit.Content.Files
             {
                 DisableFileEncryption = true;
 
-                var store = Create<EncryptedFileStore>();
+                var store = new EncryptedFileStore(Services, MockInnerFileStore.Object);
 
                 MockLogger.VerifyWarnings(Times.Once);
             }
@@ -191,25 +196,27 @@ namespace Tableau.Migration.Tests.Unit.Content.Files
                 const string path = "test.txt";
 
                 await using var file = FileStore.Create(path, Create<string>());
-
-                await using (var writeStream = await file.OpenWriteAsync(Cancel))
-                await using (var writer = new StreamWriter(writeStream.Content, Encoding.UTF8))
                 {
-                    await writer.WriteAsync(content);
+                    await using (var writeStream = await file.OpenWriteAsync(Cancel))
+                    await using (var writer = new StreamWriter(writeStream.Content, Constants.DefaultEncoding))
+                    {
+                        await writer.WriteAsync(content);
+                    }
+
+                    var encryptedValue = Constants.DefaultEncoding.GetString(MockInnerFileStore.Object.GetFileData(path));
+                    Assert.NotEqual(content, encryptedValue);
+                    Assert.NotEmpty(encryptedValue);
+
+                    string roundtrip;
+                    await using var readStream = await file.OpenReadAsync(Cancel);
+
+                    using (var reader = new StreamReader(readStream.Content))
+                    {
+                        roundtrip = await reader.ReadToEndAsync();
+                    }
+
+                    Assert.Equal(content, roundtrip);
                 }
-
-                var encryptedValue = Encoding.UTF8.GetString(MockInnerFileStore.Object.GetFileData(path));
-                Assert.NotEqual(content, encryptedValue);
-                Assert.NotEmpty(encryptedValue);
-
-                string roundtrip;
-                await using (var readStream = await file.OpenReadAsync(Cancel))
-                using (var reader = new StreamReader(readStream.Content))
-                {
-                    roundtrip = await reader.ReadToEndAsync();
-                }
-
-                Assert.Equal(content, roundtrip);
             }
         }
 

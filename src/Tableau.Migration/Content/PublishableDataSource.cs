@@ -17,31 +17,21 @@
 using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
-using Tableau.Migration.Api.Rest.Models.Responses;
 using Tableau.Migration.Content.Files;
 
 namespace Tableau.Migration.Content
 {
-    internal sealed class PublishableDataSource : DataSource, IPublishableDataSource
+    internal sealed class PublishableDataSource : DataSourceDetails, IPublishableDataSource
     {
-        /// <inheritdoc />
-        public string CertificationNote { get; }
-
         /// <inheritdoc />
         public IContentFileHandle File { get; set; }
 
         /// <inheritdoc />
         public IImmutableList<IConnection> Connections { get; }
 
-        public PublishableDataSource(
-            DataSourceResponse response,
-            IContentReference project,
-            IContentReference owner,
-            IImmutableList<IConnection> connections,
-            IContentFileHandle file)
-            : base(Guard.AgainstNull(response.Item, () => response.Item), project, owner)
+        public PublishableDataSource(IDataSourceDetails dataSource, IImmutableList<IConnection> connections, IContentFileHandle file)
+            : base(dataSource)
         {
-            CertificationNote = response.Item.CertificationNote ?? string.Empty;
             Connections = connections;
             File = file;
         }

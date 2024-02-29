@@ -36,7 +36,6 @@ namespace Tableau.Migration.Content
         /// </summary>
         bool ShowTabs { get; set; }
 
-
         /// <summary>
         /// Gets the file size.
         /// </summary>

@@ -4,7 +4,7 @@
 		<Nullable>enable</Nullable>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-		<Version>1.1.0</Version>
+		<Version>2.0.0</Version>
 		<Authors>Tableau Software, LLC</Authors>
 		<Company>Tableau Software, LLC</Company>
 		<Copyright>Copyright (c) 2024, Tableau Software, LLC and its licensors</Copyright>

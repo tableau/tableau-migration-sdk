@@ -23,7 +23,7 @@ namespace Tableau.Migration.Content.Permissions
     {
         public static readonly ICapabilityComparer Instance = new();
 
-        public override int CompareItems(ICapability x, ICapability y)
+        protected override int CompareItems(ICapability x, ICapability y)
         {
             var nameResult = StringComparer.OrdinalIgnoreCase.Compare(x.Name, y.Name);
 

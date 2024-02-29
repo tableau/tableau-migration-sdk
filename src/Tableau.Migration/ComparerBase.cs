@@ -22,8 +22,9 @@ using System.Linq;
 namespace Tableau.Migration
 {
     internal abstract class ComparerBase<T> :
-        IComparer<T>, IEqualityComparer<T>,
-        IComparer<IEnumerable<T>>, IEqualityComparer<IEnumerable<T>>
+        IComparer<T?>, IEqualityComparer<T?>,
+        IComparer<IEnumerable<T>?>, IEqualityComparer<IEnumerable<T>?>
+        where T : notnull
     {
         public int Compare(IEnumerable<T>? x, IEnumerable<T>? y)
         {
@@ -78,7 +79,7 @@ namespace Tableau.Migration
 
         public int Compare(T? x, T? y) => Compare(x, y, CompareItems);
 
-        public abstract int CompareItems(T x, T y);
+        protected abstract int CompareItems(T x, T y);
 
         public bool Equals(T? x, T? y) => Compare(x, y) == 0;
 

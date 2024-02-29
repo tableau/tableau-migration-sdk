@@ -27,13 +27,17 @@ namespace Tableau.Migration.Tests.Simulation.Tests
 {
     public class ProjectMigrationTests
     {
-        public class ServerToCloud : ServerToCloudSimulationTestBase
+        public class UsersBatch : ServerToCloud
         {
-            protected override IServiceCollection ConfigureServices(IServiceCollection services)
-            {
-                return services.AddTableauMigrationSdk();
-            }
+        }
 
+        public class UsersIndividual : ServerToCloud
+        {
+            protected override bool UsersBatchImportEnabled => false;
+        }
+
+        public abstract class ServerToCloud : ServerToCloudSimulationTestBase
+        {
             [Fact]
             public async Task MigratesAllProjectsToCloudAsync()
             {

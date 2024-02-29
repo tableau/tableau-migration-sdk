@@ -15,7 +15,6 @@
 //
 
 using System.IO;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Moq;
@@ -48,14 +47,14 @@ namespace Tableau.Migration.Tests.Unit.Content.Files
                 mockFileStore.Setup(x => x.OpenWriteAsync(handle, cancel))
                     .ReturnsAsync(new ContentFileStream(writeStream));
 
-                using var initialStream = new MemoryStream(Encoding.UTF8.GetBytes(content));
+                using var initialStream = new MemoryStream(Constants.DefaultEncoding.GetBytes(content));
 
                 var result = await mockFileStore.Object.CreateAsync(path, originalFileName, initialStream, cancel);
 
                 mockFileStore.Verify(x => x.Create(path, originalFileName), Times.Once);
                 mockFileStore.Verify(x => x.OpenWriteAsync(handle, cancel), Times.Once);
 
-                Assert.Equal(content, Encoding.UTF8.GetString(writeStream.ToArray()));
+                Assert.Equal(content, Constants.DefaultEncoding.GetString(writeStream.ToArray()));
             }
 
             [Fact]
@@ -78,14 +77,14 @@ namespace Tableau.Migration.Tests.Unit.Content.Files
                 mockFileStore.Setup(x => x.OpenWriteAsync(handle, cancel))
                     .ReturnsAsync(new ContentFileStream(writeStream));
 
-                using var initialStream = new MemoryStream(Encoding.UTF8.GetBytes(content));
+                using var initialStream = new MemoryStream(Constants.DefaultEncoding.GetBytes(content));
 
                 var result = await mockFileStore.Object.CreateAsync(contentItem, originalFileName, initialStream, cancel);
 
                 mockFileStore.Verify(x => x.Create(contentItem, originalFileName), Times.Once);
                 mockFileStore.Verify(x => x.OpenWriteAsync(handle, cancel), Times.Once);
 
-                Assert.Equal(content, Encoding.UTF8.GetString(writeStream.ToArray()));
+                Assert.Equal(content, Constants.DefaultEncoding.GetString(writeStream.ToArray()));
             }
         }
     }

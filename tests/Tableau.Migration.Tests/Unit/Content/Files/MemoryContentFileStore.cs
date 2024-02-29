@@ -26,10 +26,21 @@ namespace Tableau.Migration.Tests.Unit.Content.Files
 {
     public class MemoryContentFileStore : IContentFileStore
     {
+        private readonly IMemoryStreamManager _memoryStreamManager;
+
         private readonly ConcurrentDictionary<string, byte[]> _fileData = new();
         private readonly ConcurrentDictionary<string, ITableauFileEditor> _editors = new();
 
         public bool HasOpenTableauFileEditor => _editors.Any();
+
+        public MemoryContentFileStore(IMemoryStreamManager memoryStreamManager)
+        {
+            _memoryStreamManager = memoryStreamManager;
+        }
+
+        internal MemoryContentFileStore()
+            : this(MemoryStreamManager.Instance)
+        { }
 
         public byte[] GetFileData(string path) => _fileData[path];
 
@@ -71,13 +82,8 @@ namespace Tableau.Migration.Tests.Unit.Content.Files
 
         public virtual async Task<ITableauFileEditor> GetTableauFileEditorAsync(IContentFileHandle handle,
             CancellationToken cancel, bool? zipFormatOverride = null)
-        {
-            return await Task.Run(() =>
-            {
-                return _editors.GetOrAdd(handle.Path,
-                    (path) => TableauFileEditor.OpenAsync(handle, cancel, zipFormatOverride).GetAwaiter().GetResult());
-            });
-        }
+            => await _editors.GetOrAddAsync<string, ITableauFileEditor>(handle.Path, async (path) => 
+                await TableauFileEditor.OpenAsync(handle, _memoryStreamManager, cancel, zipFormatOverride).ConfigureAwait(false)).ConfigureAwait(false);
 
         public virtual async Task CloseTableauFileEditorAsync(IContentFileHandle handle, CancellationToken cancel)
         {

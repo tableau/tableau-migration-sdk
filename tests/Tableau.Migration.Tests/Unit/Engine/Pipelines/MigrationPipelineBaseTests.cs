@@ -130,6 +130,22 @@ namespace Tableau.Migration.Tests.Unit.Engine.Pipelines
 
         #endregion
 
+        #region - CreateSourceCache -
+
+        public class CreateSourceCache : MigrationPipelineBaseTest
+        {
+            [Fact]
+            public void CreatesSourceTypedDestinationCache()
+            {
+                var cache = Pipeline.CreateSourceCache<IUser>();
+
+                Assert.IsType<BulkSourceCache<IUser>>(cache);
+                MockServices.Verify(x => x.GetService(typeof(BulkSourceCache<IUser>)), Times.Once);
+            }
+        }
+
+        #endregion
+
         #region - CreateDestinationCache -
 
         public class CreateDestinationCache : MigrationPipelineBaseTest
@@ -137,10 +153,10 @@ namespace Tableau.Migration.Tests.Unit.Engine.Pipelines
             [Fact]
             public void CreatesDefaultTypedDestinationCache()
             {
-                var cache = Pipeline.CreateDestinationCache<TestContentType>();
+                var cache = Pipeline.CreateDestinationCache<IUser>();
 
-                Assert.IsType<BulkDestinationCache<TestContentType>>(cache);
-                MockServices.Verify(x => x.GetService(typeof(BulkDestinationCache<TestContentType>)), Times.Once);
+                Assert.IsType<BulkDestinationCache<IUser>>(cache);
+                MockServices.Verify(x => x.GetService(typeof(BulkDestinationCache<IUser>)), Times.Once);
             }
 
             [Fact]

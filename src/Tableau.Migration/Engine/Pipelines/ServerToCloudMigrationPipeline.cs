@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.Extensions.DependencyInjection;
+using Tableau.Migration.Config;
 using Tableau.Migration.Content;
 using Tableau.Migration.Engine.Actions;
 using Tableau.Migration.Engine.Migrators.Batch;
@@ -33,22 +34,28 @@ namespace Tableau.Migration.Engine.Pipelines
         /// Content types that are supported for migrations.
         /// </summary>
         public static readonly ImmutableArray<MigrationPipelineContentType> ContentTypes =
-            new MigrationPipelineContentType[]
-            {
-                new MigrationPipelineContentType<IUser>(),
-                new MigrationPipelineContentType<IGroup, IPublishableGroup>(),
-                new MigrationPipelineContentType<IProject>(),
-                new MigrationPipelineContentType<IDataSource, IPublishableDataSource>(),
-                new MigrationPipelineContentType<IWorkbook, IPublishableWorkbook, IResultWorkbook>(),
-            }.ToImmutableArray();
+        [
+            MigrationPipelineContentType.Users,
+            MigrationPipelineContentType.Groups,
+            MigrationPipelineContentType.Projects,
+            MigrationPipelineContentType.DataSources,
+            MigrationPipelineContentType.Workbooks,
+        ];
+
+        private readonly IConfigReader _configReader;
 
         /// <summary>
         /// Creates a new <see cref="ServerToCloudMigrationPipeline"/> object.
         /// </summary>
         /// <param name="services"><inheritdoc /></param>
-        public ServerToCloudMigrationPipeline(IServiceProvider services)
+        /// <param name="configReader">A config reader to get the REST API configuration.</param>
+        public ServerToCloudMigrationPipeline(IServiceProvider services,
+            IConfigReader configReader)
             : base(services)
-        { }
+        {
+            _configReader = configReader;
+        }
+
 
         /// <inheritdoc />
         protected override IEnumerable<IMigrationAction> BuildPipeline()
@@ -72,15 +79,19 @@ namespace Tableau.Migration.Engine.Pipelines
             switch (typeof(TContent))
             {
                 case Type user when user == typeof(IUser):
-                    return Services.GetRequiredService<BulkPublishContentBatchMigrator<TContent>>();
+                    if (_configReader.Get<IUser>().BatchPublishingEnabled)
+                    {
+                        return Services.GetRequiredService<BulkPublishContentBatchMigrator<TContent>>();
+                    }
+                    return Services.GetRequiredService<ItemPublishContentBatchMigrator<TContent>>();
                 case Type group when group == typeof(IGroup):
                     return Services.GetRequiredService<ItemPublishContentBatchMigrator<TContent, IPublishableGroup>>();
                 case Type project when project == typeof(IProject):
                     return Services.GetRequiredService<ItemPublishContentBatchMigrator<TContent>>();
                 case Type dataSource when dataSource == typeof(IDataSource):
-                    return Services.GetRequiredService<ItemPublishContentBatchMigrator<TContent, IPublishableDataSource>>();
+                    return Services.GetRequiredService<ItemPublishContentBatchMigrator<TContent, IPublishableDataSource, IDataSourceDetails>>();
                 case Type worbook when worbook == typeof(IWorkbook):
-                    return Services.GetRequiredService<ItemPublishContentBatchMigrator<TContent, IPublishableWorkbook, IResultWorkbook>>();
+                    return Services.GetRequiredService<ItemPublishContentBatchMigrator<TContent, IPublishableWorkbook, IWorkbookDetails>>();
                 default:
                     return base.GetBatchMigrator<TContent>();
             }

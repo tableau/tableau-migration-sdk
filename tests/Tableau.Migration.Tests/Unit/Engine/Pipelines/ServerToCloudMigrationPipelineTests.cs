@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Moq;
+using Tableau.Migration.Config;
 using Tableau.Migration.Content;
 using Tableau.Migration.Engine.Actions;
 using Tableau.Migration.Engine.Migrators.Batch;
@@ -125,6 +126,33 @@ namespace Tableau.Migration.Tests.Unit.Engine.Pipelines
 
                 Assert.IsType<ItemPublishContentBatchMigrator<TestContentType>>(migrator);
                 MockServices.Verify(x => x.GetService(typeof(ItemPublishContentBatchMigrator<TestContentType>)), Times.Once);
+            }
+
+            [Fact]
+            public void CreatesDefaultUserBatchMigrator()
+            {
+                var migrator = Pipeline.GetBatchMigrator<IUser>();
+
+                Assert.IsType<ItemPublishContentBatchMigrator<IUser>>(migrator);
+                MockServices.Verify(x => x.GetService(typeof(ItemPublishContentBatchMigrator<IUser>)), Times.Once);
+            }
+        }
+
+        public class GetUserBatchMigrator : MigrationPipelineTestBase<ServerToCloudMigrationPipeline>
+        {
+            protected override ServerToCloudMigrationPipeline CreatePipeline()
+            {
+                var config = new ContentTypesOptions
+                {
+                    BatchPublishingEnabled = true
+                };
+
+                var mockConfigReader = Freeze<Mock<IConfigReader>>();
+
+                mockConfigReader.Setup(x => x.Get<IUser>())
+                    .Returns(config);
+
+                return base.CreatePipeline();
             }
 
             [Fact]

@@ -299,7 +299,7 @@ namespace Tableau.Migration.Api
 
         public async Task<IResult<IPublishableGroup>> PullAsync(IGroup contentItem, CancellationToken cancel)
         {
-            IPager<IUser> pager = new GroupUsersResponsePager(this, contentItem.Id, _configReader.Get().BatchSize);
+            IPager<IUser> pager = new GroupUsersResponsePager(this, contentItem.Id, _configReader.Get<IUser>().BatchSize);
 
             var result = await pager.GetAllPagesAsync(cancel)
                 .ConfigureAwait(false);

@@ -20,7 +20,6 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Moq;
@@ -66,9 +65,8 @@ namespace Tableau.Migration.Tests.Unit.Api
                 MockHttpClient.SetupResponse(mockResponse);
 
                 var workbookId = Guid.NewGuid();
-                var connections = CreateMany<IConnection>().ToImmutableArray();
 
-                var result = await ApiClient.GetWorkbookAsync(workbookId, connections, Create<ContentFileHandle>(), Cancel);
+                var result = await ApiClient.GetWorkbookAsync(workbookId, Cancel);
 
                 result.AssertFailure();
 
@@ -86,9 +84,8 @@ namespace Tableau.Migration.Tests.Unit.Api
                 MockHttpClient.SetupResponse(mockResponse);
 
                 var workbookId = Guid.NewGuid();
-                var connections = CreateMany<IConnection>().ToImmutableArray();
 
-                var result = await ApiClient.GetWorkbookAsync(workbookId, connections, Create<ContentFileHandle>(), Cancel);
+                var result = await ApiClient.GetWorkbookAsync(workbookId, Cancel);
 
                 result.AssertFailure();
 
@@ -122,9 +119,8 @@ namespace Tableau.Migration.Tests.Unit.Api
                 MockHttpClient.SetupResponse(mockResponse);
 
                 var workbookId = Guid.NewGuid();
-                var connections = CreateMany<IConnection>().ToImmutableArray();
 
-                var result = await ApiClient.GetWorkbookAsync(workbookId, connections, Create<ContentFileHandle>(), Cancel);
+                var result = await ApiClient.GetWorkbookAsync(workbookId, Cancel);
 
                 result.AssertSuccess();
                 Assert.NotNull(result.Value);
@@ -250,7 +246,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             [Fact]
             public async Task SuccessAsync()
             {
-                var content = new ByteArrayContent(Encoding.UTF8.GetBytes("hi2u"));
+                var content = new ByteArrayContent(Constants.DefaultEncoding.GetBytes("hi2u"));
 
                 var mockResponse = new MockHttpResponseMessage(content);
                 MockHttpClient.SetupResponse(mockResponse);
@@ -287,7 +283,7 @@ namespace Tableau.Migration.Tests.Unit.Api
                 var mockPublishableWorkbook = Create<Mock<IPublishableWorkbook>>();
                 mockPublishableWorkbook.SetupGet(wb => wb.File).Returns(mockContentFileHandle.Object);
 
-                var publisherResult = Result<IResultWorkbook>.Succeeded(Create<IResultWorkbook>());
+                var publisherResult = Result<IWorkbookDetails>.Succeeded(Create<IWorkbookDetails>());
 
                 MockWorkbookPublisher.Setup(p => p.PublishAsync(It.IsAny<IPublishWorkbookOptions>(), It.IsAny<CancellationToken>()))
                     .ReturnsAsync(publisherResult);
@@ -311,7 +307,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             {
                 var mockOptions = new Mock<IPublishWorkbookOptions>();
 
-                var publisherResult = Result<IResultWorkbook>.Succeeded(Create<IResultWorkbook>());
+                var publisherResult = Result<IWorkbookDetails>.Succeeded(Create<IWorkbookDetails>());
 
                 MockWorkbookPublisher.Setup(p => p.PublishAsync(It.IsAny<IPublishWorkbookOptions>(), It.IsAny<CancellationToken>()))
                     .ReturnsAsync(publisherResult);

@@ -16,7 +16,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
@@ -25,6 +24,7 @@ using Tableau.Migration.Content;
 using Tableau.Migration.Content.Files;
 using Tableau.Migration.Content.Permissions;
 using Tableau.Migration.Engine.Endpoints.Search;
+using Tableau.Migration.Resources;
 
 namespace Tableau.Migration.Engine.Endpoints
 {
@@ -40,11 +40,13 @@ namespace Tableau.Migration.Engine.Endpoints
         /// <param name="config">The configuration options for connecting to the destination endpoint APIs.</param>
         /// <param name="finderFactory">A destination finder factory.</param>
         /// <param name="fileStore">The file store to use.</param>
+        /// <param name="localizer">A string localizer.</param>
         public TableauApiDestinationEndpoint(IServiceScopeFactory serviceScopeFactory,
             ITableauApiEndpointConfiguration config,
             ManifestDestinationContentReferenceFinderFactory finderFactory,
-            IContentFileStore fileStore)
-            : base(serviceScopeFactory, config, finderFactory, fileStore)
+            IContentFileStore fileStore,
+            ISharedResourcesLocalizer localizer)
+            : base(serviceScopeFactory, config, finderFactory, fileStore, localizer)
         { }
 
         /// <inheritdoc />

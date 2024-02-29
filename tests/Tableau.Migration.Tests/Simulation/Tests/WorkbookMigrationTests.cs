@@ -31,13 +31,17 @@ namespace Tableau.Migration.Tests.Simulation.Tests
 {
     public class WorkbookMigrationTests
     {
-        public class ServerToCloud : ServerToCloudSimulationTestBase
+        public class UsersBatch : ServerToCloud
         {
-            protected override IServiceCollection ConfigureServices(IServiceCollection services)
-            {
-                return services.AddTableauMigrationSdk();
-            }
+        }
 
+        public class UsersIndividual : ServerToCloud
+        {
+            protected override bool UsersBatchImportEnabled => false;
+        }
+
+        public abstract class ServerToCloud : ServerToCloudSimulationTestBase
+        {
             [Fact]
             public async Task MigratesAllWorkbooksToCloudAsync()
             {
@@ -91,7 +95,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests
                     Assert.NotEqual(destinationWorkbook.Owner.Id, sourceWorkbook.Owner?.Id);
 
                     // Assert tags
-                    AssertTags(sourceWorkbook.Tags, destinationWorkbook.Tags);
+                    sourceWorkbook.Tags.AssertEqual(destinationWorkbook.Tags);
 
                     // Assert views
                     Assert.All(sourceWorkbook.Views, AssertWorkbookViewMigrated);
@@ -116,7 +120,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests
                             CloudDestinationApi.Data.ViewPermissions[destinationView.Id]);
 
                         // Assert view tags
-                        AssertTags(sourceView.Tags, destinationView.Tags);
+                        sourceView.Tags.AssertEqual(destinationView.Tags);
 
                         // No need to verify owner as it's not migratable. View owner is the same as workbook owner.
                     }
@@ -127,7 +131,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests
                         var sourceWorkbookFile = SourceApi.Data.WorkbookFiles[sourceWorkbook!.Id];
                         Assert.NotNull(sourceWorkbookFile);
 
-                        var sourceSimulatedWorkbook = Encoding.Default
+                        var sourceSimulatedWorkbook = Constants.DefaultEncoding
                                 .GetString(sourceWorkbookFile)
                                 .FromXml<SimulatedWorkbookData>();
 
@@ -137,7 +141,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests
                         var destinationWorkbookFile = CloudDestinationApi.Data.WorkbookFiles[destinationWorkbook!.Id];
                         Assert.NotNull(destinationWorkbookFile);
 
-                        var destinationSimulatedWorkbook = Encoding.Default
+                        var destinationSimulatedWorkbook = Constants.DefaultEncoding
                                 .GetString(destinationWorkbookFile)
                                 .FromXml<SimulatedWorkbookData>();
 

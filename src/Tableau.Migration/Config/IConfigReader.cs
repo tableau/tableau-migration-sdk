@@ -26,5 +26,12 @@ namespace Tableau.Migration.Config
         /// </summary>
         /// <returns></returns>
         MigrationSdkOptions Get();
+
+        /// <summary>
+        /// Get the current <see cref="ContentTypesOptions"/> for a 
+        /// given content type <see paramref="TContent"/>.
+        /// </summary>
+        /// <returns>Options specific to the content type.</returns>
+        ContentTypesOptions Get<TContent>() where TContent : IContentReference;
     }
 }

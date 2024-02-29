@@ -14,11 +14,15 @@
 //  limitations under the License.
 //
 
+using System.Threading;
 using System.Threading.Tasks;
 using AutoFixture;
 using Microsoft.Extensions.DependencyInjection;
+using Moq;
 using Tableau.Migration.Api;
+using Tableau.Migration.Content;
 using Tableau.Migration.Content.Files;
+using Tableau.Migration.Content.Search;
 using Tableau.Migration.Engine;
 using Tableau.Migration.Engine.Endpoints;
 using Tableau.Migration.Engine.Endpoints.Search;
@@ -46,22 +50,44 @@ namespace Tableau.Migration.Tests.Unit.Engine
 
             protected override void ConfigureServices(IServiceCollection services)
             {
+                var mockSitesClient = Freeze<ISitesApiClient>();
+                var mockApiClient = Freeze<Mock<IApiClient>>();
+                var mockScopedClientFactory = Freeze<Mock<IScopedApiClientFactory>>();
+
+                mockApiClient.Setup(x => x.SignInAsync(It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(AsyncDisposableResult<ISitesApiClient>.Succeeded(mockSitesClient));
+
+                mockScopedClientFactory.Setup(x => x.Initialize(It.IsAny<TableauSiteConnectionConfiguration>(), It.IsAny<IContentReferenceFinderFactory?>(), It.IsAny<IContentFileStore?>()))
+                    .Returns(mockApiClient.Object);
+
                 services.AddLogging()
                     .AddLocalization()
                     .AddSharedResourcesLocalization()
                     .AddMigrationApiClient()
-                    .AddMigrationEngine();
+                    .AddMigrationEngine()
+                    .AddScoped((provider) => mockScopedClientFactory.Object);
             }
 
-            protected AsyncServiceScope InitializeMigrationScope()
-                => InitializeMigrationScope(Create<IMigrationPlan>(), Create<IMigrationManifest>());
+            protected async Task<AsyncServiceScope> InitializeMigrationScopeAsync()
+                => await InitializeMigrationScopeAsync(Freeze<IMigrationPlan>(), Freeze<IMigrationManifest>());
 
-            protected AsyncServiceScope InitializeMigrationScope(IMigrationPlan plan, IMigrationManifest? previousManifest)
+            protected async Task<AsyncServiceScope> InitializeMigrationScopeAsync(IMigrationPlan plan, IMigrationManifest? previousManifest)
             {
+                // Creates the migration scope
                 var scope = ServiceProvider.CreateAsyncScope();
 
                 var input = scope.ServiceProvider.GetRequiredService<IMigrationInputInitializer>();
                 input.Initialize(plan, previousManifest);
+
+                //Initialize endpoints - any failure to connect is a fatal error before the pipeline is executed.
+                var migration = scope.ServiceProvider.GetRequiredService<IMigration>();
+                var endpointInitTasks = new[]
+                {
+                    migration.Source.InitializeAsync(Cancel),
+                    migration.Destination.InitializeAsync(Cancel)
+                };
+                
+                await Task.WhenAll(endpointInitTasks).ConfigureAwait(false);
 
                 return scope;
             }
@@ -115,8 +141,8 @@ namespace Tableau.Migration.Tests.Unit.Engine
             [Fact]
             public async Task RegistersScopedMigrationAndProperties()
             {
-                await using var scope1 = InitializeMigrationScope();
-                await using var scope2 = InitializeMigrationScope();
+                await using var scope1 = await InitializeMigrationScopeAsync();
+                await using var scope2 = await InitializeMigrationScopeAsync();
 
                 var scope1Obj = scope1.ServiceProvider.GetRequiredService<IMigration>();
                 var scope1Repeat = scope1.ServiceProvider.GetRequiredService<IMigration>();
@@ -139,7 +165,7 @@ namespace Tableau.Migration.Tests.Unit.Engine
             [Fact]
             public async Task RegistersScopedPlanOptionsProvider()
             {
-                await using var scope = InitializeMigrationScope();
+                await using var scope = await InitializeMigrationScopeAsync();
 
                 AssertService<IMigrationPlanOptionsProvider<TestPlanOptions>, MigrationPlanOptionsProvider<TestPlanOptions>>(scope, ServiceLifetime.Scoped);
             }
@@ -147,7 +173,7 @@ namespace Tableau.Migration.Tests.Unit.Engine
             [Fact]
             public async Task RegistersScopedHookRunner()
             {
-                await using var scope = InitializeMigrationScope();
+                await using var scope = await InitializeMigrationScopeAsync();
 
                 AssertService<IMigrationHookRunner, MigrationHookRunner>(scope, ServiceLifetime.Scoped);
             }
@@ -173,7 +199,7 @@ namespace Tableau.Migration.Tests.Unit.Engine
             [Fact]
             public async Task RegistersScopedServerToCloudPipeline()
             {
-                await using var scope = InitializeMigrationScope();
+                await using var scope = await InitializeMigrationScopeAsync();
 
                 AssertService<ServerToCloudMigrationPipeline>(scope, ServiceLifetime.Scoped);
             }
@@ -193,7 +219,7 @@ namespace Tableau.Migration.Tests.Unit.Engine
             [Fact]
             public async Task RegistersScopedContentMigratorAsync()
             {
-                await using var scope = InitializeMigrationScope();
+                await using var scope = await InitializeMigrationScopeAsync();
 
                 AssertService<ContentMigrator<TestContentType>>(scope, ServiceLifetime.Scoped);
             }
@@ -201,7 +227,7 @@ namespace Tableau.Migration.Tests.Unit.Engine
             [Fact]
             public async Task RegistersScopedSourcePreparerAsync()
             {
-                await using var scope = InitializeMigrationScope();
+                await using var scope = await InitializeMigrationScopeAsync();
 
                 AssertService<SourceContentItemPreparer<TestContentType>>(scope, ServiceLifetime.Scoped);
             }
@@ -209,7 +235,7 @@ namespace Tableau.Migration.Tests.Unit.Engine
             [Fact]
             public async Task RegistersScopedEndpointPreparerAsync()
             {
-                await using var scope = InitializeMigrationScope();
+                await using var scope = await InitializeMigrationScopeAsync();
 
                 AssertService<EndpointContentItemPreparer<TestContentType, TestPublishType>>(scope, ServiceLifetime.Scoped);
             }
@@ -217,7 +243,7 @@ namespace Tableau.Migration.Tests.Unit.Engine
             [Fact]
             public async Task RegistersScopedItemBatchMigratorAsync()
             {
-                await using var scope = InitializeMigrationScope();
+                await using var scope = await InitializeMigrationScopeAsync();
 
                 AssertService<ItemPublishContentBatchMigrator<TestContentType>>(scope, ServiceLifetime.Scoped);
                 AssertService<ItemPublishContentBatchMigrator<TestContentType, TestPublishType>>(scope, ServiceLifetime.Scoped);
@@ -226,7 +252,7 @@ namespace Tableau.Migration.Tests.Unit.Engine
             [Fact]
             public async Task RegistersScopedBulkBatchMigratorAsync()
             {
-                await using var scope = InitializeMigrationScope();
+                await using var scope = await InitializeMigrationScopeAsync();
 
                 AssertService<BulkPublishContentBatchMigrator<TestContentType>>(scope, ServiceLifetime.Scoped);
                 AssertService<BulkPublishContentBatchMigrator<TestContentType, TestPublishType>>(scope, ServiceLifetime.Scoped);
@@ -235,15 +261,15 @@ namespace Tableau.Migration.Tests.Unit.Engine
             [Fact]
             public async Task RegistersScopedBulkDestinationCacheAsync()
             {
-                await using var scope = InitializeMigrationScope();
+                await using var scope = await InitializeMigrationScopeAsync();
 
-                AssertService<BulkDestinationCache<TestContentType>>(scope, ServiceLifetime.Scoped);
+                AssertService<BulkDestinationCache<IUser>>(scope, ServiceLifetime.Scoped);
             }
 
             [Fact]
             public async Task RegistersScopedDestinationContentFinderAsync()
             {
-                await using var scope = InitializeMigrationScope();
+                await using var scope = await InitializeMigrationScopeAsync();
 
                 AssertService<ManifestDestinationContentReferenceFinder<TestContentType>>(scope, ServiceLifetime.Scoped);
             }
@@ -251,15 +277,23 @@ namespace Tableau.Migration.Tests.Unit.Engine
             [Fact]
             public async Task RegistersScopedDestinationContentFinderFactoryAsync()
             {
-                await using var scope = InitializeMigrationScope();
+                await using var scope = await InitializeMigrationScopeAsync();
 
                 AssertService<ManifestDestinationContentReferenceFinderFactory>(scope, ServiceLifetime.Scoped);
             }
 
             [Fact]
+            public async Task RegistersScopedBulkSourceCacheAsync()
+            {
+                await using var scope = await InitializeMigrationScopeAsync();
+
+                AssertService<BulkSourceCache<IUser>>(scope, ServiceLifetime.Scoped);
+            }
+
+            [Fact]
             public async Task RegistersScopedSourceContentFinderAsync()
             {
-                await using var scope = InitializeMigrationScope();
+                await using var scope = await InitializeMigrationScopeAsync();
 
                 AssertService<ManifestSourceContentReferenceFinder<TestContentType>>(scope, ServiceLifetime.Scoped);
             }
@@ -267,7 +301,7 @@ namespace Tableau.Migration.Tests.Unit.Engine
             [Fact]
             public async Task RegistersScopedSourceContentFinderFactoryAsync()
             {
-                await using var scope = InitializeMigrationScope();
+                await using var scope = await InitializeMigrationScopeAsync();
 
                 AssertService<ManifestSourceContentReferenceFinderFactory>(scope, ServiceLifetime.Scoped);
             }
@@ -275,7 +309,7 @@ namespace Tableau.Migration.Tests.Unit.Engine
             [Fact]
             public async Task RegistersScopedMigrationFileStoreAsync()
             {
-                await using var scope = InitializeMigrationScope();
+                await using var scope = await InitializeMigrationScopeAsync();
 
                 AssertService<MigrationDirectoryContentFileStore>(scope, ServiceLifetime.Scoped);
             }
@@ -283,7 +317,7 @@ namespace Tableau.Migration.Tests.Unit.Engine
             [Fact]
             public async Task RegistersScopedFileStoreAsync()
             {
-                await using var scope = InitializeMigrationScope();
+                await using var scope = await InitializeMigrationScopeAsync();
 
                 AssertService<IContentFileStore, EncryptedFileStore>(scope, ServiceLifetime.Scoped);
             }
@@ -291,7 +325,7 @@ namespace Tableau.Migration.Tests.Unit.Engine
             [Fact]
             public async Task RegistersScopedTableauServerConnectionUrlTransformerAsync()
             {
-                await using var scope = InitializeMigrationScope();
+                await using var scope = await InitializeMigrationScopeAsync();
 
                 AssertService<TableauServerConnectionUrlTransformer>(scope, ServiceLifetime.Scoped);
             }
@@ -299,7 +333,7 @@ namespace Tableau.Migration.Tests.Unit.Engine
             [Fact]
             public async Task RegistersScopedProjectCacheAsync()
             {
-                await using var scope = InitializeMigrationScope();
+                await using var scope = await InitializeMigrationScopeAsync();
 
                 AssertService<BulkDestinationProjectCache>(scope, ServiceLifetime.Scoped);
             }
@@ -307,7 +341,7 @@ namespace Tableau.Migration.Tests.Unit.Engine
             [Fact]
             public async Task RegistersScopedPreviouslyMigratedFilterAsync()
             {
-                await using var scope = InitializeMigrationScope();
+                await using var scope = await InitializeMigrationScopeAsync();
 
                 AssertService<PreviouslyMigratedFilter<TestContentType>>(scope, ServiceLifetime.Scoped);
             }

@@ -31,9 +31,10 @@ namespace Tableau.Migration.Api.Search
     /// </summary>
     /// <typeparam name="TContent">The content type.</typeparam>
     public class BulkApiContentReferenceCache<TContent> : ContentReferenceCacheBase
-        where TContent : IContentReference
+        where TContent : class, IContentReference
     {
         private readonly IPagedListApiClient<TContent> _apiListClient;
+        private readonly IReadApiClient<TContent>? _apiReadClient;
         private readonly IConfigReader _configReader;
 
         /// <summary>
@@ -41,16 +42,25 @@ namespace Tableau.Migration.Api.Search
         /// </summary>
         /// <param name="apiClient">An API client.</param>
         /// <param name="configReader">A config reader.</param>
-        public BulkApiContentReferenceCache(ISitesApiClient apiClient, IConfigReader configReader)
+        public BulkApiContentReferenceCache(ISitesApiClient? apiClient, IConfigReader configReader)
         {
+            Guard.AgainstNull(apiClient, () => apiClient);
+
             _apiListClient = apiClient.GetListApiClient<TContent>();
+            _apiReadClient = apiClient.GetReadApiClient<TContent>();
             _configReader = configReader;
         }
 
         /// <summary>
         /// Gets the configured batch size.
         /// </summary>
-        protected int BatchSize => _configReader.Get().BatchSize;
+        protected int BatchSize => _configReader.Get<TContent>().BatchSize;
+
+        /// <summary>
+        /// Called after an item is loaded into the cache from the store.
+        /// </summary>
+        /// <param name="item">The item that was loaded.</param>
+        protected virtual void ItemLoaded(TContent item) { }
 
         /// <summary>
         /// Loads all content items from the API client.
@@ -66,6 +76,11 @@ namespace Tableau.Migration.Api.Search
                 return Enumerable.Empty<ContentReferenceStub>();
             }
 
+            foreach (var item in listResult.Value) 
+            {
+                ItemLoaded(item);
+            }
+
             return listResult.Value.Select(i => new ContentReferenceStub(i));
         }
 
@@ -76,5 +91,24 @@ namespace Tableau.Migration.Api.Search
         /// <inheritdoc />
         protected override async ValueTask<IEnumerable<ContentReferenceStub>> SearchAsync(Guid searchId, CancellationToken cancel)
             => await LoadAllAsync(cancel).ConfigureAwait(false);
+
+        /// <inheritdoc />
+        protected override async Task<ContentReferenceStub?> IndividualSearchAsync(Guid searchId, CancellationToken cancel)
+        {
+            if (_apiReadClient is null)
+            {
+                return await base.IndividualSearchAsync(searchId, cancel).ConfigureAwait(false);
+            }
+
+            var result = await _apiReadClient.GetByIdAsync(searchId, cancel).ConfigureAwait(false);
+
+            if (result is not null &&
+                result.Success)
+            {
+                return new ContentReferenceStub(result.Value!);
+            }
+
+            return null;
+        }
     }
 }

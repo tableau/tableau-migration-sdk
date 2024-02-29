@@ -21,6 +21,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Tableau.Migration.Api.Rest.Models;
 using Tableau.Migration.Api.Rest.Models.Requests;
 using Tableau.Migration.Api.Rest.Models.Responses;
 using Tableau.Migration.Api.Simulation.Rest.Net.Requests;
@@ -39,9 +40,9 @@ namespace Tableau.Migration.Api.Simulation.Rest.Net.Responses
 
         protected static UsersResponse.UserType? UpdateUser(HttpRequestMessage request, ICollection<UsersResponse.UserType> allUsers)
         {
-            var foundUser = allUsers.FirstOrDefault(u => u.Id == request.GetRequestIdFromUri());
+            var oldUser = allUsers.FirstOrDefault(u => u.Id == request.GetRequestIdFromUri());
 
-            if (foundUser is null)
+            if (oldUser is null)
                 return null;
 
             var newUser = request.GetTableauServerRequest<UpdateUserRequest>()?.User;
@@ -49,7 +50,10 @@ namespace Tableau.Migration.Api.Simulation.Rest.Net.Responses
             if (newUser is null)
                 return null;
 
-            var oldUser = allUsers.First(u => u == foundUser);
+            var siteRole = SiteRoleMapping.GetSiteRole(
+                SiteRoleMapping.GetAdministratorLevel(newUser.SiteRole),
+                SiteRoleMapping.GetLicenseLevel(newUser.SiteRole),
+                SiteRoleMapping.GetPublishingCapability(newUser.SiteRole));
 
             if (!string.IsNullOrEmpty(newUser.FullName))
                 oldUser.FullName = newUser.FullName;
@@ -57,8 +61,8 @@ namespace Tableau.Migration.Api.Simulation.Rest.Net.Responses
             if (!string.IsNullOrEmpty(newUser.Email))
                 oldUser.Email = newUser.Email;
 
-            if (!string.IsNullOrEmpty(newUser.SiteRole))
-                oldUser.SiteRole = newUser.SiteRole;
+            if (!string.IsNullOrEmpty(siteRole))
+                oldUser.SiteRole = siteRole;
 
             if (!string.IsNullOrEmpty(newUser.AuthSetting))
                 oldUser.AuthSetting = newUser.AuthSetting;

@@ -14,6 +14,7 @@
 //  limitations under the License.
 //
 
+using System;
 using System.Collections.Generic;
 using Tableau.Migration.Api.Rest.Models;
 
@@ -22,49 +23,75 @@ namespace Tableau.Migration.Content
     internal class DataSource : ContainerContentBase, IDataSource
     {
         public DataSource(IDataSourceType response, IContentReference project, IContentReference owner)
+            : this(
+                  response.Id,
+                  response.Name,
+                  response.ContentUrl,
+                  response.Description,
+                  response.CreatedAt,
+                  response.UpdatedAt,
+                  response.EncryptExtracts,
+                  response.HasExtracts,
+                  response.IsCertified,
+                  response.UseRemoteQueryAgent,
+                  response.WebpageUrl,
+                  response.Tags.ToTagList(t => new Tag(t)),
+                  project,
+                  owner)
+        { }
+
+        public DataSource(IDataSource dataSource)
+            : this(
+                  dataSource.Id,
+                  dataSource.Name,
+                  dataSource.ContentUrl,
+                  dataSource.Description,
+                  dataSource.CreatedAt,
+                  dataSource.UpdatedAt,
+                  dataSource.EncryptExtracts,
+                  dataSource.HasExtracts,
+                  dataSource.IsCertified,
+                  dataSource.UseRemoteQueryAgent,
+                  dataSource.WebpageUrl,
+                  dataSource.Tags,
+                  ((IContainerContent)dataSource).Container,
+                  dataSource.Owner)
+        { }
+
+        private DataSource(
+            Guid id,
+            string? name,
+            string? contentUrl,
+            string? description,
+            string? createdAt,
+            string? updatedAt,
+            bool encryptExtracts,
+            bool hasExtracts,
+            bool isCertified,
+            bool useRemoteQueryAgent,
+            string? webpageUrl,
+            IList<ITag> tags,
+            IContentReference project,
+            IContentReference owner)
             : base(project)
         {
-            Id = Guard.AgainstDefaultValue(response.Id, () => response.Id);
-            Name = Guard.AgainstNullEmptyOrWhiteSpace(response.Name, () => response.Name);
-            ContentUrl = Guard.AgainstNullEmptyOrWhiteSpace(response.ContentUrl, () => response.ContentUrl);
+            Id = Guard.AgainstDefaultValue(id, () => id);
+            Name = Guard.AgainstNullEmptyOrWhiteSpace(name, () => name);
+            ContentUrl = Guard.AgainstNullEmptyOrWhiteSpace(contentUrl, () => contentUrl);
 
-            Description = response.Description ?? string.Empty;
-            CreatedAt = response.CreatedAt ?? string.Empty;
-            UpdatedAt = response.UpdatedAt ?? string.Empty;
+            Description = description ?? string.Empty;
+            CreatedAt = createdAt ?? string.Empty;
+            UpdatedAt = updatedAt ?? string.Empty;
 
-            EncryptExtracts = response.EncryptExtracts;
-            HasExtracts = response.HasExtracts;
-            IsCertified = response.IsCertified;
-            UseRemoteQueryAgent = response.UseRemoteQueryAgent;
+            EncryptExtracts = encryptExtracts;
+            HasExtracts = hasExtracts;
+            IsCertified = isCertified;
+            UseRemoteQueryAgent = useRemoteQueryAgent;
 
-            WebpageUrl = response.WebpageUrl ?? string.Empty;
-
-            Owner = owner;
-            Tags = response.Tags.ToTagList(t => new Tag(t));
-
-            Location = project.Location.Append(Name);
-        }
-
-        public DataSource(IDataSource item, IContentReference project, IContentReference owner)
-            : base(project)
-        {
-            Id = Guard.AgainstDefaultValue(item.Id, () => item.Id);
-            Name = Guard.AgainstNullEmptyOrWhiteSpace(item.Name, () => item.Name);
-            ContentUrl = Guard.AgainstNullEmptyOrWhiteSpace(item.ContentUrl, () => item.ContentUrl);
-
-            Description = item.Description ?? string.Empty;
-            CreatedAt = item.CreatedAt ?? string.Empty;
-            UpdatedAt = item.UpdatedAt ?? string.Empty;
-
-            EncryptExtracts = item.EncryptExtracts;
-            HasExtracts = item.HasExtracts;
-            IsCertified = item.IsCertified;
-            UseRemoteQueryAgent = item.UseRemoteQueryAgent;
-
-            WebpageUrl = item.WebpageUrl ?? string.Empty;
+            WebpageUrl = webpageUrl ?? string.Empty;
 
             Owner = owner;
-            Tags = item.Tags.ToTagList(t => new Tag(t));
+            Tags = tags;
 
             Location = project.Location.Append(Name);
         }

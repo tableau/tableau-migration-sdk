@@ -15,7 +15,6 @@
 //
 
 using System.IO;
-using System.Text;
 using System.Text.Json;
 using System.Xml;
 using System.Xml.Serialization;
@@ -31,7 +30,7 @@ namespace Tableau.Migration.Net
             var settings = new XmlWriterSettings()
             {
                 OmitXmlDeclaration = true,
-                Encoding = Encoding.UTF8
+                Encoding = Constants.DefaultEncoding
             };
 
             var serializer = new XmlSerializer(obj?.GetType() ?? typeof(T));

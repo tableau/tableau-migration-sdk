@@ -31,7 +31,7 @@ namespace Tableau.Migration.Engine.Endpoints.Search
     /// <typeparam name="TContent">The content type.</typeparam>
     public class ManifestDestinationContentReferenceFinder<TContent>
         : IMappedContentReferenceFinder<TContent>, IContentReferenceFinder<TContent>
-        where TContent : IContentReference
+        where TContent : class, IContentReference
     {
         private readonly IMigrationManifestEditor _manifest;
         private readonly IContentReferenceCache _destinationCache;

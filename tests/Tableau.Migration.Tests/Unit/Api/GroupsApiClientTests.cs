@@ -27,9 +27,9 @@ using Tableau.Migration.Api;
 using Tableau.Migration.Api.Rest.Models;
 using Tableau.Migration.Api.Rest.Models.Requests;
 using Tableau.Migration.Api.Rest.Models.Responses;
+using Tableau.Migration.Config;
 using Tableau.Migration.Content;
 using Tableau.Migration.Net;
-using Tableau.Migration.Tests.Unit;
 using Xunit;
 
 namespace Tableau.Migration.Tests.Unit.Api
@@ -38,6 +38,12 @@ namespace Tableau.Migration.Tests.Unit.Api
     {
         public abstract class GroupsApiClientTest : ApiClientTestBase<IGroupsApiClient>
         {
+            public GroupsApiClientTest()
+            {
+                MockConfigReader
+                    .Setup(x => x.Get<IUser>())
+                    .Returns(new ContentTypesOptions());
+            }
             internal GroupsApiClient GroupsApiClient => GetApiClient<GroupsApiClient>();
         }
 
@@ -304,7 +310,7 @@ namespace Tableau.Migration.Tests.Unit.Api
                 AssertGetGroupRequest(MockHttpClient.SentRequests[1], existingGroup.Domain, existingGroup.Name);
                 AssertAddUsersToGroup(MockHttpClient, existingGroup);
             }
-            
+
             [Fact]
             public async Task Removes_extra_users()
             {
@@ -376,7 +382,7 @@ namespace Tableau.Migration.Tests.Unit.Api
                 request.AssertRelativeUri($"/api/{TableauServerVersion.RestApiVersion}/sites/{SiteId}/groups");
             }
 
-            
+
 
             #region - Assert Helpers -
 
@@ -437,7 +443,7 @@ namespace Tableau.Migration.Tests.Unit.Api
         /// - During the delete loop
         /// - During the add loop
         /// </summary>
-        public class PublishAsync_Cancellation: GroupsApiClientTest
+        public class PublishAsync_Cancellation : GroupsApiClientTest
         {
             [Fact]
             public async void Publish_cancel_after_create_group()

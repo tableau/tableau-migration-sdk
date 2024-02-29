@@ -16,6 +16,7 @@
 
 using Moq;
 using Tableau.Migration.Api.Search;
+using Tableau.Migration.Content;
 using Tableau.Migration.Content.Search;
 using Xunit;
 
@@ -37,6 +38,20 @@ namespace Tableau.Migration.Tests.Unit.Api.Search
 
                 Assert.IsType<CachedContentReferenceFinder<TestContentType>>(finder);
                 mockServices.Verify(x => x.GetService(typeof(BulkApiContentReferenceCache<TestContentType>)), Times.Once);
+            }
+
+            [Fact]
+            public void BuildsUsersCachedApiFinder()
+            {
+                var cache = Freeze<BulkApiContentReferenceCache<IUser>>();
+                var mockServices = Freeze<MockServiceProvider>();
+                
+                var factory = Create<ApiContentReferenceFinderFactory>();
+
+                var finder = factory.ForContentType<IUser>();
+
+                Assert.IsType<CachedContentReferenceFinder<IUser>>(finder);
+                mockServices.Verify(x => x.GetService(typeof(BulkApiContentReferenceCache<IUser>)), Times.Once);
             }
         }
     }

@@ -52,9 +52,28 @@ namespace Tableau.Migration.Content.Search
         /// <returns>The content references to cache.</returns>
         protected abstract ValueTask<IEnumerable<ContentReferenceStub>> SearchAsync(Guid searchId, CancellationToken cancel);
 
+        /// <summary>
+        /// Searches for content at the given location.
+        /// </summary>
+        /// <param name="searchLocation">The primary location to search for.</param>
+        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <returns>The content reference to cache, or null.</returns>
+        protected virtual Task<ContentReferenceStub?> IndividualSearchAsync(ContentLocation searchLocation, CancellationToken cancel)
+            => Task.FromResult<ContentReferenceStub?>(null);
+
+        /// <summary>
+        /// Searches for content at the given ID.
+        /// </summary>
+        /// <param name="searchId">The primary ID to search for.</param>
+        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <returns>The content reference to cache, or null.</returns>
+        protected virtual Task<ContentReferenceStub?> IndividualSearchAsync(Guid searchId, CancellationToken cancel)
+            => Task.FromResult<ContentReferenceStub?>(null);
+
         private async Task<IContentReference?> SearchCacheAsync<TKey>(
             Dictionary<TKey, ContentReferenceStub?> cache, TKey search,
             Func<TKey, CancellationToken, ValueTask<IEnumerable<ContentReferenceStub>>> searchAsync,
+            Func<TKey, CancellationToken, Task<ContentReferenceStub?>> individualSearchAsync,
             CancellationToken cancel)
             where TKey : notnull
         {
@@ -67,7 +86,7 @@ namespace Tableau.Migration.Content.Search
 
             try
             {
-                //Retry lookup in case a semaphore wait means the populated for this attempt.
+                // Retry lookup in case a semaphore wait means the populated for this attempt.
                 if (cache.TryGetValue(search, out cachedResult))
                 {
                     return cachedResult;
@@ -79,12 +98,27 @@ namespace Tableau.Migration.Content.Search
                     _idCache[searchResult.Id] = searchResult;
                     _locationCache[searchResult.Location] = searchResult;
                 }
-
-                //Retry lookup now that this attempt populated.
-                //Assign an explicit null if this fails to avoid repeated populations that will fail.
-                if (!cache.TryGetValue(search, out cachedResult))
+                
+                // Retry lookup now that this attempt populated.
+                if (cache.TryGetValue(search, out cachedResult))
                 {
-                    cachedResult = cache[search] = null;
+                    return cachedResult;
+                }
+
+                // No cached results. Retry individual search.
+                cachedResult = await individualSearchAsync(search, cancel).ConfigureAwait(false);
+                
+                // Checks the individual search result.
+                if (cachedResult is null)
+                {
+                    // Assign an explicit null if this fails to avoid repeated populations that will fail.
+                    cache[search] = null;
+                }
+                else
+                {
+                    // Sets the cache with the individual search result.
+                    _idCache[cachedResult.Id] = cachedResult;
+                    _locationCache[cachedResult.Location] = cachedResult;
                 }
 
                 return cachedResult;
@@ -99,11 +133,11 @@ namespace Tableau.Migration.Content.Search
 
         /// <inheritdoc />
         public async Task<IContentReference?> ForLocationAsync(ContentLocation location, CancellationToken cancel)
-            => await SearchCacheAsync(_locationCache, location, SearchAsync, cancel).ConfigureAwait(false);
+            => await SearchCacheAsync(_locationCache, location, SearchAsync, IndividualSearchAsync, cancel).ConfigureAwait(false);
 
         /// <inheritdoc />
         public async Task<IContentReference?> ForIdAsync(Guid id, CancellationToken cancel)
-            => await SearchCacheAsync(_idCache, id, SearchAsync, cancel).ConfigureAwait(false);
+            => await SearchCacheAsync(_idCache, id, SearchAsync, IndividualSearchAsync, cancel).ConfigureAwait(false);
 
         #endregion
     }

@@ -16,44 +16,43 @@
 
 using System;
 using System.IO;
-using System.IO.Abstractions;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using Tableau.Migration.Config;
-using Tableau.Migration.Content.Files;
 using Tableau.Migration.Engine;
+using Tableau.Migration.Tests.Unit.Content.Files;
 using Xunit;
 
 namespace Tableau.Migration.Tests.Unit.Engine
 {
     public class MigrationDirectoryContentFileStoreTests
     {
-        public class TestFileStore : MigrationDirectoryContentFileStore
+        public abstract class MigrationDirectoryContentFileStoreTest : DirectoryContentFileStoreTestBase<MigrationDirectoryContentFileStore>
         {
-            public TestFileStore(IFileSystem fileSystem, IContentFilePathResolver pathResolver, IConfigReader configReader, IMigrationInput migrationInput)
-                : base(fileSystem, pathResolver, configReader, migrationInput)
-            { }
+            protected readonly Mock<IMigrationInput> MockMigrationInput = new();
 
-            public string PublicBaseStorePath => BaseStorePath;
+            protected readonly Guid MigrationId = Guid.NewGuid();
 
+            public MigrationDirectoryContentFileStoreTest()
+            { 
+                MockMigrationInput.SetupGet(i => i.MigrationId).Returns(MigrationId);
+            }
+
+            protected override IServiceCollection ConfigureServices(IServiceCollection services)
+            {
+                return services
+                    .Replace(MockMigrationInput);
+            }
+
+            protected override MigrationDirectoryContentFileStore CreateFileStore()
+                => Services.GetRequiredService<MigrationDirectoryContentFileStore>();
         }
 
-        public class Ctor : AutoFixtureTestBase
+        public class Ctor : MigrationDirectoryContentFileStoreTest
         {
             [Fact]
             public void UsesMigrationSubDirectory()
             {
-                var rootPath = Create<string>();
-
-                var config = Freeze<MigrationSdkOptions>();
-                config.Files.RootPath = rootPath;
-
-                var migrationId = Guid.NewGuid();
-                var mockInput = Freeze<Mock<IMigrationInput>>();
-                mockInput.SetupGet(x => x.MigrationId).Returns(migrationId);
-
-                var fs = Create<TestFileStore>();
-
-                Assert.Equal(Path.Combine(rootPath, $"migration-{migrationId:N}"), fs.PublicBaseStorePath);
+                Assert.Equal(Path.Combine(RootPath, $"migration-{MigrationId:N}"), BaseStorePath);
             }
         }
     }

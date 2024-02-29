@@ -14,10 +14,16 @@
 //  limitations under the License.
 //
 
+using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using Castle.Components.DictionaryAdapter.Xml;
+using Moq;
+using Tableau.Migration.Content.Search;
 using Tableau.Migration.Engine.Endpoints.Search;
 using Tableau.Migration.Engine.Manifest;
+using Tableau.Migration.Engine.Pipelines;
 using Xunit;
 
 namespace Tableau.Migration.Tests.Unit.Engine.Endpoints.Search
@@ -27,14 +33,24 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints.Search
         public class ManifestSourceContentReferenceFinderTest : AutoFixtureTestBase
         {
             protected readonly IMigrationManifestEditor Manifest;
+            protected readonly Mock<IMigrationPipeline> Pipeline;
+            protected readonly Mock<IContentReferenceCache> ContentReferenceCache;
 
             protected readonly ManifestSourceContentReferenceFinder<TestContentType> Finder;
 
             public ManifestSourceContentReferenceFinderTest()
             {
                 Manifest = Create<MigrationManifest>();
+                Pipeline = Create<Mock<IMigrationPipeline>>();
+                ContentReferenceCache = Create<Mock<IContentReferenceCache>>();
 
-                Finder = new ManifestSourceContentReferenceFinder<TestContentType>(Manifest);
+                ContentReferenceCache.Setup(x => x.ForIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+                    .Returns(Task.FromResult<IContentReference?>(null));
+
+                Pipeline.Setup(x => x.CreateSourceCache<TestContentType>())
+                    .Returns(ContentReferenceCache.Object);
+
+                Finder = new ManifestSourceContentReferenceFinder<TestContentType>(Manifest, Pipeline.Object);
             }
         }
 
@@ -52,6 +68,21 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints.Search
                 var result = await Finder.FindByIdAsync(sourceItem.Id, Cancel);
 
                 Assert.Same(entry.Source, result);
+                ContentReferenceCache.Verify(x => x.ForIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Never);
+            }
+
+            [Fact]
+            public async Task FindCacheReferenceAsync()
+            {
+                var sourceItem = Create<TestContentType>();
+
+                ContentReferenceCache.Setup(x => x.ForIdAsync(sourceItem.Id, It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(sourceItem);
+
+                var result = await Finder.FindByIdAsync(sourceItem.Id, Cancel);
+
+                Assert.Same(sourceItem, result);
+                ContentReferenceCache.Verify(x => x.ForIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Once);
             }
 
             [Fact]
@@ -62,6 +93,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints.Search
                 var result = await Finder.FindByIdAsync(sourceItem.Id, Cancel);
 
                 Assert.Null(result);
+                ContentReferenceCache.Verify(x => x.ForIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Once);
             }
         }
     }

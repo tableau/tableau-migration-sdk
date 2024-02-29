@@ -105,7 +105,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
 
                 var options = new PublishDataSourceOptions(
                     mockPublishable.Object,
-                    new MemoryStream(Encoding.UTF8.GetBytes(dataSourceResponse.ToXml())),
+                    new MemoryStream(Constants.DefaultEncoding.GetBytes(dataSourceResponse.ToXml())),
                     DataSourceFileTypes.Tdsx);
 
                 var result = await sitesClient.DataSources.PublishDataSourceAsync(options, Cancel);
@@ -154,12 +154,9 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
 
                 var dataSource = Api.Data.CreateDataSource(AutoFixture);
-                var connections = CreateMany<IConnection>().ToImmutableArray();
 
                 var result = await sitesClient.DataSources.GetDataSourceAsync(
                     dataSource.Id,
-                    connections,
-                    Create<IContentFileHandle>(),
                     Cancel);
 
                 Assert.Empty(result.Errors);
@@ -325,7 +322,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
                     Name = project.Name
                 };
 
-                Api.Data.AddDataSource(dataSource, fileData: Encoding.UTF8.GetBytes(dataSource.ToXml()));
+                Api.Data.AddDataSource(dataSource, fileData: Constants.DefaultEncoding.GetBytes(dataSource.ToXml()));
 
                 // Act
                 var result = await sitesClient.DataSources.UpdateDataSourceAsync(
@@ -362,7 +359,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
                     Id = owner.Id
                 };
 
-                Api.Data.AddDataSource(dataSource, fileData: Encoding.UTF8.GetBytes(dataSource.ToXml()));
+                Api.Data.AddDataSource(dataSource, fileData: Constants.DefaultEncoding.GetBytes(dataSource.ToXml()));
 
                 // Act
                 var result = await sitesClient.DataSources.UpdateDataSourceAsync(
@@ -407,12 +404,8 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
                 Assert.Empty(result.Errors);
                 Assert.True(result.Success);
 
-                var connections = CreateMany<IConnection>().ToImmutableArray();
-
                 var getResult = await sitesClient.DataSources.GetDataSourceAsync(
                     dataSource.Id,
-                    connections,
-                    Create<ContentFileHandle>(),
                     Cancel);
 
                 Assert.Empty(getResult.Errors);
@@ -430,10 +423,10 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
                 var owner = Api.Data.CreateUser(AutoFixture);
                 var dataSource = Api.Data.CreateDataSource(AutoFixture);
 
-                var tagsCountBefore = dataSource.Tags is null ? 0 : dataSource.Tags.Length;
+                var tagsCountBefore = dataSource.Tags.Length;
                 Api.Data.AddDataSource(dataSource, null);
 
-                var testTags = dataSource.Tags?.Select(tag => new Tag(tag)).ToArray();
+                var testTags = dataSource.Tags.Select(tag => new Tag(tag)).ToArray();
 
                 Assert.NotNull(testTags);
 
@@ -442,12 +435,8 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
                 Assert.Empty(result.Errors);
                 Assert.True(result.Success);
 
-                var connections = CreateMany<IConnection>().ToImmutableArray();
-
                 var getResult = await sitesClient.DataSources.GetDataSourceAsync(
                     dataSource.Id,
-                    connections,
-                    Create<ContentFileHandle>(),
                     Cancel);
 
                 Assert.Empty(getResult.Errors);
@@ -470,9 +459,9 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
                 var owner = Api.Data.CreateUser(AutoFixture);
                 var dataSource = Api.Data.CreateDataSource(AutoFixture, project, owner);
 
-                var tagsCountBefore = dataSource.Tags is null ? 0 : dataSource.Tags.Length;
+                var tagsCountBefore = dataSource.Tags.Length;
 
-                var tagsToRemove = dataSource.Tags?.Select(t => new Tag(t)).ToArray();
+                var tagsToRemove = dataSource.Tags.Select(t => new Tag(t)).ToArray();
                 Assert.NotNull(tagsToRemove);
 
                 var result = await sitesClient.DataSources.Tags.RemoveTagsAsync(dataSource.Id, tagsToRemove, Cancel);
@@ -480,12 +469,8 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
                 Assert.Empty(result.Errors);
                 Assert.True(result.Success);
 
-                var connections = CreateMany<IConnection>().ToImmutableArray();
-
                 var getResult = await sitesClient.DataSources.GetDataSourceAsync(
                     dataSource.Id,
-                    connections,
-                    Create<ContentFileHandle>(),
                     Cancel);
 
                 Assert.Empty(getResult.Errors);
@@ -531,7 +516,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
                 var user = Create<UsersResponse.UserType>();
                 var fileData = Create<SimulatedDataSourceData>();
 
-                var workbook = Api.Data.CreateDataSource(AutoFixture, project, user, Encoding.Default.GetBytes(fileData.ToXml()));
+                var workbook = Api.Data.CreateDataSource(AutoFixture, project, user, Constants.DefaultEncoding.GetBytes(fileData.ToXml()));
 
                 var result = await sitesClient.DataSources.GetConnectionsAsync(workbook.Id, Cancel);
 

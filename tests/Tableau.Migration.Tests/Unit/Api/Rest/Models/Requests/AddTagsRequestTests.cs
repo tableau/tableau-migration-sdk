@@ -21,7 +21,7 @@ using Xunit;
 
 namespace Tableau.Migration.Tests.Unit.Api.Rest.Models.Requests
 {
-    internal class AddTagsRequestTests
+    public class AddTagsRequestTests
     {
         public class TagType
         {

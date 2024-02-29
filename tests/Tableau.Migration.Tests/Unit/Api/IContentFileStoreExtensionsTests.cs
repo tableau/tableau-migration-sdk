@@ -15,7 +15,6 @@
 //
 
 using System.IO;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Tableau.Migration.Api;
@@ -36,14 +35,14 @@ namespace Tableau.Migration.Tests.Unit.Api
                 var fs = new MemoryContentFileStore();
 
                 var fileText = "text";
-                await using (var fileDownload = new FileDownload("fileName", new MemoryStream(Encoding.UTF8.GetBytes(fileText))))
+                await using (var fileDownload = new FileDownload("fileName", new MemoryStream(Constants.DefaultEncoding.GetBytes(fileText))))
                 {
                     var file = await fs.CreateAsync(new object(), fileDownload, cancel);
 
                     Assert.Equal(fileDownload.Filename, file.OriginalFileName);
 
                     await using (var readStream = await file.OpenReadAsync(cancel))
-                    using (var reader = new StreamReader(readStream.Content, Encoding.UTF8))
+                    using (var reader = new StreamReader(readStream.Content, Constants.DefaultEncoding))
                     {
                         Assert.Equal(fileText, reader.ReadToEnd());
                     }

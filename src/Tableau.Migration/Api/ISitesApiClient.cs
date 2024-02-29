@@ -96,6 +96,14 @@ namespace Tableau.Migration.Api
         IPagedListApiClient<TContent> GetListApiClient<TContent>();
 
         /// <summary>
+        /// Gets the <see cref="IReadApiClient{TContent}"/> for the given content type.
+        /// </summary>
+        /// <typeparam name="TContent">The content type.</typeparam>
+        /// <returns>The read API client for the given content type, or null if the given content type is not supported.</returns>
+        IReadApiClient<TContent>? GetReadApiClient<TContent>()
+            where TContent : class;
+
+        /// <summary>
         /// Gets the <see cref="IPullApiClient{TContent, TPublish}"/> for the given content and publish types.
         /// </summary>
         /// <typeparam name="TContent">The content type.</typeparam>

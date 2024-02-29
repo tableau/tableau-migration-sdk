@@ -34,6 +34,7 @@ namespace Tableau.Migration.Api
     {
         private readonly ITaskDelayer _taskDelayer;
         private readonly IConfigReader _configReader;
+        private readonly TimeProvider _timeProvider;
 
         public JobsApiClient(
             IRestRequestBuilderFactory restRequestBuilderFactory,
@@ -41,11 +42,13 @@ namespace Tableau.Migration.Api
             ILoggerFactory loggerFactory,
             ITaskDelayer taskDelayer,
             IConfigReader configReader,
-            ISharedResourcesLocalizer sharedResourcesLocalizer)
+            ISharedResourcesLocalizer sharedResourcesLocalizer,
+            TimeProvider timeProvider)
             : base(restRequestBuilderFactory, finderFactory, loggerFactory, sharedResourcesLocalizer)
         {
             _taskDelayer = taskDelayer;
             _configReader = configReader;
+            _timeProvider = timeProvider;
         }
 
         public async Task<IResult<IJob>> GetJobStatusAsync(Guid jobId, CancellationToken cancel)
@@ -64,14 +67,14 @@ namespace Tableau.Migration.Api
 
         public async Task<IResult> WaitForJobAsync(Guid jobId, CancellationToken cancel)
         {
-            var startTime = DateTime.UtcNow;
+            var startTime = _timeProvider.GetUtcNow();
             IJob? job = null;
             while (true)
             {
                 cancel.ThrowIfCancellationRequested();
 
                 // Check job waiting timeout
-                var timeSinceStart = DateTime.UtcNow - startTime;
+                var timeSinceStart = _timeProvider.GetUtcNow() - startTime;
                 if(timeSinceStart > _configReader.Get().Jobs.JobTimeout)
                 {
                     return Result.Failed(new TimeoutJobException(job, SharedResourcesLocalizer));

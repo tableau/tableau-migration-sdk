@@ -19,6 +19,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Tableau.Migration.Api.Rest.Models;
 using Tableau.Migration.Api.Rest.Models.Requests;
 using Tableau.Migration.Api.Rest.Models.Responses;
 using Tableau.Migration.Api.Simulation.Rest.Net.Requests;
@@ -47,13 +48,17 @@ namespace Tableau.Migration.Api.Simulation.Rest.Net.Responses
                     $"Request must be of the type {nameof(AddUserToSiteRequest.UserType)} and not null",
                     "");
             }
-
+            var siteRole = SiteRoleMapping.GetSiteRole(
+                SiteRoleMapping.GetAdministratorLevel(addUserRequest?.SiteRole), 
+                SiteRoleMapping.GetLicenseLevel(addUserRequest?.SiteRole), 
+                SiteRoleMapping.GetPublishingCapability(addUserRequest?.SiteRole));
             var user = new UsersResponse.UserType()
             {
                 Id = Guid.NewGuid(),
                 Name = addUserRequest?.Name,
                 AuthSetting = addUserRequest?.AuthSetting,
-                SiteRole = addUserRequest?.SiteRole
+                SiteRole = siteRole,
+                Domain = TableauData.GetUserDomain(addUserRequest?.Name) ?? new() { Name = Data.DefaultDomain }
             };
 
             Data.AddUser(user);
@@ -65,7 +70,7 @@ namespace Tableau.Migration.Api.Simulation.Rest.Net.Responses
                     Id = user.Id,
                     AuthSetting = user.AuthSetting,
                     Name = user.Name,
-                    SiteRole = user.SiteRole
+                    SiteRole = siteRole
                 }
             },
             HttpStatusCode.Created));

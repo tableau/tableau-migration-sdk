@@ -19,7 +19,6 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Localization;
 using Moq;
@@ -420,7 +419,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             [Fact]
             public async Task CreatesFileDownloadAsync()
             {
-                var content = new ByteArrayContent(Encoding.UTF8.GetBytes("test content"));
+                var content = new ByteArrayContent(Constants.DefaultEncoding.GetBytes("test content"));
                 MockResponse.Setup(x => x.Content).Returns(content);
 
                 content.Headers.TryAddWithoutValidation(RestHeaders.ContentDisposition, "FileName=test");

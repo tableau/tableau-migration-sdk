@@ -18,6 +18,7 @@ using System;
 using Microsoft.Extensions.DependencyInjection;
 using Tableau.Migration.Content.Files;
 using Tableau.Migration.Engine.Endpoints.Search;
+using Tableau.Migration.Resources;
 
 namespace Tableau.Migration.Engine.Endpoints
 {
@@ -30,6 +31,7 @@ namespace Tableau.Migration.Engine.Endpoints
         private readonly ManifestDestinationContentReferenceFinderFactory _destinationFinderFactory;
         private readonly ManifestSourceContentReferenceFinderFactory _sourceFinderFactory;
         private readonly IContentFileStore _fileStore;
+        private readonly ISharedResourcesLocalizer _localizer;
 
         /// <summary>
         /// Creates a new <see cref="MigrationEndpointFactory"/> object.
@@ -38,15 +40,18 @@ namespace Tableau.Migration.Engine.Endpoints
         /// <param name="sourceFinderFactory">A source content reference finder factory.</param>
         /// <param name="destinationFinderFactory">A destination content reference finder factory.</param>
         /// <param name="fileStore">The file store to use.</param>
+        /// <param name="localizer">A string localizer.</param>
         public MigrationEndpointFactory(IServiceScopeFactory serviceScopeFactory,
             ManifestSourceContentReferenceFinderFactory sourceFinderFactory,
             ManifestDestinationContentReferenceFinderFactory destinationFinderFactory,
-            IContentFileStore fileStore)
+            IContentFileStore fileStore,
+            ISharedResourcesLocalizer localizer)
         {
             _serviceScopeFactory = serviceScopeFactory;
             _destinationFinderFactory = destinationFinderFactory;
             _sourceFinderFactory = sourceFinderFactory;
             _fileStore = fileStore;
+            _localizer = localizer;
         }
 
         /// <inheritdoc />
@@ -54,7 +59,7 @@ namespace Tableau.Migration.Engine.Endpoints
         {
             if (plan.Destination is ITableauApiEndpointConfiguration apiConfig)
             {
-                return new TableauApiDestinationEndpoint(_serviceScopeFactory, apiConfig, _destinationFinderFactory, _fileStore);
+                return new TableauApiDestinationEndpoint(_serviceScopeFactory, apiConfig, _destinationFinderFactory, _fileStore, _localizer);
             }
 
             throw new ArgumentException($"Cannot create a destination endpoint for type {plan.Source.GetType()}");
@@ -65,7 +70,7 @@ namespace Tableau.Migration.Engine.Endpoints
         {
             if (plan.Source is ITableauApiEndpointConfiguration apiConfig)
             {
-                return new TableauApiSourceEndpoint(_serviceScopeFactory, apiConfig, _sourceFinderFactory, _fileStore);
+                return new TableauApiSourceEndpoint(_serviceScopeFactory, apiConfig, _sourceFinderFactory, _fileStore, _localizer);
             }
 
             throw new ArgumentException($"Cannot create a source endpoint for type {plan.Source.GetType()}");

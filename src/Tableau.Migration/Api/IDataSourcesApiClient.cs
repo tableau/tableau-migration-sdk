@@ -15,7 +15,6 @@
 //
 
 using System;
-using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Tableau.Migration.Api.Labels;
@@ -23,7 +22,6 @@ using Tableau.Migration.Api.Models;
 using Tableau.Migration.Api.Permissions;
 using Tableau.Migration.Api.Tags;
 using Tableau.Migration.Content;
-using Tableau.Migration.Content.Files;
 using Tableau.Migration.Paging;
 
 namespace Tableau.Migration.Api
@@ -33,7 +31,7 @@ namespace Tableau.Migration.Api
     /// </summary>
     public interface IDataSourcesApiClient
         : IPagedListApiClient<IDataSource>,
-        IPublishApiClient<IPublishableDataSource, IDataSource>,
+        IPublishApiClient<IPublishableDataSource, IDataSourceDetails>,
         IPullApiClient<IDataSource, IPublishableDataSource>,
         IOwnershipApiClient,
         ITagsContentApiClient,
@@ -58,14 +56,10 @@ namespace Tableau.Migration.Api
         /// Gets a data source by the given ID.
         /// </summary>
         /// <param name="dataSourceId">The ID to get the data source for.</param>
-        /// <param name="connections">The data source connection metadata.</param>
-        /// <param name="dataSourceFile">The data source content file.</param>
         /// <param name="cancel">A cancellation token to obey.</param>
         /// <returns>The data source result.</returns>
-        Task<IResult<IPublishableDataSource>> GetDataSourceAsync(
+        Task<IResult<IDataSourceDetails>> GetDataSourceAsync(
              Guid dataSourceId,
-             IImmutableList<IConnection> connections,
-             IContentFileHandle dataSourceFile,
              CancellationToken cancel);
 
         /// <summary>
@@ -86,7 +80,7 @@ namespace Tableau.Migration.Api
         /// <param name="options">The new data source's details.</param>
         /// <param name="cancel">A cancellation token to obey.</param>
         /// <returns>The published data source.</returns>
-        Task<IResult<IDataSource>> PublishDataSourceAsync(
+        Task<IResult<IDataSourceDetails>> PublishDataSourceAsync(
             IPublishDataSourceOptions options,
             CancellationToken cancel);
 

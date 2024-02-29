@@ -61,12 +61,20 @@ namespace Tableau.Migration.Engine.Pipelines
             where TPublish : class;
 
         /// <summary>
+        /// Gets the source cache for the given content type.
+        /// </summary>
+        /// <typeparam name="TContent">The content type.</typeparam>
+        /// <returns>The source cache.</returns>
+        IContentReferenceCache CreateSourceCache<TContent>()
+            where TContent : class, IContentReference;
+
+        /// <summary>
         /// Gets the destination cache for the given content type.
         /// </summary>
         /// <typeparam name="TContent">The content type.</typeparam>
         /// <returns>The destination cache.</returns>
         IContentReferenceCache CreateDestinationCache<TContent>()
-            where TContent : IContentReference;
+            where TContent : class, IContentReference;
 
         /// <summary>
         /// Gets the destination content finder for the given content type.
@@ -74,7 +82,7 @@ namespace Tableau.Migration.Engine.Pipelines
         /// <typeparam name="TContent">The content type.</typeparam>
         /// <returns>The destination content finder.</returns>
         IMappedContentReferenceFinder<TContent> CreateDestinationFinder<TContent>()
-            where TContent : IContentReference;
+            where TContent : class, IContentReference;
 
         /// <summary>
         /// Gets the destination locked project cache.

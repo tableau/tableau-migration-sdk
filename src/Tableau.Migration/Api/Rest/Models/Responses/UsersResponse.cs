@@ -20,8 +20,8 @@ using System.Xml.Serialization;
 namespace Tableau.Migration.Api.Rest.Models.Responses
 {
     /// <summary>
-    /// Class representing a user response.
-    /// See <see href="https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_users_and_groups.htm#query_user_on_site">Tableau API Reference</see> for documentation.
+    /// Class representing a users response.
+    /// See <see href="https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_users_and_groups.htm#get_users_on_site">Tableau API Reference</see> for documentation.
     /// </summary>
     [XmlType(XmlTypeName)]
     public class UsersResponse : PagedTableauServerResponse<UsersResponse.UserType>

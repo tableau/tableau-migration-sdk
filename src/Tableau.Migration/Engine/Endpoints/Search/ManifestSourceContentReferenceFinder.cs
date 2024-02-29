@@ -19,6 +19,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Tableau.Migration.Content.Search;
 using Tableau.Migration.Engine.Manifest;
+using Tableau.Migration.Engine.Pipelines;
 
 namespace Tableau.Migration.Engine.Endpoints.Search
 {
@@ -28,30 +29,33 @@ namespace Tableau.Migration.Engine.Endpoints.Search
     /// </summary>
     /// <typeparam name="TContent">The content type.</typeparam>
     public class ManifestSourceContentReferenceFinder<TContent> : IContentReferenceFinder<TContent>
-        where TContent : IContentReference
+        where TContent : class, IContentReference
     {
         private readonly IMigrationManifestEditor _manifest;
+        private readonly IContentReferenceCache _sourceCache;
 
         /// <summary>
         /// Creates a new <see cref="ManifestSourceContentReferenceFinder{TContent}"/> object.
         /// </summary>
         /// <param name="manifest">The manifest.</param>
-        public ManifestSourceContentReferenceFinder(IMigrationManifestEditor manifest)
+        /// <param name="pipeline">The pipeline to get a source cache from.</param>
+        public ManifestSourceContentReferenceFinder(IMigrationManifestEditor manifest, IMigrationPipeline pipeline)
         {
             _manifest = manifest;
+            _sourceCache = pipeline.CreateSourceCache<TContent>();
         }
 
         /// <inheritdoc />
-        public Task<IContentReference?> FindByIdAsync(Guid id, CancellationToken cancel)
+        public async Task<IContentReference?> FindByIdAsync(Guid id, CancellationToken cancel)
         {
             var partition = _manifest.Entries.GetOrCreatePartition<TContent>();
 
             if (partition.BySourceId.TryGetValue(id, out var entry))
             {
-                return Task.FromResult<IContentReference?>(entry.Source);
+                return entry.Source;
             }
 
-            return Task.FromResult<IContentReference?>(null);
+            return await _sourceCache.ForIdAsync(id, cancel).ConfigureAwait(false);
         }
     }
 }

@@ -16,6 +16,7 @@
 
 using System;
 using Moq;
+using Tableau.Migration.Config;
 using Tableau.Migration.Engine.Pipelines;
 using Xunit;
 
@@ -27,11 +28,15 @@ namespace Tableau.Migration.Tests.Unit.Engine.Pipelines
         {
             private readonly MockServiceProvider _mockServices;
 
+            private readonly IConfigReader _mockConfigReader;
+
             private readonly MigrationPipelineFactory _factory;
 
             public Create()
             {
                 _mockServices = Create<MockServiceProvider>();
+
+                _mockConfigReader = Create<IConfigReader>();
 
                 _factory = new(_mockServices.Object);
             }
@@ -39,7 +44,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Pipelines
             [Fact]
             public void CreatesServerToCloudMigration()
             {
-                var pipeline = new ServerToCloudMigrationPipeline(_mockServices.Object);
+                var pipeline = new ServerToCloudMigrationPipeline(_mockServices.Object, _mockConfigReader);
                 _mockServices.Setup(x => x.GetService(typeof(ServerToCloudMigrationPipeline))).Returns(pipeline);
 
                 var mockPlan = Create<Mock<IMigrationPlan>>();

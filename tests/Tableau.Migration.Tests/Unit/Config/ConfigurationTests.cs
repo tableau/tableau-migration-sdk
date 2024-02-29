@@ -15,6 +15,7 @@
 //
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
@@ -27,7 +28,9 @@ using Moq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Tableau.Migration.Config;
+using Tableau.Migration.Content;
 using Tableau.Migration.Content.Permissions;
+using Tableau.Migration.Engine.Pipelines;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -45,22 +48,70 @@ namespace Tableau.Migration.Tests.Unit.Config
         private const string TEST_DATA_DIR = "TestData";
         private const string TEST_DATA_FILE1 = "configuration_testdata1.json";
         private static readonly string TEST_DATA_FILE1_CONTENT =
-$@"{{
-  ""MigrationSdkOptions"": {{
-    ""Network"": {{
-      ""{nameof(MigrationSdkOptions.Network.FileChunkSizeKB)}"": 2034
+$@"
+{{
+    ""MigrationSdkOptions"": {{
+        ""contentTypes"": [
+        {{
+            ""type"":""User"",
+            ""batchSize"": {TestData.USER_BATCH_SIZE}            
+        }},
+        {{
+            ""type"":""Group"",
+            ""batchSize"": {TestData.GROUP_BATCH_SIZE}            
+        }},
+        {{
+            ""type"":""Project"",
+            ""batchSize"": {TestData.PROJECT_BATCH_SIZE}            
+        }},
+        {{
+            ""type"":""Workbook"",
+            ""batchSize"": {TestData.WORKBOOK_BATCH_SIZE}            
+        }},
+        {{
+            ""type"":""DataSource"",
+            ""batchSize"": {TestData.DATASOURCE_BATCH_SIZE}            
+        }}
+        ],
+        ""Network"": {{
+            ""{nameof(MigrationSdkOptions.Network.FileChunkSizeKB)}"": {TestData.FILE_CHUNK_SIZE_GB}
+        }}
     }}
-  }}
-}}";
+}}
+";
         private const string TEST_DATA_FILE2 = "configuration_testdata2.json";
         private static readonly string TEST_DATA_FILE2_CONTENT =
-$@"{{
-  ""MigrationSdkOptions"": {{
-    ""Network"": {{
-      ""{nameof(MigrationSdkOptions.Network.FileChunkSizeKB)}"": 2034
+$@"
+{{
+    ""MigrationSdkOptions"": {{
+        ""contentTypes"": [
+        {{
+            ""type"":""User"",
+            ""batchSize"": {TestData.USER_BATCH_SIZE}            
+        }},
+        {{
+            ""type"":""Group"",
+            ""batchSize"": {TestData.GROUP_BATCH_SIZE}            
+        }},
+        {{
+            ""type"":""Project"",
+            ""batchSize"": {TestData.PROJECT_BATCH_SIZE}            
+        }},
+        {{
+            ""type"":""Workbook"",
+            ""batchSize"": {TestData.WORKBOOK_BATCH_SIZE}            
+        }},
+        {{
+            ""type"":""DataSource"",
+            ""batchSize"": {TestData.DATASOURCE_BATCH_SIZE}            
+        }}
+        ],
+        ""Network"": {{
+            ""{nameof(MigrationSdkOptions.Network.FileChunkSizeKB)}"": {TestData.FILE_CHUNK_SIZE_GB}
+        }}
     }}
-  }}
-}}";
+}}
+";
 
         private const string TEST_DATA_FILE3 = "configuration_testdata3.json";
         private static readonly string TEST_DATA_FILE3_CONTENT =
@@ -71,7 +122,16 @@ $@"{{
     }}
   }}
 }}";
+        protected class TestData
+        {
+            public const int USER_BATCH_SIZE = 201;
+            public const int GROUP_BATCH_SIZE = 202;
+            public const int PROJECT_BATCH_SIZE = 203;
+            public const int WORKBOOK_BATCH_SIZE = 204;
+            public const int DATASOURCE_BATCH_SIZE = 205;
 
+            public const int FILE_CHUNK_SIZE_GB = 2034;
+        }
         private readonly ITestOutputHelper _output;
 
         private readonly bool skipGithubRunnerTests;
@@ -126,25 +186,40 @@ $@"{{
                                     .BuildServiceProvider();
         }
 
-        private static async Task EditConfigFile(string path, string configKey, int value, int waitAfterSaveMilliseconds)
+        private static async Task EditConfigFile(string path, Dictionary<string, int> configKeys, int waitAfterSaveMilliseconds)
         {
+            JObject jObject = GetJsonObjectFromFile(path);
 
+            foreach (var configKey in configKeys)
+                ReplaceValue(configKey.Key, configKey.Value, jObject);
+
+            await SaveJsonFile(path, waitAfterSaveMilliseconds, jObject).ConfigureAwait(false);
+        }
+
+        private static async Task SaveJsonFile(string path, int waitAfterSaveMilliseconds, JObject jObject)
+        {
+            // Convert the JObject back to a string and save the file.
+            await File.WriteAllTextAsync(path, jObject.ToString()).ConfigureAwait(false);
+
+            /// Artificially induced wait so the IOptionsMonitor.OnChange() event handler can pick up file changes
+            await Task.Delay(waitAfterSaveMilliseconds).ConfigureAwait(false);
+        }
+
+        private static JObject GetJsonObjectFromFile(string path)
+        {
             var jsonString = File.ReadAllText(path);
             Assert.NotNull(jsonString);
 
-            var jObject = (JObject)JsonConvert.DeserializeObject(jsonString)!;
+            return (JObject)JsonConvert.DeserializeObject(jsonString)!;
+        }
+
+        static void ReplaceValue(string configKey, int value, JObject jObject)
+        {
             var jToken = jObject.SelectToken(configKey);
 
             Assert.NotNull(jToken);
             // Update the value of the property: 
             jToken.Replace(value);
-
-            // Convert the JObject back to a string:
-            string updatedJsonString = jObject.ToString();
-            await File.WriteAllTextAsync(path, updatedJsonString).ConfigureAwait(false);
-
-            /// Artificially induced wait so the IOptionsMonitor.OnChange() event handler can pick up file changes
-            await Task.Delay(waitAfterSaveMilliseconds).ConfigureAwait(false);
         }
 
         #endregion
@@ -153,10 +228,19 @@ $@"{{
         public void LoadFromInitialConfiguration()
         {
             var serviceProvider = GetServiceProvider(TEST_DATA_FILE1);
-            var configHelper = serviceProvider.GetRequiredService<IConfigReader>();
-            var freshConfig = configHelper.Get();
+            var configReader = serviceProvider.GetRequiredService<IConfigReader>();
+
+
+            Assert.Equal(TestData.USER_BATCH_SIZE, configReader.Get<IUser>().BatchSize);
+            Assert.Equal(TestData.GROUP_BATCH_SIZE, configReader.Get<IGroup>().BatchSize);
+            Assert.Equal(TestData.PROJECT_BATCH_SIZE, configReader.Get<IProject>().BatchSize);
+            Assert.Equal(TestData.WORKBOOK_BATCH_SIZE, configReader.Get<IWorkbook>().BatchSize);
+            Assert.Equal(TestData.DATASOURCE_BATCH_SIZE, configReader.Get<IDataSource>().BatchSize);
+
+
+            var freshConfig = configReader.Get();
             Assert.NotNull(freshConfig?.Network);
-            Assert.Equal(2034, freshConfig.Network.FileChunkSizeKB);
+            Assert.Equal(TestData.FILE_CHUNK_SIZE_GB, freshConfig.Network.FileChunkSizeKB);
         }
 
         /// <summary>
@@ -173,20 +257,30 @@ $@"{{
                 try
                 {
                     var serviceProvider = GetServiceProvider(TEST_DATA_FILE2);
-                    var configHelper = serviceProvider.GetRequiredService<IConfigReader>();
+                    var configReader = serviceProvider.GetRequiredService<IConfigReader>();
 
-                    var oldConfig = configHelper.Get();
+                    var oldConfig = configReader.Get();
                     Assert.NotNull(oldConfig?.Network);
-                    Assert.Equal(2034, oldConfig.Network.FileChunkSizeKB);
+                    Assert.Equal(TestData.FILE_CHUNK_SIZE_GB, oldConfig.Network.FileChunkSizeKB);
 
-                    await EditConfigFile(Path.Combine(Directory.GetCurrentDirectory(), TEST_DATA_DIR, TEST_DATA_FILE2),
-                                   $"{nameof(MigrationSdkOptions)}.Network.{nameof(MigrationSdkOptions.Network.FileChunkSizeKB)}",
-                                   55,
-                                   readDelay);
+                    await EditConfigFile(
+                        Path.Combine(Directory.GetCurrentDirectory(), TEST_DATA_DIR, TEST_DATA_FILE2),
+                        new Dictionary<string, int> {
+                            {$"{nameof(MigrationSdkOptions)}.Network.{nameof(MigrationSdkOptions.Network.FileChunkSizeKB)}",55 },
+                            {$"{nameof(MigrationSdkOptions)}.contentTypes[0].batchSize",102 }
+                        },
+                        readDelay);
 
-                    var newConfig = configHelper.Get();
-                    Assert.NotNull(newConfig?.Network);
-                    Assert.Equal(55, newConfig.Network.FileChunkSizeKB);
+                    var newConfig = configReader.Get();
+                    var newNetworkConfig = newConfig?.Network;
+
+                    Assert.NotNull(newNetworkConfig);
+                    Assert.Equal(55, newNetworkConfig.FileChunkSizeKB);
+
+
+                    var newUserConfig = newConfig?.ContentTypes.FirstOrDefault(i => i.Type == "User");
+                    Assert.NotNull(newUserConfig);
+                    Assert.Equal(102, newUserConfig.BatchSize);
 
                     break;
                 }
@@ -217,11 +311,14 @@ $@"{{
         public void DefaultsApplied()
         {
             var serviceProvider = GetServiceProvider();
-            var configHelper = serviceProvider.GetRequiredService<IConfigReader>();
+            var configReader = serviceProvider.GetRequiredService<IConfigReader>();
 
-            var freshConfig = configHelper.Get();
+            var freshConfig = configReader.Get();
             Assert.NotNull(freshConfig?.Network);
-            Assert.Equal(65536, freshConfig.Network.FileChunkSizeKB);
+            Assert.Equal(NetworkOptions.Defaults.FILE_CHUNK_SIZE_KB, freshConfig.Network.FileChunkSizeKB);            
+            
+            Assert.Equal(ContentTypesOptions.Defaults.BATCH_SIZE, configReader.Get<IUser>().BatchSize);
+            Assert.Equal(ContentTypesOptions.Defaults.BATCH_SIZE, configReader.Get<IDataSource>().BatchSize);
 
             Assert.NotNull(freshConfig?.DefaultPermissionsContentTypes);
         }

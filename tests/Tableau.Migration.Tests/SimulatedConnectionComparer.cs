@@ -23,7 +23,7 @@ namespace Tableau.Migration.Tests
     {
         public static SimulatedConnectionComparer Instance = new();
 
-        public override int CompareItems(SimulatedConnection x, SimulatedConnection y)
+        protected override int CompareItems(SimulatedConnection x, SimulatedConnection y)
         {
             Guard.AgainstNull(x.Credentials, nameof(x.Credentials));
             Guard.AgainstNull(y.Credentials, nameof(y.Credentials));

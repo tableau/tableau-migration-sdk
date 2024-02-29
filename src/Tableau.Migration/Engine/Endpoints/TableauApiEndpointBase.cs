@@ -25,6 +25,7 @@ using Tableau.Migration.Content.Files;
 using Tableau.Migration.Content.Permissions;
 using Tableau.Migration.Content.Search;
 using Tableau.Migration.Paging;
+using Tableau.Migration.Resources;
 
 namespace Tableau.Migration.Engine.Endpoints
 {
@@ -33,6 +34,7 @@ namespace Tableau.Migration.Engine.Endpoints
     /// </summary>
     public abstract class TableauApiEndpointBase : IMigrationApiEndpoint
     {
+        private readonly ISharedResourcesLocalizer _localizer;
         private IAsyncDisposableResult<ISitesApiClient>? _signInResult;
 
         /// <summary>
@@ -55,11 +57,11 @@ namespace Tableau.Migration.Engine.Endpoints
             {
                 if (_signInResult is null)
                 {
-                    throw new InvalidOperationException("API endpoint is not initialized.");
+                    throw new InvalidOperationException(_localizer[SharedResourceKeys.ApiEndpointNotInitializedError]);
                 }
                 else if (_signInResult.Value is null)
                 {
-                    throw new InvalidOperationException("API endpoint does not have a valid site API client.");
+                    throw new InvalidOperationException(_localizer[SharedResourceKeys.ApiEndpointDoesnotHaveValidSiteError]);
                 }
 
                 return _signInResult.Value;
@@ -73,16 +75,19 @@ namespace Tableau.Migration.Engine.Endpoints
         /// <param name="config">The configuration options for connecting to the endpoint APIs.</param>
         /// <param name="finderFactory">The content finder factory to supply to the API client.</param>
         /// <param name="fileStore">The file store to use.</param>
+        /// <param name="localizer">A string localizer.</param>
         public TableauApiEndpointBase(IServiceScopeFactory serviceScopeFactory,
             ITableauApiEndpointConfiguration config,
             IContentReferenceFinderFactory finderFactory,
-            IContentFileStore fileStore)
+            IContentFileStore fileStore, 
+            ISharedResourcesLocalizer localizer)
         {
             EndpointScope = serviceScopeFactory.CreateAsyncScope();
 
             var apiClientFactory = EndpointScope.ServiceProvider.GetRequiredService<IScopedApiClientFactory>();
 
             ServerApi = apiClientFactory.Initialize(config.SiteConnectionConfiguration, finderFactory, fileStore);
+            _localizer = localizer;
         }
 
         #region - IAsyncDisposable Implementation -

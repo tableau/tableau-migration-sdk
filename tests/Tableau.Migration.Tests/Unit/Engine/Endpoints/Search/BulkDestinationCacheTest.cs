@@ -15,8 +15,12 @@
 //
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
+using AutoFixture;
 using Moq;
+using Tableau.Migration.Api;
 using Tableau.Migration.Config;
 using Tableau.Migration.Content;
 using Tableau.Migration.Engine.Endpoints;
@@ -27,15 +31,17 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints.Search
 {
     public abstract class BulkDestinationCacheTest<TCache, TContent> : AutoFixtureTestBase
         where TCache : BulkDestinationCache<TContent>
-        where TContent : IContentReference
+        where TContent : class, IContentReference
     {
         protected readonly Mock<IMigrationManifestEntryBuilder> MockManifestEntryBuilder;
         protected readonly Mock<IMigrationManifestContentTypePartitionEditor> MockManifestPartition;
-        protected readonly Mock<IDestinationEndpoint> MockDestinationEndpoint;
+        protected readonly Mock<IDestinationApiEndpoint> MockDestinationEndpoint;
+        protected readonly Mock<ISitesApiClient> MockSitesApiClient;
+        protected readonly Mock<IPagedListApiClient<TContent>> MockListApiClient;
 
         protected readonly TCache Cache;
 
-        protected int BatchSize { get; set; }
+        protected ContentTypesOptions ContentTypesOptions { get; set; } = new ContentTypesOptions();
 
         protected List<TContent> EndpointContent { get; set; }
 
@@ -44,7 +50,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints.Search
         public BulkDestinationCacheTest()
         {
             EndpointContent = CreateMany<TContent>().ToList();
-            BatchSize = EndpointContent.Count / 2;
+            ContentTypesOptions.BatchSize = EndpointContent.Count / 2;
 
             MockManifestEntryBuilder = Freeze<Mock<IMigrationManifestEntryBuilder>>();
 
@@ -61,13 +67,23 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints.Search
             mockManifestEditor.Setup(x => x.Entries.GetOrCreatePartition<TContent>())
                 .Returns(MockManifestPartition.Object);
 
-            MockDestinationEndpoint = Freeze<Mock<IDestinationEndpoint>>();
-            MockDestinationEndpoint.Setup(x => x.GetPager<TContent>(It.IsAny<int>()))
-                .Returns((int batchSize) => new MemoryPager<TContent>(EndpointContent, batchSize));
+            MockListApiClient = Freeze<Mock<IPagedListApiClient<TContent>>>();
+            MockListApiClient.Setup(x => x.GetAllAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(() => Result<IImmutableList<TContent>>.Succeeded(EndpointContent.ToImmutableList()));
+
+            MockSitesApiClient = Freeze<Mock<ISitesApiClient>>();
+            MockSitesApiClient.Setup(x => x.GetListApiClient<TContent>())
+                .Returns(MockListApiClient.Object);
+
+            MockDestinationEndpoint = Freeze<Mock<IDestinationApiEndpoint>>();
+            MockDestinationEndpoint.Setup(x => x.SiteApi)
+                .Returns(MockSitesApiClient.Object);
+
+            AutoFixture.Register<IDestinationEndpoint>(() => MockDestinationEndpoint.Object);
 
             var mockConfigReader = Freeze<Mock<IConfigReader>>();
-            mockConfigReader.Setup(x => x.Get())
-                .Returns(() => new MigrationSdkOptions { BatchSize = BatchSize });
+            mockConfigReader.Setup(x => x.Get<TestContentType>())
+                .Returns(() => ContentTypesOptions);
 
             Cache = Create<TCache>();
         }

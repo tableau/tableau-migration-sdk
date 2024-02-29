@@ -101,8 +101,8 @@ namespace Csharp.ExampleApplication
 
             // Add post-publish hooks
             #region UpdatePermissionsHook-Registration
-            _planBuilder.Hooks.Add<UpdatePermissionsHook<IPublishableDataSource, IDataSource>>();
-            _planBuilder.Hooks.Add<UpdatePermissionsHook<IPublishableWorkbook, IResultWorkbook>>();
+            _planBuilder.Hooks.Add<UpdatePermissionsHook<IPublishableDataSource, IDataSourceDetails>>();
+            _planBuilder.Hooks.Add<UpdatePermissionsHook<IPublishableWorkbook, IWorkbookDetails>>();
             #endregion
 
             #region BulkLoggingHook-Registration

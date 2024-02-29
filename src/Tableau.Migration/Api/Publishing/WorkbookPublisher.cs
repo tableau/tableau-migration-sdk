@@ -14,11 +14,10 @@
 //  limitations under the License.
 //
 
-using System.Collections.Immutable;
-using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Tableau.Migration.Api.Models;
 using Tableau.Migration.Api.Rest;
 using Tableau.Migration.Api.Rest.Models.Requests;
@@ -31,18 +30,20 @@ using Tableau.Migration.Resources;
 
 namespace Tableau.Migration.Api.Publishing
 {
-    internal class WorkbookPublisher : FilePublisherBase<IPublishWorkbookOptions, CommitWorkbookPublishRequest, IResultWorkbook>, IWorkbookPublisher
+    internal class WorkbookPublisher : FilePublisherBase<IPublishWorkbookOptions, CommitWorkbookPublishRequest, IWorkbookDetails>, IWorkbookPublisher
     {
         public WorkbookPublisher(
             IRestRequestBuilderFactory restRequestBuilderFactory,
             IContentReferenceFinderFactory finderFactory,
             IServerSessionProvider sessionProvider,
+            ILoggerFactory loggerFactory,
             ISharedResourcesLocalizer sharedResourcesLocalizer,
             IHttpStreamProcessor httpStreamProcessor)
             : base(
                   restRequestBuilderFactory,
                   finderFactory,
                   sessionProvider,
+                  loggerFactory,
                   sharedResourcesLocalizer,
                   httpStreamProcessor,
                   RestUrlPrefixes.Workbooks)
@@ -51,34 +52,32 @@ namespace Tableau.Migration.Api.Publishing
         protected override CommitWorkbookPublishRequest BuildCommitRequest(IPublishWorkbookOptions options)
             => new(options);
 
-        protected override async Task<IResult<IResultWorkbook>> SendCommitRequestAsync(
+        protected override async Task<IResult<IWorkbookDetails>> SendCommitRequestAsync(
             IPublishWorkbookOptions options,
             string uploadSessionId,
             MultipartContent content,
             CancellationToken cancel)
         {
-            var request = RestRequestBuilderFactory
+            var result = await RestRequestBuilderFactory
                .CreateUri(ContentTypeUrlPrefix)
                .WithQuery("uploadSessionId", uploadSessionId)
                .WithQuery("skipConnectionCheck", options.SkipConnectionCheck.ToString().ToLower())
                .WithQuery("workbookType", options.FileType)
                .WithQuery("overwrite", options.Overwrite.ToString().ToLower())
                .ForPostRequest()
-               .WithContent(content);
+               .WithContent(content)
+               .SendAsync<WorkbookResponse>(cancel)
+               .ToResultAsync<WorkbookResponse, IWorkbookDetails>(async (response, cancel) =>
+                {
+                    var workbook = Guard.AgainstNull(response.Item, () => response.Item);
 
-            var result = await request
-                .SendAsync<WorkbookResponse>(cancel)
-                    .ToResultAsync<WorkbookResponse, IResultWorkbook>(async (r, c) =>
-                    {
-                        var project = await ContentFinderFactory.FindProjectAsync(r.Item, c).ConfigureAwait(false);
-                        var owner = await ContentFinderFactory.FindOwnerAsync(r.Item, c).ConfigureAwait(false);
-                        var views = r.Item.Views.Select(v => (IView)new View(v, project, r.Item.Name))
-                            .ToImmutableArray();
+                    var project = await ContentFinderFactory.FindProjectAsync(workbook, Logger, SharedResourcesLocalizer, true, cancel).ConfigureAwait(false);
+                    var owner = await ContentFinderFactory.FindOwnerAsync(workbook, Logger, SharedResourcesLocalizer, true, cancel).ConfigureAwait(false);
 
-                        return new ResultWorkbook(r.Item, project, owner, views);
-                    },
-                    SharedResourcesLocalizer,
-                    cancel)
+                    return new WorkbookDetails(workbook, project, owner);
+                },
+                SharedResourcesLocalizer,
+                cancel)
                 .ConfigureAwait(false);
 
             return result;

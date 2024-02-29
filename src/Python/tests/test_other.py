@@ -21,6 +21,7 @@ from tableau_migration.migration_engine import (
     PyMigrationPlanBuilder)
 
 from Tableau.Migration.Config import IConfigReader
+from Tableau.Migration.Content import IUser
 
 class TestEndToEnd():
     def test_main(self):
@@ -64,6 +65,6 @@ class TestConfig():
         services = tableau_migration.migration.get_service_provider()
         config_reader = tableau_migration.migration.get_service(services, IConfigReader)
 
-        batch_size = config_reader.Get().BatchSize
+        batch_size = config_reader.Get[IUser]().BatchSize
 
         assert batch_size==102

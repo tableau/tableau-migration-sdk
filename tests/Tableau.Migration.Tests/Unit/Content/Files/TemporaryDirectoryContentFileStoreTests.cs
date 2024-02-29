@@ -15,8 +15,6 @@
 //
 
 using System.IO;
-using System.IO.Abstractions;
-using Tableau.Migration.Config;
 using Tableau.Migration.Content.Files;
 using Xunit;
 
@@ -24,28 +22,19 @@ namespace Tableau.Migration.Tests.Unit.Content.Files
 {
     public class TemporaryDirectoryContentFileStoreTests
     {
-        public class TestFileStore : TemporaryDirectoryContentFileStore
-        {
-            public string PublicBaseStorePath => BaseStorePath;
+        public abstract class TemporaryDirectoryContentFileStoreTest : DirectoryContentFileStoreTestBase<TemporaryDirectoryContentFileStore>
+        { }
 
-            public TestFileStore(IFileSystem fileSystem, IContentFilePathResolver pathResolver, IConfigReader configReader)
-                : base(fileSystem, pathResolver, configReader)
-            { }
-        }
-
-        public class Ctor : AutoFixtureTestBase
+        public class Ctor : TemporaryDirectoryContentFileStoreTest
         {
             [Fact]
             public void MakesRandomSubDirectory()
             {
-                var rootPath = Create<string>();
+                var fileStore = CreateFileStore();
 
-                var config = Freeze<MigrationSdkOptions>();
-                config.Files.RootPath = rootPath;
+                var baseStorePath = GetBaseStorePath(fileStore);
 
-                var fs = Create<TestFileStore>();
-
-                var subDir = Path.GetRelativePath(rootPath, fs.PublicBaseStorePath);
+                var subDir = Path.GetRelativePath(RootPath, baseStorePath);
                 Assert.NotEmpty(subDir);
             }
         }

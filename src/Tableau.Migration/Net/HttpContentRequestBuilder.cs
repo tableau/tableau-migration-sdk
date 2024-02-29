@@ -17,7 +17,6 @@
 using System;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Text;
 
 namespace Tableau.Migration.Net
 {
@@ -95,7 +94,7 @@ namespace Tableau.Migration.Net
             // this can be overridden by calling Accept again with another type.
             Accept(contentType, false);
 
-            Request.Content = new StringContent(content, Encoding.UTF8, contentType.MediaType!);
+            Request.Content = new StringContent(content, Constants.DefaultEncoding, contentType.MediaType!);
 
             return (TBuilderImpl)this;
         }

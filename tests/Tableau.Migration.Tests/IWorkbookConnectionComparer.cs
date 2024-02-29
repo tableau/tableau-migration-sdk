@@ -23,7 +23,7 @@ namespace Tableau.Migration.Tests
     {
         public static IWorkbookConnectionComparer Instance = new();
 
-        public override int CompareItems(CommitWorkbookPublishRequest.WorkbookType.ConnectionType x, CommitWorkbookPublishRequest.WorkbookType.ConnectionType y)
+        protected override int CompareItems(CommitWorkbookPublishRequest.WorkbookType.ConnectionType x, CommitWorkbookPublishRequest.WorkbookType.ConnectionType y)
         {
             Guard.AgainstNull(x.Credentials, nameof(x.Credentials));
             Guard.AgainstNull(y.Credentials, nameof(y.Credentials));

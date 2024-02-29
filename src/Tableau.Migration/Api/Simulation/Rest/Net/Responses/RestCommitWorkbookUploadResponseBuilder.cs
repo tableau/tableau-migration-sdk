@@ -110,7 +110,7 @@ namespace Tableau.Migration.Api.Simulation.Rest.Net.Responses
                 Id = commitWorkbook.Project?.Id ?? Data.DefaultProject.Id
             };
 
-            targetWorkbook.Tags = null;
+            targetWorkbook.Tags = [];
 
             // Update connection data
             foreach (var connection in commitRequest.Workbook.Connections)

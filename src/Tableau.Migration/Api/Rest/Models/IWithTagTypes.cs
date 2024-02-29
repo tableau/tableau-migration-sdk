@@ -24,6 +24,6 @@ namespace Tableau.Migration.Api.Rest.Models
         /// <summary>
         /// Gets the tags for the response.
         /// </summary>
-        ITagType[]? Tags { get; internal set; }
+        ITagType[] Tags { get; internal set; }
     }
 }

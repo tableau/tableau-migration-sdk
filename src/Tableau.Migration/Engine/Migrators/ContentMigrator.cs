@@ -70,7 +70,7 @@ namespace Tableau.Migration.Engine.Migrators
         /// <summary>
         /// Gets the configured batch size.
         /// </summary>
-        protected int BatchSize => _configReader.Get().BatchSize;
+        protected int BatchSize => _configReader.Get<TContent>().BatchSize;
 
         /// <summary>
         /// Creates a migration item context object for a given source content item and manifest entry.

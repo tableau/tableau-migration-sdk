@@ -40,7 +40,7 @@ namespace Tableau.Migration.Api.Rest.Models.Requests
         /// <param name="tags">The tags to populate the request with.</param>
         public AddTagsRequest(IEnumerable<ITag> tags)
         {
-            Tags = tags.Select(tag => new TagType(tag)).ToArray() ?? Array.Empty<TagType>();
+            Tags = tags.Select(tag => new TagType(tag)).ToArray();
         }
 
         /// <summary>
@@ -48,7 +48,8 @@ namespace Tableau.Migration.Api.Rest.Models.Requests
         /// </summary>
         [XmlArray("tags")]
         [XmlArrayItem("tag")]
-        public TagType[]? Tags { get; set; } = Array.Empty<TagType>();
+        public TagType[] Tags { get; set; } = Array.Empty<TagType>();
+
 
         /// <inheritdoc/>
         public class TagType : ITagType
