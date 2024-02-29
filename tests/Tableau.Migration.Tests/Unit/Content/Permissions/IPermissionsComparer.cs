@@ -26,7 +26,7 @@ namespace Tableau.Migration.Tests.Content.Permissions
     {
         public static readonly IPermissionsComparer Instance = new();
 
-        public override int CompareItems(IPermissions x, IPermissions y)
+        protected override int CompareItems(IPermissions x, IPermissions y)
         {
             var parentIdResult = Comparer<Guid?>.Default.Compare(x.ParentId, y.ParentId);
 

@@ -15,6 +15,7 @@
 //
 
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Moq;
 using Tableau.Migration.Config;
@@ -32,8 +33,8 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints.Search
         {
             public List<TestContentType> ItemLoadedCalls { get; } = new();
 
-            public TestBulkDestinationCache(IMigrationManifestEditor manifest, IDestinationEndpoint endpoint, IConfigReader configReader) 
-                : base(manifest, endpoint, configReader)
+            public TestBulkDestinationCache(IDestinationEndpoint endpoint, IConfigReader configReader, IMigrationManifestEditor manifest) 
+                : base(endpoint, configReader, manifest)
             { }
 
             protected override void ItemLoaded(TestContentType item)
@@ -56,7 +57,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints.Search
                 var resultStub = Assert.IsType<ContentReferenceStub>(result);
                 Assert.Equal(new ContentReferenceStub(item), resultStub);
 
-                MockDestinationEndpoint.Verify(x => x.GetPager<TestContentType>(BatchSize), Times.Once);
+                MockListApiClient.Verify(x => x.GetAllAsync(ContentTypesOptions.BatchSize, It.IsAny<CancellationToken>()), Times.Once);
 
                 Assert.Equal(EndpointContent.Count, Cache.Count);
             }
@@ -87,7 +88,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints.Search
                     Assert.Equal(new ContentReferenceStub(item), resultStub);
                 }
 
-                MockDestinationEndpoint.Verify(x => x.GetPager<TestContentType>(BatchSize), Times.Once);
+                MockListApiClient.Verify(x => x.GetAllAsync(ContentTypesOptions.BatchSize, It.IsAny<CancellationToken>()), Times.Once);
 
                 Assert.Equal(EndpointContent.Count, Cache.Count);
             }

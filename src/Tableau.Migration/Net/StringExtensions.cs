@@ -46,9 +46,9 @@ namespace Tableau.Migration.Net
         internal static StringContent ToHttpContent(this string content, MediaTypeWithQualityHeaderValue contentType)
         {
 #if NET7_0_OR_GREATER
-            return new StringContent(content, Encoding.UTF8, contentType);
+            return new StringContent(content, Constants.DefaultEncoding, contentType);
 #else
-            return new StringContent(content, Encoding.UTF8, contentType.MediaType);
+            return new StringContent(content, Constants.DefaultEncoding, contentType.MediaType);
 #endif
         }
 

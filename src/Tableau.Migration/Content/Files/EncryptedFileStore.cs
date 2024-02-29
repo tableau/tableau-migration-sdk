@@ -15,7 +15,6 @@
 //
 
 using System;
-using System.IO;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
@@ -84,40 +83,6 @@ namespace Tableau.Migration.Content.Files
             _encryptionKey = encryption.Key;
         }
 
-        #region - Encryption Helper Methods -
-
-        private static async ValueTask<byte[]> ReadInitializationVectorAsync(Stream encryptedStream,
-            int ivLength, CancellationToken cancel)
-        {
-            byte[] iv = new byte[ivLength];
-            int leftToRead = iv.Length;
-            int totalBytesRead = 0;
-
-            while (leftToRead > 0)
-            {
-                int bytesRead = await encryptedStream.ReadAsync(iv.AsMemory(totalBytesRead, leftToRead), cancel)
-                    .ConfigureAwait(false);
-
-                if (bytesRead is 0)
-                {
-                    break;
-                }
-
-                totalBytesRead += bytesRead;
-                leftToRead -= bytesRead;
-            }
-
-            return iv;
-        }
-
-        private static async ValueTask WriteInitializationVector(Stream stream,
-            byte[] iv, CancellationToken cancel)
-        {
-            await stream.WriteAsync(iv, cancel).ConfigureAwait(false);
-        }
-
-        #endregion
-
         #region - IContentFileStore Implementation -
 
         /// <inheritdoc />
@@ -150,11 +115,11 @@ namespace Tableau.Migration.Content.Files
             {
                 var encryption = _encryptionFactory.Create(); //Disposed by file stream wrapper.
 
-                var iv = await ReadInitializationVectorAsync(stream.Content, encryption.IV.Length, cancel)
+                var iv = await stream.Content.ReadInitializationVectorAsync(encryption.IV.Length, cancel)
                     .ConfigureAwait(false);
 
                 var transform = encryption.CreateDecryptor(_encryptionKey, iv); //Disposed by file stream wrapper.
-                var cryptoStream = new CryptoStream(stream.Content, transform, CryptoStreamMode.Read, false); //Disposed by file stream wrapper.
+                var cryptoStream = new SeekableCryptoStream(stream.Content, transform, CryptoStreamMode.Read, false); //Disposed by file stream wrapper.
 
                 stream = new EncryptedFileStream(stream, encryption, transform, cryptoStream);
             }
@@ -171,11 +136,11 @@ namespace Tableau.Migration.Content.Files
                 var encryption = _encryptionFactory.Create(); //Disposed by file stream wrapper.
                 encryption.GenerateIV();
 
-                await WriteInitializationVector(stream.Content, encryption.IV, cancel)
+                await stream.Content.WriteInitializationVectorAsync(encryption.IV, cancel)
                     .ConfigureAwait(false);
 
                 var transform = encryption.CreateEncryptor(_encryptionKey, encryption.IV); //Disposed by file stream wrapper.
-                var cryptoStream = new CryptoStream(stream.Content, transform, CryptoStreamMode.Write, false); //Disposed by file stream wrapper.
+                var cryptoStream = new SeekableCryptoStream(stream.Content, transform, CryptoStreamMode.Write, false); //Disposed by file stream wrapper.
 
                 stream = new EncryptedFileStream(stream, encryption, transform, cryptoStream);
             }

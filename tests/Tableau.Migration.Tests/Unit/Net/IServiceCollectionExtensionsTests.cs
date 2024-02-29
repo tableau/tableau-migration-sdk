@@ -18,12 +18,11 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Http;
 using Tableau.Migration.Api;
 using Tableau.Migration.Config;
 using Tableau.Migration.Net;
 using Tableau.Migration.Net.Handlers;
-using Tableau.Migration.Net.Policies;
+using Tableau.Migration.Net.Resilience;
 using Tableau.Migration.Net.Rest;
 using Xunit;
 
@@ -51,34 +50,10 @@ namespace Tableau.Migration.Tests.Unit.Net
                 await AssertServiceAsync<IHttpContentSerializer, HttpContentSerializer>(ServiceLifetime.Singleton);
                 await AssertServiceAsync<INetworkTraceRedactor, NetworkTraceRedactor>(ServiceLifetime.Singleton);
                 await AssertServiceAsync<INetworkTraceLogger, NetworkTraceLogger>(ServiceLifetime.Transient);
-                await AssertServiceAsync<HttpPolicyWrapBuilder>(ServiceLifetime.Scoped);
-                await AssertServiceAsync<IHttpPolicyWrapBuilder, SimpleCachedHttpPolicyWrapBuilder>(ServiceLifetime.Scoped);
-                await AssertServiceAsync<PolicyHttpMessageHandler>(ServiceLifetime.Transient);
                 await AssertServiceAsync<UserAgentHttpMessageHandler>(ServiceLifetime.Transient);
                 await AssertServiceAsync<AuthenticationHandler>(ServiceLifetime.Transient);
                 await AssertServiceAsync<LoggingHandler>(ServiceLifetime.Transient);
                 await AssertServiceAsync<IHttpClient, DefaultHttpClient>(ServiceLifetime.Transient);
-                await AssertServiceAsync<RetryPolicyBuilder>(ServiceLifetime.Scoped);
-                await AssertServiceAsync<MaxConcurrencyPolicyBuilder>(ServiceLifetime.Scoped);
-                await AssertServiceAsync<ClientThrottlePolicyBuilder>(ServiceLifetime.Scoped);
-                await AssertServiceAsync<RequestTimeoutPolicyBuilder>(ServiceLifetime.Scoped);
-                await AssertServiceAsync<SimpleCachedRetryPolicyBuilder>(ServiceLifetime.Scoped);
-                await AssertServiceAsync<SimpleCachedMaxConcurrencyPolicyBuilder>(ServiceLifetime.Scoped);
-                await AssertServiceAsync<SimpleCachedClientThrottlePolicyBuilder>(ServiceLifetime.Scoped);
-                await AssertServiceAsync<SimpleCachedServerThrottlePolicyBuilder>(ServiceLifetime.Scoped);
-                await AssertServiceAsync<SimpleCachedRequestTimeoutPolicyBuilder>(ServiceLifetime.Scoped);
-
-                await using var scope = ServiceProvider.CreateAsyncScope();
-                var policies = scope.ServiceProvider.GetServices<IHttpPolicyBuilder>();
-
-                Assert.NotNull(policies);
-                Assert.Equal(5, policies.Count());
-                Assert.Collection(policies,
-                    policy => Assert.IsType<SimpleCachedRetryPolicyBuilder>(policy),
-                    policy => Assert.IsType<SimpleCachedMaxConcurrencyPolicyBuilder>(policy),
-                    policy => Assert.IsType<SimpleCachedServerThrottlePolicyBuilder>(policy),
-                    policy => Assert.IsType<SimpleCachedClientThrottlePolicyBuilder>(policy),
-                    policy => Assert.IsType<SimpleCachedRequestTimeoutPolicyBuilder>(policy));
 
                 var defaultHttpClientFactoryType = Migration.Net.IServiceCollectionExtensions.GetDefaultHttpClientFactoryType();
                 await AssertServiceAsync<IHttpClientFactory>(defaultHttpClientFactoryType, ServiceLifetime.Scoped);
@@ -93,6 +68,17 @@ namespace Tableau.Migration.Tests.Unit.Net
                 await AssertServiceAsync<IServerSessionProvider, ServerSessionProvider>(ServiceLifetime.Scoped);
                 await AssertServiceAsync<IHttpRequestBuilderFactory, HttpRequestBuilderFactory>(ServiceLifetime.Scoped);
                 await AssertServiceAsync<IRestRequestBuilderFactory, RestRequestBuilderFactory>(ServiceLifetime.Scoped);
+
+                var strategyBuilders = ServiceProvider.GetServices<IResilienceStrategyBuilder>();
+
+                Assert.NotNull(strategyBuilders);
+                Assert.Equal(5, strategyBuilders.Count());
+                Assert.Collection(strategyBuilders,
+                    b => Assert.IsType<RetryStrategyBuilder>(b),
+                    b => Assert.IsType<MaxConcurrencyStrategyBuilder>(b),
+                    b => Assert.IsType<ServerThrottleStrategyBuilder>(b),
+                    b => Assert.IsType<ClientThrottleStrategyBuilder>(b),
+                    b => Assert.IsType<RequestTimeoutStrategyBuilder>(b));
             }
 
             [Fact]

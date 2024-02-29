@@ -105,13 +105,6 @@ namespace Tableau.Migration.Config
             public readonly static TimeSpan MAX_READ_REQUESTS_INTERVAL = TimeSpan.FromHours(1);
 
             /// <summary>
-            /// The default Burst Read Requests for the Client Throttle. Default is 20.
-            /// Without the burst configuration, it will be allowed just one request for each 90 milliseconds (1 hour / 40000 requests).
-            /// This override the configuration and allow 20 requests in an interval of 90 milliseconds.
-            /// </summary>
-            public const int MAX_BURST_READ_REQUESTS = 20;
-
-            /// <summary>
             /// The default Maximum Publish Requests for the Client Throttle. Default is 5500.
             /// </summary>
             public const int MAX_PUBLISH_REQUESTS = 5500;
@@ -120,13 +113,6 @@ namespace Tableau.Migration.Config
             /// The default interval for Publish Requests Throttle.
             /// </summary>
             public readonly static TimeSpan MAX_PUBLISH_REQUESTS_INTERVAL = TimeSpan.FromDays(1);
-
-            /// <summary>
-            /// The default Burst Publish Requests for the Client Throttle. Default is 20.
-            /// Without the burst configuration, it will be allowed just one request for each 16 seconds (1 day / 5500 requests).
-            /// This overrides the configuration and allow 20 requests in an interval of 16 seconds.
-            /// </summary>
-            public const int MAX_BURST_PUBLISH_REQUESTS = 20;
 
             /// <summary>
             /// The default Per-Request Timeout. Default is 30 minutes.
@@ -248,22 +234,6 @@ namespace Tableau.Migration.Config
         private TimeSpan? _maxReadRequestsInterval;
 
         /// <summary>
-        /// Limits the amount of burst read requests in for the Client Throttle.
-        /// Without the burst configuration, it follows this formula: 
-        /// <para>
-        /// 1 request for each (<see cref="MaxReadRequestsInterval"/> / <see cref="MaxReadRequests"/>)
-        /// </para>
-        /// This overrides the configuration and allow more requests for the calculated interval.
-        /// The default value is 20.
-        /// </summary>
-        public int MaxBurstReadRequests
-        {
-            get => _maxBurstReadRequests ?? Defaults.MAX_BURST_READ_REQUESTS;
-            set => _maxBurstReadRequests = value;
-        }
-        private int? _maxBurstReadRequests;
-
-        /// <summary>
         /// Limits the amount of push requests in for the Client Throttle. 
         /// The default value is 5500.
         /// </summary>
@@ -284,22 +254,6 @@ namespace Tableau.Migration.Config
             set => _maxPushRequestsInterval = value;
         }
         private TimeSpan? _maxPushRequestsInterval;
-
-        /// <summary>
-        /// Limits the amount of burst push requests in for the Client Throttle.
-        /// Without the burst configuration, it follows this formula
-        /// <para>
-        /// 1 request for each (<see cref="MaxPublishRequestsInterval"/> / <see cref="MaxPublishRequests"/>)
-        /// </para>
-        /// This overrides the configuration and allow more requests for the calculated interval.
-        /// The default value is 20.
-        /// </summary>
-        public int MaxBurstPublishRequests
-        {
-            get => _maxBurstPushRequests ?? Defaults.MAX_BURST_PUBLISH_REQUESTS;
-            set => _maxBurstPushRequests = value;
-        }
-        private int? _maxBurstPushRequests;
 
         /// <summary>
         /// Gets or sets whether to wait and retry on server throttle responses.

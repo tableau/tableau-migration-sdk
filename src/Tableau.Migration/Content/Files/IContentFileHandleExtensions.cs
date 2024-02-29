@@ -14,6 +14,7 @@
 //  limitations under the License.
 //
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -22,8 +23,30 @@ namespace Tableau.Migration.Content.Files
     internal static class IContentFileHandleExtensions
     {
         internal static async Task CloseTableauFileEditorAsync(this IContentFileHandle contentFileHandle, CancellationToken cancel)
-        { 
-            await contentFileHandle.Store.CloseTableauFileEditorAsync(contentFileHandle, cancel).ConfigureAwait(false);
+            => await contentFileHandle.Store.CloseTableauFileEditorAsync(contentFileHandle, cancel).ConfigureAwait(false);
+
+        internal static async Task<bool> IsZipAsync(this IContentFileHandle handle, CancellationToken cancel)
+        {
+            var isZipFile = IsZipFile(h => h.GetOriginalFilePath()) ?? IsZipFile(h => h.GetStoreFilePath());
+
+            if (isZipFile is not null)
+                return isZipFile.Value;
+
+            var fileStream = await handle.OpenReadAsync(cancel).ConfigureAwait(false);
+
+            await using (fileStream)
+            {
+                return fileStream.Content.IsZip();
+            }
+
+            bool? IsZipFile(Func<IContentFileHandle, FilePath> getFilePath)
+                => getFilePath(handle).IsZipFile;
         }
+
+        internal static FilePath GetOriginalFilePath(this IContentFileHandle handle)
+            => new(handle.OriginalFileName);
+
+        internal static FilePath GetStoreFilePath(this IContentFileHandle handle)
+            => new(handle.Path);
     }
 }

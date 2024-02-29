@@ -29,7 +29,7 @@ namespace Tableau.Migration.Content
             Guard.AgainstNullEmptyOrWhiteSpace(workbookName, () => workbookName);
 
             Id = view.Id;
-            Name = Name = Guard.AgainstNullEmptyOrWhiteSpace(view.Name, () => view.Name);
+            Name = Guard.AgainstNullEmptyOrWhiteSpace(view.Name, () => view.Name);
             ContentUrl = Guard.AgainstNull(view.ContentUrl, () => view.ContentUrl);
             Location = project.Location.Append(workbookName).Append(Name);
             Tags = view.Tags.ToTagList(t => new Tag(t));

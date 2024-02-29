@@ -117,8 +117,17 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="ApiClientDoesnotImplementIReadApiClientError" xml:space="preserve">
+    <value>{TypeName} doesn't implement IReadApiClient.</value>
+  </data>
   <data name="ApiClientInputNotInitializedError" xml:space="preserve">
     <value>API client input must be initialized before it is used.</value>
+  </data>
+  <data name="ApiEndpointDoesnotHaveValidSiteError" xml:space="preserve">
+    <value>API endpoint does not have a valid site API client.</value>
+  </data>
+  <data name="ApiEndpointNotInitializedError" xml:space="preserve">
+    <value>API endpoint is not initialized.</value>
   </data>
   <data name="AuthenticationTypeDomainMappingValidationMessage" xml:space="preserve">
     <value>An authentication type domain mapping is required for server to cloud migrations.</value>
@@ -228,5 +237,11 @@ Detail: {3}</value>
   </data>
   <data name="PermissionsTransformerGranteeNotFoundWarning" xml:space="preserve">
     <value>Could not transform permissions. The {granteeType} for {UserOrGroupName} was not found at the destination.</value>
+  </data>
+  <data name="ProjectReferenceNotFoundMessage" xml:space="preserve">
+    <value>Project {ProjectName} was not found for {ContentType} {ContentName}.</value>
+  </data>
+  <data name="OwnerNotFoundMessage" xml:space="preserve">
+    <value>Owner {OwnerId} was not found for {ContentType} {ContentName}.</value>
   </data>
 </root>

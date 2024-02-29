@@ -33,8 +33,13 @@ namespace Tableau.Migration.Content.Files
         /// <param name="fileSystem">The file system to use.</param>
         /// <param name="pathResolver">The path resolver to use.</param>
         /// <param name="configReader">A config reader to get the root path and other options from.</param>
-        public TemporaryDirectoryContentFileStore(IFileSystem fileSystem, IContentFilePathResolver pathResolver, IConfigReader configReader)
-            : base(fileSystem, pathResolver, configReader, Path.GetRandomFileName())
+        /// <param name="memoryStreamManager">The memory stream manager to user.</param>
+        public TemporaryDirectoryContentFileStore(
+            IFileSystem fileSystem,
+            IContentFilePathResolver pathResolver,
+            IConfigReader configReader,
+            IMemoryStreamManager memoryStreamManager)
+            : base(fileSystem, pathResolver, configReader, memoryStreamManager, Path.GetRandomFileName())
         { }
     }
 }

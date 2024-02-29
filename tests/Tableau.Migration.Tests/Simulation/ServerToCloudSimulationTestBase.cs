@@ -20,6 +20,8 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using AutoFixture;
+using Microsoft.Extensions.DependencyInjection;
+using Moq;
 using Tableau.Migration.Api;
 using Tableau.Migration.Api.Rest.Models;
 using Tableau.Migration.Api.Rest.Models.Responses;
@@ -64,7 +66,7 @@ namespace Tableau.Migration.Tests.Simulation
                     .Create();
 
                 // Wrong - Work item in in backlog
-                defaultUser.Name = $"{defaultUser.Domain!.Name}\\{defaultUser.Name}"; ;
+                defaultUser.Name = $"{defaultUser.Domain!.Name}\\{defaultUser.Name}";
 
                 return defaultUser;
             }
@@ -76,6 +78,23 @@ namespace Tableau.Migration.Tests.Simulation
             CloudDestinationApi = RegisterCloudApiSimulator(destinationUrl, CreateDefaultUser());
             CloudDestinationSiteConfig = BuildSiteConnectionConfiguration(CloudDestinationApi);
             CloudDestinationEndpointConfig = new(CloudDestinationSiteConfig);
+        }
+
+        protected virtual bool UsersBatchImportEnabled { get; } = true;
+
+        protected override IServiceCollection ConfigureServices(IServiceCollection services)
+        {
+            var mockedConfigReader = Freeze<Mock<IConfigReader>>();
+            mockedConfigReader.Setup(x => x.Get<IUser>())
+                .Returns(new ContentTypesOptions
+                {
+                    BatchPublishingEnabled = UsersBatchImportEnabled
+                });
+            mockedConfigReader.Setup(x => x.Get())
+                .Returns(new MigrationSdkOptions());
+
+            return services.AddTableauMigrationSdk()
+                .AddSingleton(mockedConfigReader.Object);
         }
 
         #region - Asserts -
@@ -127,20 +146,6 @@ namespace Tableau.Migration.Tests.Simulation
             Assert.Equal(mappedGranteeCapabilities.ToIGranteeCapabilities(), destinationGranteeCapabilities.ToIGranteeCapabilities(), comparer);
         }
 
-        internal static void AssertTags(
-                ITagType[]? sourceTags,
-                ITagType[]? destinationTags)
-        {
-            if (sourceTags is null)
-            {
-                Assert.NotNull(destinationTags);
-                Assert.Empty(destinationTags);
-                return;
-            }
-
-            Assert.Equal<ITagType>(sourceTags, destinationTags, ITagTypeComparer.Instance);
-        }
-
         #endregion
 
         #region - Prepare Source Data (Users) -
@@ -148,7 +153,7 @@ namespace Tableau.Migration.Tests.Simulation
         protected (List<UsersResponse.UserType> NonSupportUsers, List<UsersResponse.UserType> SupportUsers) PrepareSourceUsersData(int? count = null)
         {
             var allSiteRoles = SiteRoles.GetAll();
-            var numSourceUsers = count ?? (int)Math.Ceiling(MigrationSdkOptions.Defaults.BATCH_SIZE * 2.5);
+            var numSourceUsers = count ?? (int)Math.Ceiling(ContentTypesOptions.Defaults.BATCH_SIZE * 2.5);
 
             var nonSupportUsers = new List<UsersResponse.UserType>();
             var supportUsers = new List<UsersResponse.UserType>();
@@ -193,7 +198,7 @@ namespace Tableau.Migration.Tests.Simulation
         {
             var groups = new List<GroupsResponse.GroupType>();
             var allSiteRoles = SiteRoles.GetAll();
-            var numSourceGroups = count ?? (int)Math.Ceiling(MigrationSdkOptions.Defaults.BATCH_SIZE * 1.5);
+            var numSourceGroups = count ?? (int)Math.Ceiling(ContentTypesOptions.Defaults.BATCH_SIZE * 1.5);
 
             for (int i = 0; i < numSourceGroups; i++)
             {
@@ -346,7 +351,7 @@ namespace Tableau.Migration.Tests.Simulation
 
                 // Our data source data will just be a guid as a string, encoded to a byte array
 
-                byte[] dataSourceData = Encoding.Default.GetBytes($"<data>{Guid.NewGuid()}</data>");
+                byte[] dataSourceData = Constants.DefaultEncoding.GetBytes($"<data>{Guid.NewGuid()}</data>");
                 SourceApi.Data.AddDataSource(dataSource, dataSourceData);
                 dataSources.Add(dataSource);
                 counter++;
@@ -485,7 +490,7 @@ namespace Tableau.Migration.Tests.Simulation
 
                 CreateConnectionsForWorkbook(workbookFileData);
 
-                SourceApi.Data.AddWorkbook(workbook, Encoding.Default.GetBytes(workbookFileData.ToXml()));
+                SourceApi.Data.AddWorkbook(workbook, Constants.DefaultEncoding.GetBytes(workbookFileData.ToXml()));
                 workbooks.Add(workbook);
             }
 

@@ -127,13 +127,13 @@ namespace Tableau.Migration.Api.Rest.Models.Responses
             /// </summary>
             [XmlArray("tags")]
             [XmlArrayItem("tag")]
-            public TagType[]? Tags { get; set; } = Array.Empty<TagType>();
+            public TagType[] Tags { get; set; } = Array.Empty<TagType>();
 
             ///<inheritdoc/>
-            ITagType[]? IWithTagTypes.Tags
+            ITagType[] IWithTagTypes.Tags
             {
                 get => Tags;
-                set => Tags = value?.Select(t => new TagType(t)).ToArray();
+                set => Tags = value.Select(t => new TagType(t)).ToArray();
             }
 
             #region - Object Specific Types -

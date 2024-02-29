@@ -16,7 +16,6 @@
 
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Text;
 using System.Threading.Tasks;
 using Moq;
 using Tableau.Migration.Api;
@@ -48,7 +47,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             [Fact]
             public async Task SendsAndDownloadsAsync()
             {
-                var content = new ByteArrayContent(Encoding.UTF8.GetBytes("test content"));
+                var content = new ByteArrayContent(Constants.DefaultEncoding.GetBytes("test content"));
                 MockResponse.Setup(x => x.Content).Returns(content);
 
                 var result = await MockRequestBuilder.Object

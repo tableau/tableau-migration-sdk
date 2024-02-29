@@ -25,7 +25,7 @@ namespace Tableau.Migration.Tests.Unit
         public static Mock<IContentReferenceFinder<TContent>> SetupMockFinder<TContent>(
             this Mock<IContentReferenceFinderFactory> mockFinderFactory,
             IFixture autoFixture)
-            where TContent : IContentReference
+            where TContent : class, IContentReference
         {
             var mockFinder = autoFixture.Create<Mock<IContentReferenceFinder<TContent>>>();
             mockFinderFactory.Setup(x => x.ForContentType<TContent>()).Returns(mockFinder.Object);

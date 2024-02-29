@@ -49,6 +49,11 @@ namespace Tableau.Migration.Content.Files
         protected IContentFilePathResolver PathResolver { get; }
 
         /// <summary>
+        /// Gets the memory stream manager.
+        /// </summary>
+        protected IMemoryStreamManager MemoryStreamManager { get; }
+
+        /// <summary>
         /// Gets the content files being tracked by the file store.
         /// </summary>
         protected ConcurrentSet<string> TrackedFilePaths { get; }
@@ -64,12 +69,18 @@ namespace Tableau.Migration.Content.Files
         /// <param name="fileSystem">The file system to use.</param>
         /// <param name="pathResolver">The path resolver to use.</param>
         /// <param name="configReader">A config reader to get the root path and other options from.</param>
+        /// <param name="memoryStreamManager">The memory stream manager to user.</param>
         /// <param name="storeDirectoryName">The relative directory name to use for this file store.</param>
-        public DirectoryContentFileStore(IFileSystem fileSystem, IContentFilePathResolver pathResolver,
-            IConfigReader configReader, string storeDirectoryName)
+        public DirectoryContentFileStore(
+            IFileSystem fileSystem,
+            IContentFilePathResolver pathResolver,
+            IConfigReader configReader,
+            IMemoryStreamManager memoryStreamManager,
+            string storeDirectoryName)
         {
             FileSystem = fileSystem;
             PathResolver = pathResolver;
+            MemoryStreamManager = memoryStreamManager;
             TrackedFilePaths = new();
 
             var config = configReader.Get();
@@ -135,7 +146,7 @@ namespace Tableau.Migration.Content.Files
         public async Task<ITableauFileEditor> GetTableauFileEditorAsync(IContentFileHandle handle, CancellationToken cancel, bool? zipFormatOverride = null)
             => await _openTableauFileEditors.GetOrAddAsync(
                 handle.Path,
-                async path => (ITableauFileEditor)await TableauFileEditor.OpenAsync(handle, cancel, zipFormatOverride).ConfigureAwait(false))
+                async path => (ITableauFileEditor)await TableauFileEditor.OpenAsync(handle, MemoryStreamManager, cancel, zipFormatOverride).ConfigureAwait(false))
                 .ConfigureAwait(false);
 
         /// <inheritdoc />

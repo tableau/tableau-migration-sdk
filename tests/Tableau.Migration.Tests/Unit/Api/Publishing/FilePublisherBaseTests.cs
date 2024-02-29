@@ -19,6 +19,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
+using Microsoft.Extensions.Logging;
 using Tableau.Migration.Api;
 using Tableau.Migration.Api.Models;
 using Tableau.Migration.Api.Publishing;
@@ -76,10 +77,11 @@ namespace Tableau.Migration.Tests.Unit.Api.Publishing
                 IRestRequestBuilderFactory restRequestBuilderFactory,
                 IContentReferenceFinderFactory finderFactory,
                 IServerSessionProvider sessionProvider,
+                ILoggerFactory loggerFactory,
                 ISharedResourcesLocalizer sharedResourcesLocalizer,
                 IHttpStreamProcessor httpStreamProcessor,
                 string contentTypeUrlPrefix)
-                : base(restRequestBuilderFactory, finderFactory, sessionProvider, sharedResourcesLocalizer, httpStreamProcessor, contentTypeUrlPrefix)
+                : base(restRequestBuilderFactory, finderFactory, sessionProvider, loggerFactory, sharedResourcesLocalizer, httpStreamProcessor, contentTypeUrlPrefix)
             { }
 
             protected override TestPublishRequest BuildCommitRequest(ITestPublishOptions options)
@@ -117,6 +119,7 @@ namespace Tableau.Migration.Tests.Unit.Api.Publishing
                     RestRequestBuilderFactory,
                     MockContentFinderFactory.Object,
                     MockSessionProvider.Object,
+                    MockLoggerFactory.Object,
                     MockSharedResourcesLocalizer.Object,
                     HttpStreamProcessor,
                     UrlPrefix);

@@ -17,7 +17,6 @@
 using System;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Tableau.Migration.Api.Rest.Models;
@@ -93,9 +92,9 @@ namespace Tableau.Migration.Net
                 return null;
 
 #if NET7_0_OR_GREATER
-            return new StringContent(stringContent, Encoding.UTF8, contentType);
+            return new StringContent(stringContent, Constants.DefaultEncoding, contentType);
 #else
-            return new StringContent(stringContent, Encoding.UTF8, contentType.MediaType);
+            return new StringContent(stringContent, Constants.DefaultEncoding, contentType.MediaType);
 #endif
         }
 

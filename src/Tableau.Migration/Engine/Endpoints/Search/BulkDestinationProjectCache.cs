@@ -35,11 +35,14 @@ namespace Tableau.Migration.Engine.Endpoints.Search
         /// <summary>
         /// Creates a new <see cref="BulkDestinationProjectCache"/> object.
         /// </summary>
-        /// <param name="manifest">The migration manifest.</param>
         /// <param name="endpoint">The destination endpoint.</param>
         /// <param name="configReader">The configuration reader.</param>
-        public BulkDestinationProjectCache(IMigrationManifestEditor manifest, IDestinationEndpoint endpoint, IConfigReader configReader) 
-            : base(manifest, endpoint, configReader)
+        /// <param name="manifest">The migration manifest.</param>
+        public BulkDestinationProjectCache(
+            IDestinationEndpoint endpoint, 
+            IConfigReader configReader, 
+            IMigrationManifestEditor manifest) 
+            : base(endpoint, configReader, manifest)
         {
             _projectContentPermissionModeCache = new();
         }
@@ -48,24 +51,24 @@ namespace Tableau.Migration.Engine.Endpoints.Search
         protected override void ItemLoaded(IProject item)
         {
             base.ItemLoaded(item);
-            UpdateLockedProjectCache(item);            
+            UpdateLockedProjectCache(item);
         }
 
         /// <inheritdoc />
         public async Task<bool> IsProjectLockedAsync(Guid id, CancellationToken cancel, bool includeWithoutNested = true)
         {
-            await LoadStoreAsync(cancel).ConfigureAwait(false);
+            await SearchAsync(id, cancel).ConfigureAwait(false);
 
-            if(!_projectContentPermissionModeCache.TryGetValue(id, out var mode))
+            if (!_projectContentPermissionModeCache.TryGetValue(id, out var mode))
             {
                 return false;
             }
-            
-            if(ContentPermissions.IsAMatch(ContentPermissions.LockedToProject, mode))
+
+            if (ContentPermissions.IsAMatch(ContentPermissions.LockedToProject, mode))
             {
                 return true;
             }
-            else if(includeWithoutNested && ContentPermissions.IsAMatch(ContentPermissions.LockedToProjectWithoutNested, mode))
+            else if (includeWithoutNested && ContentPermissions.IsAMatch(ContentPermissions.LockedToProjectWithoutNested, mode))
             {
                 return true;
             }

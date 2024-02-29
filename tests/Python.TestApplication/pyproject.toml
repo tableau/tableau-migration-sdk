@@ -30,7 +30,7 @@ ignore = ["D401", "D407", "E501", "D203", "D212"]
 [tool.hatch.envs.test]
 dev-mode = false
 dependencies = [
-  "pytest==7.4.4"
+  "pytest==8.0.1"
 ]
 
 [tool.hatch.envs.test.scripts]

@@ -79,10 +79,11 @@ namespace Tableau.Migration.Api
         }
         .ToImmutableDictionary(InheritedTypeComparer.Instance);
 
-        private TApiClient GetApiClientFromContentType<TApiClient>(Type contentType)
+        private TApiClient? GetApiClientFromContentType<TApiClient>(Type contentType)
+            where TApiClient : class
         {
             //TODO: validate content type, this needs heavy unit testing since we do runtime casting.
-            return (TApiClient)_contentTypeAccessors[contentType](this);
+            return _contentTypeAccessors[contentType](this) as TApiClient;
         }
 
         #region - ISitesApiClient Implementation -
@@ -109,43 +110,50 @@ namespace Tableau.Migration.Api
         public IViewsApiClient Views { get; }
 
         /// <inheritdoc />
+        public IReadApiClient<TContent>? GetReadApiClient<TContent>()
+            where TContent : class
+            => GetApiClientFromContentType<IReadApiClient<TContent>>(typeof(TContent));
+
+        /// <inheritdoc />
         public IPagedListApiClient<TContent> GetListApiClient<TContent>()
-            => GetApiClientFromContentType<IPagedListApiClient<TContent>>(typeof(TContent));
+            => GetApiClientFromContentType<IPagedListApiClient<TContent>>(typeof(TContent))!;
 
         /// <inheritdoc />
         public IPullApiClient<TContent, TPublish> GetPullApiClient<TContent, TPublish>()
             where TPublish : class
-            => GetApiClientFromContentType<IPullApiClient<TContent, TPublish>>(typeof(TContent));
+            => GetApiClientFromContentType<IPullApiClient<TContent, TPublish>>(typeof(TContent))!;
 
         /// <inheritdoc />
         public IPublishApiClient<TPublish, TPublishResult> GetPublishApiClient<TPublish, TPublishResult>()
             where TPublishResult : class, IContentReference
-            => GetApiClientFromContentType<IPublishApiClient<TPublish, TPublishResult>>(typeof(TPublish)); //TODO: Better resolution logic based on content/publish types
+            => GetApiClientFromContentType<IPublishApiClient<TPublish, TPublishResult>>(typeof(TPublish))!; //TODO: Better resolution logic based on content/publish types
 
         /// <inheritdoc />
         public IBatchPublishApiClient<TPublish> GetBatchPublishApiClient<TPublish>()
-            => GetApiClientFromContentType<IBatchPublishApiClient<TPublish>>(typeof(TPublish)); //TODO: Better resolution logic based on content/publish types
+            => GetApiClientFromContentType<IBatchPublishApiClient<TPublish>>(typeof(TPublish))!; //TODO: Better resolution logic based on content/publish types
 
         /// <inheritdoc />
         public IPermissionsApiClient GetPermissionsApiClient<TContent>()
-            => GetApiClientFromContentType<IPermissionsContentApiClient>(typeof(TContent)).Permissions; //TODO: Better resolution logic based on content/publish types
+            => GetApiClientFromContentType<IPermissionsContentApiClient>(typeof(TContent))!.Permissions; //TODO: Better resolution logic based on content/publish types
 
+        /// <inheritdoc />
         public IPermissionsApiClient GetPermissionsApiClient(Type type)
-            => GetApiClientFromContentType<IPermissionsContentApiClient>(type).Permissions; //TODO: Better resolution logic based on content/publish types
+            => GetApiClientFromContentType<IPermissionsContentApiClient>(type)!.Permissions; //TODO: Better resolution logic based on content/publish types
 
         /// <inheritdoc />
         public ITagsApiClient GetTagsApiClient<TContent>()
             where TContent : IWithTags
-            => GetApiClientFromContentType<ITagsContentApiClient>(typeof(TContent)).Tags; //TODO: Better resolution logic based on content/publish types
+            => GetApiClientFromContentType<ITagsContentApiClient>(typeof(TContent))!.Tags; //TODO: Better resolution logic based on content/publish types
 
         /// <inheritdoc />
         public IOwnershipApiClient GetOwnershipApiClient<TContent>()
             where TContent : IWithOwner
-            => GetApiClientFromContentType<IOwnershipApiClient>(typeof(TContent)); //TODO: Better resolution logic based on content/publish types
+            => GetApiClientFromContentType<IOwnershipApiClient>(typeof(TContent))!; //TODO: Better resolution logic based on content/publish types
 
+        /// <inheritdoc />
         public IConnectionsApiClient GetConnectionsApiClient<TContent>()
             where TContent : IWithConnections
-            => GetApiClientFromContentType<IConnectionsApiClient>(typeof(TContent)); //TODO: Better resolution logic based on content/publish types
+            => GetApiClientFromContentType<IConnectionsApiClient>(typeof(TContent))!; //TODO: Better resolution logic based on content/publish types
 
         private async Task<IResult<ISite>> GetSiteAsync(Func<IRestRequestBuilder, IRestRequestBuilder> setKey, CancellationToken cancel)
         {

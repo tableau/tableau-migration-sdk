@@ -14,6 +14,8 @@
 //  limitations under the License.
 //
 
+using System.Text;
+
 namespace Tableau.Migration
 {
     /// <summary>
@@ -80,6 +82,11 @@ namespace Tableau.Migration
         /// /// Admin Insight source: https://gitlab.tableausoftware.com/cloud-scale/admin-insights/genesis/blob/master/genesis/src/main/java/com/tableau/online/admindatasources/genesis/IConstants.java#L20
         /// </summary>
         public const string AdminInsightsTableauOnlineProjectName = "Admin Insights (Tableau Online)";
+
+        /// <summary>
+        /// The default text encoding.
+        /// </summary>
+        public static readonly Encoding DefaultEncoding = Encoding.UTF8;
 
         #endregion
 

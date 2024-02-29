@@ -109,8 +109,13 @@ namespace Tableau.Migration.Engine.Pipelines
         }
 
         /// <inheritdoc />
+        public virtual IContentReferenceCache CreateSourceCache<TContent>()
+            where TContent : class, IContentReference
+            => Services.GetRequiredService<BulkSourceCache<TContent>>();
+
+        /// <inheritdoc />
         public virtual IContentReferenceCache CreateDestinationCache<TContent>()
-            where TContent : IContentReference
+            where TContent : class, IContentReference
         {
             switch (typeof(TContent))
             {
@@ -119,12 +124,11 @@ namespace Tableau.Migration.Engine.Pipelines
                 default:
                     return Services.GetRequiredService<BulkDestinationCache<TContent>>();
             }
-            
         }
 
         /// <inheritdoc />
         public virtual IMappedContentReferenceFinder<TContent> CreateDestinationFinder<TContent>()
-            where TContent : IContentReference
+            where TContent : class, IContentReference
         {
             return Services.GetRequiredService<ManifestDestinationContentReferenceFinder<TContent>>();
         }

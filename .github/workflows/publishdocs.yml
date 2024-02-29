@@ -39,8 +39,6 @@ jobs:
     - uses: actions/download-artifact@v3
       with:
         name: coverage-${{ inputs.runs-on-config }}-${{ inputs.build-config }}
-    - name: Restore .NET Tools
-      run: dotnet tool restore
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
@@ -49,31 +47,18 @@ jobs:
       shell: pwsh
       run: |
         ./scripts/generate-docs.ps1 -SkipPreClean
-        cd ./docs
-        zip -r ../docs.zip *
-        cd ..
-    - name: Generate Coverage
-      run: |
-        dotnet reportgenerator -reporttypes:"Html;Badges" -reports:**/coverage*.cobertura.xml -targetdir:./coverage
-        cd ./coverage
-        zip -r ../coverage.zip *
-        cd ..
+        Compress-Archive ./docs/* -Destination docs.zip 
     - name: Upload Docs Artifact
       uses: actions/upload-artifact@v3
       with:
         name: docs
         path: docs.zip
-    - name: Upload Coverage Artifact
-      uses: actions/upload-artifact@v3
-      with:
-        name: coverage
-        path: coverage.zip
     - name: Setup GitHub Pages
-      uses: actions/configure-pages@v3.0.6
+      uses: actions/configure-pages@v4.0.0
     - name: Upload Github Pages
-      uses: actions/upload-pages-artifact@v2
+      uses: actions/upload-pages-artifact@v3.0.1
       with:
         path: './docs'
     - name: Deploy to GitHub Pages
       id: deployment
-      uses: actions/deploy-pages@v1.2.9
+      uses: actions/deploy-pages@v4.0.4

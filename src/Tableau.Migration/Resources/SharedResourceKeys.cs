@@ -89,5 +89,15 @@ namespace Tableau.Migration.Resources
         public const string SiteSettingsSkippedNoAccessLogMessage = "SiteSettingsSkippedNoAccessLogMessage";
 
         public const string SiteSettingsExtractEncryptionDisabledLogMessage = "SiteSettingsExtractEncryptionDisabledLogMessage";
+
+        public const string ApiClientDoesnotImplementIReadApiClientError = "ApiClientDoesnotImplementIReadApiClientError";
+
+        public const string ApiEndpointNotInitializedError = "ApiEndpointNotInitializedError";
+
+        public const string ApiEndpointDoesnotHaveValidSiteError = "ApiEndpointDoesnotHaveValidSiteError";
+
+        public const string ProjectReferenceNotFoundMessage = "ProjectReferenceNotFoundMessage";
+
+        public const string OwnerNotFoundMessage = "OwnerNotFoundMessage";
     }
 }

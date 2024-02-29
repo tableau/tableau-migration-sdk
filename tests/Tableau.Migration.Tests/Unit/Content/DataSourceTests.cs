@@ -128,7 +128,7 @@ namespace Tableau.Migration.Tests.Unit.Content
                 public void Handles_Empty_Tags()
                 {
                     var response = CreateTestResponse();
-                    response.Tags = null;
+                    response.Tags = [];
 
                     var project = Create<IContentReference>();
                     var owner = Create<IContentReference>();

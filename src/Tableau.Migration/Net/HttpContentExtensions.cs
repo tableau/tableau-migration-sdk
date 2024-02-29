@@ -17,7 +17,6 @@
 using System;
 using System.Globalization;
 using System.Net.Http;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -48,7 +47,7 @@ namespace Tableau.Migration.Net
                 //but that we know about.
                 var decoded = await content.ReadAsByteArrayAsync(cancel).ConfigureAwait(false);
 
-                return Encoding.UTF8.GetString(decoded);
+                return Constants.DefaultEncoding.GetString(decoded);
             }
 
             //fall back to the standard way of reading strings.

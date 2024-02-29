@@ -129,7 +129,7 @@ jobs:
     uses: ./.github/workflows/publishdocs-dryrun.yml
     if: ${{ (inputs.publish-release != 'Prod' && inputs.publish-release != 'Prod-Internal' && inputs.publish-docs == false) || (github.ref != 'refs/heads/main' && !startsWith(github.ref, 'refs/heads/release/') && !startsWith(github.ref, 'refs/tags/release/')) }}
     with:
-      runs-on-config: ${{ vars.PUBLISH_OS }}
+      runs-on-config: ${{ vars.DOCS_OS }}
       build-config: ${{ vars.PUBLISH_CONFIGURATION }}
       python-version: ${{ vars.PYTHON_PUBLISH_DOCS_VERSION }}
   publish-docs:
@@ -137,7 +137,7 @@ jobs:
     uses: ./.github/workflows/publishdocs.yml
     if: ${{ (inputs.publish-release == 'Prod' || inputs.publish-release == 'Prod-Internal' || inputs.publish-docs == true) && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/') || startsWith(github.ref, 'refs/tags/release/')) }}
     with:
-      runs-on-config: ${{ vars.PUBLISH_OS }}
+      runs-on-config: ${{ vars.DOCS_OS }}
       build-config: ${{ vars.PUBLISH_CONFIGURATION }}
       python-version: ${{ vars.PYTHON_PUBLISH_DOCS_VERSION }}
   create-release-from-dry-run:

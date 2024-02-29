@@ -18,11 +18,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using AutoFixture;
 using AutoFixture.AutoMoq;
 using AutoFixture.Kernel;
+using Moq;
 using Tableau.Migration.Api.Rest.Models.Requests;
 using Tableau.Migration.Api.Rest.Models.Responses;
 
@@ -33,7 +33,7 @@ namespace Tableau.Migration.Tests
         /// <summary>
         /// The configured <see cref="IFixture"/> for this instance.
         /// </summary>
-        protected readonly IFixture AutoFixture = new Fixture().Customize(new AutoMoqCustomization { ConfigureMembers = true });
+        protected readonly IFixture AutoFixture = CreateFixture();
 
         protected readonly CancellationTokenSource CancelSource = new();
         protected CancellationToken Cancel => CancelSource.Token;
@@ -53,6 +53,11 @@ namespace Tableau.Migration.Tests
         }
 
         /// <summary>
+        /// Creates a new <see cref="IFixture"/> instance.
+        /// </summary>
+        protected static IFixture CreateFixture() => new Fixture().Customize(new AutoMoqCustomization { ConfigureMembers = true });
+
+        /// <summary>
         /// Creates a variable of the requested type.
         /// </summary>
         /// <param name="t">The type of object to create.</param>
@@ -64,7 +69,27 @@ namespace Tableau.Migration.Tests
         /// </summary>
         /// <typeparam name="T">The type of object to create.</typeparam>
         /// <returns>An object of type <typeparamref name="T"/></returns>
-        protected T Create<T>() => AutoFixture.Create<T>();
+        protected T Create<T>(Action<T>? configure = null)
+        {
+            var obj = AutoFixture.Create<T>();
+
+            configure?.Invoke(obj);
+
+            return obj;
+        }
+
+        /// <summary>
+        /// Creates a string variable.
+        /// </summary>
+        /// <param name="length">The lendth of the string.</param>
+        protected string CreateString(int length)
+            => new(CreateMany<char>(length).ToArray());
+
+        /// <summary>
+        /// Creates a string variable.
+        /// </summary>
+        protected string CreateString()
+            => new(CreateMany<char>().ToArray());
 
         /// <summary>
         /// Create variables of the requested type.
@@ -101,17 +126,29 @@ namespace Tableau.Migration.Tests
         /// <returns>The value that will subsequently always be created for <typeparamref name="T" />.</returns>
         protected T Freeze<T>() => AutoFixture.Freeze<T>();
 
+        /// <summary>
+        /// Freezes the type to a single value.
+        /// </summary>
+        /// <typeparam name="T">The type of object to freeze.</typeparam>
+        /// <param name="value">The value to freeze.</param>
+        /// <returns>The value that will subsequently always be created for <typeparamref name="T" />.</returns>
+        protected T Freeze<T>(T value) => AutoFixture.Freeze<T>(composer => composer.FromFactory(() => value));
+
         private void Customize()
         {
             AutoFixture.Register(() => Create<MockServiceProvider>().Object);
+
+            AutoFixture.Register(() => Create<Mock<TimeProvider>>().Object);
 
             AutoFixture.Register(() => new ContentLocation(CreateMany<string>()));
 
             AutoFixture.Register<string, Stream>((string data) =>
             {
-                var bytes = Encoding.UTF8.GetBytes(data);
+                var bytes = Constants.DefaultEncoding.GetBytes(data);
                 return new MemoryStream(bytes);
             });
+
+            AutoFixture.Register<IMemoryStreamManager>(() => MemoryStreamManager.Instance);
 
             #region - JobResponse -
 

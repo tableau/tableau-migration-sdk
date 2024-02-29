@@ -15,15 +15,13 @@
 //
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
-using Tableau.Migration.Api.Rest.Models.Responses;
 using Tableau.Migration.Content.Files;
 
 namespace Tableau.Migration.Content
 {
-    internal sealed class PublishableWorkbook : ViewsWorkbook, IPublishableWorkbook
+    internal sealed class PublishableWorkbook : WorkbookDetails, IPublishableWorkbook
     {
         /// <inheritdoc />
         public Guid? ThumbnailsUserId { get; set; }
@@ -34,8 +32,8 @@ namespace Tableau.Migration.Content
         /// <inheritdoc />
         public IImmutableList<IConnection> Connections { get; }
 
-        public PublishableWorkbook(WorkbookResponse response, IContentReference project, IContentReference owner, IImmutableList<IConnection> connections, IImmutableList<IView> views, IContentFileHandle file)
-            : base(Guard.AgainstNull(response.Item, () => response.Item), project, owner, views)
+        public PublishableWorkbook(IWorkbookDetails workbook, IImmutableList<IConnection> connections, IContentFileHandle file)
+            : base(workbook)
         {
             ThumbnailsUserId = null;
             Connections = connections;

@@ -26,7 +26,7 @@ namespace Tableau.Migration.Tests.Unit.Api.Publishing
 {
     public class WorkbookPublisherTests
     {
-        public abstract class WorkbookPublisherTest : FilePublisherTestBase<IWorkbookPublisher, IPublishWorkbookOptions, IResultWorkbook>
+        public abstract class WorkbookPublisherTest : FilePublisherTestBase<IWorkbookPublisher, IPublishWorkbookOptions, IWorkbookDetails>
         {
             internal readonly WorkbookPublisher WorkbookPublisher;
 

@@ -66,18 +66,18 @@ namespace Tableau.Migration.Api.Rest.Models
             var owner = Guard.AgainstNull(restProject.Owner, () => nameof(restProject.Owner));
             var ownerId = Guard.AgainstDefaultValue(owner.Id, () => nameof(restProject.Owner.Id));
 
-            var foundOwner = await userFinder.FindByIdAsync(restProject.Owner.Id, cancel).ConfigureAwait(false);
+            var foundOwner = await userFinder.FindByIdAsync(ownerId, cancel).ConfigureAwait(false);
 
             if (foundOwner is null)
             {
                 if (restProject.Name is not null && _systemProjectNames.Contains(restProject.Name))
                 {
-                    return new ContentReferenceStub(restProject.Owner.Id, string.Empty, Constants.SystemUserLocation);
+                    return new ContentReferenceStub(ownerId, string.Empty, Constants.SystemUserLocation);
                 }
 
                 throw new ArgumentNullException(
                     nameof(restProject),
-                    $"The project's owner ID {restProject.Owner.Id} is not valid.");
+                    $"The project's owner ID {ownerId} is not valid.");
             }
 
             return foundOwner;

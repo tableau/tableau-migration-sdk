@@ -23,6 +23,7 @@ using Tableau.Migration.Content;
 using Tableau.Migration.Content.Files;
 using Tableau.Migration.Engine.Endpoints;
 using Tableau.Migration.Engine.Endpoints.Search;
+using Tableau.Migration.Resources;
 using Xunit;
 
 namespace Tableau.Migration.Tests.Unit.Engine.Endpoints
@@ -38,7 +39,8 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints
                 Endpoint = new(MigrationServices.GetRequiredService<IServiceScopeFactory>(),
                     Create<ITableauApiEndpointConfiguration>(),
                     Create<ManifestDestinationContentReferenceFinderFactory>(),
-                    Create<IContentFileStore>()
+                    Create<IContentFileStore>(),
+                    Create<ISharedResourcesLocalizer>()
                 );
             }
         }

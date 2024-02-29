@@ -17,14 +17,10 @@
 using System;
 using System.Collections.Immutable;
 using System.IO;
-using System.IO.Abstractions;
-using System.IO.Abstractions.TestingHelpers;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using Tableau.Migration.Config;
-using Tableau.Migration.Content;
 using Tableau.Migration.Content.Files;
 using Xunit;
 
@@ -34,46 +30,10 @@ namespace Tableau.Migration.Tests.Unit.Content.Files
     {
         #region - Test Classes -
 
-        public class TestFileStore : DirectoryContentFileStore
+        public abstract class DirectoryContentFileStoreTest : DirectoryContentFileStoreTestBase<DirectoryContentFileStore>
         {
-            public ConcurrentSet<string> PublicTrackedFilePaths => TrackedFilePaths;
-
-            public TestFileStore(IFileSystem fileSystem, IContentFilePathResolver pathResolver, IConfigReader configReader, string storeDirectoryName)
-                : base(fileSystem, pathResolver, configReader, storeDirectoryName)
-            { }
-        }
-
-        public class DirectoryContentFileStoreTest : AutoFixtureTestBase
-        {
-            protected readonly MockFileSystem FileSystem;
-            protected readonly Mock<IContentFilePathResolver> MockPathResolver;
-            protected readonly string RootPath;
-            protected readonly string BaseRelativePath;
-
-            protected string ExpectedBasePath => Path.Combine(RootPath, BaseRelativePath);
-
-            protected readonly TestFileStore FileStore;
-
-            public DirectoryContentFileStoreTest()
-            {
-                FileSystem = new MockFileSystem();
-                MockPathResolver = Create<Mock<IContentFilePathResolver>>();
-                RootPath = Create<string>();
-                BaseRelativePath = Create<string>();
-
-                var config = Freeze<MigrationSdkOptions>();
-                config.Files.RootPath = RootPath;
-
-                FileStore = new(FileSystem, MockPathResolver.Object, Create<IConfigReader>(), BaseRelativePath);
-            }
-
-            protected async Task<IContentFileHandle> CreateTestFileAsync(string relativePath, string originalFileName, string? content = null)
-            {
-                await using var fileData = new MemoryStream(Encoding.UTF8.GetBytes(content ?? Create<string>()));
-
-                return await ((IContentFileStore)FileStore).CreateAsync(relativePath, originalFileName, fileData, Cancel);
-
-            }
+            protected override DirectoryContentFileStore CreateFileStore()
+                => ActivatorUtilities.CreateInstance<DirectoryContentFileStore>(Services, BaseRelativePath);
         }
 
         #endregion
@@ -94,7 +54,7 @@ namespace Tableau.Migration.Tests.Unit.Content.Files
                 Assert.Equal(Path.Combine(ExpectedBasePath, relPath), file.Path);
                 Assert.Equal(originalFileName, file.OriginalFileName);
 
-                Assert.Contains(file.Path, FileStore.PublicTrackedFilePaths);
+                Assert.Contains(file.Path, TrackedFilePaths);
             }
 
             [Fact]
@@ -113,7 +73,7 @@ namespace Tableau.Migration.Tests.Unit.Content.Files
                 Assert.Equal(Path.Combine(ExpectedBasePath, generatedPath), file.Path);
                 Assert.Equal(originalFileName, file.OriginalFileName);
 
-                Assert.Contains(file.Path, FileStore.PublicTrackedFilePaths);
+                Assert.Contains(file.Path, TrackedFilePaths);
 
                 MockPathResolver.Verify(x => x.ResolveRelativePath(contentItem, originalFileName), Times.Once());
             }
@@ -157,7 +117,7 @@ namespace Tableau.Migration.Tests.Unit.Content.Files
 
                 await using (var writeStream = await FileStore.OpenWriteAsync(file, Cancel))
                 {
-                    writeStream.Content.Write(Encoding.UTF8.GetBytes(expectedContent));
+                    writeStream.Content.Write(Constants.DefaultEncoding.GetBytes(expectedContent));
                 }
 
                 await using var readStream = await FileStore.OpenReadAsync(file, Cancel);
@@ -182,8 +142,8 @@ namespace Tableau.Migration.Tests.Unit.Content.Files
 
                 await FileStore.DeleteAsync(file, Cancel);
 
-                Assert.False(FileSystem.FileExists(file.Path));
-                Assert.DoesNotContain(file.Path, FileStore.PublicTrackedFilePaths);
+                Assert.False(MockFileSystem.FileExists(file.Path));
+                Assert.DoesNotContain(file.Path, TrackedFilePaths);
             }
         }
 
@@ -255,11 +215,11 @@ namespace Tableau.Migration.Tests.Unit.Content.Files
 
                 Assert.All(files, file =>
                 {
-                    Assert.False(FileSystem.FileExists(file.Path));
+                    Assert.False(MockFileSystem.FileExists(file.Path));
                 });
 
-                Assert.Empty(FileStore.PublicTrackedFilePaths);
-                Assert.False(FileSystem.Directory.Exists(ExpectedBasePath));
+                Assert.Empty(TrackedFilePaths);
+                Assert.False(MockFileSystem.Directory.Exists(ExpectedBasePath));
                 Assert.False(FileStore.HasOpenTableauFileEditor);
             }
         }

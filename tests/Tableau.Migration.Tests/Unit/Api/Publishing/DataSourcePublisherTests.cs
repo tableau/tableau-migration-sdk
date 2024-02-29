@@ -26,7 +26,7 @@ namespace Tableau.Migration.Tests.Unit.Api.Publishing
 {
     public class DataSourcePublisherTests
     {
-        public abstract class DataSourcePublisherTest : FilePublisherTestBase<IDataSourcePublisher, IPublishDataSourceOptions, IDataSource>
+        public abstract class DataSourcePublisherTest : FilePublisherTestBase<IDataSourcePublisher, IPublishDataSourceOptions, IDataSourceDetails>
         {
             internal readonly DataSourcePublisher DataSourcePublisher;
 

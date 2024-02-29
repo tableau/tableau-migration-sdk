@@ -37,7 +37,7 @@ namespace Tableau.Migration.Api.Rest.Models.Responses
         /// Class representing a data source on the response.
         /// </summary>
         [XmlType("datasource")]
-        public class DataSourceType : IDataSourceType
+        public class DataSourceType : IDataSourceDetailsType
         {
             /// <summary>
             /// Creates a new <see cref="DataSourceType"/> object.
@@ -72,6 +72,12 @@ namespace Tableau.Migration.Api.Rest.Models.Responses
                 Tags = response.Tags.IsNullOrEmpty() ?
                     Array.Empty<TagType>() :
                     response.Tags.Select(tag => new TagType(tag)).ToArray();
+            }
+
+            internal DataSourceType(IDataSourceDetailsType response)
+                : this((IDataSourceType)response)
+            {
+                CertificationNote = response.CertificationNote;
             }
 
             /// <summary>
@@ -167,13 +173,13 @@ namespace Tableau.Migration.Api.Rest.Models.Responses
             /// </summary>
             [XmlArray("tags")]
             [XmlArrayItem("tag")]
-            public TagType[]? Tags { get; set; } = Array.Empty<TagType>();
+            public TagType[] Tags { get; set; } = Array.Empty<TagType>();
 
             ///<inheritdoc/>
-            ITagType[]? IWithTagTypes.Tags
+            ITagType[] IWithTagTypes.Tags
             {
                 get => Tags;
-                set => Tags = value?.Select(t => new TagType(t)).ToArray();
+                set => Tags = value.Select(t => new TagType(t)).ToArray();
             }
 
             #region - Object Specific Types -

@@ -52,7 +52,7 @@ namespace Tableau.Migration.Tests.Simulation
                 })
                 .Create();
 
-            fileData ??= Encoding.Default.GetBytes(new SimulatedDataSourceData().ToXml());
+            fileData ??= Constants.DefaultEncoding.GetBytes(new SimulatedDataSourceData().ToXml());
 
             data.AddDataSource(dataSource, fileData);
 
@@ -69,7 +69,7 @@ namespace Tableau.Migration.Tests.Simulation
             autoFixture,
             project,
             user,
-            Encoding.Default.GetBytes(simulatedData.ToXml()));
+            Constants.DefaultEncoding.GetBytes(simulatedData.ToXml()));
 
         public static DataSourceResponse.DataSourceType CreateDataSource(this TableauData data, IFixture autoFixture)
         {
@@ -91,7 +91,7 @@ namespace Tableau.Migration.Tests.Simulation
                 })
                 .Create();
 
-            fileData ??= Encoding.Default.GetBytes(new SimulatedWorkbookData().ToXml());
+            fileData ??= Constants.DefaultEncoding.GetBytes(new SimulatedWorkbookData().ToXml());
 
             data.AddWorkbook(workbook, fileData);
 

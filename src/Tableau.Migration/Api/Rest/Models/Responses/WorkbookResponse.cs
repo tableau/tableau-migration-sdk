@@ -35,7 +35,7 @@ namespace Tableau.Migration.Api.Rest.Models.Responses
         /// <summary>
         /// Class representing a REST API workbook response.
         /// </summary>
-        public class WorkbookType : IWorkbookType
+        public class WorkbookType : IWorkbookDetailsType
         {
             /// <summary>
             /// Creates a new <see cref="WorkbookType"/> object.
@@ -67,10 +67,12 @@ namespace Tableau.Migration.Api.Rest.Models.Responses
                     Owner = new OwnerType(response.Owner);
                 }
 
-                Tags = response.Tags.IsNullOrEmpty() ?
-                    Array.Empty<TagType>() :
-                    response.Tags.Select(tag => new TagType(tag)).ToArray();
+                Tags = response.Tags.Select(tag => new TagType(tag)).ToArray();
             }
+
+            internal WorkbookType(IWorkbookDetailsType response)
+                : this((IWorkbookType)response)
+            { }
 
             ///<inheritdoc/>
             [XmlAttribute("id")]
@@ -148,13 +150,13 @@ namespace Tableau.Migration.Api.Rest.Models.Responses
             /// </summary>
             [XmlArray("tags")]
             [XmlArrayItem("tag")]
-            public TagType[]? Tags { get; set; } = Array.Empty<TagType>();
+            public TagType[] Tags { get; set; } = Array.Empty<TagType>();
 
             ///<inheritdoc/>
-            ITagType[]? IWithTagTypes.Tags
+            ITagType[] IWithTagTypes.Tags
             {
                 get => Tags;
-                set => Tags = value?.Select(t => new TagType(t)).ToArray();
+                set => Tags = value.Select(t => new TagType(t)).ToArray();
             }
 
             /// <summary>
@@ -163,6 +165,9 @@ namespace Tableau.Migration.Api.Rest.Models.Responses
             [XmlArray("views")]
             [XmlArrayItem("view")]
             public ViewReferenceType[] Views { get; set; } = Array.Empty<ViewReferenceType>();
+
+            ///<inheritdoc/>
+            IViewReferenceType[] IWorkbookDetailsType.Views => Views;
 
             /// <summary>
             /// Gets or sets the data acceleration config for the response.

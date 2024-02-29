@@ -53,32 +53,18 @@ namespace Tableau.Migration.Api
             UserFinder = new(ContentFinderFactory.ForContentType<IUser>);
         }
 
-        protected async Task<IContentReference> FindProjectAsync(
-            [NotNull] IWithProjectType? response,
+        protected async Task<IContentReference?> FindProjectAsync<T>(
+            [NotNull] T? response,
+            [DoesNotReturnIf(true)] bool throwIfNotFound,
             CancellationToken cancel)
-        {
-            Guard.AgainstNull(response, nameof(response));
+            where T : IWithProjectType, INamedContent
+            => await ContentFinderFactory.FindProjectAsync(response, Logger, SharedResourcesLocalizer, throwIfNotFound, cancel).ConfigureAwait(false);
 
-            var project = Guard.AgainstNull(response.Project, () => nameof(response.Project));
-            var projectId = Guard.AgainstDefaultValue(project.Id, () => nameof(response.Project.Id));
-
-            var foundProject = await ProjectFinder.Value.FindByIdAsync(projectId, cancel).ConfigureAwait(false);
-
-            return Guard.AgainstNull(foundProject, nameof(foundProject));
-        }
-
-        protected async Task<IContentReference> FindOwnerAsync(
-            [NotNull] IWithOwnerType? response,
+        protected async Task<IContentReference?> FindOwnerAsync<T>(
+            [NotNull] T? response,
+            [DoesNotReturnIf(true)] bool throwIfNotFound,
             CancellationToken cancel)
-        {
-            Guard.AgainstNull(response, nameof(response));
-            
-            var owner = Guard.AgainstNull(response.Owner, () => nameof(response.Owner));
-            var ownerId = Guard.AgainstDefaultValue(owner.Id, () => nameof(response.Owner.Id));
-
-            var foundOwner = await UserFinder.Value.FindByIdAsync(ownerId, cancel).ConfigureAwait(false);
-
-            return Guard.AgainstNull(foundOwner, nameof(foundOwner));
-        }
+            where T : IWithOwnerType, INamedContent
+            => await ContentFinderFactory.FindOwnerAsync(response, Logger, SharedResourcesLocalizer, throwIfNotFound, cancel).ConfigureAwait(false);
     }
 }

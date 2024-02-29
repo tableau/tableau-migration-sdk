@@ -23,6 +23,6 @@ namespace Tableau.Migration.Tests.Unit.Api.Rest.Models
     {
         public static readonly ITagTypeComparer Instance = new();
 
-        public override int CompareItems(ITagType x, ITagType y) => StringComparer.Ordinal.Compare(x.Label, y.Label);
+        protected override int CompareItems(ITagType x, ITagType y) => StringComparer.Ordinal.Compare(x.Label, y.Label);
     }
 }

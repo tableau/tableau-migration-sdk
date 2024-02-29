@@ -15,8 +15,8 @@
 //
 
 using System;
-using System.IO;
 using System.IO.Compression;
+using Microsoft.IO;
 
 namespace Tableau.Migration.Content.Files
 {
@@ -32,7 +32,7 @@ namespace Tableau.Migration.Content.Files
         /// with unencrypted tableau file data 
         /// to write back to the file store upon disposal.
         /// </summary>
-        MemoryStream Content { get; }
+        RecyclableMemoryStream Content { get; }
 
         /// <summary>
         /// Gets the zip archive for the file,

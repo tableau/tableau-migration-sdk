@@ -14,7 +14,10 @@
 //  limitations under the License.
 //
 
+using System;
+using System.Linq;
 using Microsoft.Extensions.Options;
+using Tableau.Migration.Engine.Pipelines;
 
 namespace Tableau.Migration.Config
 {
@@ -32,6 +35,8 @@ namespace Tableau.Migration.Config
         public ConfigReader(IOptionsMonitor<MigrationSdkOptions> optionsMonitor)
         {
             _optionsMonitor = optionsMonitor;
+            ValidateOptions(Get());
+            _optionsMonitor.OnChange(ValidateOptions);
         }
 
         /// <summary>
@@ -43,6 +48,43 @@ namespace Tableau.Migration.Config
         public MigrationSdkOptions Get()
         {
             return _optionsMonitor.Get(nameof(MigrationSdkOptions));
+        }
+
+        /// <inheritdoc/>        
+        public ContentTypesOptions Get<TContent>()
+            where TContent : IContentReference
+        {
+            var contentType = ServerToCloudMigrationPipeline.ContentTypes
+                .FirstOrDefault(c => c.ContentType.Name == typeof(TContent).Name);
+
+            if (contentType != null)
+            {
+                var configKey = contentType.GetConfigKey();
+                var contentTypeOptions = Get()
+                    .ContentTypes
+                    .FirstOrDefault(o => string.Equals(o.Type, configKey, StringComparison.OrdinalIgnoreCase));
+
+                return contentTypeOptions ?? new ContentTypesOptions()
+                {
+                    Type = configKey
+                };
+            }
+
+            throw new NotSupportedException(
+                    $"Content type specific options are not supported for {typeof(TContent)} since it is not supported for migration.");
+        }
+
+        internal void ValidateOptions(MigrationSdkOptions? options)
+        {
+            options ??= Get();
+
+            foreach (var byContentTypeName in options.ContentTypes.GroupBy(v => v.Type))
+            {
+                if (byContentTypeName.First().IsContentTypeValid() && byContentTypeName.Count() > 1)
+                {
+                    throw new InvalidOperationException($"Duplicate content type names found in {(nameof(MigrationSdkOptions.ContentTypes))} section of the configuration.");
+                }
+            }
         }
     }
 }

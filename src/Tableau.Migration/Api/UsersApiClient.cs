@@ -38,8 +38,6 @@ namespace Tableau.Migration.Api
 {
     internal sealed class UsersApiClient : ContentApiClientBase, IUsersApiClient
     {
-        private readonly static Encoding _dataEncoding = Encoding.UTF8;
-
         private readonly IJobsApiClient _jobs;
 
         public UsersApiClient(
@@ -53,6 +51,7 @@ namespace Tableau.Migration.Api
             _jobs = jobs;
         }
 
+        /// <inheritdoc />
         public async Task<IPagedResult<IGroup>> GetUserGroupsAsync(Guid userId, int pageNumber, int pageSize, CancellationToken cancel)
         {
             var getUserGroupsResult = await RestRequestBuilderFactory
@@ -119,7 +118,7 @@ namespace Tableau.Migration.Api
                     xmlRequest = new ImportUsersFromCsvRequest(requestUsers);
                 }
 
-                var payloadContent = new StringContent(xmlRequest.ToXml(), _dataEncoding, MediaTypes.Xml.MediaType!);
+                var payloadContent = new StringContent(xmlRequest.ToXml(), Constants.DefaultEncoding, MediaTypes.Xml.MediaType!);
 
                 // Create the multipart content.
                 var csvDataStreamContent = new StreamContent(csvStream);
@@ -183,6 +182,7 @@ namespace Tableau.Migration.Api
 
         #region - IPagedListApiClient<IUser> Implementation -
 
+        /// <inheritdoc />
         public IPager<IUser> GetPager(int pageSize) => new ApiListPager<IUser>(this, pageSize);
 
         #endregion
@@ -218,7 +218,7 @@ namespace Tableau.Migration.Api
                 item.AppendCsvLine(csv);
             }
 
-            var csvStream = new MemoryStream(_dataEncoding.GetBytes(csv.ToString()));
+            var csvStream = new MemoryStream(Constants.DefaultEncoding.GetBytes(csv.ToString()));
 
             csvStream.Seek(0, SeekOrigin.Begin);
 
@@ -229,8 +229,55 @@ namespace Tableau.Migration.Api
 
         #region - IApiPageAccessor<IUser> Implementation -
 
+        /// <inheritdoc />
         public async Task<IPagedResult<IUser>> GetPageAsync(int pageNumber, int pageSize, CancellationToken cancel)
             => await GetAllUsersAsync(pageNumber, pageSize, cancel).ConfigureAwait(false);
+
+        #endregion
+
+        #region - IReadApiClient<IUser> Implementation -
+
+        /// <inheritdoc />
+        public async Task<IResult<IUser>> GetByIdAsync(Guid contentId, CancellationToken cancel)
+        {
+            var getUserResult = await RestRequestBuilderFactory
+               .CreateUri($"/users/{contentId.ToUrlSegment()}")
+               .ForGetRequest()
+               .SendAsync<UserResponse>(cancel)
+               .ToResultAsync<UserResponse, IUser>(r => new User(r.Item!), SharedResourcesLocalizer)
+               .ConfigureAwait(false);
+
+            return getUserResult;
+        }
+
+        #endregion
+
+        #region - IPublishApiClient<IUser> Implementation -
+
+        public async Task<IResult<IUser>> PublishAsync(IUser item, CancellationToken cancel)
+        {
+            var result = await AddUserAsync(
+                item.Name,
+                item.SiteRole,
+                item.AuthenticationType,
+                cancel)
+                .ConfigureAwait(false);
+
+            if (!result.Success)
+            {
+                return Result<IUser>.Failed(result.Errors);
+            }
+
+            return Result<IUser>.Succeeded(
+                new User(
+                    result.Value.Id,
+                    null,
+                    null,
+                    result.Value.Name,
+                    null,
+                    result.Value.SiteRole,
+                    result.Value.AuthSetting));
+        }
 
         #endregion
     }

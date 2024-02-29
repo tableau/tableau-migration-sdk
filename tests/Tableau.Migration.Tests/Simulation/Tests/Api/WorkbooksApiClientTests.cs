@@ -95,7 +95,6 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
             {
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
                 var workbook = Api.Data.CreateWorkbook(AutoFixture);
-                var connections = CreateMany<IConnection>().ToImmutableArray();
 
                 foreach (var view in workbook.Views)
                 {
@@ -103,7 +102,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
                     Api.Data.CreateViewPermissions(AutoFixture, view, view.Id, view.Name);
                 }
 
-                var result = await sitesClient.Workbooks.GetWorkbookAsync(workbook.Id, connections, Create<ContentFileHandle>(), Cancel);
+                var result = await sitesClient.Workbooks.GetWorkbookAsync(workbook.Id, Cancel);
 
                 Assert.Empty(result.Errors);
                 Assert.True(result.Success);
@@ -124,7 +123,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
 
                 var workbook = Api.Data.CreateWorkbook(AutoFixture);
 
-                Api.Data.AddWorkbook(workbook, fileData: Encoding.UTF8.GetBytes(workbook.ToXml()));
+                Api.Data.AddWorkbook(workbook, fileData: Constants.DefaultEncoding.GetBytes(workbook.ToXml()));
 
                 var result = await sitesClient.Workbooks.DownloadWorkbookAsync(workbook.Id, true, Cancel);
 
@@ -154,7 +153,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
 
                 var options = new PublishWorkbookOptions(
                     mockPublishable.Object,
-                    new MemoryStream(Encoding.Default.GetBytes(new SimulatedWorkbookData().ToXml())),
+                    new MemoryStream(Constants.DefaultEncoding.GetBytes(new SimulatedWorkbookData().ToXml())),
                     WorkbookFileTypes.Twbx);
 
                 var result = await sitesClient.Workbooks.PublishWorkbookAsync(options, Cancel);
@@ -224,7 +223,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
                     Name = project.Name
                 };
 
-                Api.Data.AddWorkbook(workbookResponse.Item, fileData: Encoding.UTF8.GetBytes(workbookResponse.Item.ToXml()));
+                Api.Data.AddWorkbook(workbookResponse.Item, fileData: Constants.DefaultEncoding.GetBytes(workbookResponse.Item.ToXml()));
 
                 // Act
                 var result = await sitesClient.Workbooks.UpdateWorkbookAsync(
@@ -261,7 +260,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
                     Name = project.Name
                 };
 
-                Api.Data.AddWorkbook(workbookResponse.Item, fileData: Encoding.UTF8.GetBytes(workbookResponse.Item.ToXml()));
+                Api.Data.AddWorkbook(workbookResponse.Item, fileData: Constants.DefaultEncoding.GetBytes(workbookResponse.Item.ToXml()));
 
                 // Act
                 var result = await sitesClient.Workbooks.UpdateWorkbookAsync(
@@ -299,7 +298,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
                     Name = project.Name
                 };
 
-                Api.Data.AddWorkbook(workbookResponse.Item, fileData: Encoding.UTF8.GetBytes(workbookResponse.Item.ToXml()));
+                Api.Data.AddWorkbook(workbookResponse.Item, fileData: Constants.DefaultEncoding.GetBytes(workbookResponse.Item.ToXml()));
 
                 // Act
                 var result = await sitesClient.Workbooks.UpdateWorkbookAsync(
@@ -337,7 +336,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
                     Name = project.Name
                 };
 
-                Api.Data.AddWorkbook(workbookResponse.Item, fileData: Encoding.UTF8.GetBytes(workbookResponse.Item.ToXml()));
+                Api.Data.AddWorkbook(workbookResponse.Item, fileData: Constants.DefaultEncoding.GetBytes(workbookResponse.Item.ToXml()));
 
                 // Act
                 var result = await sitesClient.Workbooks.UpdateWorkbookAsync(
@@ -375,7 +374,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
                     Name = project.Name
                 };
 
-                Api.Data.AddWorkbook(workbookResponse.Item, fileData: Encoding.UTF8.GetBytes(workbookResponse.Item.ToXml()));
+                Api.Data.AddWorkbook(workbookResponse.Item, fileData: Constants.DefaultEncoding.GetBytes(workbookResponse.Item.ToXml()));
 
                 // Act
                 var result = await sitesClient.Workbooks.UpdateWorkbookAsync(
@@ -416,7 +415,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
                     Name = project.Name
                 };
 
-                Api.Data.AddWorkbook(workbookResponse.Item, fileData: Encoding.UTF8.GetBytes(workbookResponse.Item.ToXml()));
+                Api.Data.AddWorkbook(workbookResponse.Item, fileData: Constants.DefaultEncoding.GetBytes(workbookResponse.Item.ToXml()));
 
                 // Act
                 var result = await sitesClient.Workbooks.UpdateWorkbookAsync(
@@ -467,7 +466,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
                     Id = owner.Id
                 };
 
-                Api.Data.AddWorkbook(workbookResponse.Item, fileData: Encoding.UTF8.GetBytes(workbookResponse.Item.ToXml()));
+                Api.Data.AddWorkbook(workbookResponse.Item, fileData: Constants.DefaultEncoding.GetBytes(workbookResponse.Item.ToXml()));
 
                 // Act
                 var result = await sitesClient.Workbooks.UpdateWorkbookAsync(
@@ -521,7 +520,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
                     Id = owner.Id
                 };
 
-                var tagsCountBefore = workbook.Tags is null ? 0 : workbook.Tags.Length;
+                var tagsCountBefore = workbook.Tags.Length;
                 Api.Data.AddWorkbook(workbook, null);
 
                 var testTags = CreateMany<ITag>().ToArray();
@@ -531,9 +530,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
                 Assert.Empty(result.Errors);
                 Assert.True(result.Success);
 
-                var connections = CreateMany<IConnection>().ToImmutableArray();
-
-                var getResult = await sitesClient.Workbooks.GetWorkbookAsync(workbook.Id, connections, Create<ContentFileHandle>(), Cancel);
+                var getResult = await sitesClient.Workbooks.GetWorkbookAsync(workbook.Id, Cancel);
                 Assert.Empty(getResult.Errors);
                 Assert.True(getResult.Success);
                 Assert.NotNull(getResult.Value);
@@ -569,10 +566,10 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
                     Id = owner.Id
                 };
 
-                var tagsCountBefore = workbook.Tags is null ? 0 : workbook.Tags.Length;
+                var tagsCountBefore = workbook.Tags.Length;
                 Api.Data.AddWorkbook(workbook, null);
 
-                var testTags = workbook.Tags?.Select(tag => new Tag(tag)).ToArray();
+                var testTags = workbook.Tags.Select(tag => new Tag(tag)).ToArray();
 
                 Assert.NotNull(testTags);
 
@@ -581,9 +578,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
                 Assert.Empty(result.Errors);
                 Assert.True(result.Success);
 
-                var connections = CreateMany<IConnection>().ToImmutableArray();
-
-                var getResult = await sitesClient.Workbooks.GetWorkbookAsync(workbook.Id, connections, Create<ContentFileHandle>(), Cancel);
+                var getResult = await sitesClient.Workbooks.GetWorkbookAsync(workbook.Id, Cancel);
                 Assert.Empty(getResult.Errors);
                 Assert.True(getResult.Success);
                 Assert.NotNull(getResult.Value);
@@ -626,10 +621,10 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
                     Id = owner.Id
                 };
 
-                var tagsCountBefore = workbook.Tags is null ? 0 : workbook.Tags.Length;
+                var tagsCountBefore = workbook.Tags.Length;
                 Api.Data.AddWorkbook(workbook, null);
 
-                var tagsToRemove = workbook.Tags?.Select(t => new Tag(t)).ToArray();
+                var tagsToRemove = workbook.Tags.Select(t => new Tag(t)).ToArray();
                 Assert.NotNull(tagsToRemove);
 
                 var result = await sitesClient.Workbooks.Tags.RemoveTagsAsync(workbook.Id, tagsToRemove, Cancel);
@@ -637,9 +632,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
                 Assert.Empty(result.Errors);
                 Assert.True(result.Success);
 
-                var connections = CreateMany<IConnection>().ToImmutableArray();
-
-                var getResult = await sitesClient.Workbooks.GetWorkbookAsync(workbook.Id, connections, Create<ContentFileHandle>(), Cancel);
+                var getResult = await sitesClient.Workbooks.GetWorkbookAsync(workbook.Id, Cancel);
                 Assert.Empty(getResult.Errors);
                 Assert.True(getResult.Success);
                 Assert.NotNull(getResult.Value);
@@ -661,7 +654,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
                 var user = Create<UsersResponse.UserType>();
                 var fileData = Create<SimulatedWorkbookData>();
 
-                var workbook = Api.Data.CreateWorkbook(AutoFixture, project, user, Encoding.Default.GetBytes(fileData.ToXml()));
+                var workbook = Api.Data.CreateWorkbook(AutoFixture, project, user, Constants.DefaultEncoding.GetBytes(fileData.ToXml()));
 
                 var result = await sitesClient.Workbooks.GetConnectionsAsync(workbook.Id, Cancel);
 
@@ -683,7 +676,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
                 var connectionToUpdate = fileData.Connections.First();
                 Assert.NotNull(connectionToUpdate);
 
-                var workbook = Api.Data.CreateWorkbook(AutoFixture, project, user, Encoding.Default.GetBytes(fileData.ToXml()));
+                var workbook = Api.Data.CreateWorkbook(AutoFixture, project, user, Constants.DefaultEncoding.GetBytes(fileData.ToXml()));
 
                 var updateOptions = Create<UpdateConnectionOptions>();
 

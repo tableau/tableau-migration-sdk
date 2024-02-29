@@ -22,6 +22,6 @@ namespace Tableau.Migration.Api.Publishing
     /// <summary>
     /// Interface for workbook publisher classes.
     /// </summary>
-    public interface IWorkbookPublisher : IFilePublisher<IPublishWorkbookOptions, IResultWorkbook>
+    public interface IWorkbookPublisher : IFilePublisher<IPublishWorkbookOptions, IWorkbookDetails>
     { }
 }

@@ -28,7 +28,7 @@ namespace Tableau.Migration.Api
     /// <summary>
     /// Interface for API client user operations.
     /// </summary>
-    public interface IUsersApiClient : IContentApiClient, IPagedListApiClient<IUser>, IBatchPublishApiClient<IUser>, IApiPageAccessor<IUser>
+    public interface IUsersApiClient : IContentApiClient, IPagedListApiClient<IUser>, IBatchPublishApiClient<IUser>, IApiPageAccessor<IUser>, IReadApiClient<IUser>, IPublishApiClient<IUser>
     {
         /// <summary>
         /// Gets the groups belonging to a user.

@@ -14,6 +14,8 @@
 //  limitations under the License.
 //
 
+using System.Collections.Generic;
+
 namespace Tableau.Migration.Config
 {
     /// <summary>
@@ -27,25 +29,15 @@ namespace Tableau.Migration.Config
         public static class Defaults
         {
             /// <summary>
-            /// The default migration batch size. 
-            /// </summary>
-            public const int BATCH_SIZE = 100;
-
-            /// <summary>
             /// The default number of items to migrate in parallel.
             /// </summary>
             public const int MIGRATION_PARALLELISM = 10;
         }
 
         /// <summary>
-        /// Gets or sets the migration batch size.
-        /// </summary>
-        public int BatchSize
-        {
-            get => _batchSize ?? Defaults.BATCH_SIZE;
-            set => _batchSize = value;
-        }
-        private int? _batchSize;
+        /// Get or Set content type specific options.
+        /// </summary>      
+        public List<ContentTypesOptions> ContentTypes { get; set; } = new();
 
         /// <summary>
         /// Gets or sets the number of items to migrate in parallel.

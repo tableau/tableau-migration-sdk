@@ -28,7 +28,7 @@ namespace Tableau.Migration.Tests.Content.Permissions
 
         public IGranteeCapabilityComparer(bool compareGranteeIds = true) => _compareGranteeIds = compareGranteeIds;
 
-        public override int CompareItems(IGranteeCapability x, IGranteeCapability y)
+        protected override int CompareItems(IGranteeCapability x, IGranteeCapability y)
         {
             var granteeIdResult = _compareGranteeIds ? x.GranteeId.CompareTo(y.GranteeId) : 0;
 

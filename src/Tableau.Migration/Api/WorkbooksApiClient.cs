@@ -109,12 +109,14 @@ namespace Tableau.Migration.Api
                         // Convert them all to type Workbook.
                         if (item.Project is not null) // Project is null if item is in a personal space
                         {
-                            var project = await FindProjectAsync(item, c).ConfigureAwait(false);
-                            var owner = await FindOwnerAsync(item, c).ConfigureAwait(false);
+                            var project = await FindProjectAsync(item, false, c).ConfigureAwait(false);
+                            var owner = await FindOwnerAsync(item, false, c).ConfigureAwait(false);
+
+                            if (project is null || owner is null)
+                                continue; //Warnings will be logged by prior method calls.
 
                             results.Add(new Workbook(item, project, owner));
                         }
-
                     }
 
                     // Produce immutable list of type IWorkbook and return.
@@ -126,24 +128,20 @@ namespace Tableau.Migration.Api
         }
 
         /// <inheritdoc />
-        public async Task<IResult<IPublishableWorkbook>> GetWorkbookAsync(
-            Guid workbookId,
-            IImmutableList<IConnection> connections,
-            IContentFileHandle workbookFile,
-            CancellationToken cancel)
+        public async Task<IResult<IWorkbookDetails>> GetWorkbookAsync(Guid workbookId, CancellationToken cancel)
         {
             var getResult = await RestRequestBuilderFactory
                 .CreateUri($"{UrlPrefix}/{workbookId.ToUrlSegment()}")
                 .ForGetRequest()
                 .SendAsync<WorkbookResponse>(cancel)
-                .ToResultAsync(async (r, c) =>
+                .ToResultAsync(async (response, cancel) =>
                 {
-                    var project = await FindProjectAsync(r.Item, c).ConfigureAwait(false);
-                    var owner = await FindOwnerAsync(r.Item, c).ConfigureAwait(false);
-                    var views = r.Item.Views.Select(v => (IView)new View(v, project, r.Item.Name))
-                        .ToImmutableArray();
+                    var workbook = Guard.AgainstNull(response.Item, () => response.Item);
 
-                    return (IPublishableWorkbook)new PublishableWorkbook(r, project, owner, connections, views, workbookFile);
+                    var project = await FindProjectAsync(workbook, true, cancel).ConfigureAwait(false);
+                    var owner = await FindOwnerAsync(workbook, true, cancel).ConfigureAwait(false);
+
+                    return (IWorkbookDetails)new WorkbookDetails(workbook, project, owner);
                 }, SharedResourcesLocalizer, cancel)
                 .ConfigureAwait(false);
 
@@ -167,13 +165,13 @@ namespace Tableau.Migration.Api
         }
 
         /// <inheritdoc />
-        public async Task<IResult<IResultWorkbook>> PublishWorkbookAsync(
+        public async Task<IResult<IWorkbookDetails>> PublishWorkbookAsync(
             IPublishWorkbookOptions options,
             CancellationToken cancel)
             => await _workbookPublisher.PublishAsync(options, cancel).ConfigureAwait(false);
 
         /// <inheritdoc />
-        public async Task<IResult<IResultWorkbook>> PublishAsync(IPublishableWorkbook item, CancellationToken cancel)
+        public async Task<IResult<IWorkbookDetails>> PublishAsync(IPublishableWorkbook item, CancellationToken cancel)
         {
             var fileStream = await item.File.OpenReadAsync(cancel).ConfigureAwait(false);
             await using (fileStream)
@@ -266,11 +264,18 @@ namespace Tableau.Migration.Api
                  * make sure the file is disposed. We clean up orphaned
                  * files at the end of the DI scope, but we don't want to 
                  * bloat disk usage when we're processing future pages of items.*/
-                var publishableResult = await file.DisposeOnThrowOrFailureAsync(
-                    async () => await GetWorkbookAsync(contentItem.Id, connectionsResult.Value, file, cancel).ConfigureAwait(false)
+                var workbookResult = await file.DisposeOnThrowOrFailureAsync(
+                    async () => await GetWorkbookAsync(contentItem.Id, cancel).ConfigureAwait(false)
                 ).ConfigureAwait(false);
 
-                return publishableResult;
+                if (!workbookResult.Success)
+                {
+                    return workbookResult.CastFailure<IPublishableWorkbook>();
+                }
+
+                var publishWorkbook = new PublishableWorkbook(workbookResult.Value, connectionsResult.Value, file);
+
+                return Result<IPublishableWorkbook>.Succeeded(publishWorkbook);
             }
         }
 

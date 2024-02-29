@@ -30,8 +30,11 @@ namespace Tableau.Migration.Tests
         /// <param name="second">The second collection.</param>
         /// <param name="sort">The sorting to use to normalize ordering between the two collections.</param>
         /// <returns>True if the sequences are equal, false otherwise.</returns>
-        public static bool SequenceEqual<T>(this IEnumerable<T> first, IEnumerable<T> second, Func<T, object> sort)
+        public static bool SequenceEqual<T>(this IEnumerable<T>? first, IEnumerable<T>? second, Func<T, object?> sort)
         {
+            if (first is null || second is null)
+                return ReferenceEquals(first, second);
+
             var firstSorted = first.OrderBy(sort);
             var secondSorted = second.OrderBy(sort);
 

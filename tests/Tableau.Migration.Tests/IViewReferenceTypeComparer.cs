@@ -25,7 +25,7 @@ namespace Tableau.Migration.Tests
     {
         public static IViewReferenceTypeComparer Instance = new();
 
-        public override int CompareItems(IViewReferenceType x, IViewReferenceType y)
+        protected override int CompareItems(IViewReferenceType x, IViewReferenceType y)
         {
             Assert.NotNull(x.ContentUrl);
             Assert.NotNull(y.ContentUrl);

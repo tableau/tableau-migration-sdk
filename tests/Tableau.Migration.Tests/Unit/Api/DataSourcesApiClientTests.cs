@@ -19,7 +19,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 using Moq;
 using Tableau.Migration.Api;
@@ -62,13 +61,8 @@ namespace Tableau.Migration.Tests.Unit.Api
                 MockHttpClient.SetupResponse(mockResponse);
 
                 var dataSourceId = Guid.NewGuid();
-                var connections = CreateMany<IConnection>().ToImmutableArray();
 
-                var result = await ApiClient.GetDataSourceAsync(
-                    dataSourceId,
-                    connections,
-                    Create<ContentFileHandle>(),
-                    Cancel);
+                var result = await ApiClient.GetDataSourceAsync(dataSourceId, Cancel);
 
                 result.AssertFailure();
 
@@ -88,11 +82,7 @@ namespace Tableau.Migration.Tests.Unit.Api
                 var dataSourceId = Guid.NewGuid();
                 var connections = CreateMany<IConnection>().ToImmutableArray();
 
-                var result = await ApiClient.GetDataSourceAsync(
-                    dataSourceId,
-                    connections,
-                    Create<ContentFileHandle>(),
-                    Cancel);
+                var result = await ApiClient.GetDataSourceAsync(dataSourceId, Cancel);
 
                 result.AssertFailure();
 
@@ -122,12 +112,9 @@ namespace Tableau.Migration.Tests.Unit.Api
                 MockHttpClient.SetupResponse(mockResponse);
 
                 var dataSourceId = Guid.NewGuid();
-                var connections = CreateMany<IConnection>().ToImmutableArray();
 
                 var result = await ApiClient.GetDataSourceAsync(
                     dataSourceId,
-                    connections,
-                    Create<ContentFileHandle>(),
                     Cancel);
 
                 result.AssertSuccess();
@@ -191,7 +178,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             [Fact]
             public async Task SuccessAsync()
             {
-                var content = new ByteArrayContent(Encoding.UTF8.GetBytes("hi2u"));
+                var content = new ByteArrayContent(Constants.DefaultEncoding.GetBytes("hi2u"));
 
                 var mockResponse = new MockHttpResponseMessage(content);
                 MockHttpClient.SetupResponse(mockResponse);

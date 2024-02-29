@@ -46,4 +46,15 @@ namespace Tableau.Migration.Tests
         protected virtual object?[] CreateArguments(T? value)
             => new object?[] { value };
     }
+
+    public class ValuesAttribute : ValuesAttribute<object>
+    {
+        public ValuesAttribute(IEnumerable<object?> values)
+            : base(values)
+        { }
+
+        public ValuesAttribute(params object?[] values)
+            : base(values)
+        { }
+    }
 }

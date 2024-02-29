@@ -24,7 +24,7 @@ using Microsoft.Extensions.Options;
 using Tableau.Migration.Api;
 using Tableau.Migration.Config;
 using Tableau.Migration.Net.Handlers;
-using Tableau.Migration.Net.Policies;
+using Tableau.Migration.Net.Resilience;
 using Tableau.Migration.Net.Rest;
 using Tableau.Migration.Net.Simulation;
 
@@ -45,6 +45,7 @@ namespace Tableau.Migration.Net
         {
             services.AddSharedResourcesLocalization();
 
+            services.TryAddSingleton(TimeProvider.System);
             services.TryAddSingleton<ITableauSerializer>(TableauSerializer.Instance);
             services.AddSingleton<IResponseSimulatorProvider, NullResponseSimulatorProvider>();
 
@@ -55,18 +56,6 @@ namespace Tableau.Migration.Net
                 .AddSingleton<IHttpContentSerializer, HttpContentSerializer>()
                 .AddSingleton<INetworkTraceRedactor, NetworkTraceRedactor>()
                 .AddTransient<INetworkTraceLogger, NetworkTraceLogger>()
-                .AddScoped<HttpPolicyWrapBuilder>()
-                .AddScoped<IHttpPolicyWrapBuilder, SimpleCachedHttpPolicyWrapBuilder>()
-                // All Handlers must be transients
-                // Their lifetime will be managed by the IHttpClientFactory
-                .AddTransient(provider =>
-                {
-                    var policyBuilder = provider.GetRequiredService<IHttpPolicyWrapBuilder>();
-
-                    return new PolicyHttpMessageHandler(
-                        httpRequest => policyBuilder.GetRequestPolicies(
-                            httpRequest));
-                })
                 .AddTransient<UserAgentHttpMessageHandler>()
                 .AddTransient<AuthenticationHandler>()
                 .AddTransient<LoggingHandler>()
@@ -83,25 +72,14 @@ namespace Tableau.Migration.Net
                             nameof(DefaultHttpClient)),
                         provider.GetRequiredService<IHttpContentSerializer>());
                 })
-                .AddScoped<RetryPolicyBuilder>()
-                .AddScoped<MaxConcurrencyPolicyBuilder>()
-                .AddScoped<ClientThrottlePolicyBuilder>()
-                .AddScoped<ServerThrottlePolicyBuilder>()
-                .AddScoped<RequestTimeoutPolicyBuilder>()
-                .AddScoped<SimpleCachedRetryPolicyBuilder>()
-                .AddScoped<SimpleCachedMaxConcurrencyPolicyBuilder>()
-                .AddScoped<SimpleCachedClientThrottlePolicyBuilder>()
-                .AddScoped<SimpleCachedServerThrottlePolicyBuilder>()
-                .AddScoped<SimpleCachedRequestTimeoutPolicyBuilder>()
-                // Policies builders. The order here is important for the dependency injection
-                // It injects all policies as an enumerator, on the same order they are registered here.
-                .AddScoped<IHttpPolicyBuilder, SimpleCachedRetryPolicyBuilder>()
-                .AddScoped<IHttpPolicyBuilder, SimpleCachedMaxConcurrencyPolicyBuilder>()
-                .AddScoped<IHttpPolicyBuilder, SimpleCachedServerThrottlePolicyBuilder>()
-                .AddScoped<IHttpPolicyBuilder, SimpleCachedClientThrottlePolicyBuilder>()
-                .AddScoped<IHttpPolicyBuilder, SimpleCachedRequestTimeoutPolicyBuilder>();
+                // Resilience strategy builders - the order here is important for dependency injection.
+                .AddTransient<IResilienceStrategyBuilder, RetryStrategyBuilder>()
+                .AddTransient<IResilienceStrategyBuilder, MaxConcurrencyStrategyBuilder>()
+                .AddTransient<IResilienceStrategyBuilder, ServerThrottleStrategyBuilder>()
+                .AddTransient<IResilienceStrategyBuilder, ClientThrottleStrategyBuilder>()
+                .AddTransient<IResilienceStrategyBuilder, RequestTimeoutStrategyBuilder>();
 
-            services
+            var httpClientBuilder = services
                 // https://learn.microsoft.com/en-us/aspnet/core/fundamentals/http-requests?view=aspnetcore-7.0#httpclient-and-lifetime-management
                 // The default handler lifetime is two minutes. The default value can be overridden on a per named client basis
                 .AddScopedHttpClient(nameof(DefaultHttpClient))
@@ -109,8 +87,29 @@ namespace Tableau.Migration.Net
                 // https://learn.microsoft.com/en-us/aspnet/core/fundamentals/http-requests?view=aspnetcore-7.0#outgoing-request-middleware
                 // Multiple handlers can be registered in the order that they should execute.
                 // Each handler wraps the next handler until the final HttpClientHandler executes the request.
-                .AddHttpMessageHandler<UserAgentHttpMessageHandler>()
-                .AddHttpMessageHandler<PolicyHttpMessageHandler>()
+                .AddHttpMessageHandler<UserAgentHttpMessageHandler>();
+
+            httpClientBuilder.AddResilienceHandler(Constants.USER_AGENT_PREFIX, static (pipelineBuilder, ctx) =>
+            {
+                ctx.EnableReloads<MigrationSdkOptions>(nameof(MigrationSdkOptions));
+
+                var options = ctx.ServiceProvider.GetRequiredService<IConfigReader>().Get();
+
+                var builders = ctx.ServiceProvider.GetServices<IResilienceStrategyBuilder>();
+                foreach (var builder in builders)
+                {
+                    Action? onPipelineDisposed = null;
+
+                    builder.Build(pipelineBuilder, options, ref onPipelineDisposed);
+
+                    if(onPipelineDisposed is not null)
+                    {
+                        ctx.OnPipelineDisposed(onPipelineDisposed);
+                    }
+                }
+            });
+
+            httpClientBuilder
                 .AddHttpMessageHandler<AuthenticationHandler>()
                 .AddHttpMessageHandler<LoggingHandler>()
                 .AddHttpMessageHandler<SimulationHttpHandler>(); //Must be last for simulation to function.

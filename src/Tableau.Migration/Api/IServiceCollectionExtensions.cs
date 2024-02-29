@@ -47,6 +47,7 @@ namespace Tableau.Migration.Api
 
             services.AddSingleton<IFileSystem, FileSystem>();
             services.AddSingleton<ITaskDelayer, TaskDelayer>();
+            services.AddSingleton<IMemoryStreamManager, MemoryStreamManager>();
 
             //Bootstrap and scope state tracking services.
             services.AddScoped<ApiClientInput>();
@@ -59,15 +60,15 @@ namespace Tableau.Migration.Api
             services.AddScoped<ILabelsApiClientFactory, LabelsApiClientFactory>();
 
             //Main API client.
-            services.AddTransient<IApiClient, ApiClient>();
-            services.AddTransient<IGroupsApiClient, GroupsApiClient>();
-            services.AddTransient<IJobsApiClient, JobsApiClient>();
-            services.AddTransient<IProjectsApiClient, ProjectsApiClient>();
-            services.AddTransient<ISitesApiClient, SitesApiClient>();
-            services.AddTransient<IUsersApiClient, UsersApiClient>();
-            services.AddTransient<IDataSourcesApiClient, DataSourcesApiClient>();
-            services.AddTransient<IWorkbooksApiClient, WorkbooksApiClient>();
-            services.AddTransient<IViewsApiClient, ViewsApiClient>();
+            services.AddScoped<IApiClient, ApiClient>();
+            services.AddScoped<IGroupsApiClient, GroupsApiClient>();
+            services.AddScoped<IJobsApiClient, JobsApiClient>();
+            services.AddScoped<IProjectsApiClient, ProjectsApiClient>();
+            services.AddScoped<ISitesApiClient, SitesApiClient>();
+            services.AddScoped<IUsersApiClient, UsersApiClient>();
+            services.AddScoped<IDataSourcesApiClient, DataSourcesApiClient>();
+            services.AddScoped<IWorkbooksApiClient, WorkbooksApiClient>();
+            services.AddScoped<IViewsApiClient, ViewsApiClient>();
 
             //API Simulator.
             services.AddSingleton<ITableauApiSimulatorFactory, TableauApiSimulatorFactory>();

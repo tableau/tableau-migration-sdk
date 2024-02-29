@@ -82,7 +82,7 @@ namespace Tableau.Migration.Api.Simulation.Rest.Net.Responses
                 Id = commitDataSource.Project?.Id ?? Data.DefaultProject.Id
             };
 
-            targetDataSource.Tags = null;
+            targetDataSource.Tags = [];
 
             return targetDataSource;
         }

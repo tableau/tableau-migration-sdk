@@ -15,14 +15,12 @@
 //
 
 using System;
-using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Tableau.Migration.Api.Models;
 using Tableau.Migration.Api.Permissions;
 using Tableau.Migration.Api.Tags;
 using Tableau.Migration.Content;
-using Tableau.Migration.Content.Files;
 using Tableau.Migration.Paging;
 
 namespace Tableau.Migration.Api
@@ -32,7 +30,7 @@ namespace Tableau.Migration.Api
     /// </summary>
     public interface IWorkbooksApiClient :
         IPagedListApiClient<IWorkbook>,
-        IPublishApiClient<IPublishableWorkbook, IResultWorkbook>,
+        IPublishApiClient<IPublishableWorkbook, IWorkbookDetails>,
         IPullApiClient<IWorkbook, IPublishableWorkbook>,
         IOwnershipApiClient,
         ITagsContentApiClient,
@@ -53,13 +51,9 @@ namespace Tableau.Migration.Api
         /// Gets a workbook by the given ID.
         /// </summary>
         /// <param name="workbookId">The ID to get the workbook for.</param>
-        /// <param name="connections">The workbook connection metadata.</param>
-        /// <param name="workbookFile">The workbook file.</param>
         /// <param name="cancel">A cancellation token to obey.</param>
         /// <returns>The data sorce result.</returns>
-        Task<IResult<IPublishableWorkbook>> GetWorkbookAsync(Guid workbookId,
-            IImmutableList<IConnection> connections,
-            IContentFileHandle workbookFile, CancellationToken cancel);
+        Task<IResult<IWorkbookDetails>> GetWorkbookAsync(Guid workbookId, CancellationToken cancel);
 
         /// <summary>
         /// Downloads the workbook file for the given ID.
@@ -79,7 +73,7 @@ namespace Tableau.Migration.Api
         /// <param name="options">The new workbook's details.</param>
         /// <param name="cancel">A cancellation token to obey.</param>
         /// <returns>The published workbook.</returns>
-        Task<IResult<IResultWorkbook>> PublishWorkbookAsync(
+        Task<IResult<IWorkbookDetails>> PublishWorkbookAsync(
             IPublishWorkbookOptions options,
             CancellationToken cancel);
 

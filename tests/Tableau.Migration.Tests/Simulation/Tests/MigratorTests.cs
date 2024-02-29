@@ -120,11 +120,5 @@ namespace Tableau.Migration.Tests.Simulation.Tests
             Assert.Empty(result.Manifest.Errors);
             Assert.Equal(MigrationCompletionStatus.Canceled, result.Status);
         }
-
-        protected override IServiceCollection ConfigureServices(IServiceCollection services)
-        {
-            return base.ConfigureServices(services)
-                .AddTableauMigrationSdk();
-        }
     }
 }

@@ -14,6 +14,7 @@
 //  limitations under the License.
 //
 
+using System;
 using System.Collections.Generic;
 using Tableau.Migration.Api.Rest.Models;
 
@@ -22,24 +23,71 @@ namespace Tableau.Migration.Content
     internal class Workbook : ContainerContentBase, IWorkbook
     {
         public Workbook(IWorkbookType response, IContentReference project, IContentReference owner)
+            : this(
+                  response.Id,
+                  response.Name,
+                  response.ContentUrl,
+                  response.Description,
+                  response.CreatedAt,
+                  response.UpdatedAt,
+                  response.EncryptExtracts,
+                  response.ShowTabs,
+                  response.Size,
+                  response.WebpageUrl,
+                  response.Tags.ToTagList(t => new Tag(t)),
+                  project,
+                  owner)
+        { }
+
+        public Workbook(IWorkbook workbook)
+            : this(
+                  workbook.Id,
+                  workbook.Name,
+                  workbook.ContentUrl,
+                  workbook.Description,
+                  workbook.CreatedAt,
+                  workbook.UpdatedAt,
+                  workbook.EncryptExtracts,
+                  workbook.ShowTabs,
+                  workbook.Size,
+                  workbook.WebpageUrl,
+                  workbook.Tags,
+                  ((IContainerContent)workbook).Container,
+                  workbook.Owner)
+        { }
+
+        private Workbook(
+            Guid id,
+            string? name,
+            string? contentUrl,
+            string? description,
+            string? createdAt,
+            string? updatedAt,
+            bool encryptExtracts,
+            bool showTabs,
+            long size,
+            string? webpageUrl,
+            IList<ITag> tags,
+            IContentReference project,
+            IContentReference owner)
             : base(project)
         {
-            Id = Guard.AgainstDefaultValue(response.Id, () => response.Id);
-            Name = Guard.AgainstNullEmptyOrWhiteSpace(response.Name, () => response.Name);
-            ContentUrl = Guard.AgainstNullEmptyOrWhiteSpace(response.ContentUrl, () => response.ContentUrl);
+            Id = Guard.AgainstDefaultValue(id, () => id);
+            Name = Guard.AgainstNullEmptyOrWhiteSpace(name, () => name);
+            ContentUrl = Guard.AgainstNullEmptyOrWhiteSpace(contentUrl, () => contentUrl);
 
-            ShowTabs = response.ShowTabs;
-            Size = response.Size;
-            WebpageUrl = response.WebpageUrl;
-            EncryptExtracts = response.EncryptExtracts;
+            Description = description ?? string.Empty;
+            CreatedAt = createdAt ?? string.Empty;
+            UpdatedAt = updatedAt ?? string.Empty;
 
-            Description = response.Description ?? string.Empty;
-            CreatedAt = response.CreatedAt ?? string.Empty;
-            UpdatedAt = response.UpdatedAt ?? string.Empty;
-            WebpageUrl = response.WebpageUrl ?? string.Empty;
+            EncryptExtracts = encryptExtracts;
+            ShowTabs = showTabs;
+            Size = size;
+
+            WebpageUrl = webpageUrl ?? string.Empty;
 
             Owner = owner;
-            Tags = response.Tags.ToTagList(t => new Tag(t));
+            Tags = tags;
 
             Location = project.Location.Append(Name);
         }

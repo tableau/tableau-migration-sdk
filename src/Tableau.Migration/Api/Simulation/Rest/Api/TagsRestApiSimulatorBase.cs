@@ -89,7 +89,7 @@ namespace Tableau.Migration.Api.Simulation.Rest.Api
 
                 var content = getContent(data).FirstOrDefault(ds => ds.Id == contentId.Value);
 
-                var existingTags = content?.Tags?.ToList();
+                var existingTags = content?.Tags.ToList();
 
                 if (content == null || existingTags == null)
                 {
@@ -125,7 +125,7 @@ namespace Tableau.Migration.Api.Simulation.Rest.Api
                     return new List<AddTagsResponse.TagType>();
                 }
 
-                var tags = content.Tags?.ToList() ?? new List<ITagType>();
+                var tags = content.Tags.ToList();
 
                 var requestContent = request.GetTableauServerRequest<AddTagsRequest>();
 
