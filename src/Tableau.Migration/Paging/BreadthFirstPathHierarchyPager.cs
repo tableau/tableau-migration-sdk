@@ -114,17 +114,17 @@ namespace Tableau.Migration.Paging
             //Handle empty set.
             if (!_itemsByHierarchyLevel.Any())
             {
-                return PagedResult<TContent>.Succeeded(ImmutableArray<TContent>.Empty, _currentPage, _pageSize, _totalCount);
+                return PagedResult<TContent>.Succeeded(ImmutableArray<TContent>.Empty, _currentPage, _pageSize, _totalCount, true);
             }
 
             //See if there is any items left in our current level.
             var level = _itemsByHierarchyLevel[_currentLevel];
             var levelPage = level.Skip((_currentLevelPage - 1) * _pageSize).Take(_pageSize).ToImmutableArray();
 
-            var result = PagedResult<TContent>.Succeeded(levelPage, _currentPage++, _pageSize, _totalCount);
             _currentLevelPage++;
 
             var peekNextPage = level.Skip((_currentLevelPage - 1) * _pageSize).Take(_pageSize).ToImmutableArray();
+            var lastPage = false;
 
             if (peekNextPage.IsEmpty)
             {
@@ -134,9 +134,18 @@ namespace Tableau.Migration.Paging
                     _currentLevel = nextLevels.First();
                     _currentLevelPage = DEFAULT_PAGE;
                 }
+                else 
+                {
+                    lastPage = true;
+                }
             }
 
-            return result;
+            return PagedResult<TContent>.Succeeded(
+                levelPage, 
+                _currentPage++, 
+                _pageSize, 
+                _totalCount, 
+                lastPage);
         }
     }
 }

@@ -19,11 +19,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Moq;
 using Tableau.Migration.Api.Permissions;
 using Tableau.Migration.Api.Rest;
 using Tableau.Migration.Config;
 using Tableau.Migration.Content.Permissions;
+using Tableau.Migration.Resources;
 using Xunit;
 using Xunit.Sdk;
 
@@ -41,6 +43,10 @@ namespace Tableau.Migration.Tests.Unit.Api.Permissions
 
             protected readonly Dictionary<string, Mock<IPermissionsApiClient>> MockPermissionsClients;
 
+            protected readonly Mock<ILoggerFactory> MockLoggerFactory;
+
+            protected readonly Mock<ISharedResourcesLocalizer> MockLocalizer;
+
             internal readonly DefaultPermissionsApiClient DefaultPermissionsClient;
 
             public DefaultPermissionsApiClientTest()
@@ -55,9 +61,14 @@ namespace Tableau.Migration.Tests.Unit.Api.Permissions
                     .Returns<IPermissionsUriBuilder>(b =>
                         MockPermissionsClients[b.Suffix.Split('/').Last()].Object);
 
+                MockLoggerFactory = Create<Mock<ILoggerFactory>>();
+                MockLocalizer = Create<Mock<ISharedResourcesLocalizer>>();
+
                 DefaultPermissionsClient = new DefaultPermissionsApiClient(
                     MockPermissionsClientFactory.Object,
-                    Options);
+                    Options,
+                    MockLoggerFactory.Object,
+                    MockLocalizer.Object);
             }
         }
 
@@ -138,36 +149,100 @@ namespace Tableau.Migration.Tests.Unit.Api.Permissions
         public class GetAllPermissionsAsync : DefaultPermissionsApiClientTest
         {
             [Fact]
-            public async Task Calls_inner_clients()
+            public async Task Calls_inner_clients_successfully()
             {
                 var projectId = Create<Guid>();
 
-                var resultsByContentType = new Dictionary<string, IResult<IPermissions>>();
+                var permissionsByContentType = new Dictionary<string, IPermissions>();
 
                 foreach (var contentTypeUrlSegment in Options.UrlSegments)
                 {
-                    var contentTypeResult = Result<IPermissions>.Succeeded(Create<IPermissions>());
+                    var permissions = Create<IPermissions>();
+                    permissionsByContentType.Add(contentTypeUrlSegment, permissions);
 
                     MockPermissionsClients[contentTypeUrlSegment]
                         .Setup(c => c.GetPermissionsAsync(projectId, Cancel))
-                        .ReturnsAsync(contentTypeResult);
+                        .ReturnsAsync(Result<IPermissions>.Succeeded(permissions));
                 }
 
                 var result = await DefaultPermissionsClient.GetAllPermissionsAsync(projectId, Cancel);
 
                 Assert.True(result.Success);
 
-                var granteeCapabilityResults = result.Value.Values.SelectMany(v => v.GranteeCapabilities);
-
-                foreach (var resultByContentType in resultsByContentType.Select(r => r.Value))
+                foreach (var resultByContentType in result.Value)
                 {
-                    Assert.True(resultByContentType.Success);
-
-                    foreach (var granteeCapability in resultByContentType.Value.GranteeCapabilities)
-                    {
-                        Assert.Contains(granteeCapability, granteeCapabilityResults);
-                    }
+                    Assert.True(permissionsByContentType.ContainsKey(resultByContentType.Key));
+                    Assert.Equal(permissionsByContentType[resultByContentType.Key], resultByContentType.Value);
                 }
+
+                foreach (var mockClient in MockPermissionsClients.Values)
+                {
+                    mockClient.VerifyAll();
+                    mockClient.VerifyNoOtherCalls();
+                }
+            }
+
+            [Fact]
+            public async Task Calls_inner_clients_some_failures()
+            {
+                var projectId = Create<Guid>();
+
+                var permissionsByContentType = new Dictionary<string, IPermissions>();
+
+                foreach (var contentTypeUrlSegment in Options.UrlSegments)
+                {
+                    if (contentTypeUrlSegment == DefaultPermissionsContentTypeUrlSegments.Databases ||
+                        contentTypeUrlSegment == DefaultPermissionsContentTypeUrlSegments.Tables)
+                    {
+                        MockPermissionsClients[contentTypeUrlSegment]
+                            .Setup(c => c.GetPermissionsAsync(projectId, Cancel))
+                            .ReturnsAsync(Result<IPermissions>.Failed(new InvalidOperationException()));
+                        continue;
+                    }
+                    var permissions = Create<IPermissions>();
+                    permissionsByContentType.Add(contentTypeUrlSegment, permissions);
+
+                    MockPermissionsClients[contentTypeUrlSegment]
+                        .Setup(c => c.GetPermissionsAsync(projectId, Cancel))
+                        .ReturnsAsync(Result<IPermissions>.Succeeded(permissions));
+                }
+
+                var result = await DefaultPermissionsClient.GetAllPermissionsAsync(projectId, Cancel);
+
+                Assert.True(result.Success);
+                Assert.Empty(result.Errors);
+                Assert.False(result.Value.ContainsKey(DefaultPermissionsContentTypeUrlSegments.Databases));
+                Assert.False(result.Value.ContainsKey(DefaultPermissionsContentTypeUrlSegments.Tables));
+
+                foreach (var resultByContentType in result.Value)
+                {
+                    Assert.True(permissionsByContentType.ContainsKey(resultByContentType.Key));
+                    Assert.Equal(permissionsByContentType[resultByContentType.Key], resultByContentType.Value);
+                }
+
+                foreach (var mockClient in MockPermissionsClients.Values)
+                {
+                    mockClient.VerifyAll();
+                    mockClient.VerifyNoOtherCalls();
+                }
+            }
+
+            [Fact]
+            public async Task Calls_inner_clients_failed()
+            {
+                var projectId = Create<Guid>();
+
+                foreach (var contentTypeUrlSegment in Options.UrlSegments)
+                {
+                    MockPermissionsClients[contentTypeUrlSegment]
+                        .Setup(c => c.GetPermissionsAsync(projectId, Cancel))
+                        .ReturnsAsync(Result<IPermissions>.Failed(new InvalidOperationException()));
+                }
+
+                var result = await DefaultPermissionsClient.GetAllPermissionsAsync(projectId, Cancel);
+
+                Assert.False(result.Success);
+                Assert.Equal(Options.UrlSegments.Count, result.Errors.Count);
 
                 foreach (var mockClient in MockPermissionsClients.Values)
                 {

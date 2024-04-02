@@ -34,11 +34,11 @@ jobs:
     runs-on: ${{ inputs.runs-on-config }}
     name: Publish Package from ${{ inputs.published-os }} with ${{ inputs.build-config }} configuration
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       if: ${{ env.PUBLISH_PACKAGE_KEY != '' }}
     - uses: ./.github/actions/setup-dotnet
       if: ${{ env.PUBLISH_PACKAGE_KEY != '' && inputs.runs-on-config != 'self-hosted' }} 
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4
       if: ${{ env.PUBLISH_PACKAGE_KEY != '' }}
       with:
         name: nuget-package

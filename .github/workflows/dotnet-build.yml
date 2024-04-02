@@ -23,11 +23,11 @@ jobs:
     runs-on: ${{ matrix.os }}
     name: .Net Build ${{ matrix.os }}, ${{ matrix.config }}
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: ./.github/actions/setup-dotnet
     - name: Set Replaced Version Windows
       if: ${{ runner.os == 'Windows' &&  inputs.beta-version != '' }}
-      run: echo "VERSION_REPLACE_ARGS=-p:Version='${{ inputs.beta-version }}'" | Out-File -FilePath $env:GITHUB_ENV -Append # no need for -Encoding utf8- uses: actions/checkout@v3
+      run: echo "VERSION_REPLACE_ARGS=-p:Version='${{ inputs.beta-version }}'" | Out-File -FilePath $env:GITHUB_ENV -Append # no need for -Encoding utf8
     - name: Set Replaced Version Not Windows
       if: ${{ runner.os != 'Windows' &&  inputs.beta-version != '' }}
       run: echo "VERSION_REPLACE_ARGS=-p:Version='${{ inputs.beta-version }}'" >> $GITHUB_ENV
@@ -43,25 +43,25 @@ jobs:
       if: ${{ matrix.os == vars.PUBLISH_OS && matrix.config == 'Release' }}
       run: dotnet publish --no-build -p:DebugType=None -p:DebugSymbols=false -c ${{ matrix.config }} -f ${{ vars.PYTHON_NETPACKAGE_FRAMEWORK }} -o './dist/testcomponents/' './tests/Tableau.Migration.TestComponents/Tableau.Migration.TestComponents.csproj'
     - name: Upload Published Artifacts 
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: ${{ matrix.os == vars.PUBLISH_OS && matrix.config == 'Release' }}
       with:
         name: published-${{ matrix.config }}
         path: './src/Python/src/tableau_migration/bin/**'
     - name: Upload Tests Artifacts 
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: ${{ matrix.os == vars.PUBLISH_OS && matrix.config == 'Release' }}
       with:
         name: tests-published-${{ matrix.config }}
         path: './dist/tests/**'
     - name: Upload TestComponents Artifacts 
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: ${{ matrix.os == vars.PUBLISH_OS && matrix.config == 'Release' }}
       with:
         name: testcomponents-published-${{ matrix.config }}
         path: './dist/testcomponents/**'
     - name: Upload Nupkg Artifact 
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: ${{ matrix.os == vars.PUBLISH_OS && matrix.config == 'Release' }}
       with:
         name: nuget-package

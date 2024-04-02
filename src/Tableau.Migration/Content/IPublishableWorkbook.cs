@@ -15,11 +15,12 @@
 //
 
 using System;
+using System.Collections.Generic;
 
 namespace Tableau.Migration.Content
 {
     /// <summary>
-    /// Intreface for a <see cref="IWorkbook"/> that has been downloaded
+    /// Interface for an <see cref="IWorkbook"/> that has been downloaded
     /// and has full information necessary for re-publishing.
     /// </summary>
     public interface IPublishableWorkbook : IWorkbookDetails, IFileContent, IConnectionsContent
@@ -28,5 +29,10 @@ namespace Tableau.Migration.Content
         /// Gets the ID of the user to generate thumbnails as.
         /// </summary>
         Guid? ThumbnailsUserId { get; set; }
+
+        /// <summary>
+        /// Gets the names of the views that should be hidden.
+        /// </summary>
+        ISet<string> HiddenViewNames { get; }
     }
 }

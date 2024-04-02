@@ -4,7 +4,9 @@
   
    {% block attributes %}
    {% if attributes %}
-   .. rubric:: Module Attributes
+   =================
+   Module Attributes
+   =================
 
    .. autosummary::
       :toctree:
@@ -16,7 +18,9 @@
 
    {% block functions %}
    {% if functions %}
-   .. rubric:: {{ _('Functions') }}
+   =================
+   Functions
+   =================
 
    .. autosummary::
       :toctree:
@@ -28,7 +32,9 @@
 
    {% block classes %}
    {% if classes %}
-   .. rubric:: {{ _('Classes') }}
+   =================
+   Classes
+   =================
 
    .. autosummary::
       :toctree:                           
@@ -41,7 +47,9 @@
 
    {% block exceptions %}
    {% if exceptions %}
-   .. rubric:: {{ _('Exceptions') }}
+   =================
+   Exceptions
+   =================
 
    .. autosummary::
       :toctree:                                          
@@ -53,7 +61,9 @@
 
 {% block modules %}
 {% if modules %}
-.. rubric:: Modules
+=================
+Modules
+=================
 
 .. autosummary::
    :toctree:

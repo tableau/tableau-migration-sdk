@@ -244,4 +244,7 @@ Detail: {3}</value>
   <data name="OwnerNotFoundMessage" xml:space="preserve">
     <value>Owner {OwnerId} was not found for {ContentType} {ContentName}.</value>
   </data>
+  <data name="FailedToGetDefaultPermissionsMessage" xml:space="preserve">
+    <value>Failed to get Default Permissions {UrlSegment} for {ProjectId}.</value>
+  </data>
 </root>

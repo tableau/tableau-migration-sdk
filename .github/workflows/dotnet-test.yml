@@ -20,22 +20,18 @@ jobs:
     runs-on: ${{ matrix.os }}
     name: .Net Test ${{ matrix.os }}, ${{ matrix.config }}
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: ./.github/actions/setup-dotnet
-    - name: Test ${{ matrix.config }}
+    - name: Build solution with ${{ matrix.config }} configuration
+      run: dotnet build '${{ vars.BUILD_SOLUTION }}' -c ${{ matrix.config }}
+    - name: Test solution with ${{ matrix.config }} configuration
       run: |
-        dotnet test '${{ vars.BUILD_SOLUTION }}' -c ${{ matrix.config }} -p:CollectCoverage=true -p:CoverletOutputFormat=cobertura -p:CoverletOutput=./artifacts/ --verbosity normal --logger trx --results-directory "TestResults-${{ matrix.os }}-${{ matrix.config }}"
+        dotnet test '${{ vars.BUILD_SOLUTION }}' --no-build -c ${{ matrix.config }} --verbosity normal --logger trx --results-directory "TestResults-${{ matrix.os }}-${{ matrix.config }}" -- RunConfiguration.TestSessionTimeout=${{ vars.MIGRATIONSDK_TEST_CANCELLATION_TIMEOUT_MILLISECONDS }}
     - name: Upload test results
       # Use always() to always run this step to publish test results when there are test failures
       if: ${{ always() }}
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: dotnet-results-${{ matrix.os }}-${{ matrix.config }}
         path: TestResults-${{ matrix.os }}-${{ matrix.config }}
-        if-no-files-found: error
-    - name: Upload Code Coverage
-      uses: actions/upload-artifact@v3
-      with:
-        name: coverage-${{ matrix.os }}-${{ matrix.config }}
-        path: '**/artifacts/coverage*.cobertura.xml'
         if-no-files-found: error

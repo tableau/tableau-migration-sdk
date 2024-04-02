@@ -1,15 +1,12 @@
-from Tableau.Migration.Interop.Hooks import ISyncMigrationHook
+from System.Collections.Generic import List
+from Tableau.Migration.Content import IGroup, IProject, IUser
+from Tableau.Migration.Engine import ContentMigrationItem
 from Tableau.Migration.Engine.Actions import IMigrationActionResult
 from Tableau.Migration.Engine.Hooks import IMigrationActionCompletedHook
+from Tableau.Migration.Interop.Hooks import ISyncMigrationHook
 from Tableau.Migration.Interop.Hooks.Filters import ISyncContentFilter
 from Tableau.Migration.Interop.Hooks.Mappings import ISyncContentMapping
 from Tableau.Migration.Interop.Hooks.Transformers import ISyncContentTransformer
-from Tableau.Migration.Content import (
-    IGroup,
-    IUser,
-    IProject)
-from Tableau.Migration.Engine import ContentMigrationItem
-from System.Collections.Generic import List
 
 class PyLogActionHook(ISyncMigrationHook[IMigrationActionResult], IMigrationActionCompletedHook):
     __namespace__ = "MyNamespace"

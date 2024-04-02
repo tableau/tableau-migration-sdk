@@ -21,7 +21,7 @@ jobs:
     steps:
     - name: Create Release
       id: create-release
-      uses: actions/github-script@v6
+      uses: actions/github-script@v7
       env:
         RELEASE_VERSION: ${{ inputs.release-version }}
         IS_PRERELEASE: ${{ inputs.is-pre-release }}
@@ -48,13 +48,13 @@ jobs:
           })
 
           return createReleaseResponse.data.id
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4
       with:
         name: docs
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4
       with:
         name: nuget-package
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4
       with:
         name: pypi-package
     - name: Generate Bundle
@@ -62,7 +62,7 @@ jobs:
         zip -r bundle.zip ./Tableau.Migration.${{ inputs.release-version }}.nupkg docs.zip tableau_migration-pypi.zip
     - name: Upload Release Assets
       id: upload-docs
-      uses: actions/github-script@v6
+      uses: actions/github-script@v7
       env:
         RELEASE_VERSION: ${{ inputs.release-version }}
         RELEASE_ID: ${{ steps.create-release.outputs.result }}

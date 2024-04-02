@@ -1,0 +1,8 @@
+{
+    "ConnectionConfig":     {
+        "ServerUrl": "http://server",
+        "SiteContentUrl": "",
+        "AccessTokenName": "my server token name",
+        "AccessToken": "my server token"
+    }
+}

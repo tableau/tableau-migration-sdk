@@ -99,5 +99,7 @@ namespace Tableau.Migration.Resources
         public const string ProjectReferenceNotFoundMessage = "ProjectReferenceNotFoundMessage";
 
         public const string OwnerNotFoundMessage = "OwnerNotFoundMessage";
+
+        public const string FailedToGetDefaultPermissionsMessage = "FailedToGetDefaultPermissionsMessage";
     }
 }

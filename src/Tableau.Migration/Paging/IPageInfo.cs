@@ -35,5 +35,10 @@ namespace Tableau.Migration.Paging
         /// Gets the total unpaged item count.
         /// </summary>
         int TotalCount { get; }
+
+        /// <summary>
+        /// Indicates whether the SDK has already fetched all pages or not.
+        /// </summary>
+        bool FetchedAllPages { get; }
     }
 }

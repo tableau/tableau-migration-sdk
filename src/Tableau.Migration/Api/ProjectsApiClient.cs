@@ -30,6 +30,7 @@ using Tableau.Migration.Api.Rest.Models.Responses;
 using Tableau.Migration.Content;
 using Tableau.Migration.Content.Permissions;
 using Tableau.Migration.Content.Search;
+using Tableau.Migration.Net;
 using Tableau.Migration.Net.Rest;
 using Tableau.Migration.Net.Rest.Filtering;
 using Tableau.Migration.Paging;
@@ -42,6 +43,7 @@ namespace Tableau.Migration.Api
     {
         internal const string PROJECT_NAME_CONFLICT_ERROR_CODE = "409006";
 
+        private readonly IHttpContentSerializer _serializer;
         private readonly IDefaultPermissionsApiClient _defaultPermissionsClient;
 
         public ProjectsApiClient(
@@ -49,10 +51,13 @@ namespace Tableau.Migration.Api
             IPermissionsApiClientFactory permissionsClientFactory,
             IContentReferenceFinderFactory finderFactory,
             ILoggerFactory loggerFactory,
+            IHttpContentSerializer serializer,
             ISharedResourcesLocalizer sharedResourcesLocalizer)
             : base(restRequestBuilderFactory, finderFactory, loggerFactory, sharedResourcesLocalizer)
         {
             _defaultPermissionsClient = permissionsClientFactory.CreateDefaultPermissionsClient();
+            _serializer = serializer;
+            
             Permissions = permissionsClientFactory.Create(this);
         }
 
@@ -108,6 +113,19 @@ namespace Tableau.Migration.Api
                 .ConfigureAwait(false);
 
             return updateResult;
+        }
+
+        // <inheritdoc />
+        public async Task<IResult> DeleteProjectAsync(Guid projectId, CancellationToken cancel)
+        {
+            var result = await RestRequestBuilderFactory
+                .CreateUri($"{UrlPrefix}/{projectId.ToUrlSegment()}")
+                .ForDeleteRequest()
+                .SendAsync(cancel)
+                .ToResultAsync(_serializer, SharedResourcesLocalizer, cancel)
+                .ConfigureAwait(false);
+
+            return result;
         }
 
         #region - IPermissionsContentApiClientImplementation -

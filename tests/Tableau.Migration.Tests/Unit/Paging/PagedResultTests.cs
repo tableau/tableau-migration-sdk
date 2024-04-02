@@ -30,7 +30,7 @@ namespace Tableau.Migration.Tests.Unit.Paging
             {
                 var items = CreateMany<object>().ToImmutableList();
 
-                var r = PagedResult<object>.Succeeded(items, 1, 2, 3);
+                var r = PagedResult<object>.Succeeded(items, 1, 2, 3, true);
 
                 r.AssertSuccess();
 
@@ -38,6 +38,7 @@ namespace Tableau.Migration.Tests.Unit.Paging
                 Assert.Equal(1, r.PageNumber);
                 Assert.Equal(2, r.PageSize);
                 Assert.Equal(3, r.TotalCount);
+                Assert.True(r.FetchedAllPages);
             }
         }
 
@@ -58,6 +59,7 @@ namespace Tableau.Migration.Tests.Unit.Paging
                     Assert.Equal(0, r.PageNumber);
                     Assert.Equal(0, r.PageSize);
                     Assert.Equal(0, r.TotalCount);
+                    Assert.True(r.FetchedAllPages);
                 }
             }
 
@@ -76,6 +78,7 @@ namespace Tableau.Migration.Tests.Unit.Paging
                     Assert.Equal(0, r.PageNumber);
                     Assert.Equal(0, r.PageSize);
                     Assert.Equal(0, r.TotalCount);
+                    Assert.True(r.FetchedAllPages);
                 }
             }
         }

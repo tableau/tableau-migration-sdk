@@ -1,5 +1,6 @@
 from Tableau.Migration.Content import IGroup
 from Tableau.Migration.Engine import ContentMigrationItem
+from System.Collections.Generic import List
 
 def log_callback(ctx):
     print("ACTION COMPLETED")

@@ -93,7 +93,6 @@ namespace Tableau.Migration.Engine.Migrators
             var sourcePage = await sourcePager.NextPageAsync(cancel).ConfigureAwait(false);
             resultBuilder.Add(sourcePage);
 
-            var processedItems = 0;
             var manifestEntryBuilder = manifestPartition.GetEntryBuilder(sourcePage.TotalCount);
             while (!sourcePage.Value.IsNullOrEmpty())
             {
@@ -125,9 +124,8 @@ namespace Tableau.Migration.Engine.Migrators
 
                 //We only bubble up batch-level errors to the action, and not item-level errors.
                 //This means a batch can succeed even if some of the items fail.
-                processedItems += sourcePage.Value.Count;
                 resultBuilder.Add(batchResult);
-                if (!batchResult.PerformNextBatch || processedItems >= sourcePage.TotalCount)
+                if (!batchResult.PerformNextBatch || sourcePage.FetchedAllPages)
                 {
                     break;
                 }

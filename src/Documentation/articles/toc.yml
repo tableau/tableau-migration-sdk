@@ -2,6 +2,8 @@
   href: intro.md
 - name: Configuration
   href: configuration.md  
+- name: Plan Validation
+  href: plan_validation.md
 - name: Advanced Configuration
   items:
   - name: Hooks

@@ -221,6 +221,51 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
         }
 
+        public class DeleteGroupAsync : GroupsApiClientTest
+        {
+            [Fact]
+            public async Task Success()
+            {
+                //Setup
+                var groupId = Guid.NewGuid();
+
+                MockHttpClient.SetupResponse(new MockHttpResponseMessage(HttpStatusCode.NoContent));
+
+                //Act
+                var result = await GroupsApiClient.DeleteGroupAsync(groupId, Cancel);
+
+                //Test
+                result.AssertSuccess();
+
+                MockHttpClient.AssertSingleRequest(r =>
+                {
+                    r.AssertHttpMethod(HttpMethod.Delete);
+                    r.AssertRelativeUri($"/api/{TableauServerVersion.RestApiVersion}/sites/{SiteId}/groups/{groupId}");
+                });
+            }
+
+            [Fact]
+            public async Task Failure()
+            {
+                //Setup
+                var groupId = Guid.NewGuid();
+
+                MockHttpClient.SetupResponse(new MockHttpResponseMessage(HttpStatusCode.InternalServerError));
+
+                //Act
+                var result = await GroupsApiClient.DeleteGroupAsync(groupId, Cancel);
+
+                //Test
+                result.AssertFailure();
+
+                MockHttpClient.AssertSingleRequest(r =>
+                {
+                    r.AssertHttpMethod(HttpMethod.Delete);
+                    r.AssertRelativeUri($"/api/{TableauServerVersion.RestApiVersion}/sites/{SiteId}/groups/{groupId}");
+                });
+            }
+        }
+
         public class PublishAsync : GroupsApiClientTest
         {
             private IPublishableGroup CreateGroup(Action<Mock<IPublishableGroup>>? configure = null)

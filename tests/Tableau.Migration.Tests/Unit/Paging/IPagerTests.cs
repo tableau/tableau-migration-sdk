@@ -43,19 +43,19 @@ namespace Tableau.Migration.Tests.Unit.Paging
 
             private void EnqueuePage(IPagedResult<TestContentType> result) => _pages.Enqueue(result);
 
-            private void EnqueuePage(int pageSize, int totalCount, IEnumerable<TestContentType> items)
-                => EnqueuePage(PagedResult<TestContentType>.Succeeded(items.ToImmutableArray(), _pages.Count, pageSize, totalCount));
+            private void EnqueuePage(int pageSize, int totalCount, IEnumerable<TestContentType> items, bool lastPage)
+                => EnqueuePage(PagedResult<TestContentType>.Succeeded(items.ToImmutableArray(), _pages.Count + 1, pageSize, totalCount, lastPage));
 
             [Fact]
             public async Task GetsAllItemsUntilTotalCountAsync()
             {
                 var items = CreateMany<TestContentType>(10);
 
-                EnqueuePage(2, 10, items.Skip(0).Take(2));
-                EnqueuePage(2, 10, items.Skip(2).Take(2));
-                EnqueuePage(2, 10, items.Skip(4).Take(2));
-                EnqueuePage(2, 10, items.Skip(6).Take(2));
-                EnqueuePage(2, 10, items.Skip(8).Take(2));
+                EnqueuePage(2, 10, items.Skip(0).Take(2), false);
+                EnqueuePage(2, 10, items.Skip(2).Take(2), false);
+                EnqueuePage(2, 10, items.Skip(4).Take(2), false);
+                EnqueuePage(2, 10, items.Skip(6).Take(2), false);
+                EnqueuePage(2, 10, items.Skip(8).Take(2), true);
 
                 var results = await MockPager.Object.GetAllPagesAsync(Cancel);
 
@@ -67,23 +67,23 @@ namespace Tableau.Migration.Tests.Unit.Paging
             }
 
             [Fact]
-            public async Task GetsAllItemsUntilUnexpectedEmptyPageAsync()
+            public async Task GetsAllItemsWithUnexpectedEmptyPageAsync()
             {
                 var items = CreateMany<TestContentType>(10);
 
-                EnqueuePage(2, 10, items.Skip(0).Take(2));
-                EnqueuePage(2, 10, items.Skip(2).Take(2));
-                EnqueuePage(2, 10, items.Skip(4).Take(2));
-                EnqueuePage(2, 10, Enumerable.Empty<TestContentType>());
-                EnqueuePage(2, 10, items.Skip(8).Take(2));
+                EnqueuePage(2, 10, items.Skip(0).Take(2), false);
+                EnqueuePage(2, 10, items.Skip(2).Take(2), false);
+                EnqueuePage(2, 10, items.Skip(4).Take(2), false);
+                EnqueuePage(2, 10, Enumerable.Empty<TestContentType>(), false);
+                EnqueuePage(2, 10, items.Skip(6).Take(2), true);
 
                 var results = await MockPager.Object.GetAllPagesAsync(Cancel);
 
                 results.AssertSuccess();
                 Assert.NotNull(results.Value);
-                Assert.Equal(items.Take(6), results.Value!);
+                Assert.Equal(items.Take(8), results.Value!);
 
-                MockPager.Verify(x => x.NextPageAsync(Cancel), Times.Exactly(4));
+                MockPager.Verify(x => x.NextPageAsync(Cancel), Times.Exactly(5));
             }
 
             [Fact]
@@ -91,11 +91,11 @@ namespace Tableau.Migration.Tests.Unit.Paging
             {
                 var items = CreateMany<TestContentType>(10);
 
-                EnqueuePage(2, 10, items.Skip(0).Take(2));
-                EnqueuePage(2, 10, items.Skip(2).Take(2));
-                EnqueuePage(2, 10, items.Skip(4).Take(2));
+                EnqueuePage(2, 10, items.Skip(0).Take(2), false);
+                EnqueuePage(2, 10, items.Skip(2).Take(2), false);
+                EnqueuePage(2, 10, items.Skip(4).Take(2), false);
                 EnqueuePage(PagedResult<TestContentType>.Failed(new Exception()));
-                EnqueuePage(2, 10, items.Skip(8).Take(2));
+                EnqueuePage(2, 10, items.Skip(8).Take(2), false);
 
                 var results = await MockPager.Object.GetAllPagesAsync(Cancel);
 
@@ -104,6 +104,48 @@ namespace Tableau.Migration.Tests.Unit.Paging
                 Assert.Equal(items.Take(6), results.Value!);
 
                 MockPager.Verify(x => x.NextPageAsync(Cancel), Times.Exactly(4));
+            }
+
+            [Fact]
+            public async Task GetsAllItemsLastPageIncomplete()
+            {
+                var items = CreateMany<TestContentType>(10);
+
+                EnqueuePage(2, 10, items.Skip(0).Take(2), false);
+                EnqueuePage(2, 10, items.Skip(2).Take(2), false);
+                EnqueuePage(2, 10, items.Skip(4).Take(2), false);
+                EnqueuePage(2, 10, items.Skip(6).Take(2), false);
+                EnqueuePage(2, 10, items.Skip(8).Take(1), true);
+                EnqueuePage(PagedResult<TestContentType>.Failed(new Exception()));
+
+                var results = await MockPager.Object.GetAllPagesAsync(Cancel);
+
+                results.AssertSuccess();
+                Assert.NotNull(results.Value);
+                Assert.Equal(items.Take(9), results.Value!);
+
+                MockPager.Verify(x => x.NextPageAsync(Cancel), Times.Exactly(5));
+            }
+
+            [Fact]
+            public async Task GetsAllItemsTwoPagesIncomplete()
+            {
+                var items = CreateMany<TestContentType>(10);
+
+                EnqueuePage(2, 10, items.Skip(0).Take(2), false);
+                EnqueuePage(2, 10, items.Skip(2).Take(2), false);
+                EnqueuePage(2, 10, items.Skip(4).Take(1), false);
+                EnqueuePage(2, 10, items.Skip(5).Take(2), false);
+                EnqueuePage(2, 10, items.Skip(7).Take(1), true);
+                EnqueuePage(PagedResult<TestContentType>.Failed(new Exception()));
+
+                var results = await MockPager.Object.GetAllPagesAsync(Cancel);
+
+                results.AssertSuccess();
+                Assert.NotNull(results.Value);
+                Assert.Equal(items.Take(8), results.Value!);
+
+                MockPager.Verify(x => x.NextPageAsync(Cancel), Times.Exactly(5));
             }
         }
     }

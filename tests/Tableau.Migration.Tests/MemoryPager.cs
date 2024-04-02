@@ -46,7 +46,7 @@ namespace Tableau.Migration.Tests
         public Task<IPagedResult<TItem>> NextPageAsync(CancellationToken cancel)
         {
             var pageItems = _items.Skip(_offset).Take(_pageSize).ToImmutableArray();
-            var result = PagedResult<TItem>.Succeeded(pageItems, _pageNumber, _pageSize, _items.Count);
+            var result = PagedResult<TItem>.Succeeded(pageItems, _pageNumber, _pageSize, _items.Count, !pageItems.Any());
 
             _offset += _pageSize;
             _pageNumber++;

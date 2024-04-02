@@ -55,8 +55,13 @@ body .toc {
   font-size: 14px;
 }
 
+.expand-stub::before {
+  color: #337ab7;
+}
+
+/*Navbar*/
 .navbar-inverse {
-  background-color: #ffffff;
+  background-color: #f8f8f8;
   border-color: #e7e7e7;
 }
 
@@ -82,12 +87,26 @@ body .toc {
   background-color: transparent;
 }
 
+.subnav {
+  background-color: #fff;
+  border-bottom: 1px solid #f7f7f7;
+}
+
+.breadcrumb>li+li:before {
+  content: "\00a0>";
+  color: #337ab7;
+}
+
+.breadcrumb {
+  padding-left: 15px;
+}
+
 /*Setting widths to make more sense given namespace lengths*/
 .container {
   width: 100%;
 }
 
-.sidefilter {  
+.sidefilter {
   width: 20%;
 }
 
@@ -95,6 +114,48 @@ body .toc {
   width: 20%;
 }
 
-.article.grid-right {  
+.article.grid-right {
   margin-left: 21%;
+}
+
+/*Title and log styles*/
+
+.tableau-navbar-title {
+  float: left;
+  height: 50px;
+  padding-top: 13px;
+  padding-left: 15px;
+  font-size: 18px;
+  line-height: 20px;
+  color: #337ab7
+}
+
+.tableau-navbar-version {
+  font-size: 15px;
+  color: #337ab7
+}
+
+.tableau-navbar-logo {
+  float: right !important;
+  margin: 6px -15px 1px 0px;
+  height: 40px;
+}
+
+.tableau-navbar-logo>img {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+/* Alerts */
+.alert {
+  padding: 12px;
+  border-radius: 8px;
+  border-width: 0px;
+  box-shadow: 0px 2px 2px 0px #c7c7c766;
+}
+
+/* Code blocks*/
+pre {
+  border-radius: 10px;
+  box-shadow: 0px 2px 2px 0px #c7c7c766;
 }

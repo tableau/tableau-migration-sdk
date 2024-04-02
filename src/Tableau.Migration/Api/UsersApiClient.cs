@@ -21,6 +21,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -39,16 +40,19 @@ namespace Tableau.Migration.Api
     internal sealed class UsersApiClient : ContentApiClientBase, IUsersApiClient
     {
         private readonly IJobsApiClient _jobs;
+        private readonly IHttpContentSerializer _serializer;
 
         public UsersApiClient(
             IJobsApiClient jobs,
             IRestRequestBuilderFactory restRequestBuilderFactory,
             IContentReferenceFinderFactory finderFactory,
             ILoggerFactory loggerFactory,
+            IHttpContentSerializer serializer,
             ISharedResourcesLocalizer sharedResourcesLocalizer)
             : base(restRequestBuilderFactory, finderFactory, loggerFactory, sharedResourcesLocalizer)
         {
             _jobs = jobs;
+            _serializer = serializer;
         }
 
         /// <inheritdoc />
@@ -178,6 +182,19 @@ namespace Tableau.Migration.Api
                 .ConfigureAwait(false);
 
             return userResult;
+        }
+
+        /// <inheritdoc/>
+        public async Task<IResult> DeleteUserAsync(Guid userId, CancellationToken cancel)
+        {
+            var result = await RestRequestBuilderFactory
+                .CreateUri($"/users/{userId.ToUrlSegment()}")
+                .ForDeleteRequest()
+                .SendAsync(cancel)
+                .ToResultAsync(_serializer, SharedResourcesLocalizer, cancel)
+                .ConfigureAwait(false);
+
+            return result;
         }
 
         #region - IPagedListApiClient<IUser> Implementation -
