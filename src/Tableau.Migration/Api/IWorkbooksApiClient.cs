@@ -39,7 +39,7 @@ namespace Tableau.Migration.Api
         IConnectionsApiClient
     {
         /// <summary>
-        /// Gets all workbook in the current site.
+        /// Gets all workbooks in the current site except the ones in the Personal Space.
         /// </summary>
         /// <param name="pageNumber">The 1-indexed page number.</param>
         /// <param name="pageSize">The size of the page.</param>

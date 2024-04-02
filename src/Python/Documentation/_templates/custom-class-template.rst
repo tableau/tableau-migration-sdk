@@ -1,4 +1,4 @@
-{{ fullname | escape | underline}}
+{{ objname | escape | underline}}
 
 .. currentmodule:: {{ module }}
 
@@ -12,7 +12,9 @@
    .. automethod:: __init__
 
    {% if methods %}
-   .. rubric:: {{ _('Methods') }}
+   =================
+   Methods
+   =================
 
    .. autosummary::
    {% for item in methods %}
@@ -23,7 +25,9 @@
 
    {% block attributes %}
    {% if attributes|reject("in","Equals,Finalize,GetHashCode,GetType,MemberwiseClone,Overloads,ReferenceEquals,ToString,BeginScope")|list %}
-   .. rubric:: {{ _('Attributes') }}
+   =================
+   Attributes
+   =================
 
    .. autosummary::
    {% for item in attributes|reject("in","Equals,Finalize,GetHashCode,GetType,MemberwiseClone,Overloads,ReferenceEquals,ToString,BeginScope")|list %}

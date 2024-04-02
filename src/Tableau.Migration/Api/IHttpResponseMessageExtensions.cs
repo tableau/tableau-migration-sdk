@@ -204,7 +204,7 @@ namespace Tableau.Migration.Api
 
                 var model = createModel(content);
 
-                return PagedResult<TModel>.Succeeded(model, content.PageNumber, content.PageSize, content.TotalCount);
+                return PagedResult<TModel>.Succeeded(model, content.PageNumber, content.PageSize, content.TotalCount, content.FetchedAllPages);
             }
             catch (Exception ex)
             {
@@ -252,7 +252,7 @@ namespace Tableau.Migration.Api
 
                 var model = await createModelAsync(content, cancel).ConfigureAwait(false);
 
-                return PagedResult<TModel>.Succeeded(model, content.PageNumber, content.PageSize, content.TotalCount);
+                return PagedResult<TModel>.Succeeded(model, content.PageNumber, content.PageSize, content.TotalCount, content.FetchedAllPages);
             }
             catch (Exception ex)
             {

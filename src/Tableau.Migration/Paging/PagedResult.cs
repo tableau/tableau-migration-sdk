@@ -31,13 +31,15 @@ namespace Tableau.Migration.Paging
         /// <param name="pageNumber">The current 1-indexed page number.</param>
         /// <param name="pageSize">The page size.</param>
         /// <param name="totalCount">The total unpaged available item count.</param>
+        /// <param name="fetchedAllPages">Whether the SDK has already fetched all pages or not.</param>
         /// <param name="errors">The errors encountered during the operation, if any.</param>
-        protected PagedResult(bool success, IImmutableList<TItem>? value, int pageNumber, int pageSize, int totalCount, params Exception[] errors)
+        protected PagedResult(bool success, IImmutableList<TItem>? value, int pageNumber, int pageSize, int totalCount, bool fetchedAllPages, params Exception[] errors)
             : base(success, value, errors)
         {
             PageNumber = pageNumber;
             PageSize = pageSize;
             TotalCount = totalCount;
+            FetchedAllPages = fetchedAllPages;
         }
 
         /// <inheritdoc />
@@ -49,6 +51,9 @@ namespace Tableau.Migration.Paging
         /// <inheritdoc />
         public int TotalCount { get; }
 
+        /// <inheritdoc />
+        public bool FetchedAllPages { get; }
+
         /// <summary>
         /// Creates a new <see cref="PagedResult{TItem}"/> instance for successful paged operations.
         /// </summary>
@@ -56,9 +61,10 @@ namespace Tableau.Migration.Paging
         /// <param name="pageNumber">The current 1-indexed page number.</param>
         /// <param name="pageSize">The page size.</param>
         /// <param name="totalCount">The total unpaged available item count.</param>
+        /// <param name="fetchedAllPages">Whether the SDK has already fetched all pages or not.</param>
         /// <returns>A new <see cref="PagedResult{TItem}"/> instance.</returns>
-        public static PagedResult<TItem> Succeeded(IImmutableList<TItem> value, int pageNumber, int pageSize, int totalCount)
-            => new(true, value, pageNumber, pageSize, totalCount);
+        public static PagedResult<TItem> Succeeded(IImmutableList<TItem> value, int pageNumber, int pageSize, int totalCount, bool fetchedAllPages)
+            => new(true, value, pageNumber, pageSize, totalCount, fetchedAllPages);
 
         /// <summary>
         /// Creates a new <see cref="PagedResult{T}"/> instance for failed operations.
@@ -72,6 +78,6 @@ namespace Tableau.Migration.Paging
         /// </summary>
         /// <param name="errors">The errors encountered during the operation.</param>
         /// <returns>A new <see cref="PagedResult{TItem}"/> instance.</returns>
-        public static new PagedResult<TItem> Failed(IEnumerable<Exception> errors) => new(false, null, 0, 0, 0, errors.ToArray());
+        public static new PagedResult<TItem> Failed(IEnumerable<Exception> errors) => new(false, null, 0, 0, 0, true, errors.ToArray());
     }
 }

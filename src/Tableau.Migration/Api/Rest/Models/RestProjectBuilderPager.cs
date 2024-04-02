@@ -68,7 +68,7 @@ namespace Tableau.Migration.Api.Rest.Models
                 projects.Add(newProject);
             }
 
-            return PagedResult<IProject>.Succeeded(projects.ToImmutable(), pageNumber, pageSize, projectBuilder.Count);
+            return PagedResult<IProject>.Succeeded(projects.ToImmutable(), pageNumber, pageSize, projectBuilder.Count, !restProjects.Any());
         }
     }
 }

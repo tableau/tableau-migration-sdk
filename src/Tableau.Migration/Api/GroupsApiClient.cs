@@ -168,6 +168,19 @@ namespace Tableau.Migration.Api
             return result;
         }
 
+        /// <inheritdoc />
+        public async Task<IResult> DeleteGroupAsync(Guid groupId, CancellationToken cancel)
+        {
+            var result = await RestRequestBuilderFactory
+                .CreateUri($"/groups/{groupId.ToUrlSegment()}")
+                .ForDeleteRequest()
+                .SendAsync(cancel)
+                .ToResultAsync(_serializer, SharedResourcesLocalizer, cancel)
+                .ConfigureAwait(false);
+
+            return result;
+        }
+
         #region - IPagedListApiClient<IGroup> Implementation -
 
         public IPager<IGroup> GetPager(int pageSize) => new ApiListPager<IGroup>(this, pageSize);

@@ -9,7 +9,14 @@
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
       </button>
-      {{>partials/logo}}
+      <span class="tableau-navbar-title">
+        <a href="{{_rel}}index.html">
+          {{{_appTitle}}}
+        </a>
+        <span class="tableau-navbar-version">
+          {{{_migrationSdkVersion}}}
+        </span> 
+      </span>
     </div>
     <div class="collapse navbar-collapse" id="navbar">
       <form class="navbar-form navbar-right" role="search" id="search">
@@ -19,7 +26,10 @@
       </form>
       {{#_nav}}
         {{>partials/navbar-li}}
-      {{/_nav}}
+      {{/_nav}} 
+      <span class="tableau-navbar-logo">
+          {{>partials/logo}} 
+      </span>         
     </div>
   </div>
 </nav>

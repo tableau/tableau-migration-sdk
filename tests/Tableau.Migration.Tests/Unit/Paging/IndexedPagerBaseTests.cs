@@ -37,7 +37,7 @@ namespace Tableau.Migration.Tests.Unit.Paging
             {
                 CalledPageNumbers.Add(pageNumber);
 
-                var result = PagedResult<TestContentType>.Succeeded(ImmutableArray<TestContentType>.Empty, pageNumber, pageSize, 2 * pageSize);
+                var result = PagedResult<TestContentType>.Succeeded(ImmutableArray<TestContentType>.Empty, pageNumber, pageSize, 2 * pageSize, true);
                 return Task.FromResult((IPagedResult<TestContentType>)result);
             }
         }

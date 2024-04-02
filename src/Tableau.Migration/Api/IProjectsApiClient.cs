@@ -90,5 +90,12 @@ namespace Tableau.Migration.Api
             string? newContentPermissions = null,
             Guid? newControllingPermissionsProjectId = null,
             Guid? newOwnerId = null);
+
+        /// <summary>
+        /// Deletes a project.
+        /// </summary>
+        /// <param name="projectId">The ID for the project to delete.</param>
+        /// <param name="cancel">A cancellation token to obey.</param>
+        public Task<IResult> DeleteProjectAsync(Guid projectId, CancellationToken cancel);
     }
 }

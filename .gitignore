@@ -173,6 +173,7 @@ cython_debug/
 # Other stuff
 UpgradeLog.htm
 appsettings.Development.json
+clean-server-settings.dev.json
 launchSettings.json
 UpgradeLog.htm
 *.DEV.ini

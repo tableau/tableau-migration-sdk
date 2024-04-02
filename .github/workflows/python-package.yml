@@ -38,7 +38,7 @@ jobs:
     runs-on: ${{ inputs.runs-on-config }}
     name: Publish Package with ${{ inputs.build-config }} configuration
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       if: ${{ env.PUBLISH_PACKAGE_KEY != '' }}
     - uses: ./.github/actions/setup-dotnet
       if: ${{ env.PUBLISH_PACKAGE_KEY != '' && inputs.runs-on-config != 'self-hosted' }}
@@ -59,7 +59,7 @@ jobs:
       run: |
         # default set of ruff rules with GitHub Annotations
         python -m hatch run lint:lint
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4
       if: ${{ env.PUBLISH_PACKAGE_KEY != '' }}
       with:
         name: published-${{ inputs.build-config }}
@@ -83,7 +83,7 @@ jobs:
         python -m twine upload --repository-url ${{ vars.PYPI_PACKAGE_REPOSITORY_URL }} dist/*
         Compress-Archive -Path .\dist\* -DestinationPath .\tableau_migration-pypi.zip
     - name: Upload Pypi Artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: ${{ env.PUBLISH_PACKAGE_KEY != '' && inputs.publish-artifact }}
       with:
         name: pypi-package

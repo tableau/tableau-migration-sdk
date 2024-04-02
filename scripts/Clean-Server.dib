@@ -1,0 +1,205 @@
+#!meta
+
+{"kernelInfo":{"defaultKernelName":"csharp","items":[{"aliases":[],"languageName":"csharp","name":"csharp"}]}}
+
+#!markdown
+
+# Clean Server
+This notebook will delete all projects, groups, users.
+
+#!markdown
+
+## Readme
+
+
+
+
+This is [polyglot notebook](https://code.visualstudio.com/docs/languages/polyglot). It's the VS Code version of a jupyter notebook.
+
+The [Polyglot Notebooks extension](https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.dotnet-interactive-vscode) VS Code extension needs to be installed.
+
+Once that's done. Just open in VS Code, and it turns into a wiki with executable cells. If you run them all in order, then all the projects, groups, users on the configured server will be deleted to get it ready for the next E2E tests.
+
+If you only want to delete certain content types, then run all the cells through "Sign in" manually, then you can run the cells after that in any order.
+
+#!markdown
+
+## Setup
+
+Because of how C# Interactive and notebooks work, the best way to get the current directory is by calling C# from pwsh.
+
+Then we `dotnet pack` the solution which creates the nuget package that is loaded in the next cell.
+
+The version needs to be ever increasing, else a cached nuget package will be used.
+
+**Note:**
+* For me there is some red text about missing python targets. This can be ignored. 
+* For some reason it doesn't like the version of major.minor.build.revision. It still work, so ignore warnings
+
+#!pwsh
+
+#Register-PackageSource -provider NuGet -Location "C:\Users\sfroehlich\Code\migration-sdk\src\Tableau.Migration\bin\Release\" -Name local
+Install-Package "Tableau.Migration" -Scope CurrentUser -ProviderName local
+
+#!pwsh
+
+# Setup well known directory paths
+$currentDir = [System.IO.Directory]::GetCurrentDirectory()
+$baseDir = (Get-Item $currentDir).Parent
+$releaseDir = Join-Path $baseDir "src/Tableau.Migration/bin/Release"
+$nugetDir = "C:\temp\migration-sdk"
+
+# Create nuget package version
+[xml]$buildProps = Get-Content -Path (Join-Path $baseDir "Directory.Build.props")
+$packageSuffix = Get-Date -UFormat %s
+$packageVersion = $buildProps.Project.PropertyGroup.Version + ".${packageSuffix}"
+
+
+if (-not (Test-Path -Path $nugetDir)) {
+    New-Item -Path $nugetDir -ItemType Directory
+}
+
+
+# Delete previous packages
+Remove-Item $nugetDir -Include *.nupkg,*.snupkg
+
+# Build new packages
+cd $baseDir
+#dotnet build -c Release
+dotnet pack -c Release -p:Version=$packageVersion --version-suffix $packageSuffix --output "C:\temp\migration-sdk"
+
+#!markdown
+
+Loads the Tableau.Migration nuget package that was build in the previous step. This also installs dependent nuget packages only used in this notebook.
+
+#!csharp
+
+// This will load the required nuget packages. 
+// If you already ran this once, you must reload the kernel of the notebook, else it will use the already loaded version.
+
+#i "nuget:C:\Temp\migration-sdk"
+#r "nuget:Tableau.Migration,"
+#r "nuget:Microsoft.Extensions.Logging.Console"
+#r "nuget:Microsoft.Extensions.Configuration.Json"
+
+#!markdown
+
+## Delete projects, groups, users
+
+#!markdown
+
+### Setup and configuration
+
+This section defines all the namespace the main script needs and sets up the configuration values.
+
+You must copy the `clean-server-settings.json` to `clean-server-settings.dev.json` and fill it in.
+
+#!csharp
+
+using System.Collections.Concurrent;
+using System.Threading;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Tableau.Migration;
+using Tableau.Migration.Api;
+using Tableau.Migration.Content;
+
+CancellationToken cancel = default;
+
+var config = new ConfigurationBuilder()
+    .AddInMemoryCollection(new Dictionary<string, string?>
+    {
+        { "Files:RootPath", @"C:\Temp\filestore"},
+        { "Network:HeadersLoggingEnabled", "true" },
+        { "Network:ContentLoggingEnabled", "true" },
+        { "Network:BinaryContentLoggingEnabled", "true" }
+    })
+    // Copy the clean-server-settings.json to clean-server-settings.dev.json and fill in.
+    .AddJsonFile(System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), "clean-server-settings.dev.json"))
+    .Build();
+
+#!markdown
+
+### Sign into server
+
+This must be run before any of the following cells.
+
+Once signed in, any of the cells below can be run in any order.
+Note that the order project, groups, users is the fastest.
+
+#!csharp
+
+var serviceCollection = new ServiceCollection()
+	//.AddLogging(b => b.AddConsole())
+	.AddTableauMigrationSdk(config);
+	
+var services = serviceCollection.BuildServiceProvider();
+
+var connectionConfig = config.GetSection("ConnectionConfig").Get<TableauSiteConnectionConfiguration>();
+
+var apiClient = services.GetRequiredService<IScopedApiClientFactory>()
+					.Initialize(connectionConfig);
+
+var signIn = await apiClient.SignInAsync(cancel);
+
+if(!signIn.Success)
+{
+	foreach(var e in signIn.Errors)
+	Console.WriteLine(e);
+	
+	// If the above error isn't enough, uncomment the .AddLogging on line 2
+}
+
+ var siteClient = signIn.Value!;
+
+#!markdown
+
+Delete all projects
+
+#!csharp
+
+var projects = await siteClient.Projects.GetAllAsync(100, cancel);
+
+foreach(var proj in projects.Value)
+{
+    Console.WriteLine($"About to delete project: {proj.Name}");    
+    await siteClient.Projects.DeleteProjectAsync(proj.Id, cancel);
+}
+
+#!markdown
+
+Delete all groups
+
+#!csharp
+
+var groups = await siteClient.Groups.GetAllAsync(100, cancel);
+
+foreach(var group in groups.Value)
+{
+    Console.WriteLine($"About to delete group: {group.Name}");    
+    await siteClient.Groups.DeleteGroupAsync(group.Id, cancel);
+}
+
+#!markdown
+
+Delete all non-admin Users
+
+#!csharp
+
+var users = await siteClient.Users.GetAllAsync(1000, cancel);
+
+var parallelUsers = new ConcurrentBag<IUser>(users.Value);
+
+ParallelOptions parallelOptions = new()
+{
+    MaxDegreeOfParallelism = 10
+};
+
+await Parallel.ForEachAsync(parallelUsers, parallelOptions, async (user, cancel) => {
+    if(user.AdministratorLevel.Contains("None"))
+    {
+        Console.WriteLine($"About to delete user: {user.Name}"); 
+        await siteClient.Users.DeleteUserAsync(user.Id, cancel);
+    }
+});

@@ -14,9 +14,6 @@ on:
       - '**/.gitignore'
       - 'CODEOWNERS'
   pull_request:
-    branches:
-      - main
-      - 'release/**'
     # The default trigger for Pull Requests are:
     # - opened
     # - synchronize
@@ -56,7 +53,7 @@ jobs:
       code-version: ${{ steps.get-version.outputs.codeversion }}
     if: github.event.pull_request.draft == false
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Set Beta Version
       id: set-beta-version
       if: ${{ inputs.publish-release != 'Prod' && inputs.publish-release != 'Prod-Internal' }}

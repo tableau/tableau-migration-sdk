@@ -15,8 +15,10 @@
 //
 
 using System;
+using System.Linq;
 using System.Xml.Serialization;
 using Tableau.Migration.Api.Models;
+using Tableau.Migration.Content;
 
 namespace Tableau.Migration.Api.Rest.Models.Requests
 {
@@ -53,7 +55,14 @@ namespace Tableau.Migration.Api.Rest.Models.Requests
                 Project = new WorkbookType.ProjectType
                 {
                     Id = options.ProjectId
-                }
+                },
+                // We're only setting the hidden view names here because any others will be not hidden by default.
+                Views = options.HiddenViewNames.Distinct(View.NameComparer).Select(v => new WorkbookType.ViewType
+                {
+                    Name = v,
+                    Hidden = true
+                })
+                .ToArray()
             };
         }
 

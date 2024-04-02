@@ -36,8 +36,7 @@
     <Compile Include="test_tableau_cloud_username_mapping.py" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="config.DEV.json" />
-    <Content Include="config.json" />
+    <Content Include="config*.json" />
     <Content Include="pyproject.toml" />
     <Content Include="pytest.ini" />
     <Content Include="README.md" />

@@ -15,6 +15,7 @@
 //
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using Tableau.Migration.Api.Rest.Models.Types;
 using Tableau.Migration.Content;
@@ -59,6 +60,9 @@ namespace Tableau.Migration.Api.Models
         ///<inheritdoc/>
         public string FileType { get; }
 
+        ///<inheritdoc/>
+        public IEnumerable<string> HiddenViewNames { get; }
+
         /// <summary>
         /// Creates a new <see cref="PublishWorkbookOptions"/> instance.
         /// </summary>
@@ -76,6 +80,7 @@ namespace Tableau.Migration.Api.Models
             File = file;
             FileName = workbook.File.OriginalFileName;
             FileType = fileType;
+            HiddenViewNames = workbook.HiddenViewNames;
         }
     }
 }

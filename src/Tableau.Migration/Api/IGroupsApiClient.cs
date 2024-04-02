@@ -106,5 +106,13 @@ namespace Tableau.Migration.Api
         /// <param name="cancel">The cancellation token.</param>
         /// <returns>The operation result.</returns>        
         Task<IResult> RemoveUserFromGroupAsync(Guid groupId, Guid userId, CancellationToken cancel);
+
+        /// <summary>
+        /// Deletes a group.
+        /// </summary>
+        /// <param name="groupId">The id of the group to delete.</param>
+        /// <param name="cancel">The cancellation token.</param>
+        /// <returns></returns>
+        Task<IResult> DeleteGroupAsync(Guid groupId, CancellationToken cancel);
     }
 }

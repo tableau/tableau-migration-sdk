@@ -356,5 +356,51 @@ namespace Tableau.Migration.Tests.Unit.Api
                 Assert.Null(result.Value);
             }
         }
+
+        public class DeleteUserAsync : UsersApiClientTest
+        {
+            [Fact]
+            public async Task Success()
+            {
+                //Setup
+                var userId = Guid.NewGuid();
+
+                MockHttpClient.SetupResponse(new MockHttpResponseMessage(HttpStatusCode.NoContent));
+
+                //Act
+                var result = await UsersApiClient.DeleteUserAsync(userId, Cancel);
+
+                //Test
+                result.AssertSuccess();
+
+                MockHttpClient.AssertSingleRequest(r =>
+                {
+                    r.AssertHttpMethod(HttpMethod.Delete);
+                    r.AssertRelativeUri($"/api/{TableauServerVersion.RestApiVersion}/sites/{SiteId}/users/{userId}");
+                });
+            }
+
+            [Fact]
+            public async Task Failure()
+            {
+                //Setup
+                var userId = Guid.NewGuid();
+
+                MockHttpClient.SetupResponse(new MockHttpResponseMessage(HttpStatusCode.InternalServerError));
+
+                //Act
+                var result = await UsersApiClient.DeleteUserAsync(userId, Cancel);
+
+                //Test
+                result.AssertFailure();
+
+                MockHttpClient.AssertSingleRequest(r =>
+                {
+                    r.AssertHttpMethod(HttpMethod.Delete);
+                    r.AssertRelativeUri($"/api/{TableauServerVersion.RestApiVersion}/sites/{SiteId}/users/{userId}");
+                });
+            }
+        }
+
     }
 }

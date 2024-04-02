@@ -15,6 +15,7 @@
 //
 
 using System;
+using System.Collections.Generic;
 
 namespace Tableau.Migration.Api.Models
 {
@@ -62,5 +63,10 @@ namespace Tableau.Migration.Api.Models
         /// Gets the ID of the project to publish to.
         /// </summary>
         Guid ProjectId { get; }
+
+        /// <summary>
+        /// Gets the names of the views that should be hidden.
+        /// </summary>
+        IEnumerable<string> HiddenViewNames { get; }
     }
 }

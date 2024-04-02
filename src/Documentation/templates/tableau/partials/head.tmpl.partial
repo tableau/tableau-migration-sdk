@@ -1,8 +1,16 @@
-{{!Copyright (c) Microsoft. All rights reserved. Licensed under the MIT license. See LICENSE file in the project root for full license information.}}
+{{!Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license.}}
 
 <head>
   <meta charset="utf-8">
-  <meta name="google" content="notranslate">
+  {{#_googleAnalyticsTagId}}
+  <script async src="https://www.googletagmanager.com/gtag/js?id={{_googleAnalyticsTagId}}"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', '{{_googleAnalyticsTagId}}');
+  </script>
+  {{/_googleAnalyticsTagId}}
   {{#redirect_url}}
     <meta http-equiv="refresh" content="0;URL='{{redirect_url}}'">
   {{/redirect_url}}
@@ -12,10 +20,11 @@
     <meta name="viewport" content="width=device-width">
     <meta name="title" content="{{#title}}{{title}}{{/title}}{{^title}}{{>partials/title}}{{/title}} {{#_appTitle}}| {{_appTitle}} {{/_appTitle}}">
     {{#_description}}<meta name="description" content="{{_description}}">{{/_description}}
+    {{#description}}<meta name="description" content="{{description}}">{{/description}}
     <link rel="shortcut icon" href="{{_rel}}{{{_appFaviconPath}}}{{^_appFaviconPath}}favicon.ico{{/_appFaviconPath}}">
     <link rel="stylesheet" href="{{_rel}}styles/docfx.vendor.min.css">
     <link rel="stylesheet" href="{{_rel}}styles/docfx.css">
-    <link rel="stylesheet" href="{{_rel}}styles/main.css">
+    <link rel="stylesheet" href="{{_rel}}styles/main.css">   
     {{#_noindex}}<meta name="searchOption" content="noindex">{{/_noindex}}
     {{#_enableSearch}}<meta property="docfx:rel" content="{{_rel}}">{{/_enableSearch}}
     {{#_enableNewTab}}<meta property="docfx:newtab" content="true">{{/_enableNewTab}}

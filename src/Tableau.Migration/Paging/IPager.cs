@@ -50,19 +50,24 @@ namespace Tableau.Migration.Paging
 
             initCapacity(pagedResults.TotalCount);
 
-            var foundCount = 0;
-            while (!pagedResults.Value.IsNullOrEmpty())
+            while (!pagedResults.FetchedAllPages)
             {
                 cancel.ThrowIfCancellationRequested();
 
-                pageAction(pagedResults.Value);
-                foundCount += pagedResults.Value.Count;
-
-                if (foundCount == pagedResults.TotalCount)
-                    break;
+                ExecutePageAction(pagedResults);
 
                 pagedResults = await NextPageAsync(cancel).ConfigureAwait(false);
                 resultBuilder.Add(pagedResults);
+            }
+
+            ExecutePageAction(pagedResults);
+
+            void ExecutePageAction(IPagedResult<TContent> results)
+            {
+                if (!results.Value.IsNullOrEmpty())
+                {
+                    pageAction(results.Value);
+                }
             }
 
             return resultBuilder.Build();
@@ -79,7 +84,7 @@ namespace Tableau.Migration.Paging
 
             var result = await GetAllPagesAsync(
                 capacity => resultItems.Capacity = capacity,
-                page => resultItems.AddRange(page),
+                resultItems.AddRange,
                 cancel).ConfigureAwait(false);
 
             return Result<IImmutableList<TContent>>.Create(result, resultItems.ToImmutable());

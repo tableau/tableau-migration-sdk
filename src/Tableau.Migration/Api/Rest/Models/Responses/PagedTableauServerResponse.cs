@@ -35,5 +35,19 @@ namespace Tableau.Migration.Api.Rest.Models.Responses
         int IPageInfo.PageSize => Pagination.PageSize;
 
         int IPageInfo.TotalCount => Pagination.TotalAvailable;
+
+        bool IPageInfo.FetchedAllPages
+        {
+            get
+            {
+                if (Pagination.TotalAvailable == 0)
+                {
+                    return true;
+                }
+                var pagesAvailable = (Pagination.TotalAvailable / Pagination.PageSize) + (Pagination.TotalAvailable % Pagination.PageSize > 0 ? 1 : 0);
+
+                return Pagination.PageNumber >= pagesAvailable;
+            }
+        }
     }
 }

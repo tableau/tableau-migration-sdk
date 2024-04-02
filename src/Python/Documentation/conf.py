@@ -27,4 +27,5 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 autodoc_typehints='description'
 markdown_anchor_sections=True
 markdown_anchor_signatures=True
+add_module_names=False
 print("..done.")

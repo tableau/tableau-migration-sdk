@@ -14,6 +14,7 @@
 //  limitations under the License.
 //
 
+using Microsoft.Extensions.Logging;
 using Tableau.Migration.Api.Rest;
 using Tableau.Migration.Config;
 using Tableau.Migration.Net;
@@ -28,17 +29,20 @@ namespace Tableau.Migration.Api.Permissions
         private readonly IHttpContentSerializer _serializer;
         private readonly ISharedResourcesLocalizer _sharedResourcesLocalizer;
         private readonly IConfigReader _configReader;
+        private readonly ILoggerFactory _loggerFactory;
 
         public PermissionsApiClientFactory(
             IRestRequestBuilderFactory restRequestBuilderFactory,
             IHttpContentSerializer serializer,
             ISharedResourcesLocalizer sharedResourcesLocalizer,
-            IConfigReader configReader)
+            IConfigReader configReader,
+            ILoggerFactory loggerFactory)
         {
             _restRequestBuilderFactory = restRequestBuilderFactory;
             _serializer = serializer;
             _sharedResourcesLocalizer = sharedResourcesLocalizer;
             _configReader = configReader;
+            _loggerFactory = loggerFactory;
         }
 
         /// <inheritdoc />
@@ -51,6 +55,6 @@ namespace Tableau.Migration.Api.Permissions
 
         /// <inheritdoc />
         public IDefaultPermissionsApiClient CreateDefaultPermissionsClient()
-            => new DefaultPermissionsApiClient(this, _configReader.Get().DefaultPermissionsContentTypes);
+            => new DefaultPermissionsApiClient(this, _configReader.Get().DefaultPermissionsContentTypes, _loggerFactory, _sharedResourcesLocalizer);
     }
 }

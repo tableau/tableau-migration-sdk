@@ -87,5 +87,13 @@ namespace Tableau.Migration.Api
                                              string? newEmail = null,
                                              string? newPassword = null,
                                              string? newAuthSetting = null);
+
+        /// <summary>
+        /// Deletes a user.
+        /// </summary>
+        /// <param name="userId">The user's ID.</param>
+        /// <param name="cancel">The cancellation token.</param>
+        /// <returns></returns>
+        Task<IResult> DeleteUserAsync(Guid userId, CancellationToken cancel);
     }
 }

@@ -1,9 +1,17 @@
-# Tableau Migration SDK
+# Contents
 
-[API Reference](~/api/index.md)
+## [API Reference](~/api/index.md)
 
-[Python Wrapper](~/python_wrapper/tableau_migration.md)
+The full C# API Reference.
 
-[Code Samples](~/samples/intro.md)
+## [Python Wrapper](~/python_wrapper/tableau_migration.md)
 
-[Articles](~/articles/intro.md)
+The Python Wrapper Reference.
+
+## [Code Samples](~/samples/intro.md)
+
+Code samples to get you started.
+
+## [Articles](~/articles/intro.md)
+
+Articles describing various concepts including how to customize the Migration SDK.

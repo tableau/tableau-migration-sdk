@@ -17,6 +17,7 @@
 using System;
 using System.Net;
 using System.Net.Http;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Moq;
 using Tableau.Migration.Api;
@@ -404,6 +405,50 @@ namespace Tableau.Migration.Tests.Unit.Api
 
                 var request = MockHttpClient.AssertSingleRequest();
                 request.AssertRelativeUri($"/api/{TableauServerVersion.RestApiVersion}/sites/{SiteId}/projects/{projectId}");
+            }
+        }
+
+        #endregion
+
+        #region - DeleteProjectAsync -
+
+        public class DeleteProjectAsync : ProjectsApiClientTest
+        {
+
+            [Fact]
+            public async Task Returns_success()
+            {
+                var projectId = Guid.NewGuid();
+
+                MockHttpClient.SetupResponse(new MockHttpResponseMessage(HttpStatusCode.NoContent));
+
+                var result = await ProjectsApiClient.DeleteProjectAsync(projectId, Cancel);
+
+                result.AssertSuccess();
+
+                MockHttpClient.AssertSingleRequest(r =>
+                {
+                    r.AssertHttpMethod(HttpMethod.Delete);
+                    r.AssertRelativeUri($"/api/{TableauServerVersion.RestApiVersion}/sites/{SiteId}/projects/{projectId}");
+                });
+            }
+
+            [Fact]
+            public async Task Returns_failure()
+            {
+                var projectId = Guid.NewGuid();
+
+                MockHttpClient.SetupResponse(new MockHttpResponseMessage(HttpStatusCode.InternalServerError));
+
+                var result = await ProjectsApiClient.DeleteProjectAsync(projectId, Cancel);
+
+                result.AssertFailure();
+
+                MockHttpClient.AssertSingleRequest(r =>
+                {
+                    r.AssertHttpMethod(HttpMethod.Delete);
+                    r.AssertRelativeUri($"/api/{TableauServerVersion.RestApiVersion}/sites/{SiteId}/projects/{projectId}");
+                });
             }
         }
 

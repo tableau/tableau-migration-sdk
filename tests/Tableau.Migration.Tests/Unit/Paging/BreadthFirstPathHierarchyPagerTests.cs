@@ -77,6 +77,7 @@ namespace Tableau.Migration.Tests.Unit.Paging
                 Assert.Equal(1, result.PageNumber);
                 Assert.Equal(2, result.PageSize);
                 Assert.Equal(0, result.TotalCount);
+                Assert.True(result.FetchedAllPages);
                 Assert.Empty(result.Value);
             }
 
@@ -116,6 +117,7 @@ namespace Tableau.Migration.Tests.Unit.Paging
                 Assert.Equal(2, pageResult.Value.Count);
                 Assert.Contains(top1, pageResult.Value);
                 Assert.Contains(top2, pageResult.Value);
+                Assert.False(pageResult.FetchedAllPages);
 
                 //Second page should be the last top item, but not go further to children.
                 pageResult = await pager.NextPageAsync(_cancel);
@@ -127,6 +129,7 @@ namespace Tableau.Migration.Tests.Unit.Paging
                 Assert.Equal(hierarchyList.Length, pageResult.TotalCount);
                 Assert.Single(pageResult.Value);
                 Assert.Contains(top3, pageResult.Value);
+                Assert.False(pageResult.FetchedAllPages);
 
                 //Third page should be filled with ordered child items.
                 pageResult = await pager.NextPageAsync(_cancel);
@@ -139,6 +142,7 @@ namespace Tableau.Migration.Tests.Unit.Paging
                 Assert.Equal(2, pageResult.Value.Count);
                 Assert.Contains(child1, pageResult.Value);
                 Assert.Contains(child2, pageResult.Value);
+                Assert.False(pageResult.FetchedAllPages);
 
                 //Fourth page should be the last child item but not go further to grandchildren.
                 pageResult = await pager.NextPageAsync(_cancel);
@@ -150,6 +154,7 @@ namespace Tableau.Migration.Tests.Unit.Paging
                 Assert.Equal(hierarchyList.Length, pageResult.TotalCount);
                 Assert.Single(pageResult.Value);
                 Assert.Contains(child3, pageResult.Value);
+                Assert.False(pageResult.FetchedAllPages);
 
                 //Fifth page should be the grandchildren.
                 pageResult = await pager.NextPageAsync(_cancel);
@@ -161,6 +166,7 @@ namespace Tableau.Migration.Tests.Unit.Paging
                 Assert.Equal(hierarchyList.Length, pageResult.TotalCount);
                 Assert.Single(pageResult.Value);
                 Assert.Contains(grandchild, pageResult.Value);
+                Assert.True(pageResult.FetchedAllPages);
 
                 //Sixth page should be the empty - we went past our data.
                 pageResult = await pager.NextPageAsync(_cancel);
@@ -171,6 +177,7 @@ namespace Tableau.Migration.Tests.Unit.Paging
                 Assert.Equal(2, pageResult.PageSize);
                 Assert.Equal(hierarchyList.Length, pageResult.TotalCount);
                 Assert.Empty(pageResult.Value);
+                Assert.True(pageResult.FetchedAllPages);
             }
         }
     }

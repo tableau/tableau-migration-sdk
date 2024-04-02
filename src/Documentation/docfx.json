@@ -65,7 +65,9 @@
       }
     ],
     "dest": "../../docs",
-    "globalMetadataFiles": [],
+    "globalMetadataFiles": [
+      "migration_sdk_metadata.json"
+    ],
     "globalMetadata": {
       "_appTitle": "Tableau Migration SDK",
       "_appLogoPath": "tableau.svg",
@@ -73,6 +75,7 @@
       "_disableContribution": true,
       "_disableFooter": true,
       "_enableNewTab": true,
+      "_googleAnalyticsTagId": "UA-625217-51",
       "_gitContribute": {
         "repo": "https://github.com/tableau/tableau-migration-sdk",
         "branch": "main"

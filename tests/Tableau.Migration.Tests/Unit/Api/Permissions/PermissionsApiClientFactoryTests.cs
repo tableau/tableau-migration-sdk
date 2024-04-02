@@ -15,6 +15,7 @@
 //
 
 using System.Collections.Concurrent;
+using Microsoft.Extensions.Logging;
 using Moq;
 using Tableau.Migration.Api.Permissions;
 using Tableau.Migration.Api.Rest;
@@ -34,6 +35,7 @@ namespace Tableau.Migration.Tests.Unit.Api.Permissions
             protected readonly Mock<IHttpContentSerializer> MockSerializer = new();
             protected readonly Mock<ISharedResourcesLocalizer> MockSharedResourcesLocalizer = new();
             protected readonly Mock<IConfigReader> MockConfigReader = new();
+            protected readonly Mock<ILoggerFactory> MockLoggerFactory = new();
 
             protected readonly Mock<IPermissionsUriBuilder> MockUriBuilder = new();
 
@@ -45,7 +47,8 @@ namespace Tableau.Migration.Tests.Unit.Api.Permissions
                     MockRestRequestBuilderFactory.Object,
                     MockSerializer.Object,
                     MockSharedResourcesLocalizer.Object,
-                    MockConfigReader.Object);
+                    MockConfigReader.Object,
+                    MockLoggerFactory.Object);
             }
         }
 

@@ -21,9 +21,11 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Tableau.Migration.Api.Rest;
 using Tableau.Migration.Config;
 using Tableau.Migration.Content.Permissions;
+using Tableau.Migration.Resources;
 
 namespace Tableau.Migration.Api.Permissions
 {
@@ -32,13 +34,18 @@ namespace Tableau.Migration.Api.Permissions
         private readonly ConcurrentDictionary<string, IPermissionsApiClient> _contentTypeClients = new(StringComparer.OrdinalIgnoreCase);
 
         private readonly IPermissionsApiClientFactory _permissionsClientFactory;
+        private readonly ILogger<DefaultPermissionsApiClient> _logger;
+        private readonly ISharedResourcesLocalizer _localizer;
 
         public DefaultPermissionsApiClient(
             IPermissionsApiClientFactory permissionsClientFactory,
-            DefaultPermissionsContentTypeOptions options)
+            DefaultPermissionsContentTypeOptions options,
+            ILoggerFactory loggerFactory,
+            ISharedResourcesLocalizer localizer)
         {
             _permissionsClientFactory = permissionsClientFactory;
-
+            _logger = loggerFactory.CreateLogger<DefaultPermissionsApiClient>();
+            _localizer = localizer;
             foreach (var contentTypeUrlSegment in options.UrlSegments)
                 EnsurePermissionsClient(contentTypeUrlSegment);
         }
@@ -116,18 +123,27 @@ namespace Tableau.Migration.Api.Permissions
                     var getPermissionsResult = getPermissionsTask.Value.Result;
 
                     if (!getPermissionsResult.Success)
+                    {
                         resultBuilder.Add(getPermissionsResult);
-                    else
-                        defaultPermissions.Add(getPermissionsTask.Key, getPermissionsResult.Value);
+                        _logger.LogWarning(
+                            new AggregateException(getPermissionsResult.Errors),
+                            _localizer[SharedResourceKeys.FailedToGetDefaultPermissionsMessage],
+                            getPermissionsTask.Key,
+                            projectId);
+                        continue;
+                    }
+                    
+                    defaultPermissions.Add(getPermissionsTask.Key, getPermissionsResult.Value);
                 }
             }
 
-            var result = resultBuilder.Build();
+            if (defaultPermissions.Any())
+            {
+                return Result<IImmutableDictionary<string, IPermissions>>.Succeeded(defaultPermissions.ToImmutable());
+            }
 
-            if (!result.Success)
-                return Result<IImmutableDictionary<string, IPermissions>>.Failed(result.Errors);
-
-            return Result<IImmutableDictionary<string, IPermissions>>.Succeeded(defaultPermissions.ToImmutable());
+            return Result<IImmutableDictionary<string, IPermissions>>.Failed(
+                resultBuilder.Build().Errors);
         }
 
         public async Task<IResult<IImmutableDictionary<string, IPermissions>>> UpdateAllPermissionsAsync(

@@ -15,6 +15,7 @@
 //
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Tableau.Migration.Content.Files;
@@ -31,6 +32,9 @@ namespace Tableau.Migration.Content
 
         /// <inheritdoc />
         public IImmutableList<IConnection> Connections { get; }
+
+        /// <inheritdoc />
+        public ISet<string> HiddenViewNames { get; } = new HashSet<string>(View.NameComparer);
 
         public PublishableWorkbook(IWorkbookDetails workbook, IImmutableList<IConnection> connections, IContentFileHandle file)
             : base(workbook)
