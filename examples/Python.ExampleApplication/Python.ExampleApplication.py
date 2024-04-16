@@ -12,7 +12,7 @@ from threading import Thread # threading
 def migrate():
     """Performs a migration using Tableau Migration SDK."""
     
-    planBuilder = tableau_migration.MigrationPlanBuilder()
+    plan_builder = tableau_migration.MigrationPlanBuilder()
     migration = tableau_migration.Migrator()
 
     config = configparser.ConfigParser()
@@ -37,11 +37,11 @@ def migrate():
     # TODO: add filters, mappings, transformers, etc. here.
 
     # Validate the migration plan.
-    validation_result = planBuilder.validate()
+    validation_result = plan_builder.validate()
 
     # TODO: Handle errors if the validation fails here.
 
-    plan = planBuilder.build()
+    plan = plan_builder.build()
 
     # Run the migration.
     results = migration.execute(plan)
@@ -55,7 +55,7 @@ if __name__ == '__main__':
     
     # Create a thread that will run the migration and start it.
     migration_thread = Thread(target = migrate)
-    migration_thread.start();
+    migration_thread.start()
     done = False
 
     # Create a busy-wait loop to continue checking if Ctrl+C was pressed to cancel the migration.
