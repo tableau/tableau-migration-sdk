@@ -14,7 +14,6 @@
 //  limitations under the License.
 //
 
-using System;
 using System.Collections.Immutable;
 using System.IO;
 using Xunit;
@@ -26,10 +25,13 @@ namespace Tableau.Migration.Tests.Unit
         public abstract class FilePathTest : AutoFixtureTestBase
         {
             protected string CreateFilePath(string? extension)
-                => Path.Combine($@"{Create<char>()}:\", CreateString(), CreateString(), CreateFileName(extension));
+                => Path.Combine(
+                    Path.GetTempPath(), 
+                    Create<string>(), 
+                    CreateFileName(extension));
 
             protected string CreateFileName(string? extension)
-                => $"{CreateString()}{(!String.IsNullOrWhiteSpace(extension) ? $".{extension}" : String.Empty)}";
+                => $"{Create<string>()}{(!string.IsNullOrWhiteSpace(extension) ? $".{extension}" : string.Empty)}";
 
             public class ZipExtensionsData : ValuesAttribute<string>
             {

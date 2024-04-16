@@ -97,9 +97,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Manifest
                 Assert.NotSame(manifest1, manifest2);
             }
 
-            //TODO (W-14313275): Previous manifest is not used
-            //until it can be fully tested/made working.
-            [Fact(Skip = "Previous manifest is not used until it can be fully tested/made working.")]
+            [Fact]
             public void CopiesFromPreviousManifest()
             {
                 var previousEntries = CreateMany<IMigrationManifestEntry>().ToImmutableArray();

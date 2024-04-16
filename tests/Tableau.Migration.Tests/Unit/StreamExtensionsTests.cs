@@ -140,7 +140,7 @@ namespace Tableau.Migration.Tests.Unit
             {
                 var bytes = StreamExtensions.ZIP_LEAD_BYTES.Take(3);
 
-                var stream = CreateStream(3, bytes);
+                var stream = CreateStream(0, bytes);
 
                 Assert.False(stream.IsZip());
             }

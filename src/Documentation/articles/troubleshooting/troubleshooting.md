@@ -49,7 +49,7 @@ Python
     for type in ServerToCloudMigrationPipeline.ContentTypes:
         content_type = type.ContentType
         _logger.LogInformation(f"## {content_type.Name} ##")
-        for entry in result.Manifest.Entries.ForContentType(content_type):
+        for entry in result.manifest.entries.ForContentType(content_type):
             _logger.LogInformation(f"{content_type.Name} {entry.Source.Location} Migration Status: {entry.Status}")
             if entry.Errors:
                 _logger.LogError(f"## {content_type.Name} Errors detected! ##")
