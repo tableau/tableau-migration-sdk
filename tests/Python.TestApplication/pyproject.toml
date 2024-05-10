@@ -3,7 +3,7 @@ name = "tableau_migration_testapplication"
 dynamic = ["version"]
 
 authors = [
-  { name="Tableau a Salesforce Product" },
+  { name="Salesforce, Inc." },
 ]
 description = "Tableau Migration SDK - Test Application"
 # https://devguide.python.org/versions/

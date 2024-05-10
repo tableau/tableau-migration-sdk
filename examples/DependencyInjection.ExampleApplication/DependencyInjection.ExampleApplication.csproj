@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-		<TargetFrameworks>net6.0;net7.0;net8.0</TargetFrameworks>
+		<TargetFrameworks>net6.0;net8.0</TargetFrameworks>
 		<!-- Don't warn on ConfigureAwait on console application, Don't require license headers for sample code -->
 	  <NoWarn>CA2007,IDE0073</NoWarn>
 	</PropertyGroup>

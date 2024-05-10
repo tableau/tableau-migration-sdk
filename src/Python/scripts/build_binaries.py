@@ -14,4 +14,4 @@ bin_path = abspath(Path(__file__).parent.resolve().__str__() + "/bin")
 sys.path.append(bin_path)
 
 shutil.rmtree(bin_path, True)
-subprocess.run(["dotnet", "publish", migration_project, "-o", bin_path, "-f", "net7.0"])
+subprocess.run(["dotnet", "publish", migration_project, "-o", bin_path, "-f", "net6.0"])

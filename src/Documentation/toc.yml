@@ -2,8 +2,11 @@
   href: api/
   homepage: api/index.md
 - name: Python Wrapper
-  href: python_wrapper/tableau_migration.md  
+  href: python_wrapper/
+  homepage: python_wrapper/index.md
 - name: Code Samples
   href: samples/
+  homepage: samples/intro.md
 - name: Articles
   href: articles/
+  homepage: articles/intro.md  

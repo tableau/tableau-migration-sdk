@@ -4,29 +4,19 @@
   href: configuration.md  
 - name: Plan Validation
   href: plan_validation.md
-- name: Advanced Configuration
-  items:
-  - name: Hooks
-    href: advanced_config/hooks/index.md  
-    items:
-    - name: Custom Hooks
-      href: advanced_config/hooks/custom_hooks.md
-    - name: Hooks in Python
-      href: advanced_config/hooks/python_hooks.md    
-    - name: Example Hook Use Cases
-      href: advanced_config/hooks/example_hook_use_cases.md
-  - name: User Authentication
-    href: advanced_config/user_authentication.md
 - name: Logging
-  href: logging.md  
+  href: logging.md
+- name: Hooks
+  href: hooks/index.md  
+  items:
+  - name: Custom Hooks
+    href: hooks/custom_hooks.md  
+  - name: Example Hook Use Cases
+    href: hooks/example_hook_use_cases.md
+- name: User Authentication
+  href: user_authentication.md
 - name: Dependency Injection
   href: dependency_injection.md
-- name: Python Wrapper
-  href: python_wrapper.md    
 - name: Troubleshooting
-  items:
-  - name: Troubleshooting
-    href: troubleshooting/troubleshooting.md
-  - name: Errors and Warning
-    href: troubleshooting/errors.md
+  href: troubleshooting.md
 

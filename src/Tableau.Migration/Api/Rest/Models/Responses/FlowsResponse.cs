@@ -1,20 +1,22 @@
-﻿// Copyright (c) 2023, Salesforce, Inc.
+﻿//
+//  Copyright (c) 2024, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
-//  Licensed under the Apache License, Version 2.0 (the ""License"") 
+//  Licensed under the Apache License, Version 2.0 (the "License") 
 //  you may not use this file except in compliance with the License.
 //  You may obtain a copy of the License at
 //  
 //  http://www.apache.org/licenses/LICENSE-2.0
 //  
 //  Unless required by applicable law or agreed to in writing, software
-//  distributed under the License is distributed on an ""AS IS"" BASIS,
+//  distributed under the License is distributed on an "AS IS" BASIS,
 //  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 //
 
 using System;
+using System.Linq;
 using System.Xml.Serialization;
 
 namespace Tableau.Migration.Api.Rest.Models.Responses
@@ -37,7 +39,7 @@ namespace Tableau.Migration.Api.Rest.Models.Responses
         /// <summary>
         /// Class representing a site response.
         /// </summary>
-        public class FlowType
+        public class FlowType : IFlowType
         {
             /// <summary>
             /// Gets or sets the ID for the response.
@@ -64,6 +66,12 @@ namespace Tableau.Migration.Api.Rest.Models.Responses
             public string? WebpageUrl { get; set; }
 
             /// <summary>
+            /// Gets or sets the file type for the response.
+            /// </summary>
+            [XmlAttribute("fileType")]
+            public string? FileType { get; set; }
+
+            /// <summary>
             /// Gets or sets the created timestamp for the response.
             /// </summary>
             [XmlAttribute("createdAt")]
@@ -81,11 +89,15 @@ namespace Tableau.Migration.Api.Rest.Models.Responses
             [XmlElement("project")]
             public ProjectType? Project { get; set; }
 
+            IProjectReferenceType? IWithProjectType.Project => Project;
+
             /// <summary>
             /// Gets or sets the owner for the response.
             /// </summary>
             [XmlElement("owner")]
-            public UserType? Owner { get; set; }
+            public OwnerType? Owner { get; set; }
+
+            IOwnerType? IWithOwnerType.Owner => Owner;
 
             /// <summary>
             /// Gets or sets the tags for the response.
@@ -94,10 +106,16 @@ namespace Tableau.Migration.Api.Rest.Models.Responses
             [XmlArrayItem("tag")]
             public TagType[] Tags { get; set; } = Array.Empty<TagType>();
 
+            ITagType[] IWithTagTypes.Tags
+            {
+                get => Tags;
+                set => Tags = value.Select(t => new TagType(t)).ToArray();
+            }
+
             /// <summary>
             /// Class representing a REST API project response.
             /// </summary>
-            public class ProjectType
+            public class ProjectType : IProjectReferenceType
             {
                 /// <summary>
                 /// Gets or sets the ID for the response.
@@ -115,7 +133,7 @@ namespace Tableau.Migration.Api.Rest.Models.Responses
             /// <summary>
             /// Class representing a REST API user response.
             /// </summary>
-            public class UserType
+            public class OwnerType : IOwnerType
             {
                 /// <summary>
                 /// Gets or sets the ID for the response.
@@ -133,13 +151,28 @@ namespace Tableau.Migration.Api.Rest.Models.Responses
             /// <summary>
             /// Class representing a REST API tag response.
             /// </summary>
-            public class TagType
+            public class TagType : ITagType
             {
                 /// <summary>
                 /// Gets or sets the label for the response.
                 /// </summary>
                 [XmlAttribute("label")]
                 public string? Label { get; set; }
+
+                /// <summary>
+                /// The default parameterless constructor.
+                /// </summary>            
+                public TagType()
+                { }
+
+                /// <summary>
+                /// Constructor to build from <see cref="ITagType"/>
+                /// </summary>
+                /// <param name="tag">The <see cref="ITagType"/> object.</param>
+                public TagType(ITagType tag)
+                {
+                    Label = tag.Label;
+                }
             }
         }
     }
