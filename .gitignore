@@ -184,4 +184,8 @@ UpgradeLog.htm
 /src/Documentation/_python
 /src/Python/Documentation/generated
 /tests/Python.TestApplication/manifest.json
+/.git2gus
+/src/Python/scripts/publish-package.ps1
 
+# Public repo ignores
+.github/pull_request_template.md
