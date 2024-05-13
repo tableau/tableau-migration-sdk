@@ -2,6 +2,7 @@
 
 body {
   font-family: "Open Sans", Helvetica, Arial, sans-serif;
+  color: #555;
 }
 
 .toc .nav>li>a {
@@ -9,6 +10,10 @@ body {
   margin-left: 5px;
   display: block;
   padding: 0;
+}
+
+.toc .nav>li.active>a {
+  font-weight: bold;
 }
 
 /* Table of Contents*/
@@ -47,8 +52,8 @@ body .toc {
 }
 
 .toc .level1>li {
-  font-weight: bold;
   font-size: 14px;
+  font-weight: normal;
 }
 
 .toc .level2 {
@@ -57,6 +62,11 @@ body .toc {
 
 .expand-stub::before {
   color: #337ab7;
+  font-weight: normal;
+}
+
+.expand-stub+a {
+  font-weight: normal;
 }
 
 /*Navbar*/

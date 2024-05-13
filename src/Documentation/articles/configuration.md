@@ -53,7 +53,7 @@ The [`IMigrationPlan`](xref:Tableau.Migration.IMigrationPlan) interface defines 
 
 *Optional/Required:* **Optional**.
 
-*Description:* The Plan Builder exposes the properties [`MigrationPlanBuilder.Hooks`](xref:Tableau.Migration.Engine.MigrationPlanBuilder#Tableau_Migration_Engine_MigrationPlanBuilder_Hooks), [`MigrationPlanBuilder.Filters`](xref:Tableau.Migration.Engine.MigrationPlanBuilder#Tableau_Migration_Engine_MigrationPlanBuilder_Filters), [`MigrationPlanBuilder.Mappings`](xref:Tableau.Migration.Engine.MigrationPlanBuilder#Tableau_Migration_Engine_MigrationPlanBuilder_Mappings), and [`MigrationPlanBuilder.Transformers`](xref:Tableau.Migration.Engine.MigrationPlanBuilder#Tableau_Migration_Engine_MigrationPlanBuilder_Transformers). With these properties, it is possible to adjust a given migration plan for specific scenarios. For more details, check the [Custom Hooks article](advanced_config/hooks/custom_hooks.md).
+*Description:* The Plan Builder exposes the properties [`MigrationPlanBuilder.Hooks`](xref:Tableau.Migration.Engine.MigrationPlanBuilder#Tableau_Migration_Engine_MigrationPlanBuilder_Hooks), [`MigrationPlanBuilder.Filters`](xref:Tableau.Migration.Engine.MigrationPlanBuilder#Tableau_Migration_Engine_MigrationPlanBuilder_Filters), [`MigrationPlanBuilder.Mappings`](xref:Tableau.Migration.Engine.MigrationPlanBuilder#Tableau_Migration_Engine_MigrationPlanBuilder_Mappings), and [`MigrationPlanBuilder.Transformers`](xref:Tableau.Migration.Engine.MigrationPlanBuilder#Tableau_Migration_Engine_MigrationPlanBuilder_Transformers). With these properties, it is possible to adjust a given migration plan for specific scenarios. For more details, see the [Custom Hooks article](hooks/custom_hooks.md).
 
 ### Build
 
@@ -65,7 +65,7 @@ The [`IMigrationPlan`](xref:Tableau.Migration.IMigrationPlan) interface defines 
 
 [`MigrationSdkOptions`](xref:Tableau.Migration.Config.MigrationSdkOptions) is the configuration class the Migration SDK uses internally to process a migration. It contains adjustable properties that change some engine behaviors. These properties are useful tools to troubleshoot and tune a migration process. Start with this class and others in the [Config](xref:Tableau.Migration.Config) section for more details.
 
-When writing a C# application, it is recommended that a [.NET Generic Host](https://learn.microsoft.com/en-us/dotnet/core/extensions/generic-host?tabs=appbuilder) is used to initialize the application. This will enable setting configuration values via `appsettings.json` which can be passed into `userOptions` in [`.AddTableauMigrationSdk`](xref:Tableau.Migration.IServiceCollectionExtensions#Tableau_Migration_IServiceCollectionExtensions_AddTableauMigrationSdk_Microsoft_Extensions_DependencyInjection_IServiceCollection_Microsoft_Extensions_Configuration_IConfiguration_). See  [.NET getting started examples](~/samples/csharp.md) for more info.
+When writing a C# application, we recommend using a [.NET Generic Host](https://learn.microsoft.com/en-us/dotnet/core/extensions/generic-host?tabs=appbuilder) to initialize the application. This will enable setting configuration values via `appsettings.json` which can be passed into `userOptions` in [`.AddTableauMigrationSdk`](xref:Tableau.Migration.IServiceCollectionExtensions#Tableau_Migration_IServiceCollectionExtensions_AddTableauMigrationSdk_Microsoft_Extensions_DependencyInjection_IServiceCollection_Microsoft_Extensions_Configuration_IConfiguration_). See  [.NET getting started examples](~/api/index.md) for more info.
 
 When writing a python application, configuration values are set via environment variables. The `:` delimiter doesn't work with environment variable hierarchical keys on all platforms. For example, the `:` delimiter is not supported by Bash. The double underscore (`__`), which is supported on all platforms, automatically replaces any `:` delimiters in environment variables. All configuration environment variables start with `MigrationSDK__`.
 
@@ -133,7 +133,7 @@ The following sections describe each setting. They should always be set per cont
 
 *Reload on Edit?:* **Yes**. The update will apply next time the Migration SDK requests a list of objects.
 
-*Description:* The Migration SDK uses the **BatchSize** property to define the page size of each List Request. For more details, check the [Tableau REST API Paginating Results documentation](https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_concepts_paging.htm).
+*Description:* The Migration SDK uses the **BatchSize** property to define the page size of each List Request. For more details, see the [Tableau REST API Paginating Results documentation](https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_concepts_paging.htm).
 
 #### ContentTypes.BatchPublishingEnabled
 
@@ -158,7 +158,7 @@ Supported Content Types:
 
 *Reload on Edit?:* **Yes**. The update will apply the next time the Migration SDK publishes a new batch.
 
-*Description:* The Migration SDK uses [two methods](advanced_config/hooks/index.md#hook-execution-flow) to publish the content to a destination server: the **bulk process**, where a single call to the API will push multiple items to the server, and the **individual process**, where it publishes a single item with a single call to the API. This configuration only applies to the **individual process**. The SDK uses the **MigrationParallelism** property to define the number of parallel tasks migrating the same type of content simultaneously. It is possible to tune the Migration SDK processing time with this configuration.
+*Description:* The Migration SDK uses [two methods](hooks/index.md#hook-execution-flow) to publish the content to a destination server: the **bulk process**, where a single call to the API will push multiple items to the server, and the **individual process**, where it publishes a single item with a single call to the API. This configuration only applies to the **individual process**. The SDK uses the **MigrationParallelism** property to define the number of parallel tasks migrating the same type of content simultaneously. It is possible to tune the Migration SDK processing time with this configuration.
 > [!WARNING]
 > There are [concurrency limits in REST APIs on Tableau Cloud](https://kb.tableau.com/articles/issue/concurrency-limits-in-rest-apis-on-tableau-cloud). The current default configuration is the balance between performance without blocking too many resources to the migration process.
 
@@ -198,7 +198,7 @@ Supported Content Types:
 
 *Reload on Edit?:* **Yes**. The update will apply the next time the Migration SDK publishes a new file.
 
-*Description:* As part of the migration process, the Migration SDK has to publish file-based content types like Workbooks and Data Sources. Some of these files are very large. The Migration SDK uses the **FileChunkSizeKB** property to split these files into smaller pieces, making the publishing process more reliable. For more details, check the [Tableau REST API Publishing Resources documentation](https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_concepts_publish.htm).
+*Description:* As part of the migration process, the Migration SDK has to publish file-based content types like Workbooks and Data Sources. Some of these files are very large. The Migration SDK uses the **FileChunkSizeKB** property to split these files into smaller pieces, making the publishing process more reliable. For more details, see the [Tableau REST API Publishing Resources documentation](https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_concepts_publish.htm).
 
 ### Network.HeadersLoggingEnabled
 
@@ -210,7 +210,7 @@ Supported Content Types:
 
 *Reload on Edit?:* **Yes**. The update will apply the next time the Migration SDK logs a new HTTP request.
 
-*Description:* Check the [logging article](logging.md) for more details.
+*Description:* See the [logging article](logging.md) for more details.
 
 ### Network.ContentLoggingEnabled
 
@@ -222,7 +222,7 @@ Supported Content Types:
 
 *Reload on Edit?:* **Yes**. The update will apply the next time the Migration SDK logs a new HTTP request.
 
-*Description:* Check the [logging article](logging.md) for more details.
+*Description:* See the [logging article](logging.md) for more details.
 
 ### Network.BinaryContentLoggingEnabled
 
@@ -234,7 +234,7 @@ Supported Content Types:
 
 *Reload on Edit?:* **Yes**. The update will apply the next time the Migration SDK logs a new HTTP request.
 
-*Description:* Check the [logging article](logging.md) for more details.
+*Description:* See the [logging article](logging.md) for more details.
 
 ### Network.ExceptionsLoggingEnabled
 
@@ -246,7 +246,7 @@ Supported Content Types:
 
 *Reload on Edit?:* **Yes**. The update will apply the next time the Migration SDK logs a new HTTP request.
 
-*Description:* Check the [logging article](logging.md) for more details.
+*Description:* See the [logging article](logging.md) for more details.
 
 ### Network.Resilience.RetryEnabled
 
@@ -450,7 +450,7 @@ Supported Content Types:
 
 *Reload on Edit?:* **No**. Any changes to this configuration will reflect on the next time the application starts.
 
-*Description:* The SDK uses the **UrlSegments** property as a list of types of default permissions of given project. For more details, check the [Query Default Permissions documentation](https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_permissions.htm#query_default_permissions).
+*Description:* The SDK uses the **UrlSegments** property as a list of types of default permissions of given project. For more details, see the [Query Default Permissions documentation](https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_permissions.htm#query_default_permissions).
 
 ### Jobs.JobPollRate
 
@@ -462,7 +462,7 @@ Supported Content Types:
 
 *Reload on Edit?:* **Yes**. The update will apply the next time the Migration SDK delays the processing status recheck.
 
-*Description:* The Migration SDK uses [two methods](advanced_config/hooks/index.md#hook-execution-flow) to publish the content to a destination server: the **bulk process**, where a single call to the API will push multiple items to the server, and the **individual process**, where it publishes a single item with a single call to the API. This configuration only applies to the **bulk process**. After publishing a batch, the API will return a Job ID. With it, the SDK can call another API to check the job processing status. The SDK uses the **JobPollRate** property to define the interval it will wait to recheck processing status. For more details, check the [Tableau REST API Query Job documentation](https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_jobs_tasks_and_schedules.htm#query_job).
+*Description:* The Migration SDK uses [two methods](hooks/index.md#hook-execution-flow) to publish the content to a destination server: the **bulk process**, where a single call to the API will push multiple items to the server, and the **individual process**, where it publishes a single item with a single call to the API. This configuration only applies to the **bulk process**. After publishing a batch, the API will return a Job ID. With it, the SDK can call another API to see the job processing status. The SDK uses the **JobPollRate** property to define the interval it will wait to recheck processing status. For more details, see the [Tableau REST API Query Job documentation](https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_jobs_tasks_and_schedules.htm#query_job).
 > [!WARNING]
 > There is [a limit for querying job status on Tableau Cloud](https://help.tableau.com/current/online/en-us/to_site_capacity.htm#jobs-initiated-by-command-line-and-api-calls). The current default configuration is the balance between performance without blocking too many resources to the migration process.
 
@@ -476,4 +476,4 @@ Supported Content Types:
 
 *Reload on Edit?:* **Yes**. The update will apply the next time the Migration SDK validates the total time it has waited for the job to complete.
 
-*Description:* The Migration SDK uses [two methods](advanced_config/hooks/index.md#hook-execution-flow) to publish the content to a destination server: the **bulk process**, where a single call to the API will push multiple items to the server, and the **individual process**, where it publishes a single item with a single call to the API. This configuration only applies to the **bulk process**. The SDK uses the **JobTimeout** property to define the maximum interval it will wait for a job to complete. For more details, check the [Tableau REST API Query Job documentation](https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_jobs_tasks_and_schedules.htm#query_job).
+*Description:* The Migration SDK uses [two methods](hooks/index.md#hook-execution-flow) to publish the content to a destination server: the **bulk process**, where a single call to the API will push multiple items to the server, and the **individual process**, where it publishes a single item with a single call to the API. This configuration only applies to the **bulk process**. The SDK uses the **JobTimeout** property to define the maximum interval it will wait for a job to complete. For more details, see the [Tableau REST API Query Job documentation](https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_jobs_tasks_and_schedules.htm#query_job).

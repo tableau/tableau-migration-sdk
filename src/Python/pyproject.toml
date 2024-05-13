@@ -7,7 +7,7 @@ name = "tableau_migration"
 dynamic = ["version"]
 
 authors = [
-  { name="Tableau a Salesforce Product" },
+  { name="Salesforce, Inc." },
 ]
 description = "Tableau Migration SDK"
 readme = "README.md"

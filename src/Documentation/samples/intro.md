@@ -1,8 +1,3 @@
 # Code Samples
 
-To get you started with developing the Migration SDK, here is some example code.
-
-* [.NET getting started examples](csharp.md)
-* [Python getting started examples](python.md)
-
-There are some more examples in this section to help you get started with advanced configuration via hooks.
+After you have started building your migration using the example code in [C#](~/api/index.md) or [Python](~/python_wrapper/index.md), you may want to further customize your migration using hooks. This section contains some code samples to help.

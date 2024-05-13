@@ -6,4 +6,4 @@ import build_binaries
 
 testcomponent_project = abspath("../../tests/Tableau.Migration.TestComponents/Tableau.Migration.TestComponents.csproj")
 
-subprocess.run(["dotnet", "publish", testcomponent_project, "-o", build_binaries.bin_path, "-f", "net7.0"])
+subprocess.run(["dotnet", "publish", testcomponent_project, "-o", build_binaries.bin_path, "-f", "net6.0"])

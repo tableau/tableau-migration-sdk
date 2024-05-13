@@ -1,18 +1,20 @@
 # Hooks Implemented in Python
 
-Because the Migration SDK is primarily written in C#, it uses [Python.NET](https://pythonnet.github.io/) to enable the implementation of hooks in Python. The Python hooks interoperate with the C# binaries to achieve the same results as writing hooks in C#.
+Because the Migration SDK is primarily written in C#, it uses [Python.NET](https://pythonnet.github.io/) to enable the implementation of [hooks](~/samples/python_hooks.md) in Python. The Python hooks interoperate with the C# binaries to achieve the same results as writing hooks in C#.
 
-The SDK's C# hook classes and interfaces are [asynchronous](https://learn.microsoft.com/en-us/dotnet/csharp/asynchronous-programming/). Due to the limitations of [Python.NET](https://pythonnet.github.io/), the SDK provides synchronous wrappers to these interfaces. The names of these wrappers start with the keyword `ISync`. You will find references to those in the following examples. 
+The SDK's C# hook classes and interfaces are [asynchronous](https://learn.microsoft.com/en-us/dotnet/csharp/asynchronous-programming/). Due to the limitations of [Python.NET](https://pythonnet.github.io/), the SDK provides synchronous wrappers to these interfaces. The names of these wrappers start with the keyword `ISync`. You will find references to those in the following examples.
 
 Various C# interfaces and classes are used in hooks. You will need to import them just like you do Python classes. You can search for them in the [API Reference](~/api/index.md) section of the documentation.
 
 Example:
 
 Here is one of the import statements you will need for filters
+
 ```python
 from Tableau.Migration.Interop.Hooks.Filters import ISyncContentFilter
 ```
-The namespace for `ISyncContentFilter` is `Tableau.Migration.Interop.Hooks.Filters`. 
+
+The namespace for `ISyncContentFilter` is `Tableau.Migration.Interop.Hooks.Filters`.
 
 ## Object Registration
 

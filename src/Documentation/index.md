@@ -4,7 +4,7 @@
 
 The full C# API Reference.
 
-## [Python Wrapper](~/python_wrapper/tableau_migration.md)
+## [Python Wrapper](~/python_wrapper/index.md)
 
 The Python Wrapper Reference.
 

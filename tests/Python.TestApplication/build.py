@@ -1,4 +1,4 @@
-# Copyright (c) 2023, Salesforce, Inc.
+# Copyright (c) 2024, Salesforce, Inc.
 # SPDX-License-Identifier: Apache-2
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,7 +34,7 @@ def build():
         migration_project = abspath("../../tests/Tableau.Migration.Tests/Tableau.Migration.Tests.csproj")
         test_component_project = abspath("../../tests/Tableau.Migration.TestComponents/Tableau.Migration.TestComponents.csproj")
         shutil.rmtree(bin_path, True)
-        subprocess.run(["dotnet", "publish", migration_project, "-o", bin_path, "-f", "net7.0"])
-        subprocess.run(["dotnet", "publish", test_component_project, "-o", bin_path, "-f", "net7.0"])
+        subprocess.run(["dotnet", "publish", migration_project, "-o", bin_path, "-f", "net6.0"])
+        subprocess.run(["dotnet", "publish", test_component_project, "-o", bin_path, "-f", "net6.0"])
 
     sys.path.append(bin_path)

@@ -188,10 +188,10 @@
   </data>
   <data name="RestExceptionContent" xml:space="preserve">
     <value>An error was returned from the Tableau API:
-URL: {0}
-Code: {1}
-Summary: {2}
-Detail: {3}</value>
+URL: {0} {1}
+Code: {2}
+Summary: {3}
+Detail: {4}</value>
   </data>
   <data name="SectionException" xml:space="preserve">
     <value># Exception</value>
