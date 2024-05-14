@@ -111,7 +111,6 @@ jobs:
       build-config: ${{ vars.PUBLISH_CONFIGURATION }}
       publish-environment: internal-dryrun
       beta-version: ${{ needs.define-version.outputs.beta-version }}
-      publish-artifact: true
   python-publish-package-public-dryrun:
     needs: [ define-version, dotnet-build ]
     uses: ./.github/workflows/python-package.yml
@@ -121,6 +120,7 @@ jobs:
       build-config: ${{ vars.PUBLISH_CONFIGURATION }}
       publish-environment: public-dryrun
       beta-version: ${{ needs.define-version.outputs.beta-version }}
+      publish-artifact: true
   publish-docs-dry-run:
     needs: [ dotnet-test, dotnet-publish-package-internal-dryrun, dotnet-publish-package-public-dryrun, python-publish-package-internal-dryrun, python-publish-package-public-dryrun ]
     uses: ./.github/workflows/publishdocs-dryrun.yml
