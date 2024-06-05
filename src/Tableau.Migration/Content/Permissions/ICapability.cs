@@ -30,7 +30,7 @@ namespace Tableau.Migration.Content.Permissions
         public string Name { get; }
 
         /// <summary>
-        /// The capability mode from <see cref="PermissionsCapabilityModes"/>
+        /// The capability mode from <see cref="PermissionsCapabilityModes"/>.
         /// </summary>
         public string Mode { get; }
     }

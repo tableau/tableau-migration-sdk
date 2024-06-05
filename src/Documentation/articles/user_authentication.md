@@ -25,4 +25,4 @@ The `WithAuthenticationType()` and its overloads allow you to supply your chosen
 
 ## Custom Mapping
 
-You can also build your own mapping to supply to the appropriate `WithAuthenticationType()` overload. See [Sample EmailDomainMapping](~/samples/hooks/mappings/username_email_mapping.md) for example code.
+You can also build your own mapping to supply to the appropriate `WithAuthenticationType()` overload. See [Sample EmailDomainMapping](~/samples/mappings/username_email_mapping.md) for example code.

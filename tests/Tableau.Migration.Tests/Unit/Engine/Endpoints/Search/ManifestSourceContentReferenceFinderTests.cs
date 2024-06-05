@@ -19,7 +19,6 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Castle.Components.DictionaryAdapter.Xml;
 using Moq;
 using Tableau.Migration.Content.Search;
 using Tableau.Migration.Engine.Endpoints.Search;
@@ -45,7 +44,10 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints.Search
                 Pipeline = Create<Mock<IMigrationPipeline>>();
                 ContentReferenceCache = Create<Mock<IContentReferenceCache>>();
 
-                ContentReferenceCache.Setup(x => x.ForIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+                ContentReferenceCache.Setup(x => x.ForIdAsync(It.IsAny<Guid>(), Cancel))
+                    .Returns(Task.FromResult<IContentReference?>(null));
+
+                ContentReferenceCache.Setup(x => x.ForLocationAsync(It.IsAny<ContentLocation>(), Cancel))
                     .Returns(Task.FromResult<IContentReference?>(null));
 
                 Pipeline.Setup(x => x.CreateSourceCache<TestContentType>())
@@ -77,13 +79,13 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints.Search
             {
                 var sourceItem = Create<TestContentType>();
 
-                ContentReferenceCache.Setup(x => x.ForIdAsync(sourceItem.Id, It.IsAny<CancellationToken>()))
+                ContentReferenceCache.Setup(x => x.ForIdAsync(sourceItem.Id, Cancel))
                     .ReturnsAsync(sourceItem);
 
                 var result = await Finder.FindByIdAsync(sourceItem.Id, Cancel);
 
                 Assert.Same(sourceItem, result);
-                ContentReferenceCache.Verify(x => x.ForIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Once);
+                ContentReferenceCache.Verify(x => x.ForIdAsync(It.IsAny<Guid>(), Cancel), Times.Once);
             }
 
             [Fact]
@@ -94,7 +96,50 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints.Search
                 var result = await Finder.FindByIdAsync(sourceItem.Id, Cancel);
 
                 Assert.Null(result);
-                ContentReferenceCache.Verify(x => x.ForIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Once);
+                ContentReferenceCache.Verify(x => x.ForIdAsync(It.IsAny<Guid>(), Cancel), Times.Once);
+            }
+        }
+
+        public class FindBySourceLocationAsync : ManifestSourceContentReferenceFinderTest
+        {
+            [Fact]
+            public async Task FindsManifestReferenceAsync()
+            {
+                var sourceItem = Create<TestContentType>();
+
+                var entry = Manifest.Entries.GetOrCreatePartition<TestContentType>().GetEntryBuilder(1)
+                    .CreateEntries(new[] { sourceItem }, (i, e) => e)
+                    .Single();
+
+                var result = await Finder.FindBySourceLocationAsync(sourceItem.Location, Cancel);
+
+                Assert.Same(entry.Source, result);
+                ContentReferenceCache.Verify(x => x.ForLocationAsync(It.IsAny<ContentLocation>(), It.IsAny<CancellationToken>()), Times.Never);
+            }
+
+            [Fact]
+            public async Task FindCacheReferenceAsync()
+            {
+                var sourceItem = Create<TestContentType>();
+
+                ContentReferenceCache.Setup(x => x.ForLocationAsync(sourceItem.Location, Cancel))
+                    .ReturnsAsync(sourceItem);
+
+                var result = await Finder.FindBySourceLocationAsync(sourceItem.Location, Cancel);
+
+                Assert.Same(sourceItem, result);
+                ContentReferenceCache.Verify(x => x.ForLocationAsync(It.IsAny<ContentLocation>(), Cancel), Times.Once);
+            }
+
+            [Fact]
+            public async Task NotFoundAsync()
+            {
+                var sourceItem = Create<TestContentType>();
+
+                var result = await Finder.FindBySourceLocationAsync(sourceItem.Location, Cancel);
+
+                Assert.Null(result);
+                ContentReferenceCache.Verify(x => x.ForLocationAsync(It.IsAny<ContentLocation>(), Cancel), Times.Once);
             }
         }
     }

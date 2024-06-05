@@ -21,7 +21,6 @@ using Moq;
 using Tableau.Migration.Content;
 using Tableau.Migration.Engine.Endpoints.Search;
 using Tableau.Migration.Engine.Hooks.Transformers.Default;
-using Tableau.Migration.Engine.Pipelines;
 using Xunit;
 
 namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
@@ -30,18 +29,18 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
     {
         public abstract class MappedUserTransformerTest : AutoFixtureTestBase
         {
-            protected readonly Mock<IMigrationPipeline> MockMigrationPipeline = new();
+            protected readonly Mock<IDestinationContentReferenceFinderFactory> MockDestinationFinderFactory = new();
             protected readonly Mock<ILogger<MappedUserTransformer>> MockLogger = new();
             protected readonly MockSharedResourcesLocalizer MockSharedResourcesLocalizer = new();
-            protected readonly Mock<IMappedContentReferenceFinder<IUser>> MockUserContentFinder = new();
+            protected readonly Mock<IDestinationContentReferenceFinder<IUser>> MockUserContentFinder = new();
 
             protected readonly MappedUserTransformer Transformer;
 
             public MappedUserTransformerTest()
             {
-                MockMigrationPipeline.Setup(p => p.CreateDestinationFinder<IUser>()).Returns(MockUserContentFinder.Object);
+                MockDestinationFinderFactory.Setup(p => p.ForDestinationContentType<IUser>()).Returns(MockUserContentFinder.Object);
 
-                Transformer = new(MockMigrationPipeline.Object, MockLogger.Object, MockSharedResourcesLocalizer.Object);
+                Transformer = new(MockDestinationFinderFactory.Object, MockLogger.Object, MockSharedResourcesLocalizer.Object);
             }
         }
 
@@ -61,7 +60,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
                 var sourceUser = Create<IContentReference>();
                 var destinationUser = Create<IContentReference>();
 
-                MockUserContentFinder.Setup(f => f.FindDestinationReferenceAsync(sourceUser.Location, Cancel)).ReturnsAsync(destinationUser);
+                MockUserContentFinder.Setup(f => f.FindBySourceLocationAsync(sourceUser.Location, Cancel)).ReturnsAsync(destinationUser);
 
                 var result = await Transformer.ExecuteAsync(sourceUser, Cancel);
 

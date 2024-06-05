@@ -30,22 +30,22 @@ namespace Tableau.Migration.Engine.Hooks.Transformers.Default
     /// </summary>
     public class MappedUserTransformer : IMappedUserTransformer
     {
-        private readonly IMappedContentReferenceFinder<IUser> _userFinder;
+        private readonly IDestinationContentReferenceFinder<IUser> _userFinder;
         private readonly ILogger _logger;
         private readonly ISharedResourcesLocalizer _localizer;
 
         /// <summary>
         /// Creates a new <see cref="MappedUserTransformer"/> object.
         /// </summary>
-        /// <param name="pipeline">The migration pipeline.</param>
+        /// <param name="destinationFinderFactory">The destination finder factory.</param>
         /// <param name="logger">The logger used to log messages.</param>
         /// <param name="localizer">The string localizer.</param>
         public MappedUserTransformer(
-            IMigrationPipeline pipeline,
+            IDestinationContentReferenceFinderFactory destinationFinderFactory,
             ILogger<MappedUserTransformer> logger,
             ISharedResourcesLocalizer localizer)
         {
-            _userFinder = pipeline.CreateDestinationFinder<IUser>();
+            _userFinder = destinationFinderFactory.ForDestinationContentType<IUser>();
             _logger = logger;
             _localizer = localizer;
         }
@@ -59,7 +59,7 @@ namespace Tableau.Migration.Engine.Hooks.Transformers.Default
                 return null;
             }
 
-            var mapped = await _userFinder.FindDestinationReferenceAsync(ctx.Location, cancel)
+            var mapped = await _userFinder.FindBySourceLocationAsync(ctx.Location, cancel)
                 .ConfigureAwait(false);
 
             if (mapped is null)

@@ -6,6 +6,7 @@ import configparser          # configuration parser
 import os                    # environment variables
 import sys                   # system utility
 import tableau_migration     # Tableau Migration SDK
+import print_result
 
 from threading import Thread # threading
 
@@ -32,7 +33,7 @@ def migrate():
                         access_token = os.environ.get('TABLEAU_MIGRATION_DESTINATION_TOKEN', config['DESTINATION']['ACCESS_TOKEN'])) \
                     .for_server_to_cloud() \
                     .with_tableau_id_authentication_type() \
-                    .with_tableau_cloud_usernames(config['USERS']['EMAIL_DOMAIN'])
+                    .with_tableau_cloud_usernames(config['USERS']['EMAIL_DOMAIN'])                    
 
     # TODO: add filters, mappings, transformers, etc. here.
 
@@ -47,6 +48,7 @@ def migrate():
     results = migration.execute(plan)
     
     # TODO: Handle results here.
+    print_result(results)
 
     print("All done.")
 

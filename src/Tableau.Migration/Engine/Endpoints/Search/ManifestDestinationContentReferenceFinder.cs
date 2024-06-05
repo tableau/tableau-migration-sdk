@@ -25,13 +25,13 @@ using Tableau.Migration.Engine.Pipelines;
 namespace Tableau.Migration.Engine.Endpoints.Search
 {
     /// <summary>
-    /// <see cref="IMappedContentReferenceFinder{TContent}"/> implementation 
+    /// <see cref="IDestinationContentReferenceFinder{TContent}"/> implementation 
     /// that uses the mapped manifest information to find destination content, 
     /// falling back to API loading.
     /// </summary>
     /// <typeparam name="TContent">The content type.</typeparam>
     public class ManifestDestinationContentReferenceFinder<TContent>
-        : IMappedContentReferenceFinder<TContent>, IContentReferenceFinder<TContent>
+        : IDestinationContentReferenceFinder<TContent>
         where TContent : class, IContentReference
     {
         private readonly IMigrationManifestEditor _manifest;
@@ -48,10 +48,10 @@ namespace Tableau.Migration.Engine.Endpoints.Search
             _destinationCache = pipeline.CreateDestinationCache<TContent>();
         }
 
-        #region - IMappedContentReferenceFinder<TContent> Implementation -
+        #region - IDestinationContentReferenceFinder Implementation -
 
         /// <inheritdoc />
-        public async Task<IContentReference?> FindDestinationReferenceAsync(ContentLocation sourceLocation, CancellationToken cancel)
+        public async Task<IContentReference?> FindBySourceLocationAsync(ContentLocation sourceLocation, CancellationToken cancel)
         {
             //Get the DESTINATION reference for the SOURCE location.
             var manifestEntries = _manifest.Entries.GetOrCreatePartition<TContent>();
@@ -69,7 +69,7 @@ namespace Tableau.Migration.Engine.Endpoints.Search
         }
 
         /// <inheritdoc />
-        public async Task<IContentReference?> FindMappedDestinationReferenceAsync(ContentLocation mappedLocation, CancellationToken cancel)
+        public async Task<IContentReference?> FindByMappedLocationAsync(ContentLocation mappedLocation, CancellationToken cancel)
         {
             //Get the DESTINATION reference for the DESTINATION location.
             var manifestEntries = _manifest.Entries.GetOrCreatePartition<TContent>();
@@ -82,26 +82,26 @@ namespace Tableau.Migration.Engine.Endpoints.Search
         }
 
         /// <inheritdoc />
-        public async Task<IContentReference?> FindDestinationReferenceAsync(Guid sourceId, CancellationToken cancel)
+        public async Task<IContentReference?> FindBySourceIdAsync(Guid sourceId, CancellationToken cancel)
         {
             //Get the DESTINATION reference for the SOURCE ID.
             var manifestEntries = _manifest.Entries.GetOrCreatePartition<TContent>();
             if (manifestEntries.BySourceId.TryGetValue(sourceId, out var entry))
             {
-                return await FindDestinationReferenceAsync(entry.Source.Location, cancel).ConfigureAwait(false);
+                return await FindBySourceLocationAsync(entry.Source.Location, cancel).ConfigureAwait(false);
             }
 
             return null;
         }
 
         /// <inheritdoc />
-        public async Task<IContentReference?> FindDestinationReferenceAsync(string contentUrl, CancellationToken cancel)
+        public async Task<IContentReference?> FindBySourceContentUrlAsync(string contentUrl, CancellationToken cancel)
         {
             //Get the DESTINATION reference for the SOURCE content URL.
             var manifestEntries = _manifest.Entries.GetOrCreatePartition<TContent>();
             if (manifestEntries.BySourceContentUrl.TryGetValue(contentUrl, out var entry))
             {
-                return await FindDestinationReferenceAsync(entry.Source.Location, cancel).ConfigureAwait(false);
+                return await FindBySourceLocationAsync(entry.Source.Location, cancel).ConfigureAwait(false);
             }
 
             return null;
@@ -109,7 +109,7 @@ namespace Tableau.Migration.Engine.Endpoints.Search
 
         #endregion
 
-        #region - IContentReferenceFinder<TContent> Implementation -
+        #region - IContentReferenceFinder Implementation -
 
         /// <inheritdoc />
         public async Task<IContentReference?> FindByIdAsync(Guid id, CancellationToken cancel)

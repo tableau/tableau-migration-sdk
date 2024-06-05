@@ -18,6 +18,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using Tableau.Migration.Content;
 
 namespace Tableau.Migration.Interop
 {
@@ -26,93 +28,118 @@ namespace Tableau.Migration.Interop
     /// </summary>
     public static class InteropHelper
     {
-        internal static List<string> ignoredMethods = new()
+        internal static HashSet<string> _ignoredMethods = new()
         {
-            "GetHashCode",
-            "ToString",
+            nameof(object.GetHashCode),
+            nameof(object.ToString),
+            nameof(object.GetType),
+            nameof(object.Equals),
+            nameof(Enum.HasFlag),
             "Deconstruct",
-            "GetType",
-            "Equals",
             "GetTypeCode",
             "CompareTo",
-            "HasFlag"
+            "<Clone>$"
         };
 
-        /// <summary>
-        /// Gets methods of a class that aren't "generic"
-        /// </summary>
-        /// <typeparam name="T">The objects type to get methods from</typeparam>
-        /// <returns>List of method names</returns>
-        public static List<string> GetMethods<T>()
+        private static Type MakeSampleGenericType(Type generic)
         {
-            List<string> methods;
-            List<string> ret = new();
+            var genericTypes = generic.GetGenericArguments()
+                .Select(gt => typeof(IUser))
+                .ToArray();
 
-            if (typeof(T).IsInterface)
+            return generic.MakeGenericType(genericTypes);
+        }
+
+        private static bool IsPropertyMethod(MethodInfo method)
+            => method.Name.StartsWith("get_") || method.Name.StartsWith("set_");
+
+        private static bool IsOperator(MethodInfo method)
+            => method.Name.StartsWith("op_");
+
+        /// <summary>
+        /// Gets the methods of a class.
+        /// </summary>
+        /// <typeparam name="T">The type to get methods from.</typeparam>
+        /// <returns>The method names.</returns>
+        public static IEnumerable<string> GetMethods<T>()
+            => GetMethods(typeof(T));
+
+        /// <summary>
+        /// Gets the methods of a class.
+        /// </summary>
+        /// <param name="type">The type to get methods from.</param>
+        /// <returns>The method names.</returns>
+        public static IEnumerable<string> GetMethods(Type type)
+        {
+            if(type.ContainsGenericParameters)
             {
-                methods = typeof(T).GetAllInterfaceMethods().Select(p => p.Name).ToList();
-            }
-            else
-            {
-                methods = typeof(T).GetMethods().Select(p => p.Name).ToList();
+                return GetMethods(MakeSampleGenericType(type));
             }
 
-            foreach (var method in methods)
+            var methods = type.IsInterface ? type.GetAllInterfaceMethods() : type.GetMethods();
+
+            return methods
+                .Where(m => !IsPropertyMethod(m))
+                .Where(m => !IsOperator(m))
+                .Where(m => !_ignoredMethods.Contains(m.Name))
+                .Select(m => m.Name);
+        }
+
+        /// <summary>
+        /// Gets the properies of a class.
+        /// </summary>
+        /// <typeparam name="T">The type to get properties from.</typeparam>
+        /// <returns>The property names.</returns>
+        public static IEnumerable<string> GetProperties<T>()
+            => GetProperties(typeof(T));
+
+        /// <summary>
+        /// Gets the properies of a class.
+        /// </summary>
+        /// <param name="type">The type to get properties from.</param>
+        /// <returns>The property names.</returns>
+        public static IEnumerable<string> GetProperties(Type type)
+        {
+            if (type.ContainsGenericParameters)
             {
-                if (!method.StartsWith("get_") && // getters
-                   !method.StartsWith("set_") && // setters
-                   !method.StartsWith("op_") &&  // operators 
-                   !ignoredMethods.Contains(method)
-                   )
+                return GetProperties(MakeSampleGenericType(type));
+            }
+
+            var properties = type.IsInterface ? type.GetAllInterfaceProperties() : type.GetProperties();
+
+            return properties.Select(p => p.Name);
+        }
+
+        /// <summary>
+        /// Gets all the names and values of an enumeration.
+        /// </summary>
+        /// <typeparam name="T">The enum type.</typeparam>
+        /// <returns>Tuples with all the names and values.</returns>
+        public static IEnumerable<Tuple<string, object>> GetEnum<T>() 
+        {
+            var enumType = typeof(T);
+            if (enumType.BaseType == typeof(Enum))
+            {
+                var underlyingType = Enum.GetUnderlyingType(enumType);
+
+                foreach (var name in Enum.GetNames(enumType))
                 {
-                    ret.Add(method);
+                    var value = Enum.Parse(enumType, name);
+                    object underlyingValue = Convert.ChangeType(value, underlyingType);
+
+                    yield return new(name, underlyingValue);
                 }
             }
-
-            return ret;
-        }
-
-        /// <summary>
-        /// Gets the properies of a class
-        /// </summary>
-        /// <typeparam name="T">The objects type to get properties from</typeparam>
-        /// <returns>List of property names</returns>
-        public static List<string> GetProperties<T>()
-        {
-            if (typeof(T).IsInterface)
+            else if(enumType.BaseType == typeof(StringEnum<T>))
             {
-                return typeof(T).GetAllInterfaceProperties().Select(p => p.Name).ToList();
+                foreach(var field in enumType.GetFields(BindingFlags.Public | BindingFlags.Static))
+                {
+                    if (field is null || !field.IsLiteral || field.IsInitOnly)
+                        continue;
+
+                    yield return new(field.Name, field.GetValue(null)!);
+                }
             }
-            else
-            {
-                return typeof(T).GetProperties().Select(p => p.Name).ToList();
-            }
-        }
-
-
-        /// <summary>
-        /// Gets all the names and values of a enum and returns them as a list.
-        /// </summary>
-        /// <typeparam name="T">The enum type</typeparam>
-        /// <returns>List of tuples with all the names and values</returns>
-        static public List<Tuple<string, object>> GetEnum<T>() where T : Enum
-        {
-            var ret = new List<Tuple<string, object>>();
-
-            var enumType = typeof(T);
-            var underlyingType = Enum.GetUnderlyingType(enumType);
-
-            var names = Enum.GetNames(enumType);
-
-            foreach (var name in names)
-            {
-                var value = Enum.Parse(enumType, name);
-                object underlyingValue = Convert.ChangeType(value, underlyingType);
-
-                ret.Add(new Tuple<string, object>(name, underlyingValue));
-            }
-
-            return ret;
         }
     }
 }

@@ -78,14 +78,6 @@ namespace Tableau.Migration.Engine.Pipelines
             where TContent : class, IContentReference;
 
         /// <summary>
-        /// Gets the destination content finder for the given content type.
-        /// </summary>
-        /// <typeparam name="TContent">The content type.</typeparam>
-        /// <returns>The destination content finder.</returns>
-        IMappedContentReferenceFinder<TContent> CreateDestinationFinder<TContent>()
-            where TContent : class, IContentReference;
-
-        /// <summary>
         /// Gets the destination locked project cache.
         /// </summary>
         /// <returns>The destination locked project cache.</returns>

@@ -6,22 +6,27 @@
     <IsPublishable>False</IsPublishable>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Remove="api\**" />
+    <Compile Remove="api-csharp\**" />
     <Compile Remove="python\doctrees\**" />
-    <Compile Remove="python_wrapper\**" />
+    <Compile Remove="api-python\**" />
     <Compile Remove="_python\**" />
-    <EmbeddedResource Remove="api\**" />
+    <EmbeddedResource Remove="api-csharp\**" />
     <EmbeddedResource Remove="python\doctrees\**" />
-    <EmbeddedResource Remove="python_wrapper\**" />
+    <EmbeddedResource Remove="api-python\**" />
     <EmbeddedResource Remove="_python\**" />
-    <None Remove="api\**" />
+    <None Remove="api-csharp\**" />
     <None Remove="python\doctrees\**" />
-    <None Remove="python_wrapper\**" />
+    <None Remove="api-python\**" />
     <None Remove="_python\**" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="api\.gitignore" />
-    <None Include="api\index.md" />
-    <None Include="api\toc.yml" />
+    <None Include="api-csharp\.gitignore" />
+    <None Include="api-csharp\index.md" />
+    <None Include="api-csharp\toc.yml" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="api-python\.gitignore" />
+    <None Include="api-python\index.md" />
+    <None Include="api-python\toc.yml" />
   </ItemGroup>
 </Project>

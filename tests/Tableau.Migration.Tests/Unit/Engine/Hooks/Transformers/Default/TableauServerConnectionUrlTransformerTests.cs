@@ -39,9 +39,12 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
     {
         public class TestTableauServerConnectionUrlTransformer : TableauServerConnectionUrlTransformer
         {
-            public TestTableauServerConnectionUrlTransformer(IMigration migration,
-                ILogger<TableauServerConnectionUrlTransformer> logger, ISharedResourcesLocalizer localizer)
-                : base(migration, logger, localizer)
+            public TestTableauServerConnectionUrlTransformer(
+                IMigration migration,
+                IDestinationContentReferenceFinderFactory destinationFinderFactory,
+                ILogger<TableauServerConnectionUrlTransformer> logger, 
+                ISharedResourcesLocalizer localizer)
+                : base(migration, destinationFinderFactory, logger, localizer)
             { }
 
             public bool PublicNeedsXmlTransforming(IPublishableWorkbook ctx)
@@ -50,7 +53,8 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
 
         public class TableauServerConnectionUrlTransformerTest : AutoFixtureTestBase
         {
-            protected readonly Mock<IMappedContentReferenceFinder<IDataSource>> MockDataSourceFinder;
+            protected readonly Mock<IDestinationContentReferenceFinder<IDataSource>> MockDataSourceFinder;
+            protected readonly Mock<IDestinationContentReferenceFinderFactory> MockDestinationFinderFactory;
             protected readonly Mock<ILogger<TableauServerConnectionUrlTransformer>> MockLog;
             protected readonly MockSharedResourcesLocalizer MockLocalizer;
 
@@ -67,14 +71,14 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
 
             public TableauServerConnectionUrlTransformerTest()
             {
-                MockDataSourceFinder = Freeze<Mock<IMappedContentReferenceFinder<IDataSource>>>();
+                MockDataSourceFinder = Freeze<Mock<IDestinationContentReferenceFinder<IDataSource>>>();
                 MockLog = Freeze<Mock<ILogger<TableauServerConnectionUrlTransformer>>>();
                 MockLocalizer = Freeze<MockSharedResourcesLocalizer>();
 
                 MockWorkbook = Create<Mock<IPublishableWorkbook>>();
 
                 DataSourceReferencesBySourceContentUrl = new();
-                MockDataSourceFinder.Setup(x => x.FindDestinationReferenceAsync(It.IsAny<string>(), Cancel))
+                MockDataSourceFinder.Setup(x => x.FindBySourceContentUrlAsync(It.IsAny<string>(), Cancel))
                     .ReturnsAsync((string contentUrl, CancellationToken cancel) =>
                     {
                         if (DataSourceReferencesBySourceContentUrl.TryGetValue(contentUrl, out var val))
@@ -85,6 +89,10 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
                         return null;
                     });
 
+                MockDestinationFinderFactory = Freeze<Mock<IDestinationContentReferenceFinderFactory>>();
+                MockDestinationFinderFactory.Setup(x => x.ForDestinationContentType<IDataSource>())
+                    .Returns(MockDataSourceFinder.Object);
+
                 DestinationConfig = Create<TableauSiteConnectionConfiguration>();
 
                 MockDestinationApiEndpointConfig = Freeze<Mock<ITableauApiEndpointConfiguration>>();
@@ -93,8 +101,6 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
 
                 var mockMigration = Freeze<Mock<IMigration>>();
                 mockMigration.Setup(x => x.Plan.Destination).Returns(GetDestinationEndpointConfig);
-                mockMigration.Setup(x => x.Pipeline.CreateDestinationFinder<IDataSource>())
-                    .Returns(MockDataSourceFinder.Object);
 
                 Transformer = Create<TestTableauServerConnectionUrlTransformer>();
             }
@@ -158,7 +164,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
                 var xml = new XDocument(wb);
 
                 //Transform
-                await Transformer.ExecuteAsync(MockWorkbook.Object, xml, Cancel);
+                await Transformer.TransformAsync(MockWorkbook.Object, xml, Cancel);
 
                 //Assert
                 Assert.Equal(pdsRef1.ContentUrl, dsRepo.Attribute("id")!.Value);
@@ -196,7 +202,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
                 var xml = new XDocument(wb);
 
                 //Transform
-                await Transformer.ExecuteAsync(MockWorkbook.Object, xml, Cancel);
+                await Transformer.TransformAsync(MockWorkbook.Object, xml, Cancel);
 
                 //Assert
                 Assert.Equal(pdsRef1.ContentUrl, ds1Repo.Attribute("id")!.Value);
@@ -228,7 +234,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
                 var xml = new XDocument(wb);
 
                 //Transform
-                await Transformer.ExecuteAsync(MockWorkbook.Object, xml, Cancel);
+                await Transformer.TransformAsync(MockWorkbook.Object, xml, Cancel);
 
                 //Assert
                 Assert.Equal("http", dsConn.Attribute("channel")!.Value);
@@ -264,10 +270,10 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
                 var xml = new XDocument(wb);
 
                 //Transform
-                await Transformer.ExecuteAsync(MockWorkbook.Object, xml, Cancel);
+                await Transformer.TransformAsync(MockWorkbook.Object, xml, Cancel);
 
                 var mockWorkbook2 = Create<Mock<IPublishableWorkbook>>();
-                await Transformer.ExecuteAsync(mockWorkbook2.Object, xml, Cancel);
+                await Transformer.TransformAsync(mockWorkbook2.Object, xml, Cancel);
 
                 //Assert
                 MockLog.VerifyWarnings(Times.Exactly(4));

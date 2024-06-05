@@ -17,10 +17,9 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Tableau.Migration.Content.Files;
 using Tableau.Migration.Engine.Endpoints;
+using Tableau.Migration.Engine.Endpoints.Search;
 using Tableau.Migration.Engine.Hooks.Transformers;
-using Tableau.Migration.Engine.Pipelines;
 
 namespace Tableau.Migration.Engine.Preparation
 {
@@ -40,10 +39,12 @@ namespace Tableau.Migration.Engine.Preparation
         /// </summary>
         /// <param name="source">The source endpoint.</param>
         /// <param name="transformerRunner"><inheritdoc /></param>
-        /// <param name="pipeline"><inheritdoc /></param>
-        public EndpointContentItemPreparer(ISourceEndpoint source,
-            IContentTransformerRunner transformerRunner, IMigrationPipeline pipeline)
-            : base(transformerRunner, pipeline)
+        /// <param name="destinationFinderFactory"><inheritdoc /></param>
+        public EndpointContentItemPreparer(
+            ISourceEndpoint source,
+            IContentTransformerRunner transformerRunner, 
+            IDestinationContentReferenceFinderFactory destinationFinderFactory)
+            : base(transformerRunner, destinationFinderFactory)
         {
             _source = source;
         }

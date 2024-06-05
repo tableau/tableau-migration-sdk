@@ -44,10 +44,6 @@ jobs:
       - name: Test with pytest
         run: |
           python -m hatch --data-dir=.hatch --cache-dir=.hatch_cache run test:testcov
-          python -m hatch --data-dir=.hatch --cache-dir=.hatch_cache run test:pytest tests/test_migrations_engine_hooks_lifetime.py
-          python -m hatch --data-dir=.hatch --cache-dir=.hatch_cache run test:pytest tests/test_migrations_engine_hooks_filters_lifetime.py
-          python -m hatch --data-dir=.hatch --cache-dir=.hatch_cache run test:pytest tests/test_migrations_engine_hooks_mappings_lifetime.py
-          python -m hatch --data-dir=.hatch --cache-dir=.hatch_cache run test:pytest tests/test_migrations_engine_hooks_transformers_lifetime.py
           
       - name: Test TestApplication with pytest
         run: |

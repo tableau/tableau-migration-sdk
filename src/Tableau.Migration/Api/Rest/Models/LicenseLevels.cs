@@ -18,7 +18,7 @@
 namespace Tableau.Migration.Api.Rest.Models
 {
     /// <summary>
-    /// The license levels to be dreived from a siterole in <see cref="SiteRoles"/>.
+    /// The license levels to be derived from a siterole in <see cref="SiteRoles"/>.
     /// </summary>
     public class LicenseLevels : StringEnum<LicenseLevels>
     {

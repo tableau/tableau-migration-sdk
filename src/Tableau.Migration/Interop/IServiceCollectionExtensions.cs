@@ -34,16 +34,21 @@ namespace Tableau.Migration.Interop
         /// Add python support by adding python logging and configuration via environment variables.
         /// This will clear all existing <see cref="ILoggerProvider"/>s. All other logger provider should be added after this call.
         /// </summary>
-        /// <param name="services"></param>
-        /// <param name="pythonProviderFactory"></param>
+        /// <param name="services">The service collection to register services with.</param>
+        /// <param name="loggerFactory">A factory to use to create new loggers for a given category name.</param>
+        /// <param name="userOptions">The configuration options to initialize the SDK with.</param>
         /// <returns></returns>
-        public static IServiceCollection AddPythonSupport(this IServiceCollection services, Func<IServiceProvider, NonGenericLoggerProvider> pythonProviderFactory)
+        public static IServiceCollection AddPythonSupport(
+            this IServiceCollection services,
+            Func<string, NonGenericLoggerBase> loggerFactory, 
+            IConfiguration? userOptions = null)
         {
             services
+                .AddTableauMigrationSdk(userOptions)
                 // Replace the default IUserAgentSuffixProvider with the python one
                 .Replace(new ServiceDescriptor(typeof(IUserAgentSuffixProvider), typeof(PythonUserAgentSuffixProvider), ServiceLifetime.Singleton))
                 // Add Python Logging
-                .AddLogging(b => b.AddPythonLogging(pythonProviderFactory))
+                .AddLogging(b => b.AddPythonLogging(loggerFactory))
                 // Add environment variable configuration
                 .AddEnvironmentVariableConfiguration();
             return services;
@@ -53,13 +58,15 @@ namespace Tableau.Migration.Interop
         /// Adds a python support, including supporting the python logger
         /// </summary>
         /// <param name="builder">The <see cref="ILoggingBuilder"/></param>
-        /// <param name="pythonProviderFactory">Function that creates a new <see cref="NonGenericLoggerProvider"/></param>
+        /// <param name="loggerFactory">A factory to use to create new loggers for a given category name.</param>
         /// <returns></returns>
-        public static ILoggingBuilder AddPythonLogging(this ILoggingBuilder builder, Func<IServiceProvider, NonGenericLoggerProvider> pythonProviderFactory)
+        public static ILoggingBuilder AddPythonLogging(
+            this ILoggingBuilder builder,
+            Func<string, NonGenericLoggerBase> loggerFactory)
         {
             // Clear all previous providers
             builder.ClearProviders();
-            builder.Services.TryAddSingleton<ILoggerProvider>(pythonProviderFactory);
+            builder.Services.TryAddSingleton<ILoggerProvider>(new NonGenericLoggerProvider(loggerFactory));
             // Enable all logs from .NET
             // They will be filtered on the migration_logger.py class
             builder.AddFilter<NonGenericLoggerProvider>(null, LogLevel.Trace);

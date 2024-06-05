@@ -24,7 +24,9 @@ namespace Tableau.Migration.Content
     /// </summary>
     public interface IWorkbookDetails : IWorkbook, IChildPermissionsContent
     {
-        /// <inheritdoc />
+        /// <summary>
+        /// Gets the view metadata.
+        /// </summary>
         public IImmutableList<IView> Views { get; }
     }
 }

@@ -15,179 +15,79 @@
 
 """Hooks for the Python.TestApplication."""
 
-import logging 
-import helper 
+import logging
+import helper
+from typing import TypeVar
 
 import tableau_migration
 import tableau_migration.migration
-from migration_testcomponents_engine_manifest import PyMigrationManifestSerializer 
 
-from Tableau.Migration.Content import IUser, IGroup, IProject, IDataSource, IWorkbook
-from Tableau.Migration.Engine import IMigration
-from Tableau.Migration.Engine.Actions import IMigrationActionResult
-from Tableau.Migration.Interop.Hooks import ISyncContentBatchMigrationCompletedHook, ISyncMigrationActionCompletedHook
+from tableau_migration import (
+    ContentBatchMigrationCompletedHookBase,
+    IContentBatchMigrationResult,
+    MigrationActionCompletedHookBase,
+    IMigrationActionResult,
+    IDataSource,
+    IGroup,
+    IProject,
+    IUser,
+    IWorkbook
+)
 
-from System import IServiceProvider
+from migration_testcomponents_engine_manifest import PyMigrationManifestSerializer
 
-# This gets called every time the hook is called, meaning this object
-# is created every single time
-# This is less then ideal
-def save_manifest_after_batch_user_factory(services: IServiceProvider):
-    """Factory function to build PySaveManifestAfterBatch_User."""
-    migration = services.GetService(IMigration)
-    ret = PySaveManifestAfterBatch_User(PyMigrationManifestSerializer(), migration)
-    return ret
+TContent = TypeVar("TContent")
 
-def save_manifest_after_batch_group_factory(services: IServiceProvider):
-    """Factory function to build PySaveManifestAfterBatch_Group."""
-    migration = services.GetService(IMigration)
-    ret = PySaveManifestAfterBatch_Group(PyMigrationManifestSerializer(), migration)
-    return ret
-
-def save_manifest_after_batch_project_factory(services: IServiceProvider):
-    """Factory function to build PySaveManifestAfterBatch_Project."""
-    migration = services.GetService(IMigration)
-    ret = PySaveManifestAfterBatch_Project(PyMigrationManifestSerializer(), migration)
-    return ret
-
-def save_manifest_after_batch_datasource_factory(services: IServiceProvider):
-    """Factory function to build PySaveManifestAfterBatch_DataSource."""
-    migration = services.GetService(IMigration)
-    ret = PySaveManifestAfterBatch_DataSource(PyMigrationManifestSerializer(), migration)
-    return ret
-
-def save_manifest_after_batch_workbook_factory(services: IServiceProvider):
-    """Factory function to build PySaveManifestAfterBatch_Workbook."""
-    migration = services.GetService(IMigration)
-    ret = PySaveManifestAfterBatch_Workbook(PyMigrationManifestSerializer(), migration)
-    return ret
-
-
-class PyTimeLoggerAfterActionHook(ISyncMigrationActionCompletedHook):
+class TimeLoggerAfterActionHook(MigrationActionCompletedHookBase):
     """Logs the time when an action is complete."""
+
+    handler = None
     
-    __namespace__ = "Python.TestApplication"
-    _dotnet_base = ISyncMigrationActionCompletedHook
-    
-    def __init__(self, handler: logging.Handler | None = None):
+    def __init__(self):
         """Default init to set up logging."""
         self._logger = logging.getLogger(self.__class__.__name__)
         self._logger.setLevel(logging.DEBUG)
         
-        if handler is not None:
-            self._logger.addHandler(handler)
+        if TimeLoggerAfterActionHook.handler is not None:
+            self._logger.addHandler(TimeLoggerAfterActionHook.handler)
             
-    def Execute(self, ctx : IMigrationActionResult):       # noqa: N802
-        """Implements Execute from base."""
-        self._logger.info("Migration action completed")
-        return ctx
-    
+    def execute(self, ctx: IMigrationActionResult) -> IMigrationActionResult: # noqa: N802
+        """Executes the hook."""
+        self._logger.info("Migration action completed.")
+        return ctx    
 
-class PySaveManifestAfterBatch_User(ISyncContentBatchMigrationCompletedHook[IUser]):
-    """A update the manifest file after a user batch is migrated."""
+class SaveManifestHookBase(ContentBatchMigrationCompletedHookBase[TContent]):
+    """Updates the manifest file after a batch is migrated."""
 
-    __namespace__ = "Python.TestApplication"
-    _dotnet_base = ISyncContentBatchMigrationCompletedHook[IUser]
-    
-    
-    def __init__(self, manifest_serializer: PyMigrationManifestSerializer, migration: IMigration) -> None:
-        """Default __init__."""
-        self._manifest_serializer = manifest_serializer
-        self._migration = migration
-        
+    def __init__(self) -> None:
+        """Default __init__."""        
         self._logger = logging.getLogger(self.__class__.__name__)
         self._logger.setLevel(logging.DEBUG)
         
-
-    def Execute(self, ctx):    # noqa: N802
-        """Implements Execute from base."""
-        self._logger.debug("Saving manifest")
-        self._manifest_serializer.save(tableau_migration.migration.PyMigrationManifest(self._migration.Manifest), helper.manifest_path)
-
-         
-class PySaveManifestAfterBatch_Group(ISyncContentBatchMigrationCompletedHook[IGroup]):
-    """A update the manifest file after group batch is migrated."""
-
-    __namespace__ = "Python.TestApplication"
-    _dotnet_base = ISyncContentBatchMigrationCompletedHook[IGroup]
+    def execute(self, ctx: IContentBatchMigrationResult[TContent]) -> IContentBatchMigrationResult[TContent]: # noqa: N802
+        """Executes the hook."""
+        self._logger.debug("Saving manifest.")
+        
+        serializer = PyMigrationManifestSerializer()
+        manifest = self.services.get_manifest()
+        serializer.save(manifest, helper.manifest_path)
     
-    
-    def __init__(self, manifest_serializer: PyMigrationManifestSerializer, migration: IMigration) -> None:
-        """Default __init__."""
-        self._manifest_serializer = manifest_serializer
-        self._migration = migration
-        
-        self._logger = logging.getLogger(self.__class__.__name__)
-        self._logger.setLevel(logging.DEBUG)
-        
+class SaveUserManifestHook(SaveManifestHookBase[IUser]):
+    """Updates the manifest file after a user batch is migrated."""
+    pass
 
-    def Execute(self, ctx):    # noqa: N802
-        """Implements Execute from base."""
-        self._logger.debug("Saving manifest")
-        self._manifest_serializer.save(tableau_migration.migration.PyMigrationManifest(self._migration.Manifest), helper.manifest_path)
-        
+class SaveGroupManifestHook(SaveManifestHookBase[IGroup]):
+    """Updates the manifest file after a group batch is migrated."""
+    pass
 
-class PySaveManifestAfterBatch_Project(ISyncContentBatchMigrationCompletedHook[IProject]):
-    """A update the manifest file after project batch is migrated."""
+class SaveProjectManifestHook(SaveManifestHookBase[IProject]):
+    """Updates the manifest file after a project batch is migrated."""
+    pass
 
-    __namespace__ = "Python.TestApplication"
-    _dotnet_base = ISyncContentBatchMigrationCompletedHook[IProject]
-    
-    
-    def __init__(self, manifest_serializer: PyMigrationManifestSerializer, migration: IMigration) -> None:
-        """Default __init__."""
-        self._manifest_serializer = manifest_serializer
-        self._migration = migration
-        
-        self._logger = logging.getLogger(self.__class__.__name__)
-        self._logger.setLevel(logging.DEBUG)
-        
+class SaveDataSourceManifestHook(SaveManifestHookBase[IDataSource]):
+    """Updates the manifest file after a data source batch is migrated."""
+    pass
 
-    def Execute(self, ctx):    # noqa: N802
-        """Implements Execute from base."""
-        self._logger.debug("Saving manifest")
-        self._manifest_serializer.save(tableau_migration.migration.PyMigrationManifest(self._migration.Manifest), helper.manifest_path)
-        
-
-class PySaveManifestAfterBatch_DataSource(ISyncContentBatchMigrationCompletedHook[IDataSource]):
-    """A update the manifest file after Data Source batch type is migrated."""
-
-    __namespace__ = "Python.TestApplication"
-    _dotnet_base = ISyncContentBatchMigrationCompletedHook[IDataSource]
-    
-    
-    def __init__(self, manifest_serializer: PyMigrationManifestSerializer, migration: IMigration) -> None:
-        """Default __init__."""
-        self._manifest_serializer = manifest_serializer
-        self._migration = migration
-        
-        self._logger = logging.getLogger(self.__class__.__name__)
-        self._logger.setLevel(logging.DEBUG)
-        
-
-    def Execute(self, ctx):    # noqa: N802
-        """Implements Execute from base."""
-        self._logger.debug("Saving manifest")
-        self._manifest_serializer.save(tableau_migration.migration.PyMigrationManifest(self._migration.Manifest), helper.manifest_path)
-        
-
-class PySaveManifestAfterBatch_Workbook(ISyncContentBatchMigrationCompletedHook[IWorkbook]):
-    """A update the manifest file after a content type is migrated."""
-
-    __namespace__ = "Python.TestApplication"
-    _dotnet_base = ISyncContentBatchMigrationCompletedHook[IWorkbook]
-    
-    
-    def __init__(self, manifest_serializer: PyMigrationManifestSerializer, migration: IMigration) -> None:
-        """Default __init__."""
-        self._manifest_serializer = manifest_serializer
-        self._migration = migration
-        
-        self._logger = logging.getLogger(self.__class__.__name__)
-        self._logger.setLevel(logging.DEBUG)
-        
-
-    def Execute(self, ctx):    # noqa: N802
-        """Implements Execute from base."""
-        self._logger.debug("Saving manifest")
-        self._manifest_serializer.save(tableau_migration.migration.PyMigrationManifest(self._migration.Manifest), helper.manifest_path)
+class SaveWorkbookManifestHook(SaveManifestHookBase[IWorkbook]):
+    """Updates the manifest file after a workbook batch is migrated."""
+    pass

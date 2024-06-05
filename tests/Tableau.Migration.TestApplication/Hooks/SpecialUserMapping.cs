@@ -16,15 +16,15 @@
 //
 
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Tableau.Migration.Content;
 using Tableau.Migration.Engine.Hooks.Mappings;
 using Tableau.Migration.Resources;
 using Tableau.Migration.TestApplication.Config;
-using Microsoft.Extensions.Options;
-using Microsoft.Extensions.Logging;
-using System.Linq;
 
 namespace Tableau.Migration.TestApplication.Hooks
 {

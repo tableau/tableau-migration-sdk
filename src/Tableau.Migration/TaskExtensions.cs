@@ -22,7 +22,7 @@ namespace Tableau.Migration
     /// <summary>
     /// Static class containing extension methods for <see cref="Task"/> and <see cref="Task{TResult}"/> objects.
     /// </summary>
-    internal static class TaskExtensions
+    public static class TaskExtensions
     {
         /// <summary>
         /// Get the results synchronously, applying best practices.

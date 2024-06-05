@@ -20,8 +20,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Tableau.Migration.Content;
 using Tableau.Migration.Content.Files;
+using Tableau.Migration.Engine.Endpoints.Search;
 using Tableau.Migration.Engine.Hooks.Transformers;
-using Tableau.Migration.Engine.Pipelines;
 
 namespace Tableau.Migration.Engine.Preparation
 {
@@ -34,17 +34,19 @@ namespace Tableau.Migration.Engine.Preparation
         where TPublish : class
     {
         private readonly IContentTransformerRunner _transformerRunner;
-        private readonly IMigrationPipeline _pipeline;
+        private readonly IDestinationContentReferenceFinderFactory _destinationFinderFactory;
 
         /// <summary>
         /// Creates a new <see cref="ContentItemPreparerBase{TContent, TPublish}"/> object.
         /// </summary>
         /// <param name="transformerRunner">A transformer runner.</param>
-        /// <param name="pipeline">The migration pipeline.</param>
-        public ContentItemPreparerBase(IContentTransformerRunner transformerRunner, IMigrationPipeline pipeline)
+        /// <param name="destinationFinderFactory">The destination finder factory.</param>
+        public ContentItemPreparerBase(
+            IContentTransformerRunner transformerRunner,
+            IDestinationContentReferenceFinderFactory destinationFinderFactory)
         {
             _transformerRunner = transformerRunner;
-            _pipeline = pipeline;
+            _destinationFinderFactory = destinationFinderFactory;
         }
 
         /// <summary>
@@ -103,15 +105,15 @@ namespace Tableau.Migration.Engine.Preparation
                 else if(mappedParentLocation != containerContent.Container?.Location)
                 {
                     //If the mapping set a new parent, find based on the destination location.
-                    var destinationFinder = _pipeline.CreateDestinationFinder<IProject>();
-                    newParent = await destinationFinder.FindMappedDestinationReferenceAsync(mappedLocation.Parent(), cancel)
+                    var destinationFinder = _destinationFinderFactory.ForDestinationContentType<IProject>();
+                    newParent = await destinationFinder.FindByMappedLocationAsync(mappedLocation.Parent(), cancel)
                         .ConfigureAwait(false);
                 }
                 else if(containerContent.Container is not null)
                 {
                     //If the mapping uses the same parent, find where that parent mapped to.
-                    var destinationFinder = _pipeline.CreateDestinationFinder<IProject>();
-                    newParent = await destinationFinder.FindDestinationReferenceAsync(containerContent.Container.Location, cancel)
+                    var destinationFinder = _destinationFinderFactory.ForDestinationContentType<IProject>();
+                    newParent = await destinationFinder.FindBySourceLocationAsync(containerContent.Container.Location, cancel)
                         .ConfigureAwait(false);
                 }
                 else

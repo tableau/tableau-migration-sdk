@@ -172,22 +172,6 @@ namespace Tableau.Migration.Tests.Unit.Engine.Pipelines
 
         #endregion
 
-        #region - CreateDestinationFinder -
-
-        public class CreateDestinationFinder : MigrationPipelineBaseTest
-        {
-            [Fact]
-            public void CreatesLocationFinder()
-            {
-                var cache = Pipeline.CreateDestinationFinder<TestContentType>();
-
-                Assert.IsType<ManifestDestinationContentReferenceFinder<TestContentType>>(cache);
-                MockServices.Verify(x => x.GetService(typeof(ManifestDestinationContentReferenceFinder<TestContentType>)), Times.Once);
-            }
-        }
-
-        #endregion
-
         #region - GetDestinationLockedProjectCache -
 
         public class GetDestinationLockedProjectCache : MigrationPipelineBaseTest

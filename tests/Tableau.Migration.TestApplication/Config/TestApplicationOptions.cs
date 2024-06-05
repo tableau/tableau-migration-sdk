@@ -32,5 +32,9 @@ namespace Tableau.Migration.TestApplication.Config
         public SpecialUsersOptions SpecialUsers { get; set; } = new();
 
         public string PreviousManifestPath { get; set; } = "";
+
+        public string SkippedProject { get; set; } = string.Empty;
+
+        public string SkippedMissingParentDestination { get; set; } = "Missing Parent";
     }
 }

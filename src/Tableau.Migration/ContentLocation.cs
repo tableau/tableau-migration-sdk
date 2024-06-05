@@ -54,7 +54,6 @@ namespace Tableau.Migration
             : this((IEnumerable<string>)segments)
         { }
 
-
         /// <summary>
         /// Creates a new <see cref="ContentLocation"/> value.
         /// </summary>
@@ -107,9 +106,26 @@ namespace Tableau.Migration
         /// </summary>
         /// <param name="domain">The user/group domain.</param>
         /// <param name="username">The user/group name.</param>
-        /// <returns></returns>
+        /// <returns>The newly created <see cref="ContentLocation"/>.</returns>
         public static ContentLocation ForUsername(string domain, string username)
             => new(ImmutableArray.Create(domain, username), Constants.DomainNameSeparator);
+
+        /// <summary>
+        /// Creates a new <see cref="ContentLocation"/> value from a string.
+        /// </summary>
+        /// <param name="contentLocationPath">The full path of the location.</param>
+        /// <param name="pathSeparator">The separator to use between segments in the location path.</param>
+        /// <returns>The newly created <see cref="ContentLocation"/>.</returns>
+        public static ContentLocation FromPath(
+            string contentLocationPath, 
+            string pathSeparator = Constants.PathSeparator)
+            => new(
+                contentLocationPath
+                    .Split(
+                        pathSeparator, 
+                        StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+                    .ToImmutableArray(),
+                pathSeparator);
 
         /// <summary>
         /// Compares the current instance with another object of the same type and returns
@@ -140,7 +156,7 @@ namespace Tableau.Migration
         /// Creates a new <see cref="ContentLocation"/> with the last path segment replaced.
         /// </summary>
         /// <param name="newName">The new name to replace the last path segment with.</param>
-        /// <returns>The renamed <see cref="ContentLocation"/></returns>
+        /// <returns>The renamed <see cref="ContentLocation"/>.</returns>
         public ContentLocation Rename(string newName)
             => new(Parent(), newName);
 

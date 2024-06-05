@@ -51,7 +51,7 @@ namespace Tableau.Migration.Tests.Unit
         [Fact]
         public void PythonValues()
         {
-            var mockLoggerFactory = new Mock<Func<IServiceProvider, NonGenericLoggerProvider>>();
+            var mockLoggerFactory = new Mock<Func<string, NonGenericLoggerBase>>();
 
             _servicesCollection.AddPythonSupport(mockLoggerFactory.Object);
             _services = _servicesCollection.BuildServiceProvider();

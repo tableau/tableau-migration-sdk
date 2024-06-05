@@ -72,7 +72,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints.Search
                 MockCache.Setup(x => x.ForLocationAsync(mappedLoc, Cancel))
                     .ReturnsAsync(cacheItem);
 
-                var result = await Finder.FindDestinationReferenceAsync(sourceItem.Location, Cancel);
+                var result = await Finder.FindBySourceLocationAsync(sourceItem.Location, Cancel);
 
                 Assert.Same(cacheItem, result);
 
@@ -93,7 +93,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints.Search
                 MockCache.Setup(x => x.ForLocationAsync(sourceItem.Location, Cancel))
                     .ReturnsAsync(cacheItem);
 
-                var result = await Finder.FindDestinationReferenceAsync(sourceItem.Id, Cancel);
+                var result = await Finder.FindBySourceIdAsync(sourceItem.Id, Cancel);
 
                 Assert.Same(cacheItem, result);
 
@@ -103,7 +103,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints.Search
             [Fact]
             public async Task ReturnsNullWhenLocationNotFound()
             {
-                var result = await Finder.FindDestinationReferenceAsync(Create<ContentLocation>(), Cancel);
+                var result = await Finder.FindBySourceLocationAsync(Create<ContentLocation>(), Cancel);
 
                 Assert.Null(result);
 
@@ -113,7 +113,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints.Search
             [Fact]
             public async Task ReturnsNullWhenIdNotFound()
             {
-                var result = await Finder.FindDestinationReferenceAsync(Create<Guid>(), Cancel);
+                var result = await Finder.FindBySourceIdAsync(Create<Guid>(), Cancel);
 
                 Assert.Null(result);
 
@@ -134,7 +134,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints.Search
                 MockCache.Setup(x => x.ForLocationAsync(sourceItem.Location, Cancel))
                     .ReturnsAsync(cacheItem);
 
-                var result = await Finder.FindDestinationReferenceAsync(sourceItem.ContentUrl, Cancel);
+                var result = await Finder.FindBySourceContentUrlAsync(sourceItem.ContentUrl, Cancel);
 
                 Assert.Same(cacheItem, result);
 
@@ -144,7 +144,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints.Search
             [Fact]
             public async Task ReturnsNullWhenContentUrlNotFound()
             {
-                var result = await Finder.FindDestinationReferenceAsync(Create<string>(), Cancel);
+                var result = await Finder.FindBySourceContentUrlAsync(Create<string>(), Cancel);
 
                 Assert.Null(result);
 
@@ -179,7 +179,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints.Search
                 await entryBuilder.MapEntriesAsync(new[] { sourceItem }, mockMapping.Object, Cancel);
                 entries.Single().DestinationFound(mockDestinationRef.Object);
 
-                var result = await Finder.FindMappedDestinationReferenceAsync(mappedLoc, Cancel);
+                var result = await Finder.FindByMappedLocationAsync(mappedLoc, Cancel);
 
                 Assert.Same(mockDestinationRef.Object, result);
 
@@ -207,7 +207,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints.Search
                 MockCache.Setup(x => x.ForLocationAsync(mappedLoc, Cancel))
                     .ReturnsAsync(cacheItem);
 
-                var result = await Finder.FindMappedDestinationReferenceAsync(mappedLoc, Cancel);
+                var result = await Finder.FindByMappedLocationAsync(mappedLoc, Cancel);
 
                 Assert.Same(cacheItem, result);
 
@@ -230,7 +230,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints.Search
                 MockCache.Setup(x => x.ForLocationAsync(mappedLoc, Cancel))
                     .ReturnsAsync(cacheItem);
 
-                var result = await Finder.FindMappedDestinationReferenceAsync(entry.MappedLocation, Cancel);
+                var result = await Finder.FindByMappedLocationAsync(entry.MappedLocation, Cancel);
 
                 Assert.Same(cacheItem, result);
 

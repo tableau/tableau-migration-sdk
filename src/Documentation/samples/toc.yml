@@ -1,6 +1,23 @@
 - name: Introduction
   href: intro.md
-- name: Hooks
-  href: hooks/toc.yml
-- name: Hooks in Python
-  href: python_hooks.md
+- name: Filters
+  href: filters/toc.yml
+  homepage: filters/intro.md
+- name: Mappings
+  href: mappings/toc.yml
+  homepage: mappings/intro.md
+- name: Transformers
+  href: transformers/toc.yml
+  homepage: transformers/intro.md
+- name: Post-Publish Hooks
+  href: post-publish/toc.yml
+  homepage: post-publish/intro.md
+- name: Bulk Post-Publish Hooks
+  href: bulk-post-publish/toc.yml
+  homepage: bulk-post-publish/intro.md
+- name: Batch Migration Completed Hooks
+  href: batch-migration-completed/toc.yml
+  homepage: batch-migration-completed/intro.md
+- name: Migration Action Completed Hooks
+  href: migration-action-completed/toc.yml
+  homepage: migration-action-completed/intro.md

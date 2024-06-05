@@ -4,10 +4,10 @@ This is the main documentation generation project. It utilizes `DocFX` to genera
 
 ## ℹ️ Sources
 
-1. API Reference: XML doc comments on public classes, interfaces and methods from the namespace `Tableau.Migration`.
-2. Python Wrapper: `~\src\Documentation\python_wrapper` folder.
+1. C# API Reference: XML doc comments on public classes, interfaces and methods from the namespace `Tableau.Migration`.
+2. Python API Reference: `~\src\Documentation\api-python` folder.
    - These files are generated our doc generation script using `Sphinx`.
-   - `DocFX` renders them into the `Python Wrapper` section on the docs site.
+   - `DocFX` renders them into the `Python API Reference` section on the docs site.
 3. Code Samples: Markdown files under `~\src\Documentation\samples`.
 4. Articles: Markdown files under `~\src\Documentation\articles`.
 
@@ -81,7 +81,14 @@ items:
 
 ##### Other `md` files
 
-The easiest way is like this `[API Reference](~/api/index.md)`. The preferred method is to use a relative URL. However, most doc do not use it because levels of  `../` are less intuitive. `DocFX` will show warnings for invalid links during doc generation.
+The easiest way is like this `[API Reference](~/api-csharp/index.md)`. The preferred method is to use a relative URL. However, most doc do not use it because levels of  `../` are less intuitive. `DocFX` will show warnings for invalid links during doc generation.
+
+#### Comments
+
+Comments are not natively supported in Markdown. The workaround is to us an empty link. Credit: https://stackoverflow.com/a/20885980
+
+Best way to add links is like this:
+`[//]: <> (This is a comment.)`
 
 #### Alerts
 

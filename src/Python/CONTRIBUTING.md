@@ -75,10 +75,6 @@ Visual Studio test runner should see the Python tests and be able to run them.
 
 Python tests also run in the CI/CD pipeline on all supported OS types.
 
-### Liftime tests
-The lifetime tests are unstable. If they crash or create too many issues, create a `SKIP_PYTHON_LIFETIME_TESTS` variable
-then the lifetime tests will be skipped.
-
 ### To run tests manually
 
 * **Without hatch**:

@@ -48,7 +48,7 @@ namespace Tableau.Migration.Engine.Hooks.Filters
         {
             _localizer = localizer;
             _logger = logger;
-            _typeName = this.GetType().Name;
+            _typeName = GetType().Name;
         }
 
         /// <inheritdoc />

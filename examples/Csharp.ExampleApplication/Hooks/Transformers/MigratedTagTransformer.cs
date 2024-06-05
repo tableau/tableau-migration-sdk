@@ -6,41 +6,41 @@ using Microsoft.Extensions.Logging;
 using Tableau.Migration;
 using Tableau.Migration.Content;
 using Tableau.Migration.Engine.Hooks.Transformers;
+using Tableau.Migration.Resources;
 
 namespace Csharp.ExampleApplication.Hooks.Transformers
 {
     #region class
-    public class MigratedTagTransformer : IContentTransformer<IPublishableWorkbook>, IContentTransformer<IPublishableDataSource>
+    public class MigratedTagTransformer<T> : ContentTransformerBase<T> where T : IContentReference, IWithTags
     {
-        private readonly ILogger<MigratedTagTransformer> _logger;
+        private readonly ILogger<IContentTransformer<T>>? _logger;
 
-        public MigratedTagTransformer(ILogger<MigratedTagTransformer> logger)
+        public MigratedTagTransformer(ISharedResourcesLocalizer? localizer, ILogger<IContentTransformer<T>>? logger) : base(localizer, logger)
         {
             _logger = logger;
         }
 
-        protected async Task<T?> ExecuteAsync<T>(T ctx)
-            where T : IContentReference, IWithTags
+        public override async Task<T?> TransformAsync(T itemToTransform, CancellationToken cancel)
         {
             var tag = "Migrated";
 
             // Add the tag to the content item.
-            ctx.Tags.Add(new Tag(tag));
+            itemToTransform.Tags.Add(new Tag(tag));
 
-            _logger.LogInformation(
+            _logger?.LogInformation(
                 @"Added ""{Tag}"" tag to {ContentType} {ContentLocation}.",
                 tag,
                 typeof(T).Name,
-                ctx.Location);
+                itemToTransform.Location);
 
-            return await Task.FromResult(ctx);
+            return await Task.FromResult(itemToTransform);
         }
 
-        public async Task<IPublishableWorkbook?> ExecuteAsync(IPublishableWorkbook ctx, CancellationToken cancel)
-            => await ExecuteAsync(ctx);
+        public async Task<IPublishableWorkbook?> TransformAsync(IPublishableWorkbook ctx, CancellationToken cancel)
+            => await TransformAsync(ctx, cancel);
 
-        public async Task<IPublishableDataSource?> ExecuteAsync(IPublishableDataSource ctx, CancellationToken cancel)
-            => await ExecuteAsync(ctx);
+        public async Task<IPublishableDataSource?> TransformAsync(IPublishableDataSource ctx, CancellationToken cancel)
+            => await TransformAsync(ctx, cancel);
     }
     #endregion
 }

@@ -14,10 +14,12 @@
 # limitations under the License.
 
 """Wrapper for classes in Tableau.Migration.Engine.Hooks.Mappings namespace."""
-from inspect import isclass
+
+from typing import  Callable, Union
 from typing_extensions import Self
+
 from System import IServiceProvider, Func
-from Tableau.Migration.Engine.Hooks.Mappings import IContentMappingBuilder,ContentMappingContext
+from Tableau.Migration.Engine.Hooks.Mappings import IContentMappingBuilder
 from tableau_migration.migration_engine_hooks import PyMigrationHookFactoryCollection
 
 class PyContentMappingBuilder():
@@ -46,34 +48,25 @@ class PyContentMappingBuilder():
         return self
 
 
-    def add(self,input_0,input_1,input_2=None) -> Self:
-        """Adds a an object to execute one or more mappings.
+    def add(self, input_0: type, input_1: Union[Callable, None] = None) -> Self:
+        """Adds an object or function to execute mappings.
 
         Args:
             input_0: Either: 
-                1) The content type linked to the mapping, or;
-                2) The mapping type to execute, or;
-                3) The content type for a callback function;
+                1) The mapping type to execute, or
+                2) The content type for a callback function
             input_1: Either:
-                1) The mapping to execute, or;
-                2) The content type linked to the mapping, or;
-                3) The callback function that will return the content type;
-            input_2: Either:
-                1) None, or;
-                2) None, or the function to resolve the mapping type by using the service provider, or;
-                3) None;
+                1) The callback function to execute, or
+                2) None
 
         Returns:
             The same mapping builder object for fluent API calls.
         """
-        if isclass(input_0)  and isclass(input_1) and input_2 is None:
-            self._content_mapping_builder.Add[input_0,input_1]()
-        elif isclass(input_0) and isclass(input_1) and input_2 is not None and isinstance(input_2,Func[IServiceProvider, input_0]):
-            self._content_mapping_builder.Add[input_0,input_1](input_2)
-        elif isclass(input_0) and isinstance(input_1,Func[ContentMappingContext[input_0], ContentMappingContext[input_0]]):
-            self._content_mapping_builder.Add[input_0](input_1)
-        else:
-            self._content_mapping_builder.Add[input_0](input_1)
+        from migration_engine_hooks_mappings_interop import _PyMappingWrapper
+        
+        wrapper = _PyMappingWrapper(input_0, input_1)
+        self._content_mapping_builder.Add[wrapper.wrapper_type, wrapper.dotnet_content_type](Func[IServiceProvider, wrapper.wrapper_type](wrapper.factory))
+
         return self
 
 
@@ -86,10 +79,66 @@ class PyContentMappingBuilder():
         return self._content_mapping_builder.ByContentType()
 
 
-    def build(self) -> Self:
+    def build(self) -> PyMigrationHookFactoryCollection:
         """Builds an immutable collection from the currently added mappings.
 
         Returns:
             The created collection.
         """
         return PyMigrationHookFactoryCollection(self._content_mapping_builder.Build())
+
+# region _generated
+
+from tableau_migration.migration import (  # noqa: E402, F401
+    _generic_wrapper,
+    PyContentLocation
+)
+from typing import (  # noqa: E402, F401
+    Generic,
+    TypeVar
+)
+from typing_extensions import Self # noqa: E402, F401
+
+from Tableau.Migration.Engine.Hooks.Mappings import ContentMappingContext # noqa: E402, F401
+
+TContent = TypeVar("TContent")
+
+class PyContentMappingContext(Generic[TContent]):
+    """Context for IContentMapping operations mapping a content item to an intended destination location for publishing and content references."""
+    
+    _dotnet_base = ContentMappingContext
+    
+    def __init__(self, content_mapping_context: ContentMappingContext) -> None:
+        """Creates a new PyContentMappingContext object.
+        
+        Args:
+            content_mapping_context: A ContentMappingContext object.
+        
+        Returns: None.
+        """
+        self._dotnet = content_mapping_context
+        
+    @property
+    def content_item(self) -> TContent:
+        """Gets the content item being mapped."""
+        return None if self._dotnet.ContentItem is None else _generic_wrapper(self._dotnet.ContentItem)
+    
+    @property
+    def mapped_location(self) -> PyContentLocation:
+        """Gets the destination location the content item will be mapped and/or published to."""
+        return None if self._dotnet.MappedLocation is None else PyContentLocation(self._dotnet.MappedLocation)
+    
+    def map_to(self, mapped_location: PyContentLocation) -> Self:
+        """Maps the content item to a new destination location.
+        
+        Args:
+            mapped_location: The destination location to map to.
+        
+        Returns: A new context for the content item with the mapped location.
+        """
+        result = self._dotnet.MapTo(None if mapped_location is None else mapped_location._dotnet)
+        return None if result is None else PyContentMappingContext[TContent](result)
+    
+
+# endregion
+

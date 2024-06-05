@@ -55,7 +55,7 @@ namespace Tableau.Migration.Engine.Hooks.Transformers.Default
         internal const string TABLEAU_SERVER_CONNECTION_CLASS = "sqlproxy";
 
         private readonly ITableauApiEndpointConfiguration? _destinationConfig; //Null if the destination is not an API.
-        private readonly IMappedContentReferenceFinder<IDataSource> _mappedDataSourceFinder;
+        private readonly IDestinationContentReferenceFinder<IDataSource> _mappedDataSourceFinder;
         private readonly ILogger<TableauServerConnectionUrlTransformer> _logger;
         private readonly ISharedResourcesLocalizer _localizer;
 
@@ -69,15 +69,18 @@ namespace Tableau.Migration.Engine.Hooks.Transformers.Default
         /// Creates a new <see cref="TableauServerConnectionUrlTransformer"/> object.
         /// </summary>
         /// <param name="migration">The current migration.</param>
+        /// <param name="destinationFinderFactory">The destination finder factory.</param>
         /// <param name="logger">A logger to use.</param>
         /// <param name="localizer">A localizer to user.</param>
-        public TableauServerConnectionUrlTransformer(IMigration migration,
+        public TableauServerConnectionUrlTransformer(
+            IMigration migration,
+            IDestinationContentReferenceFinderFactory destinationFinderFactory,
             ILogger<TableauServerConnectionUrlTransformer> logger,
             ISharedResourcesLocalizer localizer)
         {
             _contentUrlWarnings = new(StringComparer.OrdinalIgnoreCase);
             _destinationConfig = migration.Plan.Destination as ITableauApiEndpointConfiguration;
-            _mappedDataSourceFinder = migration.Pipeline.CreateDestinationFinder<IDataSource>();
+            _mappedDataSourceFinder = destinationFinderFactory.ForDestinationContentType<IDataSource>();
             _logger = logger;
             _localizer = localizer;
         }
@@ -94,7 +97,7 @@ namespace Tableau.Migration.Engine.Hooks.Transformers.Default
             var sourceContentUrl = attr.Value;
 
             //Find the published data source reference.
-            var destDataSourceRef = await _mappedDataSourceFinder.FindDestinationReferenceAsync(sourceContentUrl, cancel)
+            var destDataSourceRef = await _mappedDataSourceFinder.FindBySourceContentUrlAsync(sourceContentUrl, cancel)
                 .ConfigureAwait(false);
 
             if (destDataSourceRef is not null)
@@ -196,7 +199,7 @@ namespace Tableau.Migration.Engine.Hooks.Transformers.Default
             => ctx.Connections.Any(c => c.Type is TABLEAU_SERVER_CONNECTION_CLASS);
 
         /// <inheritdoc />
-        public override async Task ExecuteAsync(IPublishableWorkbook ctx, XDocument xml, CancellationToken cancel)
+        public override async Task TransformAsync(IPublishableWorkbook ctx, XDocument xml, CancellationToken cancel)
         {
             //Update <connection> elements.
             foreach (var connectionElement in xml.GetFeatureFlaggedDescendants(CONNECTION_EL))

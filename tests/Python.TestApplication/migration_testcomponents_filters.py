@@ -18,110 +18,159 @@
 import helper
 import logging
 
-from Tableau.Migration.Api.Rest.Models import LicenseLevels
-from Tableau.Migration.Content import IUser, IGroup, IProject, IDataSource, IWorkbook
-from Tableau.Migration.Interop.Hooks.Filters import ISyncContentFilter
-from Tableau.Migration.Engine.Hooks.Filters import ContentFilterBase
+from typing import (
+    Generic,
+    TypeVar
+)
+from tableau_migration import (
+    ContentFilterBase,
+    ContentMigrationItem,
+    IDataSource,
+    IGroup,
+    IProject,
+    IUser,
+    IWorkbook,
+    LicenseLevels
+)
 
-
-class PySpecialUserFilter(ContentFilterBase[IUser]):
+class SpecialUserFilter(ContentFilterBase[IUser]):
     """A class to filter special users."""
-
-    __namespace__ = "Python.TestApplication"
-    _dotnet_base = ContentFilterBase[IUser]
     
     def __init__(self):
         """Default init to set up logging."""
         self._logger = logging.getLogger(self.__class__.__name__)
         self._logger.setLevel(logging.DEBUG)
 
-    def ShouldMigrate(self,item):   # noqa: N802
-        """Implements ShouldMigrate from base."""
+    def should_migrate(self, item: ContentMigrationItem[IUser]) -> bool:
         # Need to improve this to be an array not a single item
-        if item.SourceItem.Email in helper.config['special_users']['emails']:
-            self._logger.debug('%s filtered %s', self.__class__.__name__, item.SourceItem.Email)
+        if item.source_item.email in helper.config['special_users']['emails']:
+            self._logger.debug('%s filtered %s', self.__class__.__name__, item.source_item.email)
             return False
         
-        return True
-        
+        return True        
     
-class PyUnlicensedUserFilter(ContentFilterBase[IUser]):
+class UnlicensedUserFilter(ContentFilterBase[IUser]):
     """A class to filter unlicensed users."""
-
-    __namespace__ = "Python.TestApplication"
-    _dotnet_base = ContentFilterBase[IUser]
     
     def __init__(self):
         """Default init to set up logging."""
         self._logger = logging.getLogger(self.__class__.__name__)
         self._logger.setLevel(logging.DEBUG)
     
-    def ShouldMigrate(self,item):   # noqa: N802
-        """Implements ShouldMigrate from base."""
-        if item.SourceItem.LicenseLevel == LicenseLevels.Unlicensed:
-            self._logger.debug('%s filtered %s',self.__class__.__name__, item.SourceItem.Email)
+    def should_migrate(self, item: ContentMigrationItem[IUser]) -> bool:
+        if item.source_item.license_level == LicenseLevels.UNLICENSED:
+            self._logger.debug('%s filtered %s',self.__class__.__name__, item.source_item.email)
             return False
         
         return True
-    
 
-
-class PySkipFilter_Users(ContentFilterBase[IUser]): # noqa: N801
+class SkipAllUsersFilter(ContentFilterBase[IUser]): # noqa: N801
     """A class to filter all users."""
-
-    __namespace__ = "Python.TestApplication"
-    _dotnet_base = ContentFilterBase[IUser]
 
     def __init__(self):
         """Default init to set up logging."""
         self.logger = logging.getLogger(self.__class__.__name__)
         self.logger.setLevel(logging.DEBUG)
 
-    def ShouldMigrate(self,item):   # noqa: N802
-        """Implements ShouldMigrate from base."""
-        self.logger.debug('%s is filtering %s', self.__class__.__name__, item.SourceItem.Email)
+    def should_migrate(self, item: ContentMigrationItem[IUser]) -> bool:
+        self.logger.debug('%s is filtering "%s"', self.__class__.__name__, item.source_item.name)
         return False
-    
-    
-class PySkipFilter_Groups(ContentFilterBase[IGroup]):    # noqa: N801
+
+class SkipAllGroupsFilter(ContentFilterBase[IGroup]): # noqa: N801
     """A class to filter all groups."""
 
-    __namespace__ = "Python.TestApplication"
-    _dotnet_base = ContentFilterBase[IGroup]
-    
-    def ShouldMigrate(self,item):   # noqa: N802
-        """Implements ShouldMigrate from base."""
-        return False
-         
+    def __init__(self):
+        """Default init to set up logging."""
+        self.logger = logging.getLogger(self.__class__.__name__)
+        self.logger.setLevel(logging.DEBUG)
 
-class PySkipFilter_Projects(ContentFilterBase[IProject]):    # noqa: N801
+    def should_migrate(self, item: ContentMigrationItem[IGroup]) -> bool:
+        self.logger.debug('%s is filtering "%s"', self.__class__.__name__, item.source_item.name)
+        return False
+    
+class SkipAllProjectsFilter(ContentFilterBase[IProject]): # noqa: N801
     """A class to filter all projects."""
 
-    __namespace__ = "Python.TestApplication"
-    _dotnet_base = ContentFilterBase[IProject]
-    
-    def ShouldMigrate(self,item):   # noqa: N802
-        """Implements ShouldMigrate from base."""
-        return False
-         
+    def __init__(self):
+        """Default init to set up logging."""
+        self.logger = logging.getLogger(self.__class__.__name__)
+        self.logger.setLevel(logging.DEBUG)
 
-class PySkipFilter_DataSources(ContentFilterBase[IDataSource]):  # noqa: N801
+    def should_migrate(self, item: ContentMigrationItem[IProject]) -> bool:
+        self.logger.debug('%s is filtering "%s"', self.__class__.__name__, item.source_item.name)
+        return False
+    
+class SkipAllDataSourcesFilter(ContentFilterBase[IDataSource]): # noqa: N801
     """A class to filter all data sources."""
 
-    __namespace__ = "Python.TestApplication"
-    _dotnet_base = ContentFilterBase[IDataSource]
-    
-    def ShouldMigrate(self,item):   # noqa: N802
-        """Implements ShouldMigrate from base."""
-        return False
-         
+    def __init__(self):
+        """Default init to set up logging."""
+        self.logger = logging.getLogger(self.__class__.__name__)
+        self.logger.setLevel(logging.DEBUG)
 
-class PySkipFilter_Workbooks(ContentFilterBase[IWorkbook]):  # noqa: N801
+    def should_migrate(self, item: ContentMigrationItem[IDataSource]) -> bool:
+        self.logger.debug('%s is filtering "%s"', self.__class__.__name__, item.source_item.name)
+        return False
+
+class SkipAllWorkbooksFilter(ContentFilterBase[IWorkbook]): # noqa: N801
     """A class to filter all workbooks."""
 
-    __namespace__ = "Python.TestApplication"
-    _dotnet_base = ContentFilterBase[IWorkbook]
-    
-    def ShouldMigrate(self,item):   # noqa: N802
-        """Implements ShouldMigrate from base."""
+    def __init__(self):
+        """Default init to set up logging."""
+        self.logger = logging.getLogger(self.__class__.__name__)
+        self.logger.setLevel(logging.DEBUG)
+
+    def should_migrate(self, item: ContentMigrationItem[IWorkbook]) -> bool:
+        self.logger.debug('%s is filtering "%s"', self.__class__.__name__, item.source_item.name)
         return False
+
+TContent = TypeVar("TContent")
+
+class _SkipContentByParentLocationFilter(Generic[TContent]): # noqa: N801
+    """Generic base filter wrapper to filter content by parent location."""
+    
+    def __init__(self, logger_name: str):
+        """Default init to set up logging."""
+        self._logger = logging.getLogger(logger_name)
+        self._logger.setLevel(logging.DEBUG)
+
+    def should_migrate(self, item: ContentMigrationItem[TContent], services) -> bool:
+        if item.source_item.location.parent().path != helper.config['skipped_project']:
+            return True
+
+        source_project_finder = services.get_source_finder(IProject)
+
+        content_reference = source_project_finder.find_by_source_location(item.source_item.location.parent())
+
+        self._logger.info('Skipping %s that belongs to "%s" (Project ID: %s)', self.__orig_class__.__args__[0].__name__, helper.config['skipped_project'], content_reference.id)
+        return False
+
+class SkipProjectByParentLocationFilter(ContentFilterBase[IProject]): # noqa: N801
+    """A class to filter projects from a given parent location."""
+
+    def __init__(self):
+        """Default init to set up wrapper."""
+        self._filter = _SkipContentByParentLocationFilter[IProject](self.__class__.__name__)
+
+    def should_migrate(self, item: ContentMigrationItem[IProject]) -> bool:
+        return self._filter.should_migrate(item, self.services)
+
+class SkipDataSourceByParentLocationFilter(ContentFilterBase[IDataSource]): # noqa: N801
+    """A class to filter data sources from a given parent location."""
+
+    def __init__(self):
+        """Default init to set up wrapper."""
+        self._filter = _SkipContentByParentLocationFilter[IDataSource](self.__class__.__name__)
+
+    def should_migrate(self, item: ContentMigrationItem[IDataSource]) -> bool:
+        return self._filter.should_migrate(item, self.services)
+
+class SkipWorkbookByParentLocationFilter(ContentFilterBase[IWorkbook]): # noqa: N801
+    """A class to filter workbooks from a given parent location."""
+
+    def __init__(self):
+        """Default init to set up wrapper."""
+        self._filter = _SkipContentByParentLocationFilter[IWorkbook](self.__class__.__name__)
+
+    def should_migrate(self, item: ContentMigrationItem[IWorkbook]) -> bool:
+        return self._filter.should_migrate(item, self.services)

@@ -36,5 +36,7 @@ else:
     print("MIG_SDK_PYTHON_BUILD set to false. Skipping dotnet build for python tests.")
 
 from tableau_migration import clr
+clr.AddReference("AutoFixture")
+clr.AddReference("AutoFixture.AutoMoq")
 clr.AddReference("Moq")
 clr.AddReference("Tableau.Migration.Tests")

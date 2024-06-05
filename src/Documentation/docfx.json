@@ -9,13 +9,14 @@
           "exclude": [
             "**/bin/**",
             "**/obj/**",
-            "README.md"
+            "README.md",
+            "**/Tableau.Migration.PythonGenerator/**"
           ],
           "src": "../"
         }
       ],
       "filter": "filterConfig.yml",
-      "dest": "api",
+      "dest": "api-csharp",
       "force": true,
       "disableGitFeatures": false,
       "disableDefaultFilter": false,
@@ -31,11 +32,11 @@
     "content": [
       {
         "files": [
-          "api/**.yml",
-          "api/index.md",
+          "api-csharp/**.yml",
+          "api-csharp/index.md",
           "samples/**.md",
-          "python_wrapper/**.md",
-          "python_wrapper/**.yml",
+          "api-python/**.md",
+          "api-python/**.yml",
           "samples/**.yml",
           "toc.yml",
           "*.md",

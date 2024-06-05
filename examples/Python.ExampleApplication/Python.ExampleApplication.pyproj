@@ -5,8 +5,7 @@
     <ProjectGuid>9c94fbc9-ae67-4a26-bdda-eb2ce9fe5c25</ProjectGuid>
     <ProjectHome>.</ProjectHome>
     <StartupFile>Python.ExampleApplication.py</StartupFile>
-    <SearchPath>
-    </SearchPath>
+    <SearchPath>..\..\src\Python\dist</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <Name>Python.ExampleApplication</Name>
@@ -23,8 +22,17 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="hooks.py" />
-    <Compile Include="hooks_factory.py" />
-    <Compile Include="hooks_callback.py" />
+    <Compile Include="hooks\batch_migration_completed\log_migration_batches_hook.py" />
+    <Compile Include="hooks\filters\default_project_filter.py" />
+    <Compile Include="hooks\filters\unlicensed_user_filter.py" />
+    <Compile Include="hooks\mappings\change_project_mapping.py" />
+    <Compile Include="hooks\mappings\email_domain_mapping.py" />
+    <Compile Include="hooks\mappings\project_rename_mapping.py" />
+    <Compile Include="hooks\migration_action_completed\log_migration_actions_hook.py" />
+    <Compile Include="hooks\post_publish\bulk_logging_hook.py" />
+    <Compile Include="hooks\transformers\encrypt_extracts_transformer.py" />
+    <Compile Include="hooks\transformers\migrated_tag_transformer.py" />
+    <Compile Include="print_result.py" />
     <Compile Include="Python.ExampleApplication.py" />
   </ItemGroup>
   <ItemGroup>
@@ -42,6 +50,15 @@
       <PathEnvironmentVariable>PYTHONPATH</PathEnvironmentVariable>
       <Architecture>X64</Architecture>
     </Interpreter>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="hooks\" />
+    <Folder Include="hooks\filters\" />
+    <Folder Include="hooks\mappings\" />
+    <Folder Include="hooks\migration_action_completed\" />
+    <Folder Include="hooks\batch_migration_completed\" />
+    <Folder Include="hooks\post_publish\" />
+    <Folder Include="hooks\transformers\" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in

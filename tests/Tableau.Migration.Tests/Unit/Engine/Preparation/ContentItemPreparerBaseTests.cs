@@ -21,8 +21,8 @@ using System.Threading.Tasks;
 using Moq;
 using Tableau.Migration.Content;
 using Tableau.Migration.Engine;
+using Tableau.Migration.Engine.Endpoints.Search;
 using Tableau.Migration.Engine.Hooks.Transformers;
-using Tableau.Migration.Engine.Pipelines;
 using Tableau.Migration.Engine.Preparation;
 using Xunit;
 
@@ -39,8 +39,10 @@ namespace Tableau.Migration.Tests.Unit.Engine.Preparation
 
             public int PullCallCount { get; private set; }
 
-            public TestPreparer(IContentTransformerRunner transformerRunner, IMigrationPipeline pipeline)
-                : base(transformerRunner, pipeline)
+            public TestPreparer(
+                IContentTransformerRunner transformerRunner,
+                IDestinationContentReferenceFinderFactory destinationFinderFactory)
+                : base(transformerRunner, destinationFinderFactory)
             { }
 
             protected override Task<IResult<TPublish>> PullAsync(ContentMigrationItem<TContent> item, CancellationToken cancel)
@@ -53,15 +55,19 @@ namespace Tableau.Migration.Tests.Unit.Engine.Preparation
         public class TestPreparer<TContent> : TestPreparer<TContent, TContent>
             where TContent : class, new()
         {
-            public TestPreparer(IContentTransformerRunner transformerRunner, IMigrationPipeline pipeline)
-                : base(transformerRunner, pipeline)
+            public TestPreparer(
+                IContentTransformerRunner transformerRunner,
+                IDestinationContentReferenceFinderFactory destinationFinderFactory)
+                : base(transformerRunner, destinationFinderFactory)
             { }
         }
 
         public class TestPreparer : TestPreparer<TestContentType, TestPublishType>
         {
-            public TestPreparer(IContentTransformerRunner transformerRunner, IMigrationPipeline pipeline)
-                : base(transformerRunner, pipeline)
+            public TestPreparer(
+                IContentTransformerRunner transformerRunner, 
+                IDestinationContentReferenceFinderFactory destinationFinderFactory)
+                : base(transformerRunner, destinationFinderFactory)
             { }
         }
 
@@ -155,7 +161,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Preparation
                 var destinationContainerLocation = MockManifestEntry.Object.MappedLocation.Parent();
                 var destinationProject = Create<ContentReferenceStub>();
 
-                MockProjectFinder.Setup(x => x.FindDestinationReferenceAsync(sourceParentLocation, Cancel))
+                MockProjectFinder.Setup(x => x.FindBySourceLocationAsync(sourceParentLocation, Cancel))
                     .ReturnsAsync(destinationProject);
 
                 var result = await preparer.PrepareAsync(item, Cancel);
@@ -168,7 +174,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Preparation
                 Assert.Equal(destinationName, publishItem.Name);
                 Assert.Same(destinationProject, publishItem.Container);
 
-                MockProjectFinder.Verify(x => x.FindDestinationReferenceAsync(sourceParentLocation, Cancel), Times.Once);
+                MockProjectFinder.Verify(x => x.FindBySourceLocationAsync(sourceParentLocation, Cancel), Times.Once);
             }
 
             [Fact]
@@ -183,7 +189,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Preparation
                 var destinationContainerLocation = MockManifestEntry.Object.MappedLocation.Parent();
                 var destinationProject = Create<ContentReferenceStub>();
 
-                MockProjectFinder.Setup(x => x.FindMappedDestinationReferenceAsync(destinationContainerLocation, Cancel))
+                MockProjectFinder.Setup(x => x.FindByMappedLocationAsync(destinationContainerLocation, Cancel))
                     .ReturnsAsync(destinationProject);
 
                 var result = await preparer.PrepareAsync(item, Cancel);
@@ -196,7 +202,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Preparation
                 Assert.Equal(destinationName, publishItem.Name);
                 Assert.Same(destinationProject, publishItem.Container);
 
-                MockProjectFinder.Verify(x => x.FindMappedDestinationReferenceAsync(destinationContainerLocation, Cancel), Times.Once);
+                MockProjectFinder.Verify(x => x.FindByMappedLocationAsync(destinationContainerLocation, Cancel), Times.Once);
             }
 
             [Fact]
@@ -220,7 +226,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Preparation
                 Assert.Equal(destinationName, publishItem.Name);
                 Assert.Null(publishItem.Container);
 
-                MockProjectFinder.Verify(x => x.FindDestinationReferenceAsync(It.IsAny<ContentLocation>(), Cancel), Times.Never);
+                MockProjectFinder.Verify(x => x.FindBySourceLocationAsync(It.IsAny<ContentLocation>(), Cancel), Times.Never);
             }
 
             [Fact]

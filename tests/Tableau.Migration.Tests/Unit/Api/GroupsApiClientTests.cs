@@ -302,6 +302,7 @@ namespace Tableau.Migration.Tests.Unit.Api
 
                 var getUsersResponse = AutoFixture.CreateResponse<UsersResponse>();
                 getUsersResponse.Items = Array.Empty<UsersResponse.UserType>();
+                getUsersResponse.Pagination = new() { PageNumber = 1, PageSize = int.MaxValue, TotalAvailable = getUsersResponse.Items.Length };
 
                 MockHttpClient.SetupResponse(new MockHttpResponseMessage<UsersResponse>(getUsersResponse));
 
@@ -332,6 +333,7 @@ namespace Tableau.Migration.Tests.Unit.Api
 
                 var getUsersResponse = AutoFixture.CreateResponse<UsersResponse>();
                 getUsersResponse.Items = Array.Empty<UsersResponse.UserType>();
+                getUsersResponse.Pagination = new() { PageNumber = 1, PageSize = int.MaxValue, TotalAvailable = getUsersResponse.Items.Length };
 
                 MockHttpClient.SetupResponse(new MockHttpResponseMessage<UsersResponse>(getUsersResponse));
 

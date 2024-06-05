@@ -47,7 +47,7 @@ namespace Tableau.Migration.Engine
         /// <inheritdoc />
         public IMigrationPlan Plan
         {
-            get => _plan ?? throw new InvalidOperationException($"{nameof(MigrationInput)} must be initialized before it it used.");
+            get => _plan ?? throw new InvalidOperationException($"{nameof(MigrationInput)} must be initialized before it is used.");
             private set => _plan = value;
         }
         private IMigrationPlan? _plan;

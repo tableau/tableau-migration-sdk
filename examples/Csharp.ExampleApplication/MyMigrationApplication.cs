@@ -86,8 +86,8 @@ namespace Csharp.ExampleApplication
             #endregion
 
             #region ChangeProjectMapping-Registration
-            _planBuilder.Mappings.Add<ChangeProjectMapping, IDataSource>();
-            _planBuilder.Mappings.Add<ChangeProjectMapping, IWorkbook>();
+            _planBuilder.Mappings.Add<ChangeProjectMapping<IDataSource>, IDataSource>();
+            _planBuilder.Mappings.Add<ChangeProjectMapping<IWorkbook>, IWorkbook>();
             #endregion
 
             // Add filters
@@ -111,8 +111,13 @@ namespace Csharp.ExampleApplication
 
             // Add transformers
             #region MigratedTagTransformer-Registration
-            _planBuilder.Transformers.Add<MigratedTagTransformer, IPublishableDataSource>();
-            _planBuilder.Transformers.Add<MigratedTagTransformer, IPublishableWorkbook>();
+            _planBuilder.Transformers.Add<MigratedTagTransformer<IPublishableDataSource>, IPublishableDataSource>();
+            _planBuilder.Transformers.Add<MigratedTagTransformer<IPublishableWorkbook>, IPublishableWorkbook>();
+            #endregion
+
+            #region EncryptExtractTransformer-Registration
+            _planBuilder.Transformers.Add<EncryptExtractsTransformer<IPublishableDataSource>, IPublishableDataSource>();
+            _planBuilder.Transformers.Add<EncryptExtractsTransformer<IPublishableWorkbook>, IPublishableWorkbook>();
             #endregion
 
             // Add migration action completed hooks

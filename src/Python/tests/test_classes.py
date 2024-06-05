@@ -24,6 +24,7 @@
 # That in turns means the Test Explorer won't display the tests
 # If this happens, always check the "Test Output" for errors
 ###
+
 import pytest
 import sys
 from os.path import abspath
@@ -42,6 +43,12 @@ from tableau_migration.migration_engine import (
     PyMigrationPlanBuilder,
     PyServerToCloudMigrationPlanBuilder,
     PyMigrationPlan)
+
+from tableau_migration.migration_engine_endpoints_search import (
+    PyDestinationContentReferenceFinder,
+    PyDestinationContentReferenceFinderFactory,
+    PySourceContentReferenceFinder,
+    PySourceContentReferenceFinderFactory)
 
 from tableau_migration.migration_engine_hooks import (
     PyMigrationHookBuilder,
@@ -75,8 +82,12 @@ def get_class_methods(cls):
     https://stackoverflow.com/a/4241225.
     """
     _base_object = dir(type('dummy', (object,), {}))
-    return [item[0] for item in inspect.getmembers(cls, predicate=inspect.isfunction)
+    methods = [item[0] for item in inspect.getmembers(cls, predicate=inspect.ismethod)
                 if item[0] not in _base_object]
+    methods.extend([item[0] for item in inspect.getmembers(cls, predicate=inspect.isfunction) if item[0] not in _base_object])
+    
+    #Remove python internal methods
+    return (m for m in methods if not m.startswith("__"))
     
 
 def get_class_properties(cls):
@@ -173,8 +184,8 @@ def verify_enum(python_enum, dotnet_enum):
     """
     from Tableau.Migration.Interop import InteropHelper
 
-    dotnet_enum = [(item.Item1, item.Item2) for item in InteropHelper.GetEnum[dotnet_enum]()]
-    python_enum = get_enum(python_enum)
+    dotnet_enum = [(normalize_name(item.Item1), item.Item2) for item in InteropHelper.GetEnum[dotnet_enum]()]
+    python_enum = [(normalize_name(item[0]), item[1]) for item in get_enum(python_enum)]
 
     message = compare_lists(dotnet_enum, python_enum)
     assert not message
@@ -210,25 +221,188 @@ class TestNameComparison():
 
         message = compare_names(dotnet_names, python_names)
         assert not message
+        
+# region _generated
+
+from tableau_migration.migration import (  # noqa: E402, F401
+    PyContentLocation,
+    PyContentReference,
+    PyMigrationCompletionStatus,
+    PyResult
+)
+
+from tableau_migration.migration_api_rest_models import (  # noqa: E402, F401
+    PyAdministratorLevels,
+    PyContentPermissions,
+    PyExtractEncryptionModes,
+    PyLabelCategories,
+    PyLicenseLevels,
+    PyPermissionsCapabilityModes,
+    PyPermissionsCapabilityNames,
+    PySiteRoles
+)
+
+from tableau_migration.migration_api_rest_models_types import (  # noqa: E402, F401
+    PyAuthenticationTypes,
+    PyDataSourceFileTypes,
+    PyWorkbookFileTypes
+)
+
+from tableau_migration.migration_content import (  # noqa: E402, F401
+    PyConnection,
+    PyConnectionsContent,
+    PyContainerContent,
+    PyDataSource,
+    PyDataSourceDetails,
+    PyDescriptionContent,
+    PyExtractContent,
+    PyGroup,
+    PyGroupUser,
+    PyLabel,
+    PyProject,
+    PyPublishableDataSource,
+    PyPublishableGroup,
+    PyPublishableWorkbook,
+    PyPublishedContent,
+    PyTag,
+    PyUser,
+    PyUsernameContent,
+    PyView,
+    PyWithDomain,
+    PyWithOwner,
+    PyWithTags,
+    PyWorkbook,
+    PyWorkbookDetails
+)
+
+from tableau_migration.migration_content_permissions import (  # noqa: E402, F401
+    PyCapability,
+    PyGranteeCapability,
+    PyGranteeType,
+    PyPermissions
+)
+
+from tableau_migration.migration_engine import PyContentMigrationItem # noqa: E402, F401
+
+from tableau_migration.migration_engine_actions import PyMigrationActionResult # noqa: E402, F401
+
+from tableau_migration.migration_engine_hooks_mappings import PyContentMappingContext # noqa: E402, F401
+
+from tableau_migration.migration_engine_hooks_postpublish import (  # noqa: E402, F401
+    PyBulkPostPublishContext,
+    PyContentItemPostPublishContext
+)
+
+from tableau_migration.migration_engine_manifest import (  # noqa: E402, F401
+    PyMigrationManifestEntry,
+    PyMigrationManifestEntryEditor,
+    PyMigrationManifestEntryStatus
+)
+
+from tableau_migration.migration_engine_migrators import PyContentItemMigrationResult # noqa: E402, F401
+
+from tableau_migration.migration_engine_migrators_batch import PyContentBatchMigrationResult # noqa: E402, F401
 
 
-@pytest.mark.parametrize("python_class, ignored_methods", [
-                          (PyMigrationPlanBuilder, None),
-                          (PyServerToCloudMigrationPlanBuilder, None),
-                          (PyMigrationResult, None),
-                          (PyMigrationManifest, None),
-                          (PyResult, ["CastFailure"]),
-                          (PyMigrator, None),
-                          (PyMigrationPlan, None),
-                          (PyMigrationHookBuilder, None),
-                          (PyContentTransformerBuilder, None),
-                          (PyContentMappingBuilder, None),
-                          (PyContentFilterBuilder, None),
-                          (PyMigrationPlanOptionsBuilder, None),
-                          (PyMigrationPlanOptionsCollection, None),
-                          (PyMigrationHookFactoryCollection, None)
-                          ])
-def test_classes(python_class, ignored_methods):
+from Tableau.Migration import MigrationCompletionStatus
+from Tableau.Migration.Api.Rest.Models import AdministratorLevels
+from Tableau.Migration.Api.Rest.Models import ContentPermissions
+from Tableau.Migration.Api.Rest.Models import ExtractEncryptionModes
+from Tableau.Migration.Api.Rest.Models import LabelCategories
+from Tableau.Migration.Api.Rest.Models import LicenseLevels
+from Tableau.Migration.Api.Rest.Models import PermissionsCapabilityModes
+from Tableau.Migration.Api.Rest.Models import PermissionsCapabilityNames
+from Tableau.Migration.Api.Rest.Models import SiteRoles
+from Tableau.Migration.Api.Rest.Models.Types import AuthenticationTypes
+from Tableau.Migration.Api.Rest.Models.Types import DataSourceFileTypes
+from Tableau.Migration.Api.Rest.Models.Types import WorkbookFileTypes
+from Tableau.Migration.Content.Permissions import GranteeType
+from Tableau.Migration.Engine.Manifest import MigrationManifestEntryStatus
+
+_generated_class_data = [
+    (PyContentLocation, None),
+    (PyContentReference, None),
+    (PyResult, [ "CastFailure" ]),
+    (PyConnection, None),
+    (PyConnectionsContent, None),
+    (PyContainerContent, None),
+    (PyDataSource, [ "SetLocation" ]),
+    (PyDataSourceDetails, [ "SetLocation" ]),
+    (PyDescriptionContent, None),
+    (PyExtractContent, None),
+    (PyGroup, [ "SetLocation" ]),
+    (PyGroupUser, None),
+    (PyLabel, [ "Id" ]),
+    (PyProject, [ "Container", "SetLocation" ]),
+    (PyPublishableDataSource, [ "DisposeAsync", "File", "SetLocation" ]),
+    (PyPublishableGroup, [ "SetLocation" ]),
+    (PyPublishableWorkbook, [ "ChildPermissionContentItems", "ChildType", "DisposeAsync", "File", "SetLocation", "ShouldMigrateChildPermissions" ]),
+    (PyPublishedContent, None),
+    (PyTag, None),
+    (PyUser, [ "SetLocation" ]),
+    (PyUsernameContent, [ "SetLocation" ]),
+    (PyView, None),
+    (PyWithDomain, None),
+    (PyWithOwner, None),
+    (PyWithTags, None),
+    (PyWorkbook, [ "SetLocation" ]),
+    (PyWorkbookDetails, [ "ChildPermissionContentItems", "ChildType", "SetLocation", "ShouldMigrateChildPermissions" ]),
+    (PyCapability, None),
+    (PyGranteeCapability, None),
+    (PyPermissions, None),
+    (PyContentMigrationItem, None),
+    (PyMigrationActionResult, [ "CastFailure" ]),
+    (PyContentMappingContext, [ "ToTask" ]),
+    (PyBulkPostPublishContext, [ "ToTask" ]),
+    (PyContentItemPostPublishContext, [ "ToTask" ]),
+    (PyMigrationManifestEntry, None),
+    (PyMigrationManifestEntryEditor, [ "SetFailed" ]),
+    (PyContentItemMigrationResult, [ "CastFailure" ]),
+    (PyContentBatchMigrationResult, [ "CastFailure" ])
+]
+
+_generated_enum_data = [
+    (PyMigrationCompletionStatus, MigrationCompletionStatus),
+    (PyAdministratorLevels, AdministratorLevels),
+    (PyContentPermissions, ContentPermissions),
+    (PyExtractEncryptionModes, ExtractEncryptionModes),
+    (PyLabelCategories, LabelCategories),
+    (PyLicenseLevels, LicenseLevels),
+    (PyPermissionsCapabilityModes, PermissionsCapabilityModes),
+    (PyPermissionsCapabilityNames, PermissionsCapabilityNames),
+    (PySiteRoles, SiteRoles),
+    (PyAuthenticationTypes, AuthenticationTypes),
+    (PyDataSourceFileTypes, DataSourceFileTypes),
+    (PyWorkbookFileTypes, WorkbookFileTypes),
+    (PyGranteeType, GranteeType),
+    (PyMigrationManifestEntryStatus, MigrationManifestEntryStatus)
+]
+
+# endregion
+
+_test_class_data = [
+    (PyMigrationPlanBuilder, None),
+    (PyServerToCloudMigrationPlanBuilder, None),
+    (PyMigrationResult, None),
+    (PyMigrationManifest, None),
+    (PyMigrator, None),
+    (PyMigrationPlan, None),
+    (PyMigrationHookBuilder, None),
+    (PyContentTransformerBuilder, None),
+    (PyContentMappingBuilder, None),
+    (PyContentFilterBuilder, None),
+    (PyMigrationPlanOptionsBuilder, None),
+    (PyMigrationPlanOptionsCollection, None),
+    (PyMigrationHookFactoryCollection, None),
+    (PyDestinationContentReferenceFinder, None),
+    (PyDestinationContentReferenceFinderFactory, [ "ForContentType" ]),
+    (PySourceContentReferenceFinder, None),
+    (PySourceContentReferenceFinderFactory, [ "ForContentType" ])
+]
+_test_class_data.extend(_generated_class_data)
+
+@pytest.mark.parametrize("python_class, ignored_members", _test_class_data)
+def test_classes(python_class, ignored_members):
     """Verify that all the python wrapper classes actually wrap all the dotnet methods and properties."""
     from Tableau.Migration.Interop import InteropHelper
 
@@ -242,26 +416,28 @@ def test_classes(python_class, ignored_methods):
     _all_py_props = get_class_properties(python_class)
     
     # Get all the dotnet methods and properties
-    _all_dotnet_methods = InteropHelper.GetMethods[dotnet_class]()
-    _all_dotnet_props = InteropHelper.GetProperties[dotnet_class]()
+    _all_dotnet_methods = InteropHelper.GetMethods(dotnet_class)
+    _all_dotnet_props = InteropHelper.GetProperties(dotnet_class)
 
     # Clean methods that should be ignored
-    if ignored_methods is None:
+    if ignored_members is None:
         _clean_dotnet_method = _all_dotnet_methods
+        _clean_dotnet_props = _all_dotnet_props
     else:
-        _clean_dotnet_method = [method for method in _all_dotnet_methods if method not in ignored_methods]
+        _clean_dotnet_method = [method for method in _all_dotnet_methods if method not in ignored_members]
+        _clean_dotnet_props = [prop for prop in _all_dotnet_props if prop not in ignored_members]
 
     # Compare the lists
     method_message = compare_names(_clean_dotnet_method, _all_py_methods)
-    prop_message = compare_names(_all_dotnet_props, _all_py_props)
+    prop_message = compare_names(_clean_dotnet_props, _all_py_props)
     
     # Assert
     assert not method_message # Remember that the names are normalize
     assert not prop_message # Remember that the names are normalize
 
+_test_enum_data = []
+_test_enum_data.extend(_generated_enum_data)
 
-@pytest.mark.parametrize("python_class, dotnet_enum", [
-    (PyMigrationCompletionStatus, MigrationCompletionStatus)
-    ])
+@pytest.mark.parametrize("python_class, dotnet_enum", _test_enum_data)
 def test_enum(python_class, dotnet_enum):
     verify_enum(python_class, dotnet_enum)

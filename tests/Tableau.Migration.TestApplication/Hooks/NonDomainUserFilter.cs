@@ -19,16 +19,15 @@ using System;
 using System.Collections.Generic;
 using System.DirectoryServices;
 using System.Linq;
+using System.Runtime.InteropServices;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Tableau.Migration.Api.Rest.Models;
 using Tableau.Migration.Content;
 using Tableau.Migration.Engine;
 using Tableau.Migration.Engine.Hooks.Filters;
-using Tableau.Migration.TestApplication.Config;
-using System.Runtime.InteropServices;
-using Microsoft.Extensions.Logging;
-using Polly;
-using Microsoft.Extensions.Options;
 using Tableau.Migration.Resources;
+using Tableau.Migration.TestApplication.Config;
 
 namespace Tableau.Migration.TestApplication.Hooks
 {

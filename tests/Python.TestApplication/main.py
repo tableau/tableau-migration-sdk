@@ -30,36 +30,63 @@ import tableau_migration
 from threading import Thread
 
 # tableau_migration and migration_testcomponents
-from tableau_migration.migration import PyMigrationResult, PyMigrationManifest
-from tableau_migration.migration_engine import PyMigrationPlanBuilder
-from tableau_migration.migration_engine_migrators import PyMigrator
-from migration_testcomponents_engine_manifest import PyMigrationManifestSerializer
-from migration_testcomponents_filters import PySpecialUserFilter, PyUnlicensedUserFilter
+from tableau_migration import (
+    IMigrationManifestEntry, 
+    Migrator, 
+    MigrationPlanBuilder, 
+    MigrationManifestEntryStatus,
+    cancellation_token_source
+)
+from tableau_migration.migration import (
+    PyMigrationResult, 
+    PyMigrationManifest
+)
+from migration_testcomponents_engine_manifest import (
+    PyMigrationManifestSerializer
+)
+from migration_testcomponents_filters import (
+    # Skip Filters: Uncomment when neccesary.
+    # SkipAllUsersFilter,
+    # SkipAllGroupsFilter,
+    # SkipAllProjectsFilter,
+    # SkipAllDataSourcesFilter,
+    # SkipAllWorkbooksFilter,
+    # Skip Filters: Uncomment when neccesary.
+    SkipProjectByParentLocationFilter,
+    SkipDataSourceByParentLocationFilter,
+    SkipWorkbookByParentLocationFilter,
+    SpecialUserFilter, 
+    UnlicensedUserFilter
+)
 from migration_testcomponents_hooks import (
-    PySaveManifestAfterBatch_User, 
-    PySaveManifestAfterBatch_Group, 
-    PySaveManifestAfterBatch_Project, 
-    PySaveManifestAfterBatch_DataSource, 
-    PySaveManifestAfterBatch_Workbook, 
-    PyTimeLoggerAfterActionHook, 
-    save_manifest_after_batch_user_factory, 
-    save_manifest_after_batch_group_factory,
-    save_manifest_after_batch_project_factory,
-    save_manifest_after_batch_datasource_factory,
-    save_manifest_after_batch_workbook_factory)
-from migration_testcomponents_mappings import PySpecialUserMapping, PyTestTableauCloudUsernameMapping, PyUnlicensedUserMapping
+    SaveUserManifestHook,
+    SaveGroupManifestHook,
+    SaveProjectManifestHook,
+    SaveDataSourceManifestHook,
+    SaveWorkbookManifestHook,
+    TimeLoggerAfterActionHook
+)
+from migration_testcomponents_mappings import (
+    SpecialUserMapping, 
+    TestTableauCloudUsernameMapping,
+    ProjectWithinSkippedLocationMapping,
+    DataSourceWithinSkippedLocationMapping,
+    WorkbookWithinSkippedLocationMapping,
+    UnlicensedUserMapping
+)
+from migration_testcomponents_transformers import (
+    RemoveMissingDestinationUsersFromGroupsTransformer
+)
 
 # CSharp imports
-from System import Func, IServiceProvider 
-
-from Tableau.Migration.Content import IUser
 from Tableau.Migration.Engine.Pipelines import ServerToCloudMigrationPipeline
-from Tableau.Migration.Engine.Manifest import MigrationManifestEntryStatus
 from Tableau.Migration.TestComponents import IServiceCollectionExtensions as MigrationTestComponentsSCE
 
 
 class Program():
     """Main program class."""
+    
+    done = False
 
     def __init__(self):
         """Program init, sets up logging."""
@@ -98,9 +125,10 @@ class Program():
         for pipeline_content_type in ServerToCloudMigrationPipeline.ContentTypes:
             content_type = pipeline_content_type.ContentType
         
-            type_result = result.manifest.entries.ForContentType(content_type)
+            result.manifest.entries
+            type_entries = [IMigrationManifestEntry(x) for x in result.manifest.entries.ForContentType(content_type)]
         
-            count_total = type_result.Count
+            count_total = len(type_entries)
 
             count_migrated = 0
             count_skipped = 0
@@ -108,16 +136,16 @@ class Program():
             count_cancelled = 0
             count_pending = 0
 
-            for item in type_result:
-                if item.Status == MigrationManifestEntryStatus.Migrated:
+            for entry in type_entries:
+                if entry.status == MigrationManifestEntryStatus.MIGRATED:
                     count_migrated += 1
-                elif item.Status == MigrationManifestEntryStatus.Skipped:
+                elif entry.status == MigrationManifestEntryStatus.SKIPPED:
                     count_skipped += 1
-                elif item.Status == MigrationManifestEntryStatus.Error:
+                elif entry.status == MigrationManifestEntryStatus.ERROR:
                     count_errored += 1
-                elif item.Status == MigrationManifestEntryStatus.Canceled:
+                elif entry.status == MigrationManifestEntryStatus.CANCELED:
                     count_cancelled += 1
-                elif item.Status == MigrationManifestEntryStatus.Pending:
+                elif entry.status == MigrationManifestEntryStatus.PENDING:
                     count_pending += 1
             
             output = f'''
@@ -134,15 +162,15 @@ class Program():
     def migrate(self):
         """The main migration function."""
         self.logger.info("Starting migration")
+        
         # Add the C# test components we've ported to Python and register them with the DI Service Provider
         MigrationTestComponentsSCE.AddTestComponents(tableau_migration._service_collection)
-        tableau_migration.migration._build_service_provider()
+        tableau_migration.migration._build_service_provider(tableau_migration._service_collection)
 
         # Setup base objects for migrations
-        plan_builder = PyMigrationPlanBuilder()
-        migration = PyMigrator()
-
         self._manifest_serializer = PyMigrationManifestSerializer()
+        plan_builder = MigrationPlanBuilder()
+        migration = Migrator()
     
         # Build the plan
         plan_builder = plan_builder \
@@ -158,37 +186,42 @@ class Program():
                         access_token = os.environ.get('TABLEAU_MIGRATION_DESTINATION_TOKEN', helper.config['destination']['access_token'])) \
                     .for_server_to_cloud() \
                     .with_tableau_id_authentication_type() \
-                    .with_tableau_cloud_usernames(PyTestTableauCloudUsernameMapping())        
+                    .with_tableau_cloud_usernames(TestTableauCloudUsernameMapping)        
     
     
         self.logger.info("Adding Special User filter and mapping")
-        plan_builder.filters.add(IUser, PySpecialUserFilter())
-        plan_builder.mappings.add(IUser, PySpecialUserMapping())
+        plan_builder.filters.add(SpecialUserFilter)
+        plan_builder.mappings.add(SpecialUserMapping)
     
         self.logger.info("Adding unlicensed user filter and mapping")
-        plan_builder.filters.add(IUser, PyUnlicensedUserFilter())
-        plan_builder.mappings.add(IUser, PyUnlicensedUserMapping())
+        plan_builder.filters.add(UnlicensedUserFilter)
+        plan_builder.mappings.add(UnlicensedUserMapping)
     
         self.logger.info("Adding Hooks")
-        plan_builder.hooks.add(PyTimeLoggerAfterActionHook(self.consoleHandler))
+        TimeLoggerAfterActionHook.handler = self.consoleHandler
+        plan_builder.hooks.add(TimeLoggerAfterActionHook)
     
-        # This adds the PySaveManifestAfterBatch_<content type> hook via the save_manifest_after_batch_<content type>_factory function.
-        # This is required because the manifest comes from the IMigration, which is scoped.
-        # The global DI provider can not create the scoped IMigration.
-        # the save_manifest_after_batch_<content type>_factory function takes the IServiceProvider, which is scoped when save_manifest_after_batch_<content type>_factory is called
-        # This means save_manifest_after_batch_<content type>_factory can create the PySaveManifestAfterBatch_<content type> and pass in the IMigration
-        plan_builder.hooks.add(PySaveManifestAfterBatch_User, Func[IServiceProvider, PySaveManifestAfterBatch_User](save_manifest_after_batch_user_factory))
-        plan_builder.hooks.add(PySaveManifestAfterBatch_Group, Func[IServiceProvider, PySaveManifestAfterBatch_Group](save_manifest_after_batch_group_factory))
-        plan_builder.hooks.add(PySaveManifestAfterBatch_Project, Func[IServiceProvider, PySaveManifestAfterBatch_Project](save_manifest_after_batch_project_factory))
-        plan_builder.hooks.add(PySaveManifestAfterBatch_DataSource, Func[IServiceProvider, PySaveManifestAfterBatch_DataSource](save_manifest_after_batch_datasource_factory))
-        plan_builder.hooks.add(PySaveManifestAfterBatch_Workbook, Func[IServiceProvider, PySaveManifestAfterBatch_Workbook](save_manifest_after_batch_workbook_factory))
+        plan_builder.hooks.add(SaveUserManifestHook)
+        plan_builder.hooks.add(SaveGroupManifestHook)
+        plan_builder.hooks.add(SaveProjectManifestHook)
+        plan_builder.hooks.add(SaveDataSourceManifestHook)
+        plan_builder.hooks.add(SaveWorkbookManifestHook)
+
+        plan_builder.filters.add(SkipProjectByParentLocationFilter)
+        plan_builder.filters.add(SkipDataSourceByParentLocationFilter)
+        plan_builder.filters.add(SkipWorkbookByParentLocationFilter)
+        plan_builder.transformers.add(RemoveMissingDestinationUsersFromGroupsTransformer)
+        plan_builder.mappings.add(ProjectWithinSkippedLocationMapping)
+        plan_builder.mappings.add(DataSourceWithinSkippedLocationMapping)
+        plan_builder.mappings.add(WorkbookWithinSkippedLocationMapping)
     
-        # Comment out an neccesary 
-        #planBuilder.filters.add(IUser, PySkipFilter_Users())
-        #planBuilder.filters.add(IGroup, PySkipFilter_Groups())
-        #planBuilder.filters.add(IProject, PySkipFilter_Projects())
-        #planBuilder.filters.add(IDataSource, PySkipFilter_DataSources())
-        #planBuilder.filters.add(IWorkbook, PySkipFilter_Workbooks())
+        # Skip Filters: Uncomment when neccesary.
+        # plan_builder.filters.add(SkipAllUsersFilter)
+        # plan_builder.filters.add(SkipAllGroupsFilter)
+        # plan_builder.filters.add(SkipAllProjectsFilter)
+        # plan_builder.filters.add(SkipAllDataSourcesFilter)
+        # plan_builder.filters.add(SkipAllWorkbooksFilter)
+        # Skip Filters: Uncomment when neccesary.
 
         # Load manifest if available
         prev_manifest = self.load_manifest(helper.config['previous_manifest'])
@@ -210,7 +243,9 @@ class Program():
         self.logger.info(f'Migration Ended: {time.ctime(end_time)}')
         self.logger.info(f'Elapsed: {end_time - start_time}')
 
-        print("All done")    
+        print("All done")
+
+        self.done = True
         
 
 if __name__ == '__main__':
@@ -218,14 +253,13 @@ if __name__ == '__main__':
     program = Program()
     thread = Thread(target = program.migrate)
     thread.start()
-    done = False
 
-    while not done:
+    while not program.done:
         try:
             thread.join(1)
         except KeyboardInterrupt:
             print("Caught Ctrl+C, shutting down...")
-            tableau_migration.cancellation_token_source.Cancel()
+            cancellation_token_source.Cancel()
             thread.join()
-            done = True
+            program.done = True
             

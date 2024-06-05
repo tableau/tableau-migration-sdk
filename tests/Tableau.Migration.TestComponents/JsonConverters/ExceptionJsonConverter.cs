@@ -15,10 +15,12 @@
 //  limitations under the License.
 //
 
-using Microsoft.Extensions.Logging;
+using System.Collections.Immutable;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Microsoft.Extensions.Logging;
+using Python.Runtime;
 
 namespace Tableau.Migration.TestComponents.JsonConverters
 {
@@ -28,7 +30,12 @@ namespace Tableau.Migration.TestComponents.JsonConverters
     /// </summary>
     public class ExceptionJsonConverter : JsonConverter<Exception>
     {
-        ILogger<ExceptionJsonConverter> _logger;
+        private readonly ILogger<ExceptionJsonConverter> _logger;
+        private static readonly ImmutableHashSet<Type> IGNORED_PROPERTY_TYPES = new[]
+        {
+            typeof(Type),
+            typeof(CancellationToken)
+        }.ToImmutableHashSet();
 
         public ExceptionJsonConverter(ILogger<ExceptionJsonConverter> logger)
         {
@@ -46,10 +53,19 @@ namespace Tableau.Migration.TestComponents.JsonConverters
         {
             var exceptionType = value.GetType();
 
+            if (value is PythonException pyException)
+            {
+                writer.WriteStartObject();
+                writer.WriteString("ClassName", exceptionType.FullName);
+                writer.WriteString("Message", pyException.Format());
+                writer.WriteEndObject();
+                return;
+            }
+
             var properties = exceptionType.GetProperties()
-                .Where(e => e.PropertyType != typeof(Type))
+                .Where(e => !IGNORED_PROPERTY_TYPES.Contains(e.PropertyType))
                 .Where(e => e.PropertyType.Namespace != typeof(MemberInfo).Namespace)
-                .ToList();
+                .ToImmutableArray();
 
             writer.WriteStartObject();
             writer.WriteString("ClassName", exceptionType.FullName);
@@ -73,6 +89,7 @@ namespace Tableau.Migration.TestComponents.JsonConverters
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Unable to write property");
+                    throw new Exception($"Error serializing {exceptionType.FullName}.{property.Name} (type {property.PropertyType}).", ex);
                 }
             }
 

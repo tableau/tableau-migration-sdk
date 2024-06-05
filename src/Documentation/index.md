@@ -1,17 +1,17 @@
 # Contents
 
-## [API Reference](~/api/index.md)
+## [Python API Reference](~/api-python/index.md)
 
-The full C# API Reference.
+Access the complete Python API Reference for comprehensive documentation.
 
-## [Python Wrapper](~/python_wrapper/index.md)
+## [C# API Reference](~/api-csharp/index.md)
 
-The Python Wrapper Reference.
+Access the complete C# API Reference for detailed documentation.
 
 ## [Code Samples](~/samples/intro.md)
 
-Code samples to get you started.
+Explore code samples to kickstart your development process.
 
 ## [Articles](~/articles/intro.md)
 
-Articles describing various concepts including how to customize the Migration SDK.
+Browse articles covering a range of topics, including customization of the Migration SDK.

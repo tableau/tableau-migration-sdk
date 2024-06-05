@@ -34,6 +34,6 @@ namespace Tableau.Migration.Content
         /// <summary>
         /// Gets the names of the views that should be hidden.
         /// </summary>
-        ISet<string> HiddenViewNames { get; }
+        ISet<string> HiddenViewNames { get; set; }
     }
 }
