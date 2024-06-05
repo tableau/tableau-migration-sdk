@@ -14,30 +14,31 @@
 # limitations under the License.
 
 """Wrapper for classes in Tableau.Migration.Engine namespace."""
+from inspect import isclass
+from typing import Union, Callable
 from typing_extensions import Self
 from uuid import UUID
 
-import tableau_migration.migration
-from tableau_migration.migration import(
-    PyResult)
-from tableau_migration.migration_engine_hooks import PyMigrationHookBuilder
+from tableau_migration.migration import (
+    get_service_provider,
+    get_service
+)
+from tableau_migration.migration import PyResult
+from tableau_migration.migration_engine_hooks import PyMigrationHookBuilder, PyMigrationHookFactoryCollection
 from tableau_migration.migration_engine_hooks_filters import PyContentFilterBuilder
 from tableau_migration.migration_engine_hooks_mappings import PyContentMappingBuilder
 from tableau_migration.migration_engine_hooks_transformers import PyContentTransformerBuilder
 from tableau_migration.migration_engine_options import PyMigrationPlanOptionsBuilder
 
-from tableau_migration.migration_engine_options import (
-    PyMigrationPlanOptionsCollection,
-)
+from tableau_migration.migration_engine_options import PyMigrationPlanOptionsCollection
 
+from System import Func, IServiceProvider, Uri
 from Tableau.Migration import (
     IMigrationPlanBuilder, 
     IMigrationPlan, 
-    IServerToCloudMigrationPlanBuilder)
-
-from Tableau.Migration.Engine.Endpoints import(
-    IMigrationPlanEndpointConfiguration)
-from System import Uri
+    IServerToCloudMigrationPlanBuilder
+)
+from Tableau.Migration.Engine.Endpoints import IMigrationPlanEndpointConfiguration
 
 class PyMigrationPlan():
     """Default IMigrationPlan implementation."""
@@ -83,24 +84,24 @@ class PyMigrationPlan():
         return self._migration_plan.Destination # TODO: IMigrationPlanEndpointConfiguration needs python wrapper
 
     @property
-    def hooks(self):
+    def hooks(self) -> PyMigrationHookFactoryCollection:
         """Gets the collection of registered hooks for each hook type."""
-        return PyMigrationPlanOptionsCollection(self._migration_plan.Hooks)
+        return PyMigrationHookFactoryCollection(self._migration_plan.Hooks)
     
     @property
-    def mappings(self):
+    def mappings(self) -> PyMigrationHookFactoryCollection:
         """Gets the collection of registered mappings for each content type."""
-        return PyMigrationPlanOptionsCollection(self._migration_plan.Mappings)
+        return PyMigrationHookFactoryCollection(self._migration_plan.Mappings)
     
     @property
-    def filters(self):
+    def filters(self) -> PyMigrationHookFactoryCollection:
         """Gets the collection of registered filters for each content type."""
-        return PyMigrationPlanOptionsCollection(self._migration_plan.Filters)
+        return PyMigrationHookFactoryCollection(self._migration_plan.Filters)
     
     @property
-    def transformers(self):
+    def transformers(self) -> PyMigrationHookFactoryCollection:
         """Gets the collection of registered transformers for each content type."""
-        return PyMigrationPlanOptionsCollection(self._migration_plan.Transformers)
+        return PyMigrationHookFactoryCollection(self._migration_plan.Transformers)
  
 class PyServerToCloudMigrationPlanBuilder():
     """Default IServerToCloudMigrationPlanBuilder implementation."""
@@ -285,19 +286,31 @@ class PyServerToCloudMigrationPlanBuilder():
             self._plan_builder.WithAuthenticationType(authentication_type, input_1)
         return self
 
-    def with_tableau_cloud_usernames(self, input_0, use_existing_email: bool = True) -> Self:
+    def with_tableau_cloud_usernames(self, input_0: Union[type, Callable, str], use_existing_email: bool = True) -> Self:
         """Adds an object to map usernames to be in the form of an email.
 
         Args:
-            input_0: Either 1) A domain name to use to build email usernames for users that lack emails, generated as "{username}@{input_0}", or 2) the mapping to execute.
-            use_existing_email: Whether or not existing user emails should be used when available, defaults to true. Not used when input_0 is a mapping object.
+            input_0: Either: 
+                1) The mapping type to execute, or
+                2) The callback function to execute, or
+                3) A string for a domain name to use to build email usernames for users that lack emails. Usernames will be generated as "{username}@{input_0}".
+            use_existing_email: Whether or not existing user emails should be used when available, defaults to true. Not used when input_0 is not a string.
 
         Returns: The same plan builder object for fluent API calls.
         """
         if isinstance(input_0, str):
             self._plan_builder.WithTableauCloudUsernames(input_0, use_existing_email)
         else:
-            self._plan_builder.WithTableauCloudUsernames(input_0)
+            from migration_content import PyUser
+            from migration_engine_hooks_mappings_interop import _PyTableauCloudUsernameMappingWrapper
+
+            if isclass(input_0):
+                wrapper = _PyTableauCloudUsernameMappingWrapper(input_0)
+            else:
+                wrapper = _PyTableauCloudUsernameMappingWrapper([PyUser], input_0)
+            
+            self._plan_builder.WithTableauCloudUsernames[wrapper.wrapper_type](Func[IServiceProvider, wrapper.wrapper_type](wrapper.factory))
+
         return self
 
 class PyMigrationPlanBuilder():
@@ -310,8 +323,8 @@ class PyMigrationPlanBuilder():
         
         Returns: None.
         """
-        self._services = tableau_migration.migration.get_service_provider()
-        self._plan_builder = tableau_migration.migration.get_service(self._services, IMigrationPlanBuilder)
+        self._services = get_service_provider()
+        self._plan_builder = get_service(self._services, IMigrationPlanBuilder)
         self._hooks = PyMigrationHookBuilder(self._plan_builder.Hooks)
         self._filters = PyContentFilterBuilder(self._plan_builder.Filters)
         self._mappings = PyContentMappingBuilder(self._plan_builder.Mappings)
@@ -431,3 +444,44 @@ class PyMigrationPlanBuilder():
         Returns: The validation result.
         """
         return PyResult(self._plan_builder.Validate())
+# region _generated
+
+from tableau_migration.migration import _generic_wrapper # noqa: E402, F401
+from tableau_migration.migration_engine_manifest import PyMigrationManifestEntryEditor # noqa: E402, F401
+from typing import (  # noqa: E402, F401
+    Generic,
+    TypeVar
+)
+
+from Tableau.Migration.Engine import ContentMigrationItem # noqa: E402, F401
+
+TContent = TypeVar("TContent")
+
+class PyContentMigrationItem(Generic[TContent]):
+    """Record containing in-progress migration state for a content item."""
+    
+    _dotnet_base = ContentMigrationItem
+    
+    def __init__(self, content_migration_item: ContentMigrationItem) -> None:
+        """Creates a new PyContentMigrationItem object.
+        
+        Args:
+            content_migration_item: A ContentMigrationItem object.
+        
+        Returns: None.
+        """
+        self._dotnet = content_migration_item
+        
+    @property
+    def source_item(self) -> TContent:
+        """The content item's source data."""
+        return None if self._dotnet.SourceItem is None else _generic_wrapper(self._dotnet.SourceItem)
+    
+    @property
+    def manifest_entry(self) -> PyMigrationManifestEntryEditor:
+        """The manifest entry that describes the content item's overall migration status."""
+        return None if self._dotnet.ManifestEntry is None else PyMigrationManifestEntryEditor(self._dotnet.ManifestEntry)
+    
+
+# endregion
+

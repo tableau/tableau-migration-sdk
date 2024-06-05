@@ -40,6 +40,6 @@ namespace Tableau.Migration.Engine.Hooks.Transformers
         bool IXmlContentTransformer<TPublish>.NeedsXmlTransforming(TPublish ctx) => NeedsXmlTransforming(ctx);
 
         /// <inheritdoc />
-        public abstract Task ExecuteAsync(TPublish ctx, XDocument xml, CancellationToken cancel);
+        public abstract Task TransformAsync(TPublish ctx, XDocument xml, CancellationToken cancel);
     }
 }

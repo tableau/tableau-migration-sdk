@@ -25,22 +25,27 @@ namespace Tableau.Migration.Engine.Endpoints.Search
     /// <see cref="IContentReferenceFinderFactory"/> implementation that finds source references
     /// from the migration manifest.
     /// </summary>
-    public class ManifestSourceContentReferenceFinderFactory : IContentReferenceFinderFactory
+    public class ManifestSourceContentReferenceFinderFactory : ISourceContentReferenceFinderFactory
     {
         private readonly IServiceProvider _services;
 
         /// <summary>
         /// Creates a new <see cref="ManifestSourceContentReferenceFinderFactory"/> object.
         /// </summary>
-        /// <param name="services">The service provider.</param>
+        /// <param name="services">A DI service provider to create finders with.</param>
         public ManifestSourceContentReferenceFinderFactory(IServiceProvider services)
         {
             _services = services;
         }
 
         /// <inheritdoc />
-        public IContentReferenceFinder<TContent> ForContentType<TContent>()
+        public virtual IContentReferenceFinder<TContent> ForContentType<TContent>()
             where TContent : class, IContentReference
-            => _services.GetRequiredService<ManifestSourceContentReferenceFinder<TContent>>();
+            => ForSourceContentType<TContent>();
+
+        /// <inheritdoc />
+        public virtual ISourceContentReferenceFinder<TContent> ForSourceContentType<TContent>()
+            where TContent : class, IContentReference
+            => _services.GetRequiredService<ISourceContentReferenceFinder<TContent>>();
     }
 }

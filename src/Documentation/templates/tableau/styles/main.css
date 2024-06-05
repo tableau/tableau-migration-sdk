@@ -169,3 +169,13 @@ pre {
   border-radius: 10px;
   box-shadow: 0px 2px 2px 0px #c7c7c766;
 }
+
+
+.tabGroup a[role="tab"]:hover,
+.tabGroup a[role="tab"]:focus,
+.tabGroup a[role="tab"][aria-selected="true"] {
+    font-weight: bold;
+    /* Make the selected tab heading bold # Brings the tab color scheme in line with the rest of the site */
+    border-bottom: 2px solid #337ab7;
+    color: #337ab7;
+}

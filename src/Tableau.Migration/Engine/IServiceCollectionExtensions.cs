@@ -97,13 +97,13 @@ namespace Tableau.Migration.Engine
             //Caches/Content Finders
             //Register concrete types so that the easy way to get interface types is through IMigrationPipeline.
             services.AddScoped(typeof(BulkSourceCache<>));
-            services.AddScoped(typeof(ManifestSourceContentReferenceFinder<>));
-            services.AddScoped<ManifestSourceContentReferenceFinderFactory>();
+            services.AddScoped(typeof(ISourceContentReferenceFinder<>), typeof(ManifestSourceContentReferenceFinder<>));
+            services.AddScoped<ISourceContentReferenceFinderFactory, ManifestSourceContentReferenceFinderFactory>();
 
             services.AddScoped(typeof(BulkDestinationCache<>));
             services.AddScoped<BulkDestinationProjectCache>();
-            services.AddScoped(typeof(ManifestDestinationContentReferenceFinder<>));
-            services.AddScoped<ManifestDestinationContentReferenceFinderFactory>();
+            services.AddScoped(typeof(IDestinationContentReferenceFinder<>), typeof(ManifestDestinationContentReferenceFinder<>));
+            services.AddScoped<IDestinationContentReferenceFinderFactory, ManifestDestinationContentReferenceFinderFactory>();
 
             //Pipelines.
             services.AddScoped<ServerToCloudMigrationPipeline>();

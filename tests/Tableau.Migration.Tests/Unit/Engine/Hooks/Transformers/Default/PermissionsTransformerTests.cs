@@ -29,7 +29,6 @@ using Tableau.Migration.Content;
 using Tableau.Migration.Content.Permissions;
 using Tableau.Migration.Engine.Endpoints.Search;
 using Tableau.Migration.Engine.Hooks.Transformers.Default;
-using Tableau.Migration.Engine.Pipelines;
 using Tableau.Migration.Resources;
 using Tableau.Migration.Tests.Content.Permissions;
 using Xunit;
@@ -42,9 +41,9 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
         {
             internal readonly IGranteeCapabilityComparer GranteeCapabilityComparer = new(false);
 
-            protected readonly Mock<IMigrationPipeline> MockMigrationPipeline = new();
-            protected readonly Mock<IMappedContentReferenceFinder<IUser>> MockUserContentFinder = new();
-            protected readonly Mock<IMappedContentReferenceFinder<IGroup>> MockGroupContentFinder = new();
+            protected readonly Mock<IDestinationContentReferenceFinderFactory> MockDestinationFinderFactory = new();
+            protected readonly Mock<IDestinationContentReferenceFinder<IUser>> MockUserContentFinder = new();
+            protected readonly Mock<IDestinationContentReferenceFinder<IGroup>> MockGroupContentFinder = new();
 
             protected readonly PermissionsTransformer Transformer;
 
@@ -53,10 +52,10 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
 
             public PermissionsTransformerTest()
             {
-                MockMigrationPipeline.Setup(p => p.CreateDestinationFinder<IUser>()).Returns(MockUserContentFinder.Object);
-                MockMigrationPipeline.Setup(p => p.CreateDestinationFinder<IGroup>()).Returns(MockGroupContentFinder.Object);
+                MockDestinationFinderFactory.Setup(p => p.ForDestinationContentType<IUser>()).Returns(MockUserContentFinder.Object);
+                MockDestinationFinderFactory.Setup(p => p.ForDestinationContentType<IGroup>()).Returns(MockGroupContentFinder.Object);
 
-                Transformer = new(MockMigrationPipeline.Object, MockLogger.Object, MockLocalizer.Object);
+                Transformer = new(MockDestinationFinderFactory.Object, MockLogger.Object, MockLocalizer.Object);
             }
         }
 
@@ -69,7 +68,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
                 _idMap = new();
 
                 MockUserContentFinder
-                    .Setup(f => f.FindDestinationReferenceAsync(It.IsAny<Guid>(), Cancel))
+                    .Setup(f => f.FindBySourceIdAsync(It.IsAny<Guid>(), Cancel))
                     .ReturnsAsync((Guid id, CancellationToken cancel) =>
                     {
                         if (_idMap.TryGetValue(id, out var destinationId))
@@ -79,7 +78,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
                     });
 
                 MockGroupContentFinder
-                    .Setup(f => f.FindDestinationReferenceAsync(It.IsAny<Guid>(), Cancel))
+                    .Setup(f => f.FindBySourceIdAsync(It.IsAny<Guid>(), Cancel))
                     .ReturnsAsync((Guid id, CancellationToken cancel) =>
                     {
                         if (_idMap.TryGetValue(id, out var destinationId))
@@ -119,12 +118,12 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
                     if (granteeCapability.GranteeType is GranteeType.User)
                     {
                         MockUserContentFinder
-                            .Verify(f => f.FindDestinationReferenceAsync(sourceId, Cancel), Times.Once);
+                            .Verify(f => f.FindBySourceIdAsync(sourceId, Cancel), Times.Once);
                     }
                     else
                     {
                         MockGroupContentFinder
-                            .Verify(f => f.FindDestinationReferenceAsync(sourceId, Cancel), Times.Once);
+                            .Verify(f => f.FindBySourceIdAsync(sourceId, Cancel), Times.Once);
                     }
                 }
             }
@@ -158,12 +157,12 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
                     if (granteeCapability.GranteeType is GranteeType.User)
                     {
                         MockUserContentFinder
-                            .Verify(f => f.FindDestinationReferenceAsync(sourceId, Cancel), Times.Once);
+                            .Verify(f => f.FindBySourceIdAsync(sourceId, Cancel), Times.Once);
                     }
                     else
                     {
                         MockGroupContentFinder
-                            .Verify(f => f.FindDestinationReferenceAsync(sourceId, Cancel), Times.Once);
+                            .Verify(f => f.FindBySourceIdAsync(sourceId, Cancel), Times.Once);
                     }
                 }
             }
@@ -212,12 +211,12 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
                     if (granteeCapability.GranteeType is GranteeType.User)
                     {
                         MockUserContentFinder
-                            .Verify(f => f.FindDestinationReferenceAsync(sourceId, Cancel), Times.Once);
+                            .Verify(f => f.FindBySourceIdAsync(sourceId, Cancel), Times.Once);
                     }
                     else
                     {
                         MockGroupContentFinder
-                            .Verify(f => f.FindDestinationReferenceAsync(sourceId, Cancel), Times.Once);
+                            .Verify(f => f.FindBySourceIdAsync(sourceId, Cancel), Times.Once);
                     }
                 }
 

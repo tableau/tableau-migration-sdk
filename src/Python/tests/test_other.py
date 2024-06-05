@@ -15,7 +15,11 @@
 
 import os
 import logging
-import tableau_migration
+from tableau_migration import _logger_names
+from tableau_migration.migration import (
+    get_service_provider,
+    get_service
+)
 
 from tableau_migration.migration_engine import (
     PyMigrationPlanBuilder)
@@ -46,9 +50,9 @@ class TestLogging():
         PyMigrationPlanBuilder()
         
         # tableau_migration module keeps track of instaniated loggers. Verify that we have at least one
-        assert len(tableau_migration._logger_names) > 0
+        assert len(_logger_names) > 0
         
-        for name in tableau_migration._logger_names:
+        for name in _logger_names:
             # Given that we have a name, we should have a logger
             assert logging.getLogger(name)            
 
@@ -62,8 +66,8 @@ class TestConfig():
         process starts and hence the env variables take and that way an int can be set to a env var.
         '''
 
-        services = tableau_migration.migration.get_service_provider()
-        config_reader = tableau_migration.migration.get_service(services, IConfigReader)
+        services = get_service_provider()
+        config_reader = get_service(services, IConfigReader)
 
         batch_size = config_reader.Get[IUser]().BatchSize
 

@@ -21,6 +21,7 @@ import uuid
 import pytest
 
 from tableau_migration.migration import (
+    PyContentLocation,
     PyMigrationManifest, 
     PyMigrationResult)
 from tableau_migration.migration_engine import (
@@ -30,6 +31,7 @@ from tableau_migration.migration_engine_migrators import PyMigrator
 
 import System
 from Tableau.Migration import (
+    ContentLocation,
     IMigrator, 
     IMigrationManifest, 
     IMigrationPlan,
@@ -134,4 +136,12 @@ class TestPyMigrationManifest():
         invokedMethodNames = [methodInfo.Method.Name for methodInfo in manifest_mock.Invocations]
         # dotnet function was not called, as there was no function to call that takes
         # a python exception
-        assert not invokedMethodNames 
+        assert not invokedMethodNames
+        
+class TestPyContentLocation():    
+    def test_path_segments(self):
+        dotnet = ContentLocation(["parent", "child", "item"])
+        py = PyContentLocation(dotnet)
+        
+        path = py.path_segments
+        assert path == ["parent", "child", "item"]

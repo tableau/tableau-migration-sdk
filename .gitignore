@@ -176,8 +176,8 @@ appsettings.Development.json
 clean-server-settings.dev.json
 launchSettings.json
 UpgradeLog.htm
-*.DEV.ini
-*.DEV.json
+*.*.ini
+*.*.json
 /src/Python/Documentation/_build
 /src/Python/Documentation/_static
 /src/Python/Python.pyproj.user

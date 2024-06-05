@@ -27,7 +27,7 @@ namespace Tableau.Migration.Interop.Logging
     /// </summary>
     [UnsupportedOSPlatform("browser")]
     [ProviderAlias("NonGeneric")]
-    public class NonGenericLoggerProvider : ILoggerProvider
+    internal class NonGenericLoggerProvider : ILoggerProvider
     {
         private readonly ConcurrentDictionary<string, NonGenericLoggerBase> _loggers =
             new(StringComparer.OrdinalIgnoreCase);

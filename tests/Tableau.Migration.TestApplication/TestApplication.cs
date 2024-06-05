@@ -106,6 +106,13 @@ namespace Tableau.Migration.TestApplication
             // Log when a content type is done
             _planBuilder.Hooks.Add<TimeLoggerAfterActionHook>();
 
+            _planBuilder.Filters.Add<SkipByParentLocationFilter<IProject>, IProject>();
+            _planBuilder.Filters.Add<SkipByParentLocationFilter<IDataSource>, IDataSource>();
+            _planBuilder.Filters.Add<SkipByParentLocationFilter<IWorkbook>, IWorkbook>();
+            _planBuilder.Transformers.Add<RemoveMissingDestinationUsersFromGroupsTransformer, IPublishableGroup>();
+            _planBuilder.Mappings.Add<ContentWithinSkippedLocationMapping<IProject>, IProject>();
+            _planBuilder.Mappings.Add<ContentWithinSkippedLocationMapping<IDataSource>, IDataSource>();
+            _planBuilder.Mappings.Add<ContentWithinSkippedLocationMapping<IWorkbook>, IWorkbook>();
             // Skip content types we've already done. 
             // Uncomment as needed
             //_planBuilder.Filters.Add(new SkipFilter<IUser>());

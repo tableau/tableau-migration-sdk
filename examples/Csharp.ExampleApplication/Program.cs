@@ -9,6 +9,7 @@ using Csharp.ExampleApplication.Hooks.Transformers;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Tableau.Migration;
+using Tableau.Migration.Content;
 
 #region namespace
 namespace Csharp.ExampleApplication
@@ -56,7 +57,8 @@ namespace Csharp.ExampleApplication
             #endregion
 
             #region ChangeProjectMapping-DI
-            services.AddScoped<ChangeProjectMapping>();
+            services.AddScoped<ChangeProjectMapping<IWorkbook>>();
+            services.AddScoped<ChangeProjectMapping<IDataSource>>();
             #endregion
 
             #region DefaultProjectsFilter-DI
@@ -76,7 +78,13 @@ namespace Csharp.ExampleApplication
             #endregion
 
             #region MigratedTagTransformer-DI
-            services.AddScoped<MigratedTagTransformer>();
+            services.AddScoped<MigratedTagTransformer<IPublishableDataSource>>();
+            services.AddScoped<MigratedTagTransformer<IPublishableWorkbook>>();
+            #endregion
+
+            #region EncryptExtractTransformer-DI
+            services.AddScoped<EncryptExtractsTransformer<IPublishableDataSource>>();
+            services.AddScoped<EncryptExtractsTransformer<IPublishableWorkbook>>();
             #endregion
 
             #region LogMigrationActionsHook-DI

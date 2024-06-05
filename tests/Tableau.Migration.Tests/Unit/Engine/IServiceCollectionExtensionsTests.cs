@@ -272,15 +272,15 @@ namespace Tableau.Migration.Tests.Unit.Engine
             {
                 await using var scope = await InitializeMigrationScopeAsync();
 
-                AssertService<ManifestDestinationContentReferenceFinder<TestContentType>>(scope, ServiceLifetime.Scoped);
+                AssertService<IDestinationContentReferenceFinder<TestContentType>, ManifestDestinationContentReferenceFinder<TestContentType>>(scope, ServiceLifetime.Scoped);
             }
 
             [Fact]
-            public async Task RegistersScopedDestinationContentFinderFactoryAsync()
+            public async Task RegistersScopedIDestinationContentFinderFactoryAsync()
             {
                 await using var scope = await InitializeMigrationScopeAsync();
 
-                AssertService<ManifestDestinationContentReferenceFinderFactory>(scope, ServiceLifetime.Scoped);
+                AssertService<IDestinationContentReferenceFinderFactory, ManifestDestinationContentReferenceFinderFactory>(scope, ServiceLifetime.Scoped);
             }
 
             [Fact]
@@ -296,15 +296,15 @@ namespace Tableau.Migration.Tests.Unit.Engine
             {
                 await using var scope = await InitializeMigrationScopeAsync();
 
-                AssertService<ManifestSourceContentReferenceFinder<TestContentType>>(scope, ServiceLifetime.Scoped);
+                AssertService<ISourceContentReferenceFinder<TestContentType>, ManifestSourceContentReferenceFinder<TestContentType>>(scope, ServiceLifetime.Scoped);
             }
 
             [Fact]
-            public async Task RegistersScopedSourceContentFinderFactoryAsync()
+            public async Task RegistersScopedISourceContentFinderFactoryAsync()
             {
                 await using var scope = await InitializeMigrationScopeAsync();
 
-                AssertService<ManifestSourceContentReferenceFinderFactory>(scope, ServiceLifetime.Scoped);
+                AssertService<ISourceContentReferenceFinderFactory, ManifestSourceContentReferenceFinderFactory>(scope, ServiceLifetime.Scoped);
             }
 
             [Fact]

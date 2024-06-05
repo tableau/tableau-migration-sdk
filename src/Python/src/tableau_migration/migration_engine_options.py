@@ -22,7 +22,9 @@ import System
 from Tableau.Migration.Engine.Options import(
     IMigrationPlanOptionsBuilder,
     IMigrationPlanOptionsCollection)
-import tableau_migration
+from tableau_migration.migration import (
+    get_service_provider
+)
 
 T = TypeVar("T")
 class PyMigrationPlanOptionsCollection:
@@ -41,7 +43,7 @@ class PyMigrationPlanOptionsCollection:
         self._migration_plan_options_collection = migration_plan_options_collection
 
 
-    def get(self, type_to_get: Type[T], services: System.IServiceProvider = tableau_migration.migration.get_service_provider()) -> Type[T]:
+    def get(self, type_to_get: Type[T], services: System.IServiceProvider = None) -> Type[T]:
         """Gets the options for the given type.
         
         or null if no options for the given type have been registered.
@@ -54,6 +56,9 @@ class PyMigrationPlanOptionsCollection:
         Returns:
             The options for the given type, or null.
         """
+        if services is None:
+            services = get_service_provider()
+
         return self._migration_plan_options_collection.Get[type_to_get](services)
 
 class PyMigrationPlanOptionsBuilder():

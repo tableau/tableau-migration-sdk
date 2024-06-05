@@ -32,7 +32,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers
         {
             public class TestImplementation : IXmlContentTransformer<TestFileContentType>
             {
-                public virtual async Task ExecuteAsync(TestFileContentType ctx, XDocument xml, CancellationToken cancel)
+                public virtual async Task TransformAsync(TestFileContentType ctx, XDocument xml, CancellationToken cancel)
                 {
                     await Task.CompletedTask;
                 }
@@ -75,7 +75,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers
                 mockFile.Verify(x => x.GetXmlStreamAsync(Cancel), Times.Once);
                 mockXmlStream.Verify(x => x.GetXmlAsync(Cancel), Times.Once);
 
-                mockTransformer.Verify(x => x.ExecuteAsync(ctx, xml, Cancel), Times.Once);
+                mockTransformer.Verify(x => x.TransformAsync(ctx, xml, Cancel), Times.Once);
             }
         }
     }

@@ -31,7 +31,7 @@ namespace Tableau.Migration.Tests.Unit.Interop.Hooks.Transformers
         {
             public class TestImplementation : ISyncXmlContentTransformer<TestFileContentType>
             {
-                public virtual void Execute(TestFileContentType ctx, XDocument xml) { }
+                public virtual void Transform(TestFileContentType ctx, XDocument xml) { }
 
                 public virtual bool NeedsXmlTransforming(TestFileContentType ctx) => true;
             }
@@ -57,7 +57,7 @@ namespace Tableau.Migration.Tests.Unit.Interop.Hooks.Transformers
                 mockFile.Verify(x => x.GetXmlStreamAsync(Cancel), Times.Once);
                 mockXmlStream.Verify(x => x.GetXmlAsync(Cancel), Times.Once);
 
-                mockTransformer.Verify(x => x.Execute(ctx, xml), Times.Once);
+                mockTransformer.Verify(x => x.Transform(ctx, xml), Times.Once);
             }
         }
     }

@@ -49,10 +49,10 @@ namespace Tableau.Migration.Interop.Hooks.Transformers
         /// The XML of the content item to transform.
         /// Any changes made to the XML are persisted back to the file before publishing.
         /// </param>
-        void Execute(TPublish ctx, XDocument xml);
+        void Transform(TPublish ctx, XDocument xml);
 
         /// <inheritdoc />
-        Task IXmlContentTransformer<TPublish>.ExecuteAsync(TPublish ctx, XDocument xml, CancellationToken cancel)
-            => Task.Run(() => Execute(ctx, xml), cancel);
+        Task IXmlContentTransformer<TPublish>.TransformAsync(TPublish ctx, XDocument xml, CancellationToken cancel)
+            => Task.Run(() => Transform(ctx, xml), cancel);
     }
 }

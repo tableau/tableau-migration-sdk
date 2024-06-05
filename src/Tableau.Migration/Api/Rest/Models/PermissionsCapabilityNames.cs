@@ -23,7 +23,7 @@ namespace Tableau.Migration.Api.Rest.Models
     public class PermissionsCapabilityNames : StringEnum<PermissionsCapabilityNames>
     {
         /// <summary>
-        /// Gets the name of capability name for no cabapibilities.
+        /// Gets the name of capability name for no capabilities.
         /// </summary>
         public const string None = "None";
 

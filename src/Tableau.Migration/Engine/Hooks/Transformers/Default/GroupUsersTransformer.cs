@@ -19,7 +19,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Tableau.Migration.Content;
-using Tableau.Migration.Engine.Pipelines;
+using Tableau.Migration.Engine.Endpoints.Search;
 using Tableau.Migration.Resources;
 
 namespace Tableau.Migration.Engine.Hooks.Transformers.Default
@@ -29,22 +29,22 @@ namespace Tableau.Migration.Engine.Hooks.Transformers.Default
     /// </summary>
     public class GroupUsersTransformer : ContentTransformerBase<IPublishableGroup>
     {
-        private readonly IMigrationPipeline _migrationPipeline;
+        private readonly IDestinationContentReferenceFinder<IUser> _userFinder;
         private readonly ISharedResourcesLocalizer _localizer;
         private readonly ILogger<GroupUsersTransformer> _logger;
 
         /// <summary>
         /// Creates a new <see cref="GroupUsersTransformer"/> object.
         /// </summary>
-        /// <param name="migrationPipeline">Destination content finder object.</param>
+        /// <param name="destinationFinderFactory">The destination finder factory.</param>
         /// <param name="localizer">A string localizer.</param>
         /// <param name="logger">The logger used to log messages.</param>
         public GroupUsersTransformer(
-            IMigrationPipeline migrationPipeline,
+            IDestinationContentReferenceFinderFactory destinationFinderFactory,
             ISharedResourcesLocalizer localizer,
             ILogger<GroupUsersTransformer> logger) : base(localizer, logger)
         {
-            _migrationPipeline = migrationPipeline;
+            _userFinder = destinationFinderFactory.ForDestinationContentType<IUser>();
             _localizer = localizer;
             _logger = logger;
         }
@@ -54,12 +54,10 @@ namespace Tableau.Migration.Engine.Hooks.Transformers.Default
             IPublishableGroup sourceGroup,
             CancellationToken cancel)
         {
-            var userFinder = _migrationPipeline.CreateDestinationFinder<IUser>();
-
             foreach (var user in sourceGroup.Users)
             {
-                var destinationUser = await userFinder
-                    .FindDestinationReferenceAsync(user.User.Location, cancel)
+                var destinationUser = await _userFinder
+                    .FindBySourceLocationAsync(user.User.Location, cancel)
                     .ConfigureAwait(false);
 
                 if (destinationUser is not null)

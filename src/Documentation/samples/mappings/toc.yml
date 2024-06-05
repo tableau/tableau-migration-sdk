@@ -1,0 +1,6 @@
+- name: Username email
+  href: username_email_mapping.md
+- name: Rename projects
+  href: rename_projects.md
+- name: Change projects
+  href: change_projects.md

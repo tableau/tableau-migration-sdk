@@ -22,7 +22,9 @@
   "special_users": {
     "admin_domain": "",
     "admin_username": "",
-    "emails": [ ]
+    "emails": []
   },
+  "skipped_project": "",
+  "skipped_parent_destination": "Missing Parent",
   "previous_manifest": ""
 }

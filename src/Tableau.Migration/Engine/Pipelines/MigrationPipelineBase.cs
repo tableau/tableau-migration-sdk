@@ -128,13 +128,6 @@ namespace Tableau.Migration.Engine.Pipelines
         }
 
         /// <inheritdoc />
-        public virtual IMappedContentReferenceFinder<TContent> CreateDestinationFinder<TContent>()
-            where TContent : class, IContentReference
-        {
-            return Services.GetRequiredService<ManifestDestinationContentReferenceFinder<TContent>>();
-        }
-
-        /// <inheritdoc />
         public virtual ILockedProjectCache GetDestinationLockedProjectCache()
             => Services.GetRequiredService<BulkDestinationProjectCache>();
 

@@ -16,6 +16,7 @@
 //
 
 using Moq;
+using Tableau.Migration.Content.Search;
 using Tableau.Migration.Engine.Endpoints.Search;
 using Xunit;
 
@@ -34,7 +35,10 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints.Search
 
                 var finder = fac.ForContentType<TestContentType>();
 
-                provider.Verify(x => x.GetService(typeof(ManifestDestinationContentReferenceFinder<TestContentType>)), Times.Once);
+                provider.Verify(x => x.GetService(typeof(IDestinationContentReferenceFinder<TestContentType>)), Times.Once);
+
+                Assert.IsAssignableFrom<IDestinationContentReferenceFinder<TestContentType>>(finder);
+                Assert.IsAssignableFrom<IContentReferenceFinder<TestContentType>>(finder);
             }
         }
     }

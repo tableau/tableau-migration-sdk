@@ -42,11 +42,12 @@ namespace Csharp.ExampleApplication.Hooks.Mappings
         public override Task<ContentMappingContext<IUser>?> MapAsync(ContentMappingContext<IUser> userMappingContext, CancellationToken cancel)
         {
             var domain = userMappingContext.MappedLocation.Parent();
+
             // Re-use an existing email if it already exists.
             if (!string.IsNullOrEmpty(userMappingContext.ContentItem.Email))
                 return userMappingContext.MapTo(domain.Append(userMappingContext.ContentItem.Email)).ToTask();
 
-            // Takes the existing username and appends the default domain to build the email
+            // Takes the existing username and appends the domain to build the email
             var testEmail = $"{userMappingContext.ContentItem.Name}@{_domain}";
             return userMappingContext.MapTo(domain.Append(testEmail)).ToTask();
         }

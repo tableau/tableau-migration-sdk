@@ -37,7 +37,7 @@ import clr  # noqa: E402
 clr.AddReference("Tableau.Migration")
 clr.AddReference("Microsoft.Extensions.DependencyInjection")
 
-import tableau_migration.migration # noqa: E402 
+import tableau_migration.migration # noqa: E402
 _services = None
 _service_collection = None
 _logger_names = [] # List of logger names
@@ -50,6 +50,85 @@ cancellation_token_source = CancellationTokenSource()
 cancellation_token = cancellation_token_source.Token
 
 # Friendly renames for common top-level imports
-from tableau_migration.migration import PyMigrationCompletionStatus as MigrationCompletionStatus # noqa: E402,F401
-from tableau_migration.migration_engine import PyMigrationPlanBuilder as MigrationPlanBuilder # noqa: E402,F401
-from tableau_migration.migration_engine_migrators import PyMigrator as Migrator # noqa: E402,F401
+from tableau_migration.migration_engine import PyMigrationPlanBuilder as MigrationPlanBuilder # noqa: E402, F401
+from tableau_migration.migration_engine_hooks_filters_interop import PyContentFilterBase as ContentFilterBase # noqa: E402, F401
+from tableau_migration.migration_engine_hooks_interop import ( # noqa: E402, F401
+    PyContentBatchMigrationCompletedHookBase as ContentBatchMigrationCompletedHookBase,
+    PyMigrationActionCompletedHookBase as MigrationActionCompletedHookBase
+)
+from tableau_migration.migration_engine_hooks_mappings_interop import ( # noqa: E402, F401
+    PyContentMappingBase as ContentMappingBase,
+    PyTableauCloudUsernameMappingBase as TableauCloudUsernameMappingBase
+)
+from tableau_migration.migration_engine_hooks_postpublish_interop import ( # noqa: E402, F401
+    PyBulkPostPublishHookBase as BulkPostPublishHookBase,
+    PyContentItemPostPublishHookBase as ContentItemPostPublishHookBase
+)
+from tableau_migration.migration_engine_hooks_transformers_interop import ( # noqa: E402, F401
+    PyContentTransformerBase as ContentTransformerBase,
+    PyXmlContentTransformerBase as XmlContentTransformerBase
+)
+from tableau_migration.migration_engine_migrators import PyMigrator as Migrator # noqa: E402, F401
+from tableau_migration.migration_engine_endpoints_search import PyDestinationContentReferenceFinder as IDestinationContentReferenceFinder # noqa: E402, F401
+from tableau_migration.migration_engine_endpoints_search import PyDestinationContentReferenceFinderFactory as IDestinationContentReferenceFinderFactory # noqa: E402, F401
+from tableau_migration.migration_engine_endpoints_search import PySourceContentReferenceFinder as ISourceContentReferenceFinder # noqa: E402, F401
+from tableau_migration.migration_engine_endpoints_search import PySourceContentReferenceFinderFactory as ISourceContentReferenceFinderFactory # noqa: E402, F401
+
+# region _generated
+
+from tableau_migration.migration import PyContentLocation as ContentLocation # noqa: E402, F401
+from tableau_migration.migration import PyContentReference as IContentReference # noqa: E402, F401
+from tableau_migration.migration import PyMigrationCompletionStatus as MigrationCompletionStatus # noqa: E402, F401
+from tableau_migration.migration import PyResult as IResult # noqa: E402, F401
+from tableau_migration.migration_api_rest_models import PyAdministratorLevels as AdministratorLevels # noqa: E402, F401
+from tableau_migration.migration_api_rest_models import PyContentPermissions as ContentPermissions # noqa: E402, F401
+from tableau_migration.migration_api_rest_models import PyExtractEncryptionModes as ExtractEncryptionModes # noqa: E402, F401
+from tableau_migration.migration_api_rest_models import PyLabelCategories as LabelCategories # noqa: E402, F401
+from tableau_migration.migration_api_rest_models import PyLicenseLevels as LicenseLevels # noqa: E402, F401
+from tableau_migration.migration_api_rest_models import PyPermissionsCapabilityModes as PermissionsCapabilityModes # noqa: E402, F401
+from tableau_migration.migration_api_rest_models import PyPermissionsCapabilityNames as PermissionsCapabilityNames # noqa: E402, F401
+from tableau_migration.migration_api_rest_models import PySiteRoles as SiteRoles # noqa: E402, F401
+from tableau_migration.migration_api_rest_models_types import PyAuthenticationTypes as AuthenticationTypes # noqa: E402, F401
+from tableau_migration.migration_api_rest_models_types import PyDataSourceFileTypes as DataSourceFileTypes # noqa: E402, F401
+from tableau_migration.migration_api_rest_models_types import PyWorkbookFileTypes as WorkbookFileTypes # noqa: E402, F401
+from tableau_migration.migration_content import PyConnection as IConnection # noqa: E402, F401
+from tableau_migration.migration_content import PyConnectionsContent as IConnectionsContent # noqa: E402, F401
+from tableau_migration.migration_content import PyContainerContent as IContainerContent # noqa: E402, F401
+from tableau_migration.migration_content import PyDataSource as IDataSource # noqa: E402, F401
+from tableau_migration.migration_content import PyDataSourceDetails as IDataSourceDetails # noqa: E402, F401
+from tableau_migration.migration_content import PyDescriptionContent as IDescriptionContent # noqa: E402, F401
+from tableau_migration.migration_content import PyExtractContent as IExtractContent # noqa: E402, F401
+from tableau_migration.migration_content import PyGroup as IGroup # noqa: E402, F401
+from tableau_migration.migration_content import PyGroupUser as IGroupUser # noqa: E402, F401
+from tableau_migration.migration_content import PyLabel as ILabel # noqa: E402, F401
+from tableau_migration.migration_content import PyProject as IProject # noqa: E402, F401
+from tableau_migration.migration_content import PyPublishableDataSource as IPublishableDataSource # noqa: E402, F401
+from tableau_migration.migration_content import PyPublishableGroup as IPublishableGroup # noqa: E402, F401
+from tableau_migration.migration_content import PyPublishableWorkbook as IPublishableWorkbook # noqa: E402, F401
+from tableau_migration.migration_content import PyPublishedContent as IPublishedContent # noqa: E402, F401
+from tableau_migration.migration_content import PyTag as ITag # noqa: E402, F401
+from tableau_migration.migration_content import PyUser as IUser # noqa: E402, F401
+from tableau_migration.migration_content import PyUsernameContent as IUsernameContent # noqa: E402, F401
+from tableau_migration.migration_content import PyView as IView # noqa: E402, F401
+from tableau_migration.migration_content import PyWithDomain as IWithDomain # noqa: E402, F401
+from tableau_migration.migration_content import PyWithOwner as IWithOwner # noqa: E402, F401
+from tableau_migration.migration_content import PyWithTags as IWithTags # noqa: E402, F401
+from tableau_migration.migration_content import PyWorkbook as IWorkbook # noqa: E402, F401
+from tableau_migration.migration_content import PyWorkbookDetails as IWorkbookDetails # noqa: E402, F401
+from tableau_migration.migration_content_permissions import PyCapability as ICapability # noqa: E402, F401
+from tableau_migration.migration_content_permissions import PyGranteeCapability as IGranteeCapability # noqa: E402, F401
+from tableau_migration.migration_content_permissions import PyGranteeType as GranteeType # noqa: E402, F401
+from tableau_migration.migration_content_permissions import PyPermissions as IPermissions # noqa: E402, F401
+from tableau_migration.migration_engine import PyContentMigrationItem as ContentMigrationItem # noqa: E402, F401
+from tableau_migration.migration_engine_actions import PyMigrationActionResult as IMigrationActionResult # noqa: E402, F401
+from tableau_migration.migration_engine_hooks_mappings import PyContentMappingContext as ContentMappingContext # noqa: E402, F401
+from tableau_migration.migration_engine_hooks_postpublish import PyBulkPostPublishContext as BulkPostPublishContext # noqa: E402, F401
+from tableau_migration.migration_engine_hooks_postpublish import PyContentItemPostPublishContext as ContentItemPostPublishContext # noqa: E402, F401
+from tableau_migration.migration_engine_manifest import PyMigrationManifestEntry as IMigrationManifestEntry # noqa: E402, F401
+from tableau_migration.migration_engine_manifest import PyMigrationManifestEntryEditor as IMigrationManifestEntryEditor # noqa: E402, F401
+from tableau_migration.migration_engine_manifest import PyMigrationManifestEntryStatus as MigrationManifestEntryStatus # noqa: E402, F401
+from tableau_migration.migration_engine_migrators import PyContentItemMigrationResult as IContentItemMigrationResult # noqa: E402, F401
+from tableau_migration.migration_engine_migrators_batch import PyContentBatchMigrationResult as IContentBatchMigrationResult # noqa: E402, F401
+
+# endregion
+

@@ -30,18 +30,7 @@ import inspect
 from enum import Enum
 from typing import List
 
-from migration_testcomponents_engine_manifest import (
-    PyMigrationManifestSerializer)
-
-from migration_testcomponents_filters import(
-    PySpecialUserFilter,
-    PyUnlicensedUserFilter)
-
-from migration_testcomponents_mappings import(
-    PySpecialUserMapping,
-    PyUnlicensedUserMapping)
-from migration_testcomponents_hooks import(
-    PyTimeLoggerAfterActionHook)
+from migration_testcomponents_engine_manifest import PyMigrationManifestSerializer
 
 def get_class_methods(cls):
     """
@@ -198,12 +187,7 @@ class TestNameComparison():
 
 
 @pytest.mark.parametrize("python_class, ignored_methods", [                          
-                          (PyMigrationManifestSerializer, None),
-                          (PySpecialUserFilter, "ExecuteAsync"),
-                          (PySpecialUserMapping, None),
-                          (PyUnlicensedUserMapping, None),
-                          (PyUnlicensedUserFilter, "ExecuteAsync"),
-                          (PyTimeLoggerAfterActionHook, None)
+                          (PyMigrationManifestSerializer, None)
                           ])
 def test_classes(python_class, ignored_methods):
     """Verify that all the python wrapper classes actually wrap all the dotnet methods and properties."""

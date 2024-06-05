@@ -15,7 +15,6 @@
 		<BuildInParallel>false</BuildInParallel>
 		<PackageReadmeFile>NUGET.md</PackageReadmeFile>
 		<PackageTags>Tableau;migration;API;REST;workbook;datasource;project;group;user;permission</PackageTags>
-		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
 		<PackageIcon>TableauLogoColor.png</PackageIcon>
 		<Description>Customers worldwide are migrating to Tableau Cloud to take advantage of the innovation, reduced cost, security, and scalability of Tableau’s managed data service. The Migration Software Development Kit (SDK) helps you migrate to Tableau Cloud in a seamless and predictable way. You can use the Migration SDK to build your own migration application to do the following:

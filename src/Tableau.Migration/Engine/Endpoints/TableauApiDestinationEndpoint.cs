@@ -44,7 +44,7 @@ namespace Tableau.Migration.Engine.Endpoints
         /// <param name="localizer">A string localizer.</param>
         public TableauApiDestinationEndpoint(IServiceScopeFactory serviceScopeFactory,
             ITableauApiEndpointConfiguration config,
-            ManifestDestinationContentReferenceFinderFactory finderFactory,
+            IDestinationContentReferenceFinderFactory finderFactory,
             IContentFileStore fileStore,
             ISharedResourcesLocalizer localizer)
             : base(serviceScopeFactory, config, finderFactory, fileStore, localizer)

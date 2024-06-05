@@ -47,7 +47,7 @@ namespace Tableau.Migration.Interop.Logging
         {
             // In python.net, a generic method like Log<T> can't be concretely implemented because python has no understanding of generic methods.
             // To get around this, we pre-format the message, and pass it to the non-generic `Log` method
-            this.Log(logLevel, eventId, formatter(state, null), exception, formatter(state, exception));
+            Log(logLevel, eventId, formatter(state, null), exception, formatter(state, exception));
         }
 
         /// <inheritdoc />

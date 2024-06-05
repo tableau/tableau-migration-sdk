@@ -31,6 +31,7 @@ namespace Tableau.Migration.Content.Search
         private readonly Dictionary<Guid, ContentReferenceStub?> _idCache = new();
 
         private readonly SemaphoreSlim _writeSemaphore = new(1, 1);
+        private bool _loaded = false;
 
         /// <summary>
         /// Gets the count of items in the cache.
@@ -93,19 +94,24 @@ namespace Tableau.Migration.Content.Search
                     return cachedResult;
                 }
 
-                var searchResults = await searchAsync(search, cancel).ConfigureAwait(false);
-                foreach (var searchResult in searchResults)
+                if (!_loaded)
                 {
-                    _idCache[searchResult.Id] = searchResult;
-                    _locationCache[searchResult.Location] = searchResult;
-                }
-                
-                // Retry lookup now that this attempt populated.
-                if (cache.TryGetValue(search, out cachedResult))
-                {
-                    return cachedResult;
-                }
+                    // Load the cache with list values just once
+                    var searchResults = await searchAsync(search, cancel).ConfigureAwait(false);
+                    foreach (var searchResult in searchResults)
+                    {
+                        _idCache[searchResult.Id] = searchResult;
+                        _locationCache[searchResult.Location] = searchResult;
+                    }
 
+                    _loaded = true;
+
+                    // Retry lookup now that this attempt populated.
+                    if (cache.TryGetValue(search, out cachedResult))
+                    {
+                        return cachedResult;
+                    }
+                }
                 // No cached results. Retry individual search.
                 cachedResult = await individualSearchAsync(search, cancel).ConfigureAwait(false);
                 

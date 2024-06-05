@@ -17,7 +17,6 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 using Tableau.Migration.Resources;
 
@@ -55,7 +54,7 @@ namespace Tableau.Migration.Engine.Hooks.Mappings
 
             if((_logger is not null) && (_localizer is not null))
                 _logger.LogDebug(_localizer[(SharedResourceKeys.ContentMappingBaseDebugMessage)], _typeName, ctx.ContentItem.ToStringForLog(), ctx.MappedLocation);
-
+            
             return ret;
         }
 

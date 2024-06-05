@@ -60,7 +60,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers
             protected override bool NeedsXmlTransforming(TestFileContentType ctx)
                 => NeedsXmlTransformingFilter?.Invoke(ctx) ?? base.NeedsXmlTransforming(ctx);
 
-            public override Task ExecuteAsync(TestFileContentType ctx, XDocument xml, CancellationToken cancel)
+            public override Task TransformAsync(TestFileContentType ctx, XDocument xml, CancellationToken cancel)
             {
                 TransformXml?.Invoke(ctx, xml);
                 return Task.CompletedTask;
@@ -89,9 +89,9 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers
 
         #endregion
 
-        #region - ExecuteAsync -
+        #region - TransformAsync -
 
-        public class ExecuteAsync : XmlContentTransformerBaseTest
+        public class TransformAsync : XmlContentTransformerBaseTest
         {
             public class TestOverwriteExecuteXmlTransformer : XmlContentTransformerBase<TestFileContentType>,
                 IMigrationHook<TestFileContentType>
@@ -101,7 +101,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers
                     throw new NotImplementedException();
                 }
 
-                public override Task ExecuteAsync(TestFileContentType ctx, XDocument xml, CancellationToken cancel)
+                public override Task TransformAsync(TestFileContentType ctx, XDocument xml, CancellationToken cancel)
                 {
                     throw new NotImplementedException();
                 }

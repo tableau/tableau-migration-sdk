@@ -166,6 +166,26 @@ namespace Tableau.Migration.Tests.Unit.Content.Search
                 Assert.Equal(1, Cache.SearchCalls);
             }
 
+            [Fact]
+            public async Task NotFoundSingleListAsync()
+            {
+                var notFoundItem1 = Create<ContentReferenceStub>();
+                var notFoundItem2 = Create<ContentReferenceStub>();
+
+                var result = await Cache.ForLocationAsync(notFoundItem1.Location, Cancel);
+                Assert.Null(result);
+
+                result = await Cache.ForLocationAsync(notFoundItem1.Location, Cancel);
+                Assert.Null(result);
+
+                Assert.Equal(1, Cache.SearchCalls);
+
+                result = await Cache.ForLocationAsync(notFoundItem2.Location, Cancel);
+                Assert.Null(result);
+
+                Assert.Equal(1, Cache.SearchCalls);
+            }
+
             // TODO: W-14187810 - Fix Flaky Test.
             // Increasing the timeout configuration helps when the test runs in a machine with limited resources.
             [Fact]

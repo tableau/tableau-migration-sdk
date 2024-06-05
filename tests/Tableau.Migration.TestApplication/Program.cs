@@ -105,7 +105,10 @@ namespace Tableau.Migration.TestApplication
                         .AddScoped<UnlicensedUserMapping>()
                         .AddScoped<SpecialUserFilter>()
                         .AddScoped<SpecialUserMapping>()
-                        .AddScoped<NonDomainUserFilter>();
+                        .AddScoped<NonDomainUserFilter>()
+                        .AddScoped(typeof(SkipByParentLocationFilter<>))
+                        .AddScoped(typeof(ContentWithinSkippedLocationMapping<>))
+                        .AddScoped<RemoveMissingDestinationUsersFromGroupsTransformer>();
                 })
                 .Build();
 

@@ -29,7 +29,8 @@ namespace Tableau.Migration.Engine.Endpoints.Search
     /// from the migration manifest.
     /// </summary>
     /// <typeparam name="TContent">The content type.</typeparam>
-    public class ManifestSourceContentReferenceFinder<TContent> : IContentReferenceFinder<TContent>
+    public class ManifestSourceContentReferenceFinder<TContent> 
+        : ISourceContentReferenceFinder<TContent>
         where TContent : class, IContentReference
     {
         private readonly IMigrationManifestEditor _manifest;
@@ -47,8 +48,22 @@ namespace Tableau.Migration.Engine.Endpoints.Search
         }
 
         /// <inheritdoc />
+        public async Task<IContentReference?> FindBySourceLocationAsync(ContentLocation sourceLocation, CancellationToken cancel)
+        {
+            //Get the SOURCE reference for the SOURCE location.
+            var manifestEntries = _manifest.Entries.GetOrCreatePartition<TContent>();
+            if (manifestEntries.BySourceLocation.TryGetValue(sourceLocation, out var entry))
+            {
+                return entry.Source;
+            }
+
+            return await _sourceCache.ForLocationAsync(sourceLocation, cancel).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc />
         public async Task<IContentReference?> FindByIdAsync(Guid id, CancellationToken cancel)
         {
+            //Get the SOURCE reference for the SOURCE ID.
             var partition = _manifest.Entries.GetOrCreatePartition<TContent>();
 
             if (partition.BySourceId.TryGetValue(id, out var entry))

@@ -14,9 +14,11 @@
 # limitations under the License.
 
 """Wrapper for classes in Tableau.Migration.Engine.Hooks namespace."""
+
 from inspect import isclass
-from typing import Type, TypeVar
+from typing import Callable, get_args, get_origin, Type, TypeVar, Union
 from typing_extensions import Self
+
 from System import Func, IServiceProvider
 from Tableau.Migration.Engine.Hooks import IMigrationHookBuilder, IMigrationHookFactoryCollection
 
@@ -47,6 +49,25 @@ class PyMigrationHookFactoryCollection():
         """
         return self._migration_hook_factory_collection.GetHooks[type_to_get]()
 
+def _get_wrapper_from_callback_context(t: type) -> type:
+    from migration_engine_actions import PyMigrationActionResult
+    from migration_engine_hooks_interop import _PyMigrationActionCompletedHookWrapper, _PyContentBatchMigrationCompletedHookWrapper
+    from migration_engine_hooks_postpublish import PyBulkPostPublishContext, PyContentItemPostPublishContext
+    from migration_engine_hooks_postpublish_interop import _PyBulkPostPublishHookWrapper, _PyContentItemPostPublishHookWrapper
+    from migration_engine_migrators_batch import PyContentBatchMigrationResult
+
+    types = {
+        PyBulkPostPublishContext.__name__: _PyBulkPostPublishHookWrapper,
+        PyContentBatchMigrationResult.__name__: _PyContentBatchMigrationCompletedHookWrapper,
+        PyContentItemPostPublishContext.__name__: _PyContentItemPostPublishHookWrapper,
+        PyMigrationActionResult.__name__: _PyMigrationActionCompletedHookWrapper
+    }
+
+    if t.__name__ not in types:
+        return None
+
+    return types[t.__name__]
+
 class PyMigrationHookBuilder():
     """Default IMigrationHookBuilder implementation."""
 
@@ -72,35 +93,30 @@ class PyMigrationHookBuilder():
         self._migration_hook_builder.Clear()
         return self
 
-
-    def add(self,input_0,input_1=None,input_2=None) -> Self:
-        """Adds a an object to execute one or more hooks.
+    
+    def add(self, input_0: type, input_1: Union[Callable, None] = None) -> Self:
+        """Adds an object or function to execute hooks.
 
         Args:
             input_0: Either: 
-                1) The hook to execute, or;
-                2) The hook type to execute, or;
-                3) The hook type to execute, or;
+                1) The hook type to execute, or
+                2) The hook context type for a callback function
             input_1: Either:
-                1) None, or;
-                2) None, or the function to resolve the type by using the service provider, or;
-                3) The context type for a callback function;
-            input_2: Either:
-                1) None, or;
-                2) None, or;
-                3) The callback function that will return the context type;
+                1) The callback function to execute, or
+                2) None
 
         Returns:
-            The same hook builder object for fluent API calls.
+            The same mapping builder object for fluent API calls.
         """
-        if isclass(input_0) and input_1 is None:
-            self._migration_hook_builder.Add[input_0]()
-        elif isclass(input_0) and input_1 is not None and isinstance(input_1,Func[IServiceProvider, input_0]):
-            self._migration_hook_builder.Add[input_0](input_1)
-        elif isclass(input_0) and input_1 is not None and isclass(input_1) and input_2 is not None and isinstance(input_2,Func[input_1, input_1]):
-            self._migration_hook_builder.Add[input_0,input_1](input_2)
+        if input_1 is None:
+            wrapper = input_0._wrapper(input_0)
         else:
-            self._migration_hook_builder.Add(input_0)
+            t = input_0 if isclass(input_0) else get_origin(input_0)
+            wrap_type = _get_wrapper_from_callback_context(t)
+            wrapper = wrap_type(list(get_args(input_0)), input_1)
+        
+        self._migration_hook_builder.Add[wrapper.wrapper_type](Func[IServiceProvider, wrapper.wrapper_type](wrapper.factory))
+
         return self
 
 

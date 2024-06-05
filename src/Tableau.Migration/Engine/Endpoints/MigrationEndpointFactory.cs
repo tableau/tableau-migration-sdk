@@ -29,8 +29,8 @@ namespace Tableau.Migration.Engine.Endpoints
     public class MigrationEndpointFactory : IMigrationEndpointFactory
     {
         private readonly IServiceScopeFactory _serviceScopeFactory;
-        private readonly ManifestDestinationContentReferenceFinderFactory _destinationFinderFactory;
-        private readonly ManifestSourceContentReferenceFinderFactory _sourceFinderFactory;
+        private readonly IDestinationContentReferenceFinderFactory _destinationFinderFactory;
+        private readonly ISourceContentReferenceFinderFactory _sourceFinderFactory;
         private readonly IContentFileStore _fileStore;
         private readonly ISharedResourcesLocalizer _localizer;
 
@@ -43,8 +43,8 @@ namespace Tableau.Migration.Engine.Endpoints
         /// <param name="fileStore">The file store to use.</param>
         /// <param name="localizer">A string localizer.</param>
         public MigrationEndpointFactory(IServiceScopeFactory serviceScopeFactory,
-            ManifestSourceContentReferenceFinderFactory sourceFinderFactory,
-            ManifestDestinationContentReferenceFinderFactory destinationFinderFactory,
+            ISourceContentReferenceFinderFactory sourceFinderFactory,
+            IDestinationContentReferenceFinderFactory destinationFinderFactory,
             IContentFileStore fileStore,
             ISharedResourcesLocalizer localizer)
         {

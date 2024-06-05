@@ -15,15 +15,20 @@
 //  limitations under the License.
 //
 
-using Tableau.Migration.Api.Rest;
+using System;
 
 namespace Tableau.Migration.Content
 {
     /// <summary>
     /// Interface for a content item's embedded connection.
     /// </summary>
-    public interface IConnection : IRestIdentifiable
+    public interface IConnection
     {
+        /// <summary>
+        /// Gets the unique identifier.
+        /// </summary>
+        Guid Id { get; }
+
         /// <summary>
         /// Gets the connection type for the response.
         /// </summary>

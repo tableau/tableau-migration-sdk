@@ -47,7 +47,7 @@ namespace Tableau.Migration.Engine.Hooks.Transformers
         /// </param>
         /// <param name="cancel">A cancellation token to obey.</param>
         /// <returns>A task to await.</returns>
-        Task ExecuteAsync(TPublish ctx, XDocument xml, CancellationToken cancel);
+        Task TransformAsync(TPublish ctx, XDocument xml, CancellationToken cancel);
 
         /// <inheritdoc />
         async Task<TPublish?> IMigrationHook<TPublish>.ExecuteAsync(TPublish ctx, CancellationToken cancel)
@@ -56,13 +56,13 @@ namespace Tableau.Migration.Engine.Hooks.Transformers
             {
                 return ctx;
             }
-
+            
             //We expect the item preparer to finalize/dispose the file stream.
             var xmlStream = await ctx.File.GetXmlStreamAsync(cancel).ConfigureAwait(false);
             var xml = await xmlStream.GetXmlAsync(cancel).ConfigureAwait(false);
 
-            await ExecuteAsync(ctx, xml, cancel).ConfigureAwait(false);
-
+            await TransformAsync(ctx, xml, cancel).ConfigureAwait(false);
+            
             return ctx;
         }
     }
