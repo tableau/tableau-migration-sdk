@@ -62,7 +62,15 @@ namespace Tableau.Migration.PythonGenerator.Generators
             Dotnet.Namespaces.SYSTEM_EXCEPTION,
             Dotnet.Namespaces.SYSTEM,
             ConversionMode.Direct);
-
+        
+        private static readonly PythonTypeReference TIME_ONLY = new(
+            Py.Types.TIME,
+            ImportModule: Py.Modules.DATETIME,
+            ConversionMode.WrapTimeOnly,
+            DotNetParseFunction: "TimeOnly.Parse",
+            ExtraImports: ImmutableArray.Create(
+                new PythonTypeReference(Dotnet.Types.TIME_ONLY, ImportModule: Dotnet.Namespaces.SYSTEM, ConversionMode.Direct)));
+        
         private readonly PythonGeneratorOptions _options;
 
         protected PythonMemberGenerator(IOptions<PythonGeneratorOptions> options)
@@ -172,6 +180,8 @@ namespace Tableau.Migration.PythonGenerator.Generators
                 case Dotnet.Types.STRING_SIMPLIFIED:
                 case nameof(String):
                     return STRING;
+                case nameof(TimeOnly):
+                    return TIME_ONLY;
                 default:
                     if (t is IArrayTypeSymbol symbol)
                     {

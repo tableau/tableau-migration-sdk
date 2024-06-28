@@ -32,7 +32,7 @@ namespace Tableau.Migration.Api
         /// Publishes a content item.
         /// </summary>
         /// <param name="item">The content item to publish.</param>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>The results of the publishing with a content reference of the newly published item.</returns>
         Task<IResult<TPublishResult>> PublishAsync(TPublish item, CancellationToken cancel);
     }

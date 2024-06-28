@@ -47,7 +47,7 @@ namespace Tableau.Migration.Paging
         /// </summary>
         /// <param name="pageNumber">The page number to get data for.</param>
         /// <param name="pageSize">The size of the page of data to get.</param>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>The paged results.</returns>
         protected abstract Task<IPagedResult<TContent>> GetPageAsync(int pageNumber, int pageSize, CancellationToken cancel);
 

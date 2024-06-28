@@ -18,6 +18,7 @@
 # region _generated
 
 from tableau_migration.migration import PyContentReference # noqa: E402, F401
+from tableau_migration.migration_api_rest import PyRestIdentifiable # noqa: E402, F401
 from typing import (  # noqa: E402, F401
     Sequence,
     List
@@ -455,7 +456,7 @@ class PyGroupUser():
         """Gets the user that belongs to a group."""
         self._dotnet.User = None if value is None else value._dotnet
     
-class PyLabel():
+class PyLabel(PyRestIdentifiable):
     """Interface for a content item's label."""
     
     _dotnet_base = ILabel

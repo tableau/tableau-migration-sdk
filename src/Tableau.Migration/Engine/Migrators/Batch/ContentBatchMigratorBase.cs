@@ -56,7 +56,7 @@ namespace Tableau.Migration.Engine.Migrators.Batch
         /// </summary>
         /// <param name="migrationItem">The item being migrated.</param>
         /// <param name="preparedItem">The prepared publish item.</param>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>The result of the migration.</returns>
         protected abstract Task<IResult> MigratePreparedItemAsync(ContentMigrationItem<TContent> migrationItem, TPublish preparedItem, CancellationToken cancel);
 

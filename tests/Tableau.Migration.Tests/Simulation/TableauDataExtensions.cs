@@ -18,26 +18,18 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
-using System.Text;
 using AutoFixture;
 using Tableau.Migration.Api.Rest.Models.Responses;
+using Tableau.Migration.Api.Rest.Models.Responses.Server;
 using Tableau.Migration.Api.Rest.Models.Types;
 using Tableau.Migration.Api.Simulation;
 using Tableau.Migration.Net;
+using CloudResponse = Tableau.Migration.Api.Rest.Models.Responses.Cloud;
 
 namespace Tableau.Migration.Tests.Simulation
 {
     public static class TableauDataExtensions
     {
-        private static readonly Lazy<Random> _random = new();
-
-        public static T PickRandom<T>(this ICollection<T> c)
-        {
-            var randomIndex = _random.Value.Next(0, c.Count - 1);
-            return c.ElementAt(randomIndex);
-        }
-
         public static DataSourceResponse.DataSourceType CreateDataSource(
             this TableauData data,
             IFixture autoFixture,
@@ -213,6 +205,210 @@ namespace Tableau.Migration.Tests.Simulation
             }
 
             return projects.ToImmutableArray();
+        }
+
+        public static ScheduleResponse.ScheduleType CreateSchedule(
+            this TableauData data,
+            IFixture autoFixture)
+        {
+            var schedule = autoFixture.Build<ScheduleResponse.ScheduleType>()
+                .Create();
+
+            data.AddSchedule(schedule);
+
+            return schedule;
+        }
+
+        public static ScheduleResponse.ScheduleType CreateScheduleExtractRefreshTask(
+            this TableauData data,
+            IFixture autoFixture,
+            ScheduleResponse.ScheduleType? schedule = null,
+            Guid? extractRefreshId = null,
+            string? extractRefreshType = null)
+        {
+            if (schedule is null)
+            {
+                schedule = data.CreateSchedule(autoFixture);
+            }   
+
+            var composer = autoFixture.Build<ScheduleExtractRefreshTasksResponse.ExtractType>();
+
+            if (extractRefreshId.HasValue)
+            {
+                composer.With(sert => sert.Id, extractRefreshId);
+            }
+
+            if (!extractRefreshType.IsNullOrEmpty())
+            {
+                composer.With(sert => sert.Type, extractRefreshType);
+            }
+
+            var extractRefreshSchedule = composer.Create();
+
+            data.AddExtractToSchedule(
+                extractRefreshSchedule,
+                schedule);
+
+            return schedule;
+        }
+
+        public static ExtractRefreshTasksResponse.TaskType CreateServerExtractRefreshTask(
+            this TableauData data,
+            IFixture autoFixture,
+            DataSourceResponse.DataSourceType? dataSource = null,
+            WorkbookResponse.WorkbookType? workbook = null)
+        {
+            var schedule = data.CreateScheduleExtractRefreshTask(autoFixture);
+
+            var extractRefreshComposer = autoFixture
+                .Build<ExtractRefreshTasksResponse.TaskType.ExtractRefreshType>()
+                .With(ert => ert.Schedule, () => new ExtractRefreshTasksResponse.TaskType.ExtractRefreshType.ScheduleType
+                {
+                    Id = schedule.Id
+                });
+
+            if (dataSource is not null)
+            {
+                extractRefreshComposer = extractRefreshComposer
+                    .With(ert => ert.Workbook, () => new ExtractRefreshTasksResponse.TaskType.ExtractRefreshType.WorkbookType
+                    {
+                        Id = workbook!.Id
+                    })
+                    .Without(ert => ert.DataSource);
+            }
+            else if (workbook is not null)
+            {
+                extractRefreshComposer = extractRefreshComposer
+                    .With(ert => ert.DataSource, () => new ExtractRefreshTasksResponse.TaskType.ExtractRefreshType.DataSourceType
+                    {
+                        Id = dataSource!.Id
+                    })
+                    .Without(ert => ert.Workbook);
+            }
+            else
+            {
+                if (autoFixture.Create<bool>())
+                {
+                    var generatedDatasource = data.CreateDataSource(autoFixture);
+                    extractRefreshComposer = extractRefreshComposer
+                        .With(ert => ert.DataSource, () => new ExtractRefreshTasksResponse.TaskType.ExtractRefreshType.DataSourceType
+                        {
+                            Id = generatedDatasource!.Id
+                        })
+                        .Without(ert => ert.Workbook);
+                }
+                else
+                {
+                    var generatedWorkbook = data.CreateWorkbook(autoFixture);
+                    extractRefreshComposer = extractRefreshComposer
+                        .With(ert => ert.Workbook, () => new ExtractRefreshTasksResponse.TaskType.ExtractRefreshType.WorkbookType
+                        {
+                            Id = generatedWorkbook!.Id
+                        })
+                        .Without(ert => ert.DataSource);
+                }
+            }
+
+            var extractRefreshTask = autoFixture
+                .Build<ExtractRefreshTasksResponse.TaskType>()
+                .With(tt => tt.ExtractRefresh, () => extractRefreshComposer.Create())
+                .Create();
+
+            data.ServerExtractRefreshTasks.Add(extractRefreshTask);
+
+            return extractRefreshTask;
+        }
+
+        public static IImmutableList<ExtractRefreshTasksResponse.TaskType> CreateServerExtractRefreshTasks(
+            this TableauData data,
+            IFixture autoFixture,
+            int extractRefreshCount)
+        {
+            var extractRefreshTasks = new List<ExtractRefreshTasksResponse.TaskType>();
+
+            for (var i = 0; i != extractRefreshCount; i++)
+            {
+                extractRefreshTasks.Add(data.CreateServerExtractRefreshTask(autoFixture));
+            }
+
+            return extractRefreshTasks.ToImmutableArray();
+        }
+
+        public static CloudResponse.ExtractRefreshTasksResponse.TaskType CreateCloudExtractRefreshTask(
+            this TableauData data,
+            IFixture autoFixture,
+            DataSourceResponse.DataSourceType? dataSource = null,
+            WorkbookResponse.WorkbookType? workbook = null)
+        {
+            var extractRefreshComposer = autoFixture
+                .Build<CloudResponse.ExtractRefreshTasksResponse.TaskType.ExtractRefreshType>()
+                .With(ert => ert.Schedule);
+
+            if (dataSource is not null)
+            {
+                extractRefreshComposer = extractRefreshComposer
+                    .With(ert => ert.Workbook, () => new CloudResponse.ExtractRefreshTasksResponse.TaskType.ExtractRefreshType.WorkbookType
+                    {
+                        Id = dataSource!.Id
+                    })
+                    .Without(ert => ert.DataSource);
+            }
+            else if (workbook is not null)
+            {
+                extractRefreshComposer = extractRefreshComposer
+                    .With(ert => ert.DataSource, () => new CloudResponse.ExtractRefreshTasksResponse.TaskType.ExtractRefreshType.DataSourceType
+                    {
+                        Id = workbook!.Id
+                    })
+                    .Without(ert => ert.Workbook);
+            }
+            else
+            {
+                if (autoFixture.Create<bool>())
+                {
+                    var generatedDatasource = data.CreateDataSource(autoFixture);
+                    extractRefreshComposer = extractRefreshComposer
+                        .With(ert => ert.DataSource, () => new CloudResponse.ExtractRefreshTasksResponse.TaskType.ExtractRefreshType.DataSourceType
+                        {
+                            Id = generatedDatasource!.Id
+                        })
+                        .Without(ert => ert.Workbook);
+                }
+                else
+                {
+                    var generatedWorkbook = data.CreateWorkbook(autoFixture);
+                    extractRefreshComposer = extractRefreshComposer
+                        .With(ert => ert.Workbook, () => new CloudResponse.ExtractRefreshTasksResponse.TaskType.ExtractRefreshType.WorkbookType
+                        {
+                            Id = generatedWorkbook!.Id
+                        })
+                        .Without(ert => ert.DataSource);
+                }
+            }
+
+            var extractRefreshTask = autoFixture
+                .Build<CloudResponse.ExtractRefreshTasksResponse.TaskType>()
+                .With(tt => tt.ExtractRefresh, () => extractRefreshComposer.Create())
+                .Create();
+
+            data.CloudExtractRefreshTasks.Add(extractRefreshTask);
+
+            return extractRefreshTask;
+        }
+
+        public static IImmutableList<CloudResponse.ExtractRefreshTasksResponse.TaskType> CreateCloudExtractRefreshTasks(
+            this TableauData data,
+            IFixture autoFixture,
+            int extractRefreshCount)
+        {
+            var extractRefreshTasks = new List<CloudResponse.ExtractRefreshTasksResponse.TaskType>();
+
+            for (var i = 0; i != extractRefreshCount; i++)
+            {
+                extractRefreshTasks.Add(data.CreateCloudExtractRefreshTask(autoFixture));
+            }
+
+            return extractRefreshTasks.ToImmutableArray();
         }
     }
 }

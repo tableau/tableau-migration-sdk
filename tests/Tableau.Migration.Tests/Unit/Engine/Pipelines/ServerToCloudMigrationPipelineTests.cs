@@ -22,6 +22,8 @@ using System.Linq;
 using Moq;
 using Tableau.Migration.Config;
 using Tableau.Migration.Content;
+using Tableau.Migration.Content.Schedules;
+using Tableau.Migration.Content.Schedules.Server;
 using Tableau.Migration.Engine.Actions;
 using Tableau.Migration.Engine.Migrators.Batch;
 using Tableau.Migration.Engine.Pipelines;
@@ -90,13 +92,14 @@ namespace Tableau.Migration.Tests.Unit.Engine.Pipelines
             {
                 var actions = Pipeline.BuildActions();
 
-                Assert.Equal(6, actions.Length);
+                Assert.Equal(7, actions.Length);
                 Assert.IsType<PreflightAction>(actions[0]);
                 Assert.IsType<MigrateContentAction<IUser>>(actions[1]);
                 Assert.IsType<MigrateContentAction<IGroup>>(actions[2]);
                 Assert.IsType<MigrateContentAction<IProject>>(actions[3]);
                 Assert.IsType<MigrateContentAction<IDataSource>>(actions[4]);
                 Assert.IsType<MigrateContentAction<IWorkbook>>(actions[5]);
+                Assert.IsType<MigrateContentAction<IServerExtractRefreshTask>>(actions[6]);
             }
 
             [Fact]

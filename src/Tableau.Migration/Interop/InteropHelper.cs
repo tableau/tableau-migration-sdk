@@ -41,15 +41,27 @@ namespace Tableau.Migration.Interop
             "<Clone>$"
         };
 
+        //DNG modify this to be less naive
+        //- Find if the generic has a Constraint, then build the types with that generic
         private static Type MakeSampleGenericType(Type generic)
         {
             var genericTypes = generic.GetGenericArguments()
-                .Select(gt => typeof(IUser))
+                .Select(gt =>
+                {
+                    var constraints = gt.GetGenericParameterConstraints();
+
+                    if (constraints.Length == 0)
+                    {
+                        return typeof(IUser);
+                    }
+                    
+                    return constraints.First();
+                })
                 .ToArray();
 
             return generic.MakeGenericType(genericTypes);
         }
-
+        
         private static bool IsPropertyMethod(MethodInfo method)
             => method.Name.StartsWith("get_") || method.Name.StartsWith("set_");
 
@@ -86,7 +98,7 @@ namespace Tableau.Migration.Interop
         }
 
         /// <summary>
-        /// Gets the properies of a class.
+        /// Gets the properties of a class.
         /// </summary>
         /// <typeparam name="T">The type to get properties from.</typeparam>
         /// <returns>The property names.</returns>
@@ -94,7 +106,7 @@ namespace Tableau.Migration.Interop
             => GetProperties(typeof(T));
 
         /// <summary>
-        /// Gets the properies of a class.
+        /// Gets the properties of a class.
         /// </summary>
         /// <param name="type">The type to get properties from.</param>
         /// <returns>The property names.</returns>

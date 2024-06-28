@@ -52,6 +52,8 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "scripts", "scripts", "{92044843-B4D7-4062-B1D5-DE7596072E33}"
 	ProjectSection(SolutionItems) = preProject
 		scripts\generate-docs.ps1 = scripts\generate-docs.ps1
+		scripts\sync-release-settings.json = scripts\sync-release-settings.json
+		scripts\sync-release.ps1 = scripts\sync-release.ps1
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DependencyInjection.ExampleApplication", "examples\DependencyInjection.ExampleApplication\DependencyInjection.ExampleApplication.csproj", "{99DA12FB-BB16-4EE1-9C9C-047755210255}"

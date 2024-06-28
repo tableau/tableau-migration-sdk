@@ -26,6 +26,9 @@ using Tableau.Migration.Api.Rest.Models.Requests;
 using Tableau.Migration.Api.Rest.Models.Responses;
 using Tableau.Migration.Api.Tags;
 using Tableau.Migration.Content;
+using Tableau.Migration.Content.Schedules;
+using Tableau.Migration.Content.Schedules.Cloud;
+using Tableau.Migration.Content.Schedules.Server;
 using Tableau.Migration.Content.Search;
 using Tableau.Migration.Net;
 using Tableau.Migration.Net.Rest;
@@ -41,6 +44,8 @@ namespace Tableau.Migration.Api
         private readonly IServerSessionProvider _sessionProvider;
         private readonly IHttpContentSerializer _serializer;
 
+        private readonly ITasksApiClient _tasksApiClient;
+
         public SitesApiClient(
             IRestRequestBuilderFactory restRequestBuilderFactory,
             IContentReferenceFinderFactory finderFactory,
@@ -49,12 +54,14 @@ namespace Tableau.Migration.Api
             ILoggerFactory loggerFactory,
             IGroupsApiClient groupsApiClient,
             IJobsApiClient jobsApiClient,
+            ISchedulesApiClient schedulesApiClient,
             IProjectsApiClient projectsApiClient,
             IUsersApiClient usersApiClient,
             IDataSourcesApiClient dataSourcesApiClient,
             IWorkbooksApiClient workbooksApiClient,
             IViewsApiClient viewsApiClient,
             IFlowsApiClient flowsApiClient,
+            ITasksApiClient tasksApiClient,
             ISharedResourcesLocalizer sharedResourcesLocalizer)
             : base(restRequestBuilderFactory, finderFactory, loggerFactory, sharedResourcesLocalizer)
         {
@@ -63,12 +70,15 @@ namespace Tableau.Migration.Api
 
             Groups = groupsApiClient;
             Jobs = jobsApiClient;
+            Schedules = schedulesApiClient;
             Projects = projectsApiClient;
             Users = usersApiClient;
             DataSources = dataSourcesApiClient;
             Workbooks = workbooksApiClient;
             Views = viewsApiClient;
             Flows = flowsApiClient;
+            
+            _tasksApiClient = tasksApiClient;
         }
 
         private static readonly ImmutableDictionary<Type, Func<ISitesApiClient, object>> _contentTypeAccessors = new Dictionary<Type, Func<ISitesApiClient, object>>(InheritedTypeComparer.Instance)
@@ -79,7 +89,10 @@ namespace Tableau.Migration.Api
             { typeof(IDataSource), client => client.DataSources },
             { typeof(IWorkbook), client => client.Workbooks },
             { typeof(IView), client => client.Views },
-            { typeof(IFlow), client => client.Flows }
+            { typeof(IFlow), client => client.Flows },
+            { typeof(IServerSchedule), client => client.Schedules },
+            { typeof(IServerExtractRefreshTask), client => client.ServerTasks },
+            { typeof(ICloudExtractRefreshTask), client => client.CloudTasks }
         }
         .ToImmutableDictionary(InheritedTypeComparer.Instance);
 
@@ -97,6 +110,9 @@ namespace Tableau.Migration.Api
 
         /// <inheritdoc />
         public IJobsApiClient Jobs { get; }
+        
+        /// <inheritdoc />
+        public ISchedulesApiClient Schedules { get; }
 
         /// <inheritdoc />
         public IProjectsApiClient Projects { get; }
@@ -115,6 +131,14 @@ namespace Tableau.Migration.Api
 
         /// <inheritdoc />
         public IFlowsApiClient Flows { get; }
+
+        /// <inheritdoc />
+        public IServerTasksApiClient ServerTasks 
+            => ReturnForInstanceType(TableauInstanceType.Server, _sessionProvider.InstanceType, _tasksApiClient);
+
+        /// <inheritdoc />
+        public ICloudTasksApiClient CloudTasks 
+            => ReturnForInstanceType(TableauInstanceType.Cloud, _sessionProvider.InstanceType, _tasksApiClient);
 
         /// <inheritdoc />
         public IReadApiClient<TContent>? GetReadApiClient<TContent>()
@@ -206,7 +230,7 @@ namespace Tableau.Migration.Api
         /// <summary>
         /// Signs out of Tableau Server.
         /// </summary>
-        /// <param name="cancel">The cancellation token</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>The sign out result.</returns>
         internal async Task<IResult> SignOutAsync(CancellationToken cancel)
         {
@@ -221,7 +245,7 @@ namespace Tableau.Migration.Api
                 .ToResultAsync(_serializer, SharedResourcesLocalizer, cancel)
                 .ConfigureAwait(false);
 
-            await _sessionProvider.ClearCurrentUserAndSiteAsync(cancel).ConfigureAwait(false);
+            await _sessionProvider.ClearCurrentSessionAsync(cancel).ConfigureAwait(false);
 
             return signOutResult;
         }

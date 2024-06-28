@@ -140,6 +140,12 @@ namespace Tableau.Migration.PythonGenerator.Writers
                         });
                         break;
                     }
+                case ConversionMode.Enum:
+                    {
+                        var setterExpression = ToDotNetType(property.Type, paramName);
+                        setterBuilder.AppendLine($"self.{PythonTypeWriter.DOTNET_OBJECT}.{property.DotNetProperty.Name}.value__ = {property.Type.Name}({setterExpression})");
+                        break;
+                    }
                 default:
                     {
                         var setterExpression = ToDotNetType(property.Type, paramName);

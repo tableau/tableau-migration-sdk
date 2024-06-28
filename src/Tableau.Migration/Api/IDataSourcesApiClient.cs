@@ -46,7 +46,7 @@ namespace Tableau.Migration.Api
         /// </summary>
         /// <param name="pageNumber">The 1-indexed page number.</param>
         /// <param name="pageSize">The size of the page.</param>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>A list of a page of data sources in the current site.</returns>
         Task<IPagedResult<IDataSource>> GetAllPublishedDataSourcesAsync(
             int pageNumber,
@@ -57,7 +57,7 @@ namespace Tableau.Migration.Api
         /// Gets a data source by the given ID.
         /// </summary>
         /// <param name="dataSourceId">The ID to get the data source for.</param>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>The data source result.</returns>
         Task<IResult<IDataSourceDetails>> GetDataSourceAsync(
              Guid dataSourceId,
@@ -68,7 +68,7 @@ namespace Tableau.Migration.Api
         /// </summary>
         /// <param name="dataSourceId">The ID to download the data source file for.</param>
         /// <param name="includeExtract">Whether or not to include extracts in the data source file.</param>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>The file download result.</returns>
         Task<IAsyncDisposableResult<FileDownload>> DownloadDataSourceAsync(
             Guid dataSourceId,
@@ -79,7 +79,7 @@ namespace Tableau.Migration.Api
         /// Uploads the input data source file.
         /// </summary>
         /// <param name="options">The new data source's details.</param>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>The published data source.</returns>
         Task<IResult<IDataSourceDetails>> PublishDataSourceAsync(
             IPublishDataSourceOptions options,
@@ -89,7 +89,7 @@ namespace Tableau.Migration.Api
         /// Updates the data source after publishing.
         /// </summary>
         /// <param name="dataSourceId">The ID for the data source to update.</param>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <param name="newName">The new name of a the data source, or null to not update the name.</param>
         /// <param name="newProjectId">The LUID of a project to move the data source to, or null to not update the project.</param>
         /// <param name="newOwnerId">The LUID of a user to assign the data source to as owner, or null to not update the owner.</param>

@@ -47,7 +47,7 @@ namespace Tableau.Migration.Engine.Manifest
         /// <typeparam name="TItem">The input content item type.</typeparam>
         /// <param name="sourceContentItems">The content items to map.</param>
         /// <param name="mapper">An object to use to map entries. Supplied as a parameter to avoid DI circular references at plan initialization time.</param>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>The current entry builder, for fluent API usage.</returns>
         Task<IMigrationManifestEntryBuilder> MapEntriesAsync<TItem>(IEnumerable<TItem> sourceContentItems, IContentMappingRunner mapper, CancellationToken cancel)
             where TItem : IContentReference;

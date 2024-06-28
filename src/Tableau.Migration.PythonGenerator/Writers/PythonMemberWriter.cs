@@ -16,7 +16,9 @@
 //
 
 using System;
+using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis;
 
 namespace Tableau.Migration.PythonGenerator.Writers
 {
@@ -103,6 +105,8 @@ namespace Tableau.Migration.PythonGenerator.Writers
                     return BuildArrayWrapExpression(expression, mutableItemType.Name);
                 case ConversionMode.Enum:
                     return BuildWrapExpression(expression, wrapCtor, $"{expression}.value__");
+                case ConversionMode.WrapTimeOnly:
+                    return BuildWrapExpression(expression, wrapCtor, $"{expression}.Hour, {expression}.Minute, {expression}.Second, {expression}.Millisecond * 1000");
                 case ConversionMode.Direct:
                 default:
                     return expression;
@@ -123,10 +127,24 @@ namespace Tableau.Migration.PythonGenerator.Writers
                         return BuildWrapExpression(expression, $"{expression}.{PythonTypeWriter.DOTNET_OBJECT}");
                 case ConversionMode.WrapSerialized:
                     return BuildWrapExpression(expression, typeRef.DotNetParseFunction!, $"str({expression})");
+                case ConversionMode.WrapTimeOnly:
+                    return BuildWrapExpression(expression, typeRef.DotNetParseFunction!, $"str({expression})");
                 case ConversionMode.Direct:
                 default:
                     return expression;
             }
+        }
+
+        protected static string BuildDotnetGenericTypeConstraintsString(INamedTypeSymbol dotnetType)
+        {
+            var typeConstraints = dotnetType.TypeParameters.First().ConstraintTypes;
+            return string.Join(",", typeConstraints.Select(t => t.Name));
+        }
+        
+        protected static string BuildPythongGenericTypeConstraintsString(INamedTypeSymbol dotnetType)
+        {
+            var typeConstraints = dotnetType.TypeParameters.First().ConstraintTypes;
+            return string.Join(",", typeConstraints.Select(PythonTypeReference.ToPythonTypeName));
         }
     }
 }

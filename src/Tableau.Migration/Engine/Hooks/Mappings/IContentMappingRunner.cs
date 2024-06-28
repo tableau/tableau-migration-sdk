@@ -30,7 +30,7 @@ namespace Tableau.Migration.Engine.Hooks.Mappings
         /// </summary>
         /// <typeparam name="TContent">The content type.</typeparam>
         /// <param name="context">The mapping context.</param>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>The result context with the mapped content location.</returns>
         Task<ContentMappingContext<TContent>> ExecuteAsync<TContent>(ContentMappingContext<TContent> context, CancellationToken cancel)
             where TContent : IContentReference;

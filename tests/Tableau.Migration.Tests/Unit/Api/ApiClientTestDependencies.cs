@@ -26,6 +26,7 @@ using Tableau.Migration.Api.Publishing;
 using Tableau.Migration.Api.Tags;
 using Tableau.Migration.Config;
 using Tableau.Migration.Content;
+using Tableau.Migration.Content.Schedules.Server;
 using Tableau.Migration.Content.Search;
 using Tableau.Migration.Net;
 using Tableau.Migration.Net.Rest;
@@ -46,7 +47,8 @@ namespace Tableau.Migration.Tests.Unit.Api
         public Mock<ILoggerFactory> MockLoggerFactory { get; } = new();
         public Mock<IConfigReader> MockConfigReader { get; } = new();
         public MockSharedResourcesLocalizer MockSharedResourcesLocalizer { get; } = new();
-        public Mock<IContentReferenceFinderFactory> MockContentFinderFactory { get; } = new();
+        public Mock<IContentReferenceFinderFactory> MockContentFinderFactory { get; } = new() { CallBase = true };
+        public Mock<IContentCacheFactory> MockContentCacheFactory { get; } = new();
         public Mock<IPermissionsApiClientFactory> MockPermissionsClientFactory { get; } = new();
         public Mock<ITaskDelayer> MockTaskDelayer { get; } = new();
         public TestHttpStreamProcessor HttpStreamProcessor { get; }
@@ -64,8 +66,12 @@ namespace Tableau.Migration.Tests.Unit.Api
         public Mock<ILogger> MockLogger { get; } = new();
 
         public Mock<IContentReferenceFinder<IProject>> MockProjectFinder { get; }
-
         public Mock<IContentReferenceFinder<IUser>> MockUserFinder { get; }
+        public Mock<IContentReferenceFinder<IWorkbook>> MockWorkbookFinder { get; }
+        public Mock<IContentReferenceFinder<IDataSource>> MockDataSourceFinder { get; }
+        public Mock<IContentReferenceFinder<IServerSchedule>> MockScheduleFinder { get; }
+
+        public Mock<IContentCache<IServerSchedule>> MockScheduleCache { get; } = new();
 
         public TableauServerVersion TableauServerVersion { get; private set; }
 
@@ -91,8 +97,13 @@ namespace Tableau.Migration.Tests.Unit.Api
                 .Returns(new MigrationSdkOptions());
 
             MockProjectFinder = MockContentFinderFactory.SetupMockFinder<IProject>(autoFixture);
-
             MockUserFinder = MockContentFinderFactory.SetupMockFinder<IUser>(autoFixture);
+            MockWorkbookFinder = MockContentFinderFactory.SetupMockFinder<IWorkbook>(autoFixture);
+            MockDataSourceFinder = MockContentFinderFactory.SetupMockFinder<IDataSource>(autoFixture);
+            MockScheduleFinder = MockContentFinderFactory.SetupMockFinder<IServerSchedule>(autoFixture);
+
+            MockScheduleCache = MockContentCacheFactory.SetupMockCache<IServerSchedule>(autoFixture);
+
 
             MockApiClientInput.SetupGet(i => i.SiteConnectionConfiguration).Returns(SiteConnectionConfiguration);
             MockSessionProvider.SetupGet(p => p.Version).Returns(TableauServerVersion);
@@ -134,6 +145,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             ReplaceService(MockConfigReader);
             ReplaceService(MockSharedResourcesLocalizer);
             ReplaceService(MockContentFinderFactory);
+            ReplaceService(MockContentCacheFactory);
             ReplaceService(MockPermissionsClientFactory);
             ReplaceService(MockDataSourcePublisher);
             ReplaceService(MockWorkbookPublisher);

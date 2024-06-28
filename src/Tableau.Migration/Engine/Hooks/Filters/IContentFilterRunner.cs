@@ -31,7 +31,7 @@ namespace Tableau.Migration.Engine.Hooks.Filters
         /// </summary>
         /// <typeparam name="TContent">The content type.</typeparam>
         /// <param name="itemsToFilter">The items to filter.</param>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>A lazy-evaluated collection of filterered items.</returns>
         Task<IEnumerable<ContentMigrationItem<TContent>>> ExecuteAsync<TContent>(IEnumerable<ContentMigrationItem<TContent>> itemsToFilter, CancellationToken cancel)
             where TContent : IContentReference;

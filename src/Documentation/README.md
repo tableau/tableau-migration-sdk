@@ -148,7 +148,7 @@ Content in Tab 3
 ##### Using regions (Preferred method)
 
 ```markdown
-[!code-csharp[CS](../../../../examples/Csharp.ExampleApplication/MyMigrationApplication.cs#DefaultProjectsFilter-Registration)]
+[!code-csharp[](../../../../examples/Csharp.ExampleApplication/MyMigrationApplication.cs#DefaultProjectsFilter-Registration)]
 ```
 
 ##### Using line numbers
@@ -157,7 +157,7 @@ Content in Tab 3
 > Use these very sparingly for C#. When the code is edited, it can change line numbers and mess up code snippets.
 
 ```markdown
-[!code-csharp[CS](../../../../examples/Csharp.ExampleApplication/Hooks/Mappings/EmailDomainMapping.cs#L8-)]
+[!code-csharp[](../../../../examples/Csharp.ExampleApplication/Hooks/Mappings/EmailDomainMapping.cs#L8-)]
 ```
 
 > [!IMPORTANT]

@@ -32,7 +32,7 @@ namespace Tableau.Migration.Api
         /// Gets the content item by Id.
         /// </summary>
         /// <param name="contentId">The content item Id to get.</param>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>The result of the get operation with the content item.</returns>
         Task<IResult<TContent>> GetByIdAsync(Guid contentId, CancellationToken cancel);
     }

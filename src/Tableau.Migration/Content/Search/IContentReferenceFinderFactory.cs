@@ -15,6 +15,9 @@
 //  limitations under the License.
 //
 
+using System;
+using Tableau.Migration.Content.Schedules;
+
 namespace Tableau.Migration.Content.Search
 {
     /// <summary>
@@ -30,5 +33,21 @@ namespace Tableau.Migration.Content.Search
         /// <returns>The content reference finder.</returns>
         IContentReferenceFinder<TContent> ForContentType<TContent>()
             where TContent : class, IContentReference;
+
+        /// <summary>
+        /// Gets or creates a content reference finder for a given extract refresh content type. 
+        /// </summary>
+        /// <param name="contentType">The extract refresh content type</param>
+        /// <returns>The content reference finder.</returns>
+        public IContentReferenceFinder ForExtractRefreshContent(ExtractRefreshContentType contentType)
+        {
+            if (contentType is ExtractRefreshContentType.DataSource)
+                return ForContentType<IDataSource>();
+
+            if (contentType is ExtractRefreshContentType.Workbook)
+                return ForContentType<IWorkbook>();
+
+            throw new NotSupportedException($"Content type {contentType} is not supported.");
+        }
     }
 }

@@ -26,22 +26,15 @@ namespace Tableau.Migration.Content.Search
     /// a <see cref="IContentReferenceCache"/> to find content references.
     /// </summary>
     /// <typeparam name="TContent">The content type.</typeparam>
-    public class CachedContentReferenceFinder<TContent> : IContentReferenceFinder<TContent>
+    /// <remarks>
+    /// Creates a new <see cref="CachedContentReferenceFinder{TContent}"/> object.
+    /// </remarks>
+    /// <param name="cache">The content reference cache.</param>
+    public class CachedContentReferenceFinder<TContent>(IContentReferenceCache cache) : IContentReferenceFinder<TContent>
         where TContent : IContentReference
     {
-        private readonly IContentReferenceCache _cache;
-
-        /// <summary>
-        /// Creates a new <see cref="CachedContentReferenceFinder{TContent}"/> object.
-        /// </summary>
-        /// <param name="cache">The content reference cache.</param>
-        public CachedContentReferenceFinder(IContentReferenceCache cache)
-        {
-            _cache = cache;
-        }
-
         /// <inheritdoc />
         public async Task<IContentReference?> FindByIdAsync(Guid id, CancellationToken cancel)
-            => await _cache.ForIdAsync(id, cancel).ConfigureAwait(false);
+            => await cache.ForIdAsync(id, cancel).ConfigureAwait(false);
     }
 }

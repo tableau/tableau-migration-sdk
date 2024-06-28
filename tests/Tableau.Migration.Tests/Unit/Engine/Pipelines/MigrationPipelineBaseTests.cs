@@ -17,6 +17,9 @@
 
 using Moq;
 using Tableau.Migration.Content;
+using Tableau.Migration.Content.Schedules;
+using Tableau.Migration.Content.Schedules.Cloud;
+using Tableau.Migration.Content.Schedules.Server;
 using Tableau.Migration.Engine.Actions;
 using Tableau.Migration.Engine.Endpoints.Search;
 using Tableau.Migration.Engine.Migrators;
@@ -126,6 +129,24 @@ namespace Tableau.Migration.Tests.Unit.Engine.Pipelines
 
                 Assert.IsType<SourceContentItemPreparer<TestContentType>>(migrator);
                 MockServices.Verify(x => x.GetService(typeof(SourceContentItemPreparer<TestContentType>)), Times.Once);
+            }
+            
+            [Fact]
+            public void CreatesEndpointItemPreparer()
+            {
+                var migrator = Pipeline.GetItemPreparer<TestContentType, OtherTestContentType>();
+
+                Assert.IsType<EndpointContentItemPreparer<TestContentType, OtherTestContentType>>(migrator);
+                MockServices.Verify(x => x.GetService(typeof(EndpointContentItemPreparer<TestContentType, OtherTestContentType>)), Times.Once);
+            }
+            
+            [Fact]
+            public void CreatesExtractRefreshTaskServerToCloudPreparer()
+            {
+                var migrator = Pipeline.GetItemPreparer<IServerExtractRefreshTask, ICloudExtractRefreshTask>();
+
+                Assert.IsType<ExtractRefreshTaskServerToCloudPreparer>(migrator);
+                MockServices.Verify(x => x.GetService(typeof(ExtractRefreshTaskServerToCloudPreparer)), Times.Once);
             }
         }
 

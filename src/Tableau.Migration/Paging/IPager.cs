@@ -31,7 +31,7 @@ namespace Tableau.Migration.Paging
         /// <summary>
         /// Gets a page of content.
         /// </summary>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>The paged results.</returns>
         Task<IPagedResult<TContent>> NextPageAsync(CancellationToken cancel);
 
@@ -40,7 +40,7 @@ namespace Tableau.Migration.Paging
         /// </summary>
         /// <param name="initCapacity">An action to take once the first page is loaded and the total needed capacity is known.</param>
         /// <param name="pageAction">An action to take on each page.</param>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>The combined results.</returns>
         public async Task<IResult> GetAllPagesAsync(Action<int> initCapacity, Action<IImmutableList<TContent>> pageAction, CancellationToken cancel)
         {
@@ -77,7 +77,7 @@ namespace Tableau.Migration.Paging
         /// <summary>
         /// Combines all pages of content.
         /// </summary>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>The combined results.</returns>
         public async Task<IResult<IImmutableList<TContent>>> GetAllPagesAsync(CancellationToken cancel)
         {

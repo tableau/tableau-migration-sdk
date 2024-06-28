@@ -30,7 +30,7 @@ namespace Tableau.Migration.Engine.Migrators
         /// <summary>
         /// Migrates content for the given content type.
         /// </summary>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>A task to await.</returns>
         Task<IResult> MigrateAsync(CancellationToken cancel);
     }

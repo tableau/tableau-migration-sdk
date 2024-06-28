@@ -72,7 +72,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             {
                 var signInResult = Create<ISignInResult>();
 
-                await Provider.SetCurrentUserAndSiteAsync(signInResult, Cancel);
+                await Provider.SetCurrentSessionAsync(signInResult, TableauInstanceType.Server, Cancel);
 
                 Assert.Equal(signInResult.UserId, Provider.UserId);
                 Assert.Equal(signInResult.SiteContentUrl, Provider.SiteContentUrl);
@@ -89,7 +89,7 @@ namespace Tableau.Migration.Tests.Unit.Api
                 var siteId = Create<Guid>();
                 var token = Create<string>();
 
-                await Provider.SetCurrentUserAndSiteAsync(userId, siteId, siteContentUrl, token, Cancel);
+                await Provider.SetCurrentSessionAsync(userId, siteId, siteContentUrl, token, TableauInstanceType.Cloud, Cancel);
 
                 Assert.Equal(userId, Provider.UserId);
                 Assert.Equal(siteContentUrl, Provider.SiteContentUrl);
@@ -106,13 +106,14 @@ namespace Tableau.Migration.Tests.Unit.Api
             {
                 var signInResult = Create<ISignInResult>();
 
-                await Provider.SetCurrentUserAndSiteAsync(signInResult, Cancel);
+                await Provider.SetCurrentSessionAsync(signInResult, TableauInstanceType.Server, Cancel);
 
-                await Provider.ClearCurrentUserAndSiteAsync(Cancel);
+                await Provider.ClearCurrentSessionAsync(Cancel);
 
                 Assert.Null(Provider.UserId);
                 Assert.Null(Provider.SiteContentUrl);
                 Assert.Null(Provider.SiteId);
+                Assert.Equal(TableauInstanceType.Unknown, Provider.InstanceType);
 
                 MockTokenProvider.Verify(p => p.ClearAsync(Cancel), Times.Once);
             }

@@ -36,6 +36,7 @@
     <Compile Include="testapplication_tests\__init__.py" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include=".gitignore" />
     <Content Include="config*.json" />
     <Content Include="pyproject.toml" />
     <Content Include="pytest.ini" />

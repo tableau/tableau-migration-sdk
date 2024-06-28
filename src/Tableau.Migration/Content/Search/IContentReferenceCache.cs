@@ -31,7 +31,7 @@ namespace Tableau.Migration.Content.Search
         /// Finds the content reference item for a given endpoint location.
         /// </summary>
         /// <param name="location">The location.</param>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>The content reference, or null if no item was found.</returns>
         Task<IContentReference?> ForLocationAsync(ContentLocation location, CancellationToken cancel);
 
@@ -39,7 +39,7 @@ namespace Tableau.Migration.Content.Search
         /// Finds the content reference item for a given endpoint ID.
         /// </summary>
         /// <param name="id">The ID.</param>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>The content reference, or null if no item was found.</returns>
         Task<IContentReference?> ForIdAsync(Guid id, CancellationToken cancel);
     }

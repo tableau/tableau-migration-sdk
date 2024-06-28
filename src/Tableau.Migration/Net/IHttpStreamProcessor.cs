@@ -38,7 +38,7 @@ namespace Tableau.Migration.Net
         /// Function to build an HTTP request from a chunk of data from the stream.
         /// The first parameter is the chunk of data, or possibly a partial chunk of data.
         /// The second parameter is the count of bytes of the chunk of data to send.</param>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>A collection of responses from the chunked requests.</returns>
         Task<IEnumerable<IHttpResponseMessage<TResponse>>> ProcessAsync<TResponse>(
             Stream stream,

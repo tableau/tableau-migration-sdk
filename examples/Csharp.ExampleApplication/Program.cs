@@ -87,6 +87,10 @@ namespace Csharp.ExampleApplication
             services.AddScoped<EncryptExtractsTransformer<IPublishableWorkbook>>();
             #endregion
 
+            #region StartAtTransformer-DI
+            services.AddScoped(typeof(SimpleScheduleStartAtTransformer<>));
+            #endregion
+
             #region LogMigrationActionsHook-DI
             services.AddScoped<LogMigrationActionsHook>();
             #endregion

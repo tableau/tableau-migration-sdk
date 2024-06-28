@@ -37,7 +37,7 @@ namespace Tableau.Migration.Api
         /// <param name="userId">The user's ID.</param>
         /// <param name="pageNumber">The 1-indexed page number.</param>
         /// <param name="pageSize">The size of the page.</param>
-        /// <param name="cancel">The cancellation token</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>A list of groups for the given user ID</returns>
         Task<IPagedResult<IGroup>> GetUserGroupsAsync(Guid userId, int pageNumber, int pageSize, CancellationToken cancel);
 
@@ -46,7 +46,7 @@ namespace Tableau.Migration.Api
         /// </summary>
         /// <param name="pageNumber">The 1-indexed page number.</param>
         /// <param name="pageSize">The size of the page.</param>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>A list of a page of users in the current site.</returns>
         Task<IPagedResult<IUser>> GetAllUsersAsync(int pageNumber, int pageSize, CancellationToken cancel);
 
@@ -55,7 +55,7 @@ namespace Tableau.Migration.Api
         /// </summary>
         /// <param name="users">The users to include in the request payload.</param>
         /// <param name="csvStream">The in-memory stream containing user data in a csv format.</param>
-        /// <param name="cancel">The cancellation token.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>The newly created import job.</returns>
         Task<IResult<IImportJob>> ImportUsersAsync(IEnumerable<IUser> users, Stream csvStream, CancellationToken cancel);
 
@@ -65,7 +65,7 @@ namespace Tableau.Migration.Api
         /// <param name="userName">The username. In case of Tableau Cloud, the user name is the email address of the user.</param>
         /// <param name="siteRole">The site role for the user.</param>
         /// <param name="authenticationType">The optional authentication type of the user.</param>
-        /// <param name="cancel">The cancellation token.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns></returns>
         Task<IResult<IAddUserResult>> AddUserAsync(string userName, string siteRole, string? authenticationType, CancellationToken cancel);
 
@@ -74,7 +74,7 @@ namespace Tableau.Migration.Api
         /// </summary>
         /// <param name="id">The Identifier for the user.</param>
         /// <param name="newSiteRole">The new Site Role for the user.</param>
-        /// <param name="cancel">The cancellation token.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <param name="newfullName">(Optional) The new Full Name for the user.</param>
         /// <param name="newEmail">(Optional) The new email address for the user.</param>
         /// <param name="newPassword">(Optional) The new password for the user.</param>
@@ -93,7 +93,7 @@ namespace Tableau.Migration.Api
         /// Deletes a user.
         /// </summary>
         /// <param name="userId">The user's ID.</param>
-        /// <param name="cancel">The cancellation token.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns></returns>
         Task<IResult> DeleteUserAsync(Guid userId, CancellationToken cancel);
     }

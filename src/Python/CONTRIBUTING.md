@@ -10,9 +10,9 @@ Python port for the Tableau Migration SDK
 * _Optional_: Update PIP and SetupTools to the latest version by executing `python -m pip install --upgrade pip setuptools`
   * PIP and SetupTools are the only pre-loaded modules on a clean Windows installation
 * _Optional_ for hatch: Install pytest globally to run tests on Visual Studio
-  * `python -m pip install pytest`
+  * `python -m pip install --upgrade pytest pytest-env`
 * Install hatch globally
-  * `python -m pip install hatch`
+  * `python -m pip install --upgrade hatch`
 * Create the Python virtual environment
   * (From migration-sdk/src/Python): `python -m venv env --system-site-packages --upgrade-deps`
 * _Optional_ for hatch: Activate the virtual environment to run tests on Visual Studio
@@ -41,7 +41,7 @@ To run ruff locally:
   * Activate the virtual environment:
     * `.\env\Scripts\Activate.ps1`.
   * Execute linter:
-    * `python -m ruff --format=github .`.
+    * `python -m ruff check --output-format=github .`.
 * **With hatch**:
   * Execute linter:
     * `python -m hatch run lint:lint`.
@@ -58,7 +58,7 @@ To generate the documentation locally:
   * Activate the virtual environment:
     * `.\env\Scripts\Activate.ps1`.
   * Generate documentation:
-    * `python -m sphinx -M markdown .\Documentation\ ..\Documentation\python\`.
+    * `python -m sphinx -M markdown .\Documentation\ ..\Documentation\python\ -Q`.
 * **With hatch**:
   * Generate documentation:
     * `python -m hatch run docs:docs`.
@@ -103,9 +103,9 @@ Python tests also run in the CI/CD pipeline on all supported OS types.
 
 ## Building and publishing
 
-Overriding an existing package version is not supported in `artifactory`.
+Overriding an existing package version is not supported.
 
-This script will build the package and upload it to `artifactory`. `scripts/publish-package.ps1`.
+This script will build the package and upload it to package repository. `scripts/publish-package.ps1`.
 
 Use the flag **$SkipPublish** to disable the `python -m twine upload` if you don't want to upload.
 

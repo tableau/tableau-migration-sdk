@@ -60,7 +60,7 @@ namespace Tableau.Migration.Api
         IWorkbooksApiClient Workbooks { get; }
 
         /// <summary>
-        /// Gets the API client for views operations.
+        /// Gets the API client for view operations.
         /// </summary>
         IViewsApiClient Views { get; }
 
@@ -70,10 +70,25 @@ namespace Tableau.Migration.Api
         IFlowsApiClient Flows { get; }
 
         /// <summary>
+        /// Gets the API client for schedule operations.
+        /// </summary>
+        ISchedulesApiClient Schedules { get; }
+
+        /// <summary>
+        /// Gets the API client for Tableau Server task operations.
+        /// </summary>
+        IServerTasksApiClient ServerTasks { get; }
+
+        /// <summary>
+        /// Gets the API client for Tableau Cloud task operations.
+        /// </summary>
+        ICloudTasksApiClient CloudTasks { get; }
+
+        /// <summary>
         /// Gets the site with the specified ID.
         /// </summary>
         /// <param name="siteId">The site's ID.</param>
-        /// <param name="cancel">The cancellation token.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>The site with the specified ID.</returns>
         Task<IResult<ISite>> GetSiteAsync(Guid siteId, CancellationToken cancel);
 
@@ -81,7 +96,7 @@ namespace Tableau.Migration.Api
         /// Gets the site with the specified content URL.
         /// </summary>
         /// <param name="contentUrl">The site's content URL.</param>
-        /// <param name="cancel">The cancellation token.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>The site with the specified content URL.</returns>
         Task<IResult<ISite>> GetSiteAsync(string contentUrl, CancellationToken cancel);
 
@@ -89,7 +104,7 @@ namespace Tableau.Migration.Api
         /// Updates the site.
         /// </summary>
         /// <param name="update">The settings to update on the site..</param>
-        /// <param name="cancel">The cancellation token.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>The site information returned after the update.</returns>
         Task<IResult<ISite>> UpdateSiteAsync(ISiteSettingsUpdate update, CancellationToken cancel);
 

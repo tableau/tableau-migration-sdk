@@ -15,12 +15,15 @@
 //  limitations under the License.
 //
 
+using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Moq;
 using Tableau.Migration.Api;
 using Tableau.Migration.Api.Models;
 using Tableau.Migration.Api.Rest.Models.Requests;
 using Tableau.Migration.Api.Rest.Models.Responses;
+using Tableau.Migration.Net;
 using Xunit;
 
 namespace Tableau.Migration.Tests.Unit.Api
@@ -42,7 +45,8 @@ namespace Tableau.Migration.Tests.Unit.Api
                     MockSessionProvider.Object,
                     MockLoggerFactory.Object,
                     MockSitesApiClient.Object,
-                    MockSharedResourcesLocalizer.Object);
+                    MockSharedResourcesLocalizer.Object,
+                    Serializer);
             }
         }
 
@@ -109,7 +113,7 @@ namespace Tableau.Migration.Tests.Unit.Api
 
                 request.AssertUri(SiteConnectionConfiguration.ServerUrl, $"/api/{TableauServerVersion.RestApiVersion}/serverinfo");
 
-                MockSessionProvider.Verify(p => p.SetCurrentUserAndSiteAsync(It.IsAny<ISignInResult>(), Cancel), Times.Never);
+                MockSessionProvider.Verify(p => p.SetCurrentSessionAsync(It.IsAny<ISignInResult>(), TableauInstanceType.Unknown, Cancel), Times.Never);
             }
         }
 
@@ -120,34 +124,49 @@ namespace Tableau.Migration.Tests.Unit.Api
             {
                 var signInResponse = AutoFixture.CreateResponse<SignInResponse>();
 
+
                 var mockResponse = new MockHttpResponseMessage<SignInResponse>(signInResponse);
 
+                var mockSitesResponse = new MockHttpResponseMessage<SitesResponse>();
+                mockSitesResponse.Setup(p => p.StatusCode).Returns(System.Net.HttpStatusCode.OK);
+
                 MockHttpClient.SetupResponse(mockResponse);
+                MockHttpClient.SetupResponse(mockSitesResponse);
 
                 await using var result = await ApiClient.SignInAsync(Cancel);
 
                 Assert.True(result.Success);
                 Assert.Same(MockSitesApiClient.Object, result.Value);
 
-                var request = MockHttpClient.AssertSingleRequest();
-
-                request.AssertRelativeUri($"/api/{TableauServerVersion.RestApiVersion}/auth/signin");
-
-                await request.AssertContentAsync<SignInRequest>(
-                    Serializer,
-                    r =>
+                var requests = MockHttpClient.AssertRequestCount(2);
+                Assert.Collection(requests,
+                    async signInRequest =>
                     {
-                        Assert.Equal(r.Credentials!.Site!.ContentUrl, SiteConnectionConfiguration.SiteContentUrl);
-                        Assert.Equal(r.Credentials.PersonalAccessTokenName, SiteConnectionConfiguration.AccessTokenName);
-                        Assert.Equal(r.Credentials.PersonalAccessTokenSecret, SiteConnectionConfiguration.AccessToken);
-                    });
+                        signInRequest.AssertRelativeUri($"/api/{TableauServerVersion.RestApiVersion}/auth/signin");
 
-                MockSessionProvider.Verify(p => p.SetCurrentUserAndSiteAsync(It.Is<SignInResult>(r =>
-                    r.SiteId == signInResponse.Item!.Site!.Id &&
-                    r.SiteContentUrl == signInResponse.Item.Site.ContentUrl &&
-                    r.UserId == signInResponse.Item.User!.Id &&
-                    r.Token == signInResponse.Item.Token), Cancel),
-                    Times.Once);
+                        await signInRequest.AssertContentAsync<SignInRequest>(
+                            Serializer,
+                            r =>
+                            {
+                                Assert.Equal(r.Credentials!.Site!.ContentUrl, SiteConnectionConfiguration.SiteContentUrl);
+                                Assert.Equal(r.Credentials.PersonalAccessTokenName, SiteConnectionConfiguration.AccessTokenName);
+                                Assert.Equal(r.Credentials.PersonalAccessTokenSecret, SiteConnectionConfiguration.AccessToken);
+                            });
+
+                        MockSessionProvider.Verify(p => p.SetCurrentSessionAsync(It.Is<SignInResult>(r =>
+                            r.SiteId == signInResponse.Item!.Site!.Id &&
+                            r.SiteContentUrl == signInResponse.Item.Site.ContentUrl &&
+                            r.UserId == signInResponse.Item.User!.Id &&
+                            r.Token == signInResponse.Item.Token),
+                            TableauInstanceType.Server,
+                            Cancel),
+                            Times.Once);
+                    },
+                    getSitesRequest =>
+                    {
+                        getSitesRequest.AssertRelativeUri($"/api/{TableauServerVersion.RestApiVersion}/sites");
+                    }
+                );
             }
 
             [Fact]
@@ -170,7 +189,7 @@ namespace Tableau.Migration.Tests.Unit.Api
 
                 await using var result = await ApiClient.SignInAsync(Cancel);
 
-                var requests = MockHttpClient.AssertRequestCount(2);
+                var requests = MockHttpClient.AssertRequestCount(3);
 
                 var signInRequest = requests[1];
 
@@ -197,7 +216,51 @@ namespace Tableau.Migration.Tests.Unit.Api
                 request.AssertRelativeUri($"/api/{TableauServerVersion.RestApiVersion}/auth/signin");
             }
         }
+        public class GetInstanceTypeAsync : ApiClientTest
+        {
+            [Theory]
+            [InlineData(HttpStatusCode.OK, TableauInstanceType.Server)]
+            [InlineData(HttpStatusCode.Forbidden, TableauInstanceType.Unknown)]
+            [InlineData(HttpStatusCode.NotFound, TableauInstanceType.Unknown)]
+            [InlineData(HttpStatusCode.Redirect, TableauInstanceType.Unknown)]
+            public async Task Returns_correct_instance_type(HttpStatusCode statusCode, TableauInstanceType expectedInstanceType)
+            {
+                var mockSitesResponse = new MockHttpResponseMessage();
+                mockSitesResponse.Setup(p => p.StatusCode).Returns(statusCode);
 
+                MockHttpClient.SetupResponse(mockSitesResponse);
+
+                var result = await ApiClient.GetInstanceTypeAsync(Cancel);
+
+                Assert.Equal(expectedInstanceType, result);
+
+                var request = MockHttpClient.AssertSingleRequest();
+                request.AssertRelativeUri($"/api/{TableauServerVersion.RestApiVersion}/sites");
+            }
+            [Fact]
+            public async Task Returns_cloud_instance_type()
+            {
+                var mockSitesResponse = new MockHttpResponseMessage();
+                var tsResponse = new EmptyTableauServerResponse(
+                    new() { Code = ApiClient.SITES_QUERY_NOT_SUPPORTED, Summary = It.IsAny<string>(), Detail = It.IsAny<string>() });
+
+                var content = new DefaultHttpResponseMessage(
+                    new HttpResponseMessage(HttpStatusCode.Forbidden)
+                    {
+                        Content = Serializer.Serialize(tsResponse, MediaTypes.Xml)
+                    });
+
+                Assert.NotNull(content);
+                MockHttpClient.SetupResponse(content);
+
+                var result = await ApiClient.GetInstanceTypeAsync(Cancel);
+
+                Assert.Equal(TableauInstanceType.Cloud, result);
+
+                var request = MockHttpClient.AssertSingleRequest();
+                request.AssertRelativeUri($"/api/{TableauServerVersion.RestApiVersion}/sites");
+            }
+        }
         public class GetCurrentServerSessionAsync : ApiClientTest
         {
             [Fact]

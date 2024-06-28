@@ -86,6 +86,7 @@ namespace Tableau.Migration.Engine
             //Migrators
             //Register concrete types so that the easy way to get interface types is through IMigrationPipeline.
             services.AddScoped(typeof(EndpointContentItemPreparer<,>));
+            services.AddScoped(typeof(ExtractRefreshTaskServerToCloudPreparer));
             services.AddScoped(typeof(SourceContentItemPreparer<>));
             services.AddScoped(typeof(BulkPublishContentBatchMigrator<>));
             services.AddScoped(typeof(BulkPublishContentBatchMigrator<,>));
@@ -131,6 +132,9 @@ namespace Tableau.Migration.Engine
             services.AddScoped<GroupUsersTransformer>();
             services.AddScoped(typeof(OwnershipTransformer<>));
             services.AddScoped<TableauServerConnectionUrlTransformer>();
+            services.AddScoped(typeof(CloudScheduleCompatibilityTransformer<>));
+            services.AddScoped<CloudIncrementalRefreshTransformer>();
+            services.AddScoped<MappedReferenceExtractRefreshTaskTransformer>();
 
             services.AddScoped<IPermissionsTransformer, PermissionsTransformer>();
             services.AddScoped<IMappedUserTransformer, MappedUserTransformer>();
@@ -154,7 +158,7 @@ namespace Tableau.Migration.Engine
                  * We look at IApiClientInputInitializer.IsInitialized to determine what scope we are in.
                  */
                 var apiClientInput = s.GetRequiredService<IApiClientInputInitializer>();
-                if(apiClientInput.IsInitialized)
+                if (apiClientInput.IsInitialized)
                 {
                     return apiClientInput.FileStore;
                 }

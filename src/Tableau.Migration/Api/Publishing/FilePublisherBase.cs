@@ -72,7 +72,7 @@ namespace Tableau.Migration.Api.Publishing
         /// Publishes a stream to a given site and commits the upload. 
         /// </summary>
         /// <param name="options">The publish options context object.</param>
-        /// <param name="cancel">The cancellation token</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>The specified type object with the completion data.</returns>
         public async Task<IResult<TPublishResult>> PublishAsync(
             TPublishOptions options,

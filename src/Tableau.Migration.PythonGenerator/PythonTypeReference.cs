@@ -35,7 +35,7 @@ namespace Tableau.Migration.PythonGenerator
 
         public bool IsExplicitReference => Name.Contains(".");
 
-        private static string ToPythonTypeName(ITypeSymbol dotNetType)
+        public static string ToPythonTypeName(ITypeSymbol dotNetType)
         {
             var typeName = dotNetType.Name;
             if (typeName.StartsWith("I"))

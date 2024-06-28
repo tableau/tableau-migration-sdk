@@ -20,7 +20,6 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Tableau.Migration.Content;
 using Tableau.Migration.Engine.Endpoints.Search;
-using Tableau.Migration.Engine.Pipelines;
 using Tableau.Migration.Resources;
 
 namespace Tableau.Migration.Engine.Hooks.Transformers.Default

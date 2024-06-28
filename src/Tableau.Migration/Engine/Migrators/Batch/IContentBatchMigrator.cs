@@ -32,7 +32,7 @@ namespace Tableau.Migration.Engine.Migrators.Batch
         /// Migrates a batch of content items.
         /// </summary>
         /// <param name="itemBatch">The batch of content items to migrate.</param>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>The results of the batch migration.</returns>
         Task<IContentBatchMigrationResult<TContent>> MigrateAsync(ImmutableArray<ContentMigrationItem<TContent>> itemBatch, CancellationToken cancel);
     }

@@ -29,7 +29,6 @@ using Tableau.Migration.Api.Rest.Models.Responses;
 using Tableau.Migration.Api.Tags;
 using Tableau.Migration.Content;
 using Tableau.Migration.Content.Files;
-using Tableau.Migration.Content.Permissions;
 using Tableau.Migration.Content.Search;
 using Tableau.Migration.Net.Rest;
 using Tableau.Migration.Net.Rest.Sorting;

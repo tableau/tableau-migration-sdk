@@ -32,7 +32,7 @@ namespace Tableau.Migration.Api
         /// </summary>
         /// <param name="pageNumber">The 1-indexed page number for the page to list.</param>
         /// <param name="pageSize">The expected maximum number of items to include in the page.</param>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>The paged results.</returns>
         Task<IPagedResult<TContent>> GetPageAsync(int pageNumber, int pageSize, CancellationToken cancel);
     }

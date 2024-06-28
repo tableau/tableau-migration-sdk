@@ -122,6 +122,7 @@ class TestPyWithTags(AutoFixtureTestBase):
 # region _generated
 
 from tableau_migration.migration import PyContentReference # noqa: E402, F401
+from tableau_migration.migration_api_rest import PyRestIdentifiable # noqa: E402, F401
 from typing import (  # noqa: E402, F401
     Sequence,
     List

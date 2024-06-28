@@ -25,6 +25,8 @@ using Tableau.Migration.Api.Search;
 using Tableau.Migration.Api.Simulation;
 using Tableau.Migration.Api.Tags;
 using Tableau.Migration.Content.Files;
+using Tableau.Migration.Content.Schedules.Server;
+using Tableau.Migration.Content.Search;
 using Tableau.Migration.Net;
 using Tableau.Migration.Net.Simulation;
 
@@ -66,11 +68,13 @@ namespace Tableau.Migration.Api
             services.AddScoped<IFlowsApiClient, FlowsApiClient>();
             services.AddScoped<IGroupsApiClient, GroupsApiClient>();
             services.AddScoped<IJobsApiClient, JobsApiClient>();
+            services.AddScoped<ISchedulesApiClient, SchedulesApiClient>();
             services.AddScoped<IProjectsApiClient, ProjectsApiClient>();
             services.AddScoped<ISitesApiClient, SitesApiClient>();
             services.AddScoped<IUsersApiClient, UsersApiClient>();
             services.AddScoped<IViewsApiClient, ViewsApiClient>();
             services.AddScoped<IWorkbooksApiClient, WorkbooksApiClient>();
+            services.AddScoped<ITasksApiClient, TasksApiClient>();
 
             //API Simulator.
             services.AddSingleton<ITableauApiSimulatorFactory, TableauApiSimulatorFactory>();
@@ -88,6 +92,14 @@ namespace Tableau.Migration.Api
             services.AddScoped<ApiContentReferenceFinderFactory>();
             services.AddScoped(p => p.GetRequiredService<ApiClientInput>().ContentReferenceFinderFactory);
             services.AddScoped(typeof(BulkApiContentReferenceCache<>));
+
+            //Content caches
+            services.AddScoped<IContentCacheFactory, ContentCacheFactory>();
+
+            //Server schedules content cache
+            services.AddScoped<ApiContentCache<IServerSchedule>>();
+            services.AddScoped<IContentCache<IServerSchedule>>(p => p.GetRequiredService<ApiContentCache<IServerSchedule>>());
+            services.AddScoped<BulkApiContentReferenceCache<IServerSchedule>>(p => p.GetRequiredService<ApiContentCache<IServerSchedule>>());
 
             //Non-Engine content file services.
             services.AddSingleton<IContentFilePathResolver, ContentTypeFilePathResolver>();

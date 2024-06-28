@@ -14,7 +14,7 @@ To encrypt extracts in Python, you can use the following transformer class:
 
 ### Registration
 
-Refer to the [documentation](~/samples/intro.md?tabs=Python#hook-registration) for instructions on registering the transformer.
+Refer to the [documentation](~/samples/index.md?tabs=Python#hook-registration) for instructions on registering the transformer.
 
 [//]: <> (Adding this as code as regions are not supported in python snippets)
 ```Python
@@ -32,7 +32,7 @@ In C#, the transformer class for encrypting extracts is implemented as follows:
 
 ### Registration
 
-To register the transformer in C#, follow the guidance provided in the [documentation](~/samples/intro.md?tabs=CSharp#hook-registration).
+To register the transformer in C#, follow the guidance provided in the [documentation](~/samples/index.md?tabs=CSharp#hook-registration).
 
 [!code-csharp[](../../../../examples/Csharp.ExampleApplication/MyMigrationApplication.cs#EncryptExtractTransformer-Registration)]
 

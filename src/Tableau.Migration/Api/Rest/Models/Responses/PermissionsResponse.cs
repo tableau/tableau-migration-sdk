@@ -16,7 +16,6 @@
 //
 
 using System;
-using System.Xml;
 using System.Xml.Serialization;
 using Tableau.Migration.Api.Rest.Models.Types;
 

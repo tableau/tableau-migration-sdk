@@ -31,7 +31,7 @@ using Newtonsoft.Json.Linq;
 using Tableau.Migration.Config;
 using Tableau.Migration.Content;
 using Tableau.Migration.Content.Permissions;
-using Tableau.Migration.Engine.Pipelines;
+using Tableau.Migration.Content.Schedules.Server;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -72,6 +72,10 @@ $@"
         {{
             ""type"":""DataSource"",
             ""batchSize"": {TestData.DATASOURCE_BATCH_SIZE}            
+        }},
+        {{
+            ""type"":""ServerExtractRefreshTask"",
+            ""batchSize"": {TestData.EXTRACT_REFRESH_TASK_BATCHSIZE}            
         }}
         ],
         ""Network"": {{
@@ -130,6 +134,7 @@ $@"{{
             public const int PROJECT_BATCH_SIZE = 203;
             public const int WORKBOOK_BATCH_SIZE = 204;
             public const int DATASOURCE_BATCH_SIZE = 205;
+            public const int EXTRACT_REFRESH_TASK_BATCHSIZE = 12;
 
             public const int FILE_CHUNK_SIZE_GB = 2034;
         }
@@ -237,6 +242,7 @@ $@"{{
             Assert.Equal(TestData.PROJECT_BATCH_SIZE, configReader.Get<IProject>().BatchSize);
             Assert.Equal(TestData.WORKBOOK_BATCH_SIZE, configReader.Get<IWorkbook>().BatchSize);
             Assert.Equal(TestData.DATASOURCE_BATCH_SIZE, configReader.Get<IDataSource>().BatchSize);
+            Assert.Equal(TestData.EXTRACT_REFRESH_TASK_BATCHSIZE, configReader.Get<IServerExtractRefreshTask>().BatchSize);
 
 
             var freshConfig = configReader.Get();
@@ -320,6 +326,7 @@ $@"{{
             
             Assert.Equal(ContentTypesOptions.Defaults.BATCH_SIZE, configReader.Get<IUser>().BatchSize);
             Assert.Equal(ContentTypesOptions.Defaults.BATCH_SIZE, configReader.Get<IDataSource>().BatchSize);
+            Assert.Equal(ContentTypesOptions.Defaults.BATCH_SIZE, configReader.Get<IServerExtractRefreshTask> ().BatchSize);
 
             Assert.NotNull(freshConfig?.DefaultPermissionsContentTypes);
         }

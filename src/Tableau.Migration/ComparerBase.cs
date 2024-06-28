@@ -59,6 +59,36 @@ namespace Tableau.Migration
                 });
         }
 
+        protected static int CompareValues<TValue>(T x, T y, Func<T, TValue> getValue, IComparer<TValue>? comparer = null)
+        {
+            comparer ??= Comparer<TValue>.Default;
+
+            var xValue = getValue(x);
+            var yValue = getValue(y);
+
+            return comparer.Compare(xValue, yValue);
+        }
+
+        protected static int CompareValues(T x, T y, Func<T, string?> getValue, StringComparison comparison)
+            => CompareValues(x, y, getValue, StringComparer.FromComparison(comparison));
+
+        protected static int CompareValues(params Func<int>[] comparisons)
+        {
+            Guard.AgainstNullOrEmpty(comparisons, nameof(comparisons));
+
+            var result = 0;
+
+            foreach (var comparison in comparisons)
+            {
+                result = comparison();
+
+                if (result != 0)
+                    return result;
+            }
+
+            return result;
+        }
+
         private static int Compare<TItem>(TItem? x, TItem? y, Func<TItem, TItem, int> compare)
         {
             if (x is null && y is null)

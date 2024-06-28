@@ -28,6 +28,7 @@ from tableau_migration import (
     IDataSource,
     IGroup,
     IProject,
+    IServerExtractRefreshTask,
     IUser,
     IWorkbook,
     LicenseLevels
@@ -121,6 +122,18 @@ class SkipAllWorkbooksFilter(ContentFilterBase[IWorkbook]): # noqa: N801
         self.logger.setLevel(logging.DEBUG)
 
     def should_migrate(self, item: ContentMigrationItem[IWorkbook]) -> bool:
+        self.logger.debug('%s is filtering "%s"', self.__class__.__name__, item.source_item.name)
+        return False
+
+class SkipAllExtractRefreshTasksFilter(ContentFilterBase[IServerExtractRefreshTask]): # noqa: N801
+    """A class to filter all extract refresh tasks."""
+
+    def __init__(self):
+        """Default init to set up logging."""
+        self.logger = logging.getLogger(self.__class__.__name__)
+        self.logger.setLevel(logging.DEBUG)
+
+    def should_migrate(self, item: ContentMigrationItem[IServerExtractRefreshTask]) -> bool:
         self.logger.debug('%s is filtering "%s"', self.__class__.__name__, item.source_item.name)
         return False
 

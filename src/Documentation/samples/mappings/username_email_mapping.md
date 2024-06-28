@@ -10,7 +10,7 @@ This example is for a hypothetical scenario where the Tableau Server usernames a
 
 #### Registration
 
-[Learn more.](~/samples/intro.md?tabs=Python#hook-registration)
+[Learn more.](~/samples/index.md?tabs=Python#hook-registration)
 
 See the line with `with_tableau_cloud_usernames`.
 
@@ -39,22 +39,22 @@ This uses a configuration class to supply the email domain.
 
 #### Mapping Class
 
-[!code-csharp[CS](../../../../examples/Csharp.ExampleApplication/Hooks/Mappings/EmailDomainMapping.cs#namespace)]
+[!code-csharp[](../../../../examples/Csharp.ExampleApplication/Hooks/Mappings/EmailDomainMapping.cs#namespace)]
 
 #### Configuration Class
 
-[!code-csharp[CS](../../../../examples/Csharp.ExampleApplication/Hooks/Mappings/EmailDomainMappingOptions.cs)]
+[!code-csharp[](../../../../examples/Csharp.ExampleApplication/Hooks/Mappings/EmailDomainMappingOptions.cs)]
 
 #### Registration
 
-[Learn more.](~/samples/intro.md?tabs=CSharp#hook-registration)
+[Learn more.](~/samples/index.md?tabs=CSharp#hook-registration)
 
 See the line with `WithTableauCloudUsernames`.
 
-[!code-csharp[CS](../../../../examples/Csharp.ExampleApplication/MyMigrationApplication.cs#EmailDomainMapping-Registration)]
+[!code-csharp[](../../../../examples/Csharp.ExampleApplication/MyMigrationApplication.cs#EmailDomainMapping-Registration)]
 
 #### Dependency Injection
 
 [Learn more.](~/articles/dependency_injection.md)
 
-[!code-csharp[CS](../../../../examples/Csharp.ExampleApplication/Program.cs#EmailDomainMapping-DI)]
+[!code-csharp[](../../../../examples/Csharp.ExampleApplication/Program.cs#EmailDomainMapping-DI)]

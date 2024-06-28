@@ -22,6 +22,8 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using Tableau.Migration.Api.Simulation;
 using Tableau.Migration.Content;
+using Tableau.Migration.Content.Schedules;
+using Tableau.Migration.Content.Schedules.Cloud;
 using Tableau.Migration.Engine.Endpoints;
 using Tableau.Migration.Engine.Hooks;
 using Tableau.Migration.Engine.Hooks.Filters;
@@ -121,6 +123,9 @@ namespace Tableau.Migration.Engine
             Transformers.Add<GroupUsersTransformer, IPublishableGroup>();
             Transformers.Add(typeof(OwnershipTransformer<>), GetPublishTypesByInterface<IWithOwner>());
             Transformers.Add<TableauServerConnectionUrlTransformer, IPublishableWorkbook>();
+            Transformers.Add<MappedReferenceExtractRefreshTaskTransformer, ICloudExtractRefreshTask>();
+            Transformers.Add<CloudIncrementalRefreshTransformer, ICloudExtractRefreshTask>();
+            Transformers.Add(typeof(CloudScheduleCompatibilityTransformer<>), GetPublishTypesByInterface<IWithSchedule<ICloudSchedule>>());
 
             // Post-publish hooks.
             Hooks.Add(typeof(OwnerItemPostPublishHook<,>), GetPostPublishTypesByInterface<IRequiresOwnerUpdate>());
@@ -144,7 +149,7 @@ namespace Tableau.Migration.Engine
         {
             if (createApiSimulator)
             {
-                _simulatorFactory.GetOrCreate(serverUrl);
+                _simulatorFactory.GetOrCreate(serverUrl, true);
             }
 
             return FromSource(new TableauApiEndpointConfiguration(new(serverUrl, siteContentUrl, accessTokenName, accessToken)));
@@ -162,7 +167,7 @@ namespace Tableau.Migration.Engine
         {
             if (createApiSimulator)
             {
-                _simulatorFactory.GetOrCreate(podUrl);
+                _simulatorFactory.GetOrCreate(podUrl, false);
             }
 
             return ToDestination(new TableauApiEndpointConfiguration(new(podUrl, siteContentUrl, accessTokenName, accessToken)));

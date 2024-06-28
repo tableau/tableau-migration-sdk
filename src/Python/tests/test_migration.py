@@ -145,3 +145,107 @@ class TestPyContentLocation():
         
         path = py.path_segments
         assert path == ["parent", "child", "item"]
+# region _generated
+
+from enum import IntEnum # noqa: E402, F401
+from tableau_migration.migration_api_rest import PyRestIdentifiable # noqa: E402, F401
+from typing import Sequence # noqa: E402, F401
+from typing_extensions import Self # noqa: E402, F401
+
+import System # noqa: E402
+
+from Tableau.Migration import (  # noqa: E402, F401
+    ContentLocation,
+    IContentReference,
+    IResult
+)
+
+from tableau_migration.migration import (  # noqa: E402, F401
+    PyContentLocation,
+    PyContentReference,
+    PyMigrationCompletionStatus,
+    PyResult
+)
+
+
+from Tableau.Migration import MigrationCompletionStatus
+
+# Extra imports for tests.
+from tests.helpers.autofixture import AutoFixtureTestBase # noqa: E402, F401
+
+class TestPyContentLocationGenerated(AutoFixtureTestBase):
+    
+    def test_ctor(self):
+        dotnet = self.create(ContentLocation)
+        py = PyContentLocation(dotnet)
+        assert py._dotnet == dotnet
+    
+    def test_path_segments_getter(self):
+        dotnet = self.create(ContentLocation)
+        py = PyContentLocation(dotnet)
+        assert len(dotnet.PathSegments) != 0
+        assert len(py.path_segments) == len(dotnet.PathSegments)
+    
+    def test_path_separator_getter(self):
+        dotnet = self.create(ContentLocation)
+        py = PyContentLocation(dotnet)
+        assert py.path_separator == dotnet.PathSeparator
+    
+    def test_path_getter(self):
+        dotnet = self.create(ContentLocation)
+        py = PyContentLocation(dotnet)
+        assert py.path == dotnet.Path
+    
+    def test_name_getter(self):
+        dotnet = self.create(ContentLocation)
+        py = PyContentLocation(dotnet)
+        assert py.name == dotnet.Name
+    
+    def test_is_empty_getter(self):
+        dotnet = self.create(ContentLocation)
+        py = PyContentLocation(dotnet)
+        assert py.is_empty == dotnet.IsEmpty
+    
+class TestPyContentReferenceGenerated(AutoFixtureTestBase):
+    
+    def test_ctor(self):
+        dotnet = self.create(IContentReference)
+        py = PyContentReference(dotnet)
+        assert py._dotnet == dotnet
+    
+    def test_content_url_getter(self):
+        dotnet = self.create(IContentReference)
+        py = PyContentReference(dotnet)
+        assert py.content_url == dotnet.ContentUrl
+    
+    def test_location_getter(self):
+        dotnet = self.create(IContentReference)
+        py = PyContentReference(dotnet)
+        assert py.location == None if dotnet.Location is None else PyContentLocation(dotnet.Location)
+    
+    def test_name_getter(self):
+        dotnet = self.create(IContentReference)
+        py = PyContentReference(dotnet)
+        assert py.name == dotnet.Name
+    
+class TestPyResultGenerated(AutoFixtureTestBase):
+    
+    def test_ctor(self):
+        dotnet = self.create(IResult)
+        py = PyResult(dotnet)
+        assert py._dotnet == dotnet
+    
+    def test_success_getter(self):
+        dotnet = self.create(IResult)
+        py = PyResult(dotnet)
+        assert py.success == dotnet.Success
+    
+    def test_errors_getter(self):
+        dotnet = self.create(IResult)
+        py = PyResult(dotnet)
+        assert len(dotnet.Errors) != 0
+        assert len(py.errors) == len(dotnet.Errors)
+    
+
+# endregion
+

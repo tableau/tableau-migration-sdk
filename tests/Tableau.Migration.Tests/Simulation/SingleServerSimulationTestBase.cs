@@ -37,11 +37,11 @@ namespace Tableau.Migration.Tests.Simulation
         {
             if (isCloud)
             {
-                Api = RegisterCloudApiSimulator("https://destination", Create<UsersResponse.UserType>());
+                Api = RegisterTableauCloudApiSimulator("https://destination", Create<UsersResponse.UserType>());
             }
             else
             {
-                Api = RegisterApiSimulator("https://server", Create<UsersResponse.UserType>());
+                Api = RegisterTableauServerApiSimulator("https://server", Create<UsersResponse.UserType>());
             }
 
             SiteConfig = BuildSiteConnectionConfiguration(Api);

@@ -31,7 +31,7 @@ namespace Tableau.Migration.Api
         /// Publishes a batch of content items.
         /// </summary>
         /// <param name="items">The content items to publish.</param>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>The results of the publishing.</returns>
         Task<IResult> PublishBatchAsync(IEnumerable<TPublish> items, CancellationToken cancel);
     }

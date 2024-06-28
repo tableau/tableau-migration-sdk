@@ -30,21 +30,21 @@ namespace Tableau.Migration.Api
         /// <summary>
         /// Signs into Tableau Server.
         /// </summary>
-        /// <param name="cancel">The cancellation token.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>An authenticated <see cref="ISitesApiClient"/>.</returns>
         Task<IAsyncDisposableResult<ISitesApiClient>> SignInAsync(CancellationToken cancel);
 
         /// <summary>
         /// Gets the version information for the Tableau Server.
         /// </summary>
-        /// <param name="cancel">The cancellation token.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>The information for the current Tableau Server.</returns>
         Task<IResult<IServerInfo>> GetServerInfoAsync(CancellationToken cancel);
 
         /// <summary>
         /// Gets the current session information.
         /// </summary>
-        /// <param name="cancel">The cancellation token.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>The session information.</returns>
         Task<IResult<IServerSession>> GetCurrentServerSessionAsync(CancellationToken cancel);
     }

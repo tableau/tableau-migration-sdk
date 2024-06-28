@@ -48,30 +48,37 @@ namespace Tableau.Migration.Api
         Guid? UserId { get; }
 
         /// <summary>
-        /// Sets the current user and site information.
+        /// The type of Tableau instance connected to. One of the values in <see cref="InstanceType"/>.
         /// </summary>
-        /// <param name="signInResult">The sign-in result containing the current user and site information.</param>
-        /// <param name="cancel">The cancellation token to obey.</param>
-        /// <returns>The task to await.</returns>
-        Task SetCurrentUserAndSiteAsync(ISignInResult signInResult, CancellationToken cancel);
+        TableauInstanceType InstanceType { get; }
 
         /// <summary>
-        /// Sets the current user and site information.
+        /// Sets the current session information.
+        /// </summary>
+        /// <param name="signInResult">The sign-in result containing the current user and site information.</param>
+        /// <param name="instanceType">The instance type connected to. It can be one of <see cref="TableauInstanceType"/>.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
+        /// <returns>The task to await.</returns>
+        Task SetCurrentSessionAsync(ISignInResult signInResult, TableauInstanceType instanceType, CancellationToken cancel);
+
+        /// <summary>
+        /// Sets the current session information.
         /// </summary>
         /// <param name="userId">The current user's ID.</param>
         /// <param name="siteId">The current site's ID.</param>
         /// <param name="siteContentUrl">The current site's content URL.</param>
         /// <param name="authenticationToken">The current user's authentication token.</param>
+        /// <param name="instanceType">The instance type connected to. It can be one of <see cref="TableauInstanceType"/>.</param>
         /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>The task to await.</returns>
-        Task SetCurrentUserAndSiteAsync(Guid userId, Guid siteId, string siteContentUrl, string authenticationToken, CancellationToken cancel);
+        Task SetCurrentSessionAsync(Guid userId, Guid siteId, string siteContentUrl, string authenticationToken, TableauInstanceType instanceType, CancellationToken cancel);
 
         /// <summary>
-        /// Clears the current user and site information.
+        /// Clears the current session information.
         /// </summary>
         /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>The task to await.</returns>
-        Task ClearCurrentUserAndSiteAsync(CancellationToken cancel);
+        Task ClearCurrentSessionAsync(CancellationToken cancel);
 
         /// <summary>
         /// Sets the current version information.

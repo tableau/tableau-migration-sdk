@@ -143,7 +143,7 @@ namespace Tableau.Migration.Tests.Unit.Content.Files
 
             [Theory]
             [Values(true, false)]
-            public async void Respects_leaveOpen_flag(bool leaveOpen)
+            public async Task Respects_leaveOpen_flag(bool leaveOpen)
             {
                 var mode = Create<CryptoStreamMode>();
 

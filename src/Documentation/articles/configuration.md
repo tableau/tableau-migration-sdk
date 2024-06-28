@@ -2,7 +2,7 @@
 
 The Migration SDK uses two sources of configuration in two blocks: the [Migration Plan](#migration-plan) that contains configuration for a specific migration run, and [Migration SDK Options](#migration-sdk-options) for configuration that is unlikely to change between migration runs.
 
-![Configuration Blocks](../images/configuration.png)
+![Configuration Blocks](../images/configuration.svg){width=65%}
 
 ## Migration Plan
 
@@ -79,7 +79,10 @@ This is an array of [`MigrationSdkOptions.ContentTypesOptions`](xref:Tableau.Mig
 > The [type](xref:Tableau.Migration.Config.ContentTypesOptions.Type) values are case-insensitive.
 > Duplicate [type](xref:Tableau.Migration.Config.ContentTypesOptions.Type) key values will result in an exception.
 
-In the following `json` example config file, a `BatchSize` of `201` is applied to the content type `User`. The same setting for `Project` is `203`.
+In the following `json` example config file, 
+- A `BatchSize` of `201` is applied to the content type `User`. 
+- A `BatchSize` of `203` for `Project`.
+- A `BatchSize` of `200` for `ServerExtractRefreshTask`.
 
 ```JSON
 {
@@ -92,6 +95,10 @@ In the following `json` example config file, a `BatchSize` of `201` is applied t
         {
             "type":"Project",
             "batchSize": 203            
+        },
+        {
+            "type":"ServerExtractRefreshTask",
+            "batchSize": 200
         }
         ],
     }
@@ -146,6 +153,7 @@ The following sections describe each setting. They should always be set per cont
 *Description:* The Migration SDK uses the **BatchPublishingEnabled** property to select the mode it will publish a given content type. Disabled by default, with this configuration, the SDK will publish the content by using individual REST API calls for each item. When this option is enabled, it is possible to publish content in a batch of items (just for some supported content types).
 
 Supported Content Types:
+
 - [User](xref:Tableau.Migration.Content.IUser) by using the method [Import Users to Site from CSV](https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_users_and_groups.htm#import_users_to_site_from_csv);
 
 ### MigrationParallelism

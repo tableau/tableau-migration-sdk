@@ -242,6 +242,14 @@ namespace Tableau.Migration.Tests.Unit.Engine
             }
 
             [Fact]
+            public async Task RegistersScopedExtractRefreshTaskServerToCloudPreparerAsync()
+            {
+                await using var scope = await InitializeMigrationScopeAsync();
+
+                AssertService<ExtractRefreshTaskServerToCloudPreparer>(scope, ServiceLifetime.Scoped);
+            }
+
+            [Fact]
             public async Task RegistersScopedItemBatchMigratorAsync()
             {
                 await using var scope = await InitializeMigrationScopeAsync();

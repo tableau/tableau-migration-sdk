@@ -23,5 +23,6 @@ namespace Tableau.Migration.PythonGenerator.Keywords.Python
         public const string AUTOFIXTURE = "tests.helpers.autofixture";
         public const string UUID = "uuid";
         public const string TYPING = "typing";
+        public const string DATETIME = "datetime";
     }
 }

@@ -15,8 +15,3 @@ sys.path.append(bin_path)
 
 shutil.rmtree(bin_path, True)
 subprocess.run(["dotnet", "publish", migration_project, "-o", bin_path, "-f", "net6.0"])
-
-# Regenerate automated Python wrapper tool.
-gen_path = bin_path + "/generator"
-generator_project = abspath("../../Tableau.Migration.PythonGenerator/Tableau.Migration.PythonGenerator.csproj")
-subprocess.run(["dotnet", "public", generator_project, "-o", gen_path])

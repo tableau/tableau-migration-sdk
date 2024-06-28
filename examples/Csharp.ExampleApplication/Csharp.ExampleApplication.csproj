@@ -4,7 +4,7 @@
 		<TargetFrameworks>net6.0;net8.0</TargetFrameworks>
 		<!-- Don't warn on ConfigureAwait on console application, Don't require license headers for sample code -->
 		<NoWarn>CA2007,IDE0073</NoWarn>
-		<UserSecretsId>7d7631f1-dc4a-49de-89d5-a194544705c1</UserSecretsId>
+		<UserSecretsId>8368baab-103b-45f6-bfb1-f89a537f4f3c</UserSecretsId>
 	</PropertyGroup>
 	<ItemGroup>
 		<ProjectReference Include="../../src/Tableau.Migration/Tableau.Migration.csproj" />		

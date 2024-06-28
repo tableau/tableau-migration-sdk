@@ -17,6 +17,7 @@
 
 using System;
 using System.Threading.Tasks;
+using Tableau.Migration.Api;
 using Tableau.Migration.Api.Rest;
 using Tableau.Migration.Api.Rest.Models.Responses;
 using Xunit;
@@ -26,7 +27,11 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
     public class SitesApiClientTests
     {
         public class SitesApiClientTest : ApiClientTestBase
-        { }
+        {
+            public SitesApiClientTest(bool isCloud = false)
+                : base(isCloud)
+            { }
+        }
 
         public class GetSiteAsync : SitesApiClientTest
         {
@@ -96,6 +101,60 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
 
                 var error = Assert.Single(result.Errors);
                 Assert.IsType<RestException>(error);
+            }
+        }
+
+        public class GetTasksForServer : SitesApiClientTest
+        {
+            public GetTasksForServer()
+                : base(false)
+            { }
+
+            [Fact]
+            public async Task GetServerTasks_Returns_ServerTasksApiClient()
+            {
+                // Arrange 
+                await using var sitesClient = await GetSitesClientAsync(Cancel);
+
+                // Act/Assert
+                Assert.IsAssignableFrom<IServerTasksApiClient>(sitesClient.ServerTasks);
+            }
+
+            [Fact]
+            public async Task GetCloudTasks_Throws_Exception()
+            {
+                // Arrange 
+                await using var sitesClient = await GetSitesClientAsync(Cancel);
+
+                // Act/Assert
+                Assert.Throws<TableauInstanceTypeNotSupportedException>(() => sitesClient.CloudTasks);
+            }
+        }
+
+        public class GetTasksForCloud : SitesApiClientTest
+        {
+            public GetTasksForCloud()
+                : base(true)
+            { }
+
+            [Fact]
+            public async Task GetServerTasks_Throws_Exception()
+            {
+                // Arrange 
+                await using var sitesClient = await GetSitesClientAsync(Cancel);
+
+                // Act/Assert
+                Assert.Throws<TableauInstanceTypeNotSupportedException>(() => sitesClient.ServerTasks);
+            }
+
+            [Fact]
+            public async Task GetCloudTasks_Returns_CloudTasksApiClient()
+            {
+                // Arrange 
+                await using var sitesClient = await GetSitesClientAsync(Cancel);
+
+                // Act/Assert
+                Assert.IsAssignableFrom<IServerTasksApiClient>(sitesClient.CloudTasks);
             }
         }
     }

@@ -18,7 +18,11 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Text;
 using Tableau.Migration.Content;
+using Tableau.Migration.Content.Schedules;
+using Tableau.Migration.Content.Schedules.Cloud;
+using Tableau.Migration.Content.Schedules.Server;
 
 namespace Tableau.Migration.Engine.Pipelines
 {
@@ -65,15 +69,10 @@ namespace Tableau.Migration.Engine.Pipelines
         public static readonly MigrationPipelineContentType Views = new MigrationPipelineContentType<IView>();
 
         /// <summary>
-        /// Gets a collection of all <see cref="MigrationPipelineContentType"/>s.
+        /// Gets the Server to Cloud extract refresh tasks <see cref="MigrationPipelineContentType"/>.
         /// </summary>
-        public static readonly IImmutableList<MigrationPipelineContentType> All = ImmutableArray.Create(
-            Users,
-            Groups,
-            Projects,
-            DataSources,
-            Workbooks
-        );
+        public static readonly MigrationPipelineContentType ServerToCloudExtractRefreshTasks = new MigrationPipelineContentType<IServerExtractRefreshTask>()
+            .WithPublishType<ICloudExtractRefreshTask>();
 
         /// <summary>
         /// Gets the publish type.
@@ -143,8 +142,25 @@ namespace Tableau.Migration.Engine.Pipelines
         /// <returns>The config key string.</returns>
         public string GetConfigKey()
         {
-            var typeName = ContentType.Name;
-            return typeName.TrimStart('I');
+            if (!ContentType.IsGenericType)
+            {
+                var typeName = ContentType.Name;
+                return typeName.TrimStart('I');
+            }
+
+            var convertedName = new StringBuilder()
+                .Append(
+                    ContentType.Name
+                        .TrimStart('I')
+                        .TrimEnd('1')
+                        .TrimEnd('`'));
+
+            foreach (var arg in ContentType.GenericTypeArguments)
+            {
+                convertedName.Append($"_{arg.Name.TrimStart('I')}");
+            }
+
+            return convertedName.ToString();
         }
 
         private static bool HasInterface(Type t, Type @interface)

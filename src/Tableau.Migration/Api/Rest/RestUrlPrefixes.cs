@@ -29,11 +29,13 @@ namespace Tableau.Migration.Api.Rest
             [typeof(IFlowsApiClient)] = Flows,
             [typeof(IGroupsApiClient)] = Groups,
             [typeof(IJobsApiClient)] = Jobs,
+            [typeof(ISchedulesApiClient)] = Schedules,
             [typeof(IProjectsApiClient)] = Projects,
             [typeof(ISitesApiClient)] = Sites,
             [typeof(IUsersApiClient)] = Users,
             [typeof(IViewsApiClient)] = Views,
             [typeof(IWorkbooksApiClient)] = Workbooks,
+            [typeof(ITasksApiClient)] = Tasks,
         }
         .ToImmutableDictionary(InheritedTypeComparer.Instance);
 
@@ -48,6 +50,8 @@ namespace Tableau.Migration.Api.Rest
         public const string Users = "users";
         public const string Views = "views";
         public const string Workbooks = "workbooks";
+        public const string Schedules = "schedules";
+        public const string Tasks = "tasks";
 
         public static string GetUrlPrefix<TApiClient>()
             where TApiClient : IContentApiClient

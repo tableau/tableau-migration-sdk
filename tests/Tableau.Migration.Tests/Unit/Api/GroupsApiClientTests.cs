@@ -494,7 +494,7 @@ namespace Tableau.Migration.Tests.Unit.Api
         public class PublishAsync_Cancellation : GroupsApiClientTest
         {
             [Fact]
-            public async void Publish_cancel_after_create_group()
+            public async Task Publish_cancel_after_create_group()
             {
                 var existingGroup = CreateGroup();
 
@@ -546,7 +546,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async void Publish_cancel_during_delete_user_from_group()
+            public async Task Publish_cancel_during_delete_user_from_group()
             {
                 var existingGroup = CreateGroup();
 
@@ -594,7 +594,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async void Publish_cancel_during_add_user_to_group()
+            public async Task Publish_cancel_during_add_user_to_group()
             {
                 var existingGroup = CreateGroup();
 

@@ -33,7 +33,7 @@ namespace Tableau.Migration.Api
         /// <summary>
         /// Gets the authentication token.
         /// </summary>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>A task to await for the current authentication token.</returns>
         Task<string?> GetAsync(CancellationToken cancel);
 
@@ -41,14 +41,14 @@ namespace Tableau.Migration.Api
         /// Sets the authentication token.
         /// </summary>
         /// <param name="token">The authentication token received from the server.</param>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>The task to await.</returns>
         Task SetAsync(string token, CancellationToken cancel);
 
         /// <summary>
         /// Clears the authentication token.
         /// </summary>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>The task to await.</returns>
         Task ClearAsync(CancellationToken cancel);
 
@@ -59,7 +59,7 @@ namespace Tableau.Migration.Api
         /// The token that was previously used before the refresh was requested.
         /// Used to de-duplicate refresh requests.
         /// </param>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>The task to await.</returns>
         Task RequestRefreshAsync(string? previousToken, CancellationToken cancel);
     }

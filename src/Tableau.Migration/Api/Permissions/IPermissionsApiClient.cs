@@ -31,7 +31,7 @@ namespace Tableau.Migration.Api.Permissions
         /// Gets the permissions for the content item with the specified ID.
         /// </summary>
         /// <param name="contentItemId">The ID of the content item.</param>
-        /// <param name="cancel">The cancellation token.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>The permissions result with <see cref="IPermissions"/>.</returns>
         Task<IResult<IPermissions>> GetPermissionsAsync(
             Guid contentItemId,
@@ -42,7 +42,7 @@ namespace Tableau.Migration.Api.Permissions
         /// </summary>
         /// <param name="contentItemId">The id of the content item.</param>
         /// <param name="permissions">The permissions of the content item.</param>
-        /// <param name="cancel">The cancellation token.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>The permissions result with <see cref="IPermissions"/>.</returns>
         Task<IResult<IPermissions>> CreatePermissionsAsync(
             Guid contentItemId,
@@ -56,7 +56,7 @@ namespace Tableau.Migration.Api.Permissions
         /// <param name="granteeId">The id of the permissions grantee. This is either a user or group.</param>
         /// <param name="granteeType">The type of the permissions grantee.</param>
         /// <param name="capability">The object containing the capability name and mode.</param>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns></returns>
         Task<IResult> DeleteCapabilityAsync(
             Guid contentItemId,
@@ -70,7 +70,7 @@ namespace Tableau.Migration.Api.Permissions
         /// </summary>
         /// <param name="contentItemId">Id of the content item.</param>        
         /// <param name="permissions"></param>
-        /// <param name="cancel"></param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns></returns>
         Task<IResult> DeleteAllPermissionsAsync(
             Guid contentItemId,
@@ -82,7 +82,7 @@ namespace Tableau.Migration.Api.Permissions
         /// </summary>
         /// <param name="contentItemId">Id of the content item.</param>
         /// <param name="permissions">The permissions of the content item.</param>
-        /// <param name="cancel">The cancellation token.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>The permissions result with <see cref="IPermissions"/>.</returns>
         Task<IResult<IPermissions>> UpdatePermissionsAsync(
             Guid contentItemId,

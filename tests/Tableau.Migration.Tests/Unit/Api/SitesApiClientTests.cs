@@ -215,7 +215,7 @@ namespace Tableau.Migration.Tests.Unit.Api
 
                 request.AssertRelativeUri($"/api/{TableauServerVersion.RestApiVersion}/auth/signout");
 
-                MockSessionProvider.Verify(p => p.ClearCurrentUserAndSiteAsync(Cancel), Times.Once);
+                MockSessionProvider.Verify(p => p.ClearCurrentSessionAsync(Cancel), Times.Once);
             }
 
             [Fact]
@@ -238,7 +238,7 @@ namespace Tableau.Migration.Tests.Unit.Api
 
                 request.AssertRelativeUri($"/api/{TableauServerVersion.RestApiVersion}/auth/signout");
 
-                MockSessionProvider.Verify(p => p.ClearCurrentUserAndSiteAsync(Cancel), Times.Once);
+                MockSessionProvider.Verify(p => p.ClearCurrentSessionAsync(Cancel), Times.Once);
             }
 
             [Fact]

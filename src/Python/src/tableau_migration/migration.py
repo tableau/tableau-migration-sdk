@@ -209,13 +209,12 @@ class PyMigrationManifest():
 # region _generated
 
 from enum import IntEnum # noqa: E402, F401
+from tableau_migration.migration_api_rest import PyRestIdentifiable # noqa: E402, F401
 from typing import Sequence # noqa: E402, F401
 from typing_extensions import Self # noqa: E402, F401
-from uuid import UUID # noqa: E402, F401
 
 import System # noqa: E402
 
-from System import Guid # noqa: E402, F401
 from Tableau.Migration import (  # noqa: E402, F401
     ContentLocation,
     IContentReference,
@@ -318,7 +317,7 @@ class PyContentLocation():
         result = self._dotnet.Parent()
         return None if result is None else PyContentLocation(result)
     
-class PyContentReference():
+class PyContentReference(PyRestIdentifiable):
     """Interface for an object that describes information on how to reference an item of content, for example through a Tableau API."""
     
     _dotnet_base = IContentReference
@@ -333,11 +332,6 @@ class PyContentReference():
         """
         self._dotnet = content_reference
         
-    @property
-    def id(self) -> UUID:
-        """Gets the unique identifier of the content item, corresponding to the LUID in the Tableau REST API."""
-        return None if self._dotnet.Id is None else UUID(self._dotnet.Id.ToString())
-    
     @property
     def content_url(self) -> str:
         """Get the site-unique "content URL" of the content item, or an empty string if the content type does not use a content URL."""

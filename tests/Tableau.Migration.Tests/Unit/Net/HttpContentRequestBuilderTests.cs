@@ -19,6 +19,7 @@ using System;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Mime;
+using System.Threading.Tasks;
 using Moq;
 using Tableau.Migration.Net;
 using Xunit;
@@ -125,7 +126,7 @@ namespace Tableau.Migration.Tests.Unit.Net
             }
 
             [Fact]
-            public async void Sets_string_content()
+            public async Task Sets_string_content()
             {
                 var content = @"{ ""id"": ""1234"" }";
 
@@ -161,7 +162,7 @@ namespace Tableau.Migration.Tests.Unit.Net
             }
 
             [Fact]
-            public async void Sets_string_content()
+            public async Task Sets_string_content()
             {
                 var content = @"<xml><test/></xml>";
 

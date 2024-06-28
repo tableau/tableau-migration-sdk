@@ -73,6 +73,8 @@ from tableau_migration.migration_engine_endpoints_search import PyDestinationCon
 from tableau_migration.migration_engine_endpoints_search import PyDestinationContentReferenceFinderFactory as IDestinationContentReferenceFinderFactory # noqa: E402, F401
 from tableau_migration.migration_engine_endpoints_search import PySourceContentReferenceFinder as ISourceContentReferenceFinder # noqa: E402, F401
 from tableau_migration.migration_engine_endpoints_search import PySourceContentReferenceFinderFactory as ISourceContentReferenceFinderFactory # noqa: E402, F401
+from tableau_migration.migration_content_schedules_cloud import PyCloudExtractRefreshTask as ICloudExtractRefreshTask # noqa: E402, F401
+from tableau_migration.migration_content_schedules_server import PyServerExtractRefreshTask as IServerExtractRefreshTask # noqa: E402, F401
 
 # region _generated
 
@@ -80,6 +82,7 @@ from tableau_migration.migration import PyContentLocation as ContentLocation # n
 from tableau_migration.migration import PyContentReference as IContentReference # noqa: E402, F401
 from tableau_migration.migration import PyMigrationCompletionStatus as MigrationCompletionStatus # noqa: E402, F401
 from tableau_migration.migration import PyResult as IResult # noqa: E402, F401
+from tableau_migration.migration_api_rest import PyRestIdentifiable as IRestIdentifiable # noqa: E402, F401
 from tableau_migration.migration_api_rest_models import PyAdministratorLevels as AdministratorLevels # noqa: E402, F401
 from tableau_migration.migration_api_rest_models import PyContentPermissions as ContentPermissions # noqa: E402, F401
 from tableau_migration.migration_api_rest_models import PyExtractEncryptionModes as ExtractEncryptionModes # noqa: E402, F401
@@ -119,6 +122,14 @@ from tableau_migration.migration_content_permissions import PyCapability as ICap
 from tableau_migration.migration_content_permissions import PyGranteeCapability as IGranteeCapability # noqa: E402, F401
 from tableau_migration.migration_content_permissions import PyGranteeType as GranteeType # noqa: E402, F401
 from tableau_migration.migration_content_permissions import PyPermissions as IPermissions # noqa: E402, F401
+from tableau_migration.migration_content_schedules import PyExtractRefreshContentType as ExtractRefreshContentType # noqa: E402, F401
+from tableau_migration.migration_content_schedules import PyExtractRefreshTask as IExtractRefreshTask # noqa: E402, F401
+from tableau_migration.migration_content_schedules import PyFrequencyDetails as IFrequencyDetails # noqa: E402, F401
+from tableau_migration.migration_content_schedules import PyInterval as IInterval # noqa: E402, F401
+from tableau_migration.migration_content_schedules import PySchedule as ISchedule # noqa: E402, F401
+from tableau_migration.migration_content_schedules import PyWithSchedule as IWithSchedule # noqa: E402, F401
+from tableau_migration.migration_content_schedules_cloud import PyCloudSchedule as ICloudSchedule # noqa: E402, F401
+from tableau_migration.migration_content_schedules_server import PyServerSchedule as IServerSchedule # noqa: E402, F401
 from tableau_migration.migration_engine import PyContentMigrationItem as ContentMigrationItem # noqa: E402, F401
 from tableau_migration.migration_engine_actions import PyMigrationActionResult as IMigrationActionResult # noqa: E402, F401
 from tableau_migration.migration_engine_hooks_mappings import PyContentMappingContext as ContentMappingContext # noqa: E402, F401

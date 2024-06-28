@@ -29,7 +29,7 @@ namespace Tableau.Migration.Engine.Pipelines
         /// Executes all pipeline actions.
         /// </summary>
         /// <param name="pipeline">The pipeline to execute.</param>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>An awaitable task for the overall pipeline execution result.</returns>
         Task<IResult> ExecuteAsync(IMigrationPipeline pipeline, CancellationToken cancel);
     }

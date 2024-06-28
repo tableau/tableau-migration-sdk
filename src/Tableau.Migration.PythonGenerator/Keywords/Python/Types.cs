@@ -27,5 +27,6 @@ namespace Tableau.Migration.PythonGenerator.Keywords.Python
         public const string BOOL = "bool";
         public const string STR = "str";
         public const string INT = "int";
+        public const string TIME = "time";
     }
 }

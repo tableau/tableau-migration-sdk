@@ -55,7 +55,7 @@ namespace Tableau.Migration.Content.Files
         /// <param name="relativeStorePath">The relative path and file name to create a file for within the file store.</param>
         /// <param name="originalFileName">The original file name external to the file store to preserve when publishing content items.</param>
         /// <param name="initialContent">The initial content to save the file with.</param>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>A handle to the newly created file.</returns>
         public async Task<IContentFileHandle> CreateAsync(string relativeStorePath, string originalFileName,
             Stream initialContent, CancellationToken cancel)
@@ -78,7 +78,7 @@ namespace Tableau.Migration.Content.Files
         /// <param name="contentItem">The content item to resolve a relative file store path from.</param>
         /// <param name="originalFileName">The original file name external to the file store to preserve when publishing content items.</param>
         /// <param name="initialContent">The initial content to save the file with.</param>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>A handle to the newly created file.</returns>
         public async Task<IContentFileHandle> CreateAsync<TContent>(TContent contentItem, string originalFileName,
             Stream initialContent, CancellationToken cancel)
@@ -98,7 +98,7 @@ namespace Tableau.Migration.Content.Files
         /// Opens a stream to read from a file.
         /// </summary>
         /// <param name="handle">The handle to the file to read from.</param>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>The stream to read from.</returns>
         Task<IContentFileStream> OpenReadAsync(IContentFileHandle handle, CancellationToken cancel);
 
@@ -106,7 +106,7 @@ namespace Tableau.Migration.Content.Files
         /// Opens a stream to write to a file.
         /// </summary>
         /// <param name="handle">The handle to the file to write to.</param>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>The stream to write to.</returns>
         Task<IContentFileStream> OpenWriteAsync(IContentFileHandle handle, CancellationToken cancel);
 
@@ -115,7 +115,7 @@ namespace Tableau.Migration.Content.Files
         /// opening a new editor if necessary.
         /// </summary>
         /// <param name="handle">The handle to the file to get the editor for.</param>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <param name="zipFormatOverride">
         /// True to consider the file a zip archive, 
         /// false to consider the file an XML file, 
@@ -133,7 +133,7 @@ namespace Tableau.Migration.Content.Files
         /// Changes will be flushed before closing.
         /// </summary>
         /// <param name="handle">The handle to the file to close the editor for.</param>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>A task to await.</returns>
         Task CloseTableauFileEditorAsync(IContentFileHandle handle, CancellationToken cancel);
 
@@ -141,7 +141,7 @@ namespace Tableau.Migration.Content.Files
         /// Deletes a file managed by the file store.
         /// </summary>
         /// <param name="handle">The handle to the file to delete.</param>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>A task to await.</returns>
         Task DeleteAsync(IContentFileHandle handle, CancellationToken cancel);
     }

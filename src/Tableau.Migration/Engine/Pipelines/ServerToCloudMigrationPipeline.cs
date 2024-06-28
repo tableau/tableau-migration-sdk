@@ -21,6 +21,9 @@ using System.Collections.Immutable;
 using Microsoft.Extensions.DependencyInjection;
 using Tableau.Migration.Config;
 using Tableau.Migration.Content;
+using Tableau.Migration.Content.Schedules;
+using Tableau.Migration.Content.Schedules.Cloud;
+using Tableau.Migration.Content.Schedules.Server;
 using Tableau.Migration.Engine.Actions;
 using Tableau.Migration.Engine.Migrators.Batch;
 
@@ -41,6 +44,7 @@ namespace Tableau.Migration.Engine.Pipelines
             MigrationPipelineContentType.Projects,
             MigrationPipelineContentType.DataSources,
             MigrationPipelineContentType.Workbooks,
+            MigrationPipelineContentType.ServerToCloudExtractRefreshTasks
         ];
 
         private readonly IConfigReader _configReader;
@@ -72,6 +76,7 @@ namespace Tableau.Migration.Engine.Pipelines
             yield return CreateMigrateContentAction<IProject>();
             yield return CreateMigrateContentAction<IDataSource>();
             yield return CreateMigrateContentAction<IWorkbook>();
+            yield return CreateMigrateContentAction<IServerExtractRefreshTask>();
         }
 
         /// <inheritdoc />
@@ -93,6 +98,8 @@ namespace Tableau.Migration.Engine.Pipelines
                     return Services.GetRequiredService<ItemPublishContentBatchMigrator<TContent, IPublishableDataSource, IDataSourceDetails>>();
                 case Type worbook when worbook == typeof(IWorkbook):
                     return Services.GetRequiredService<ItemPublishContentBatchMigrator<TContent, IPublishableWorkbook, IWorkbookDetails>>();
+                case Type extractRefreshTask when extractRefreshTask == typeof(IServerExtractRefreshTask):
+                    return Services.GetRequiredService<ItemPublishContentBatchMigrator<TContent, ICloudExtractRefreshTask, ICloudExtractRefreshTask>>();
                 default:
                     return base.GetBatchMigrator<TContent>();
             }

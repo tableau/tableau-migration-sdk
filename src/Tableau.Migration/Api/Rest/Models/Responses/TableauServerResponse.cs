@@ -23,16 +23,14 @@ namespace Tableau.Migration.Api.Rest.Models.Responses
     /// <summary>
     /// Base class representing REST API responses.
     /// </summary>
-    public abstract class TableauServerResponse
+    public abstract class TableauServerResponse : ITableauServerResponse
     {
         /// <summary>
         /// Gets the XML type name for Tableau Server REST API responses, i.e. &lt;tsResponse&gt;
         /// </summary>
         internal const string XmlTypeName = "tsResponse";
 
-        /// <summary>
-        /// Gets or sets the error for the response.
-        /// </summary>
+        /// <inheritdoc />
         [XmlElement("error")]
         public Error? Error { get; set; }
 

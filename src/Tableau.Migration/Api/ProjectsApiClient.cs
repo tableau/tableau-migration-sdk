@@ -58,7 +58,7 @@ namespace Tableau.Migration.Api
         {
             _defaultPermissionsClient = permissionsClientFactory.CreateDefaultPermissionsClient();
             _serializer = serializer;
-            
+
             Permissions = permissionsClientFactory.Create(this);
         }
 
@@ -212,9 +212,9 @@ namespace Tableau.Migration.Api
                 // We don't need to load the parent project here since it's already published.
                 // The owner may be different, though, which we'll want to know for the post-publish hook.
 
-                var existingProject = await RestProjectBuilder.BuildProjectAsync(existingProjectResult.Value[0], 
+                var existingProject = await RestProjectBuilder.BuildProjectAsync(existingProjectResult.Value[0],
                     item.ParentProject, UserFinder.Value, cancel).ConfigureAwait(false);
-                
+
                 return Result<IProject>.Succeeded(existingProject);
             }
 

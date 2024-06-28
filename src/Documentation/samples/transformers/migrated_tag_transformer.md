@@ -14,7 +14,7 @@ To implement the tag addition in Python, you can utilize the following transform
 
 ### Registration
 
-For detailed instructions on registering the transformer, refer to the [documentation](~/samples/intro.md?tabs=Python#hook-registration).
+For detailed instructions on registering the transformer, refer to the [documentation](~/samples/index.md?tabs=Python#hook-registration).
 
 [//]: <> (Adding this as code as regions are not supported in python snippets)
 ```Python
@@ -32,7 +32,7 @@ In C#, the transformer class for adding tags is implemented as shown below:
 
 ### Registration
 
-To register the transformer in C#, follow the guidance provided in the [documentation](~/samples/intro.md?tabs=CSharp#hook-registration).
+To register the transformer in C#, follow the guidance provided in the [documentation](~/samples/index.md?tabs=CSharp#hook-registration).
 
 [!code-csharp[](../../../../examples/Csharp.ExampleApplication/MyMigrationApplication.cs#MigratedTagTransformer-Registration)]
 

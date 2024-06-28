@@ -53,7 +53,7 @@ namespace Tableau.Migration.Engine.Preparation
         /// Pulls any additional information needed to prepare/publish a content item.
         /// </summary>
         /// <param name="item">The content item to use to pull additional information.</param>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>The item to use for publishing.</returns>
         protected abstract Task<IResult<TPublish>> PullAsync(ContentMigrationItem<TContent> item, CancellationToken cancel);
 
@@ -61,7 +61,7 @@ namespace Tableau.Migration.Engine.Preparation
         /// Performs pre-publishing modifications on a publish item.
         /// </summary>
         /// <param name="publishItem">The item intended for publishing to prepare.</param>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>The item to use for publishing.</returns>
         protected virtual async Task<IResult<TPublish>> TransformAsync(TPublish publishItem, CancellationToken cancel)
         {
@@ -74,7 +74,7 @@ namespace Tableau.Migration.Engine.Preparation
         /// </summary>
         /// <param name="publishItem">The item to publish.</param>
         /// <param name="mappedLocation">The mapped destination location.</param>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>The result of the mapping application.</returns>
         protected virtual async Task ApplyMappingAsync(TPublish publishItem, ContentLocation mappedLocation, CancellationToken cancel)
         {
@@ -134,7 +134,7 @@ namespace Tableau.Migration.Engine.Preparation
         /// Performs finalization tasks that occur after transformers, but before publishing.
         /// </summary>
         /// <param name="publishItem">The item to publish.</param>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>A task to await.</returns>
         protected virtual async Task FinalizeAsync(TPublish publishItem, CancellationToken cancel)
         {

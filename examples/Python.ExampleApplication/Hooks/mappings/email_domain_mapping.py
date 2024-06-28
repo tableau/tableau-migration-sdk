@@ -11,7 +11,7 @@ class EmailDomainMapping(TableauCloudUsernameMappingBase):
         _tableau_user_domain = ctx.mapped_location.parent()
 
         # Re-use an existing email if it already exists. 
-        if not ctx.content_item.email:
+        if ctx.content_item.email:
             return ctx.map_to(_tableau_user_domain.append(ctx.content_item.email))
         
         # Takes the existing username and appends the domain to build the email
