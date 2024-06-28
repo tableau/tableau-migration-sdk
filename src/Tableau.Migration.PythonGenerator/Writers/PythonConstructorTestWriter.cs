@@ -15,6 +15,9 @@
 //  limitations under the License.
 //
 
+using Microsoft.CodeAnalysis;
+using System.Linq;
+
 namespace Tableau.Migration.PythonGenerator.Writers
 {
     internal sealed class PythonConstructorTestWriter : PythonMemberWriter, IPythonConstructorTestWriter
@@ -37,8 +40,17 @@ namespace Tableau.Migration.PythonGenerator.Writers
             var dotnetObj = "dotnet";
             var pyObj = "py";
 
-            ctorBuilder.AppendLine($"{dotnetObj} = self.create({type.DotNetType.Name})");
-            ctorBuilder.AppendLine($"{pyObj} = {type.Name}({dotnetObj})");
+            if (!type.DotNetType.IsGenericType)
+            {
+                ctorBuilder.AppendLine($"dotnet = self.create({type.DotNetType.Name})");
+                ctorBuilder.AppendLine($"{pyObj} = {type.Name}({dotnetObj})");
+            }
+            else
+            {
+                ctorBuilder.AppendLine($"dotnet = self.create({type.DotNetType.OriginalDefinition.Name}[{BuildDotnetGenericTypeConstraintsString(type.DotNetType)}])");
+                ctorBuilder.AppendLine($"{pyObj} = {type.Name}[{BuildPythongGenericTypeConstraintsString(type.DotNetType)}]({dotnetObj})");
+            }
+            
             ctorBuilder.AppendLine($"assert {pyObj}._dotnet == {dotnetObj}");
         }
     }

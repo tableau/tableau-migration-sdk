@@ -173,10 +173,26 @@ namespace Tableau.Migration.Tests.Unit.Engine.Pipelines
             {
                 var pipelineContentTypes = ServerToCloudMigrationPipeline.ContentTypes;
 
-                foreach(var pipelineContentType in pipelineContentTypes)
+                foreach (var pipelineContentType in pipelineContentTypes)
                 {
                     Assert.NotNull(pipelineContentType);
-                    Assert.Equal(pipelineContentType.ContentType.Name, $"I{pipelineContentType.GetConfigKey()}");
+                    var actualConfigKey = pipelineContentType.GetConfigKey();
+
+                    var contentType = pipelineContentType.ContentType;
+                    
+                    if (contentType.GenericTypeArguments.Length == 0)
+                    {
+                        Assert.Equal(contentType.Name, $"I{actualConfigKey}");
+                        return;
+                    }
+
+                    var cleanedTypeName = contentType.Name.TrimEnd('1').TrimEnd('`');
+                    Assert.StartsWith(cleanedTypeName, $"I{actualConfigKey}");
+
+                    foreach (var arg in contentType.GenericTypeArguments)
+                    {
+                        Assert.Contains($"_{arg.Name.TrimStart('I')}", actualConfigKey);
+                    }
                 }
             }
         }

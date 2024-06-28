@@ -44,12 +44,12 @@ namespace Tableau.Migration.Tests.Simulation
 
         public MultiDestinationSimulationTestBase(string sourceUrl, IEnumerable<string> destinationUrls)
         {
-            SourceApi = RegisterApiSimulator(sourceUrl, Create<UsersResponse.UserType>());
+            SourceApi = RegisterTableauServerApiSimulator(sourceUrl, Create<UsersResponse.UserType>());
             SourceSiteConfig = BuildSiteConnectionConfiguration(SourceApi);
             SourceEndpointConfig = new(SourceSiteConfig);
 
             DestinationApis = destinationUrls
-                .Select(u => RegisterApiSimulator(u, Create<UsersResponse.UserType>()))
+                .Select(u => RegisterTableauServerApiSimulator(u, Create<UsersResponse.UserType>()))
                 .ToImmutableArray();
 
             DestinationSiteConfigs = DestinationApis

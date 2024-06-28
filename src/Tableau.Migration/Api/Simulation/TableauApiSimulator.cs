@@ -54,13 +54,19 @@ namespace Tableau.Migration.Api.Simulation
         /// </summary>
         /// <param name="serverUrl">The base server URL.</param>
         /// <param name="serializer">A serializer to use to produce responses.</param>
+        /// <param name="isTableauServer">Indicates whether the current Tableau Data is for Tableau Server (true) or Tableau Cloud (false).</param>
         /// <param name="defaultSignedInUser">Default signed in user to user. If none is provided, the simulated server will have no users.</param>
         /// <param name="defaultDomain">The default domain of the site.</param>
-        public TableauApiSimulator(Uri serverUrl, IHttpContentSerializer serializer,
-            UsersResponse.UserType? defaultSignedInUser = null, string defaultDomain = Constants.LocalDomain)
+        public TableauApiSimulator(
+            Uri serverUrl, 
+            IHttpContentSerializer serializer,
+            bool isTableauServer,
+            UsersResponse.UserType? defaultSignedInUser = null, 
+            string defaultDomain = Constants.LocalDomain)
         {
             ServerUrl = serverUrl;
             Data = new(defaultSignedInUser, defaultDomain);
+            Data.IsTableauServer = isTableauServer;
             ResponseSimulator = new TableauApiResponseSimulator(ServerUrl, Data, serializer);
             RestApi = new(ResponseSimulator);
         }

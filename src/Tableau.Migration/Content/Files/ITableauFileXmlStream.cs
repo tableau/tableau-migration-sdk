@@ -38,7 +38,7 @@ namespace Tableau.Migration.Content.Files
         /// parsing the file if necessary.
         /// Changes to the XML will be automatically saved before publishing.
         /// </summary>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>The XML document.</returns>
         Task<XDocument> GetXmlAsync(CancellationToken cancel);
     }

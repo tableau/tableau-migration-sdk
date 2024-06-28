@@ -36,7 +36,7 @@ namespace Tableau.Migration
         /// </summary>
         /// <param name="expression">The expression to generate the member chain string for.</param>
         /// <returns></returns>
-        public static string Build(Expression<Func<object?>> expression) => Build(expression.Body);
+        public static string Build<T>(Expression<Func<T>> expression) => Build(expression.Body);
 
         private static string Build(Expression? expression)
         {

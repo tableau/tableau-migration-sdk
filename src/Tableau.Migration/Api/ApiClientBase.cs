@@ -15,6 +15,8 @@
 //  limitations under the License.
 //
 
+using System;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.Logging;
 using Tableau.Migration.Net.Rest;
 using Tableau.Migration.Resources;
@@ -36,5 +38,30 @@ namespace Tableau.Migration.Api
             Logger = loggerFactory.CreateLogger(GetType());
             SharedResourcesLocalizer = sharedResourcesLocalizer;
         }
+
+        public T ExecuteForInstanceType<T>(TableauInstanceType expected, TableauInstanceType actual, Func<T> executeIfSupported)
+            where T : notnull
+        {
+            if (AssertInstanceType(expected, actual, true))
+                return executeIfSupported();
+
+            return default;
+        }
+
+        public T ReturnForInstanceType<T>(TableauInstanceType expected, TableauInstanceType actual, T returnValueWhenSupported)
+            where T : notnull
+        {
+            if (AssertInstanceType(expected, actual, true))
+                return returnValueWhenSupported;
+
+            return default;
+        }
+
+        public bool AssertInstanceType(TableauInstanceType expected, TableauInstanceType actual, [DoesNotReturnIf(true)] bool throwOnFailure)
+            => actual == expected
+                ? true
+                : throwOnFailure
+                    ? throw new TableauInstanceTypeNotSupportedException(actual, SharedResourcesLocalizer)
+                    : false;
     }
 }

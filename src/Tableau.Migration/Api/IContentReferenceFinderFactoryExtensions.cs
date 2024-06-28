@@ -23,6 +23,8 @@ using Microsoft.Extensions.Logging;
 using Tableau.Migration.Api.Rest;
 using Tableau.Migration.Api.Rest.Models;
 using Tableau.Migration.Content;
+using Tableau.Migration.Content.Schedules;
+using Tableau.Migration.Content.Schedules.Server;
 using Tableau.Migration.Content.Search;
 using Tableau.Migration.Resources;
 
@@ -53,8 +55,8 @@ namespace Tableau.Migration.Api
 
             logger.LogWarning(localizer[SharedResourceKeys.ProjectReferenceNotFoundMessage], response.Project.Name, response.GetType().Name, response.Name);
 
-            return throwIfNotFound 
-                ? throw new InvalidOperationException($"The project with ID {projectId} was not found.") 
+            return throwIfNotFound
+                ? throw new InvalidOperationException($"The project with ID {projectId} was not found.")
                 : null;
         }
 
@@ -84,6 +86,36 @@ namespace Tableau.Migration.Api
             return throwIfNotFound
                 ? throw new InvalidOperationException($"The owner with ID {ownerId} was not found.")
                 : null;
+        }
+
+        public static async Task<IContentReference> FindScheduleAsync(
+            this IContentReferenceFinderFactory finderFactory,
+            [NotNull] IWithScheduleReferenceType? response,
+            CancellationToken cancel)
+        {
+            Guard.AgainstNull(response, nameof(response));
+
+            var schedule = Guard.AgainstNull(response.Schedule, () => nameof(response.Schedule));
+            var scheduleId = Guard.AgainstDefaultValue(schedule.Id, () => nameof(response.Schedule.Id));
+
+            var scheduleFinder = finderFactory.ForContentType<IServerSchedule>();
+
+            var foundSchedule = await scheduleFinder.FindByIdAsync(scheduleId, cancel).ConfigureAwait(false);
+
+            return Guard.AgainstNull(foundSchedule, nameof(foundSchedule));
+        }
+
+        public static async Task<IContentReference> FindExtractRefreshContentAsync(
+            this IContentReferenceFinderFactory finderFactory,
+            ExtractRefreshContentType contentType,
+            Guid contentId,
+            CancellationToken cancel)
+        {
+            var finder = finderFactory.ForExtractRefreshContent(contentType);
+
+            var content = await finder.FindByIdAsync(contentId, cancel).ConfigureAwait(false);
+
+            return Guard.AgainstNull(content, nameof(content));
         }
     }
 }

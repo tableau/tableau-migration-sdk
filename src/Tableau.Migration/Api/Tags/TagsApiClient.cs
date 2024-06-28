@@ -84,18 +84,16 @@ namespace Tableau.Migration.Api.Tags
                 return Result.Succeeded();
             }
 
-            var aggregateResult = new List<IResult>();
+            var resultBuilder = new ResultBuilder();
 
-            var deleteTasks = tags.Select(tag => RemoveTagAsync(contentItemId, tag, cancel)).ToList();
-
-            var deleteResults = await Task.WhenAll(deleteTasks).ConfigureAwait(false);
-            if (deleteResults is null)
+            foreach (var tag in tags)
             {
-                return Result.Failed(new Exception($"Failed to delete one or tags for {contentItemId}."));
+                var deleteResult = await RemoveTagAsync(contentItemId, tag, cancel).ConfigureAwait(false);
+
+                resultBuilder.Add(deleteResult);
             }
 
-            return new ResultBuilder()
-                .Add(deleteResults)
+            return resultBuilder
                 .Build();
         }
 

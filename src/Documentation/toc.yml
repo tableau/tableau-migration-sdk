@@ -1,12 +1,12 @@
+- name: Articles
+  href: articles/
+  homepage: articles/index.md
+- name: Code Samples
+  href: samples/
+  homepage: samples/index.md
 - name: Python API Reference
   href: api-python/
   homepage: api-python/index.md
 - name: C# API Reference
   href: api-csharp/
-  homepage: api-csharp/index.md
-- name: Code Samples
-  href: samples/
-  homepage: samples/intro.md
-- name: Articles
-  href: articles/
-  homepage: articles/intro.md  
+  homepage: api-csharp/index.md  

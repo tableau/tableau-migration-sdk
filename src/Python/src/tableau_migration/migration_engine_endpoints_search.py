@@ -56,7 +56,7 @@ class PyDestinationContentReferenceFinder(Generic[TContent]):
         """Creates a new PyDestinationContentReferenceFinder object.
         
         Args:
-            destination_content_reference_finder: A ISyncDestinationContentReferenceFinder object.
+            destination_content_reference_finder: A IDestinationContentReferenceFinder object.
             t: The content type.
         
         Returns: None.
@@ -163,7 +163,7 @@ class PySourceContentReferenceFinder(Generic[TContent]):
         """Creates a new PySourceContentReferenceFinder object.
         
         Args:
-            source_content_reference_finder: A ISyncSourceContentReferenceFinder object.
+            source_content_reference_finder: A ISourceContentReferenceFinder object.
             t: The content type.
         
         Returns: None.

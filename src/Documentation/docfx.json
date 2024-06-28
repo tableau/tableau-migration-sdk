@@ -85,7 +85,7 @@
     "fileMetadata": {
       "_disableContribution": {
         "articles/**/*.md": false,
-        "samples/**/*.md" :false
+        "samples/**/*.md": false
       }
     },
     "template": [
@@ -98,6 +98,11 @@
     "noLangKeyword": false,
     "keepFileLink": false,
     "cleanupCacheHistory": true,
-    "disableGitFeatures": false
+    "disableGitFeatures": false,
+    "markdownEngineProperties": {
+      "markdigExtensions": [
+        "attributes"
+      ]
+    }
   }
 }

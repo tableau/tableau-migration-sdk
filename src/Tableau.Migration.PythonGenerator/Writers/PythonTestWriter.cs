@@ -24,12 +24,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.Extensions.Options;
-using Tableau.Migration.Content;
-using Tableau.Migration.Content.Permissions;
 using Tableau.Migration.PythonGenerator.Config;
-using Dotnet= Tableau.Migration.PythonGenerator.Keywords.Dotnet;
-using Py = Tableau.Migration.PythonGenerator.Keywords.Python;
 using Tableau.Migration.PythonGenerator.Writers.Imports;
+using Py = Tableau.Migration.PythonGenerator.Keywords.Python;
 
 namespace Tableau.Migration.PythonGenerator.Writers
 {
@@ -201,68 +198,60 @@ namespace Tableau.Migration.PythonGenerator.Writers
             WriteEnumCompletenessTestData(segment.StringBuilder, pyTypeCache);
         }
 
-        private async ValueTask WriteContentTypeWrapperTestsAsync(PythonTypeCache pyTypeCache, CancellationToken cancel)
+        private async ValueTask WriteClassMemberTests(PythonTypeCache pyTypeCache, CancellationToken cancel)
         {
-            var extraTestImports = new List<ImportedModule>()
+            var typesToTest = pyTypeCache
+                           .Types
+                           .Where(x => PythonTestGenerationList.ShouldGenerateTests(x.DotNetType))
+                           .ToList();
+
+            if (typesToTest == null || typesToTest.Count == 0)
             {
-                new(Dotnet.Namespaces.TABLEAU_MIGRATION,new ImportedType(nameof(IContentReference))),
-                new(Dotnet.Namespaces.SYSTEM, [new ImportedType(Dotnet.Types.BOOLEAN), new ImportedType(Dotnet.Types.NULLABLE)])
-            };
+                return;
+            }
 
-            await WriteTests($"{typeof(IUser).Namespace}", pyTypeCache, extraTestImports, cancel);
+            var namespaceGroups = typesToTest.GroupBy(x 
+                => x.DotNetType?.ContainingNamespace.ToDisplayString() ?? string.Empty);
 
-        }
-
-        private async ValueTask WritePermissionsContentTypeWrapperTestsAsync(PythonTypeCache pyTypeCache, CancellationToken cancel)
-        {
-            var extraTestImports = new List<ImportedModule>()
+            foreach (var namespaceGroup in namespaceGroups)
             {
-                new(Dotnet.Namespaces.TABLEAU_MIGRATION,new ImportedType(nameof(IContentReference))),
-                new(Dotnet.Namespaces.SYSTEM,new ImportedType(Dotnet.Types.NULLABLE)),
-                new(Dotnet.Namespaces.SYSTEM_COLLECTIONS_GENERIC, new ImportedType(Dotnet.Types.LIST,Dotnet.TypeAliases.LIST))
-            };
 
-            await WriteTests($"{typeof(IPermissions).Namespace}", pyTypeCache, extraTestImports, cancel);
-        }
+                var classes = new PythonTypeCache(namespaceGroup.ToArray());
 
-        private async Task WriteTests(string nameSpace, PythonTypeCache pyTypeCache, List<ImportedModule> extraTestImports, CancellationToken cancel)
-        {
-            var classes = new PythonTypeCache(pyTypeCache
-               .Types
-               .Where(x
-                => x.DotNetType?.ContainingNamespace?.ToDisplayString() != null
-                && x.DotNetType.ContainingNamespace.ToDisplayString() == nameSpace)
-               .ToArray());
-            var moduleGroups = classes.Types.GroupBy(p => p.Module);
+                var moduleGroups = classes.Types.GroupBy(p => p.Module);
 
-            foreach (var moduleGroup in moduleGroups)
-            {
-                var pyFileName = moduleGroup.Key.Replace("tableau_migration.", "") + ".py";
-                var pyFilePath = Path.Combine(_testDirectoryPath, $"test_{pyFileName}");
-
-                await using var segment = await GeneratedPythonSegment.OpenAsync(pyFilePath, cancel);
-
-                WriteImports(segment.StringBuilder, moduleGroup.Key, moduleGroup);
-                var pythonTypes = moduleGroup.ToImmutableArray();
-
-                WriteClassTestImports(segment.StringBuilder, new PythonTypeCache(pythonTypes));
-
-                WriteExtraTestImports(segment.StringBuilder, extraTestImports);
-
-                foreach (var pythonType in pythonTypes)
+                foreach (var moduleGroup in moduleGroups)
                 {
-                    _classTestWriter.Write(segment.StringBuilder, pythonType);
+                    var pyFileName = moduleGroup.Key.Replace("tableau_migration.", "") + ".py";
+                    var pyFilePath = Path.Combine(_testDirectoryPath, $"test_{pyFileName}");
+
+                    await using var segment = await GeneratedPythonSegment.OpenAsync(pyFilePath, cancel);
+
+                    WriteImports(segment.StringBuilder, moduleGroup.Key, moduleGroup);
+                    var pythonTypes = moduleGroup.ToImmutableArray();
+
+                    WriteClassTestImports(segment.StringBuilder, new PythonTypeCache(pythonTypes));
+
+                    WriteExtraTestImports(segment.StringBuilder, namespaceGroup.Key, pyTypeCache);
+
+                    foreach (var pythonType in pythonTypes)
+                    {
+                        _classTestWriter.Write(segment.StringBuilder, pythonType);
+                    }
                 }
             }
         }
 
         private static void WriteExtraTestImports(
             IndentingStringBuilder builder,
-            List<ImportedModule> extraTestImports)
+            string nameSpace,
+            PythonTypeCache pyTypeCache)
         {
             builder.AppendLine("# Extra imports for tests.");
 
             var autoFixtureNamespace = Py.Modules.AUTOFIXTURE;
+
+            var extraTestImports = PythonTestGenerationList.GetExtraImportsByNamespace(nameSpace, pyTypeCache);
 
             if (!extraTestImports.Any(x => x.Name == autoFixtureNamespace))
             {
@@ -282,8 +271,7 @@ namespace Tableau.Migration.PythonGenerator.Writers
         public async ValueTask WriteAsync(PythonTypeCache pyTypeCache, CancellationToken cancel)
         {
             await WriteWrapperCompletenessTestDataAsync(pyTypeCache, cancel);
-            await WriteContentTypeWrapperTestsAsync(pyTypeCache, cancel);
-            await WritePermissionsContentTypeWrapperTestsAsync(pyTypeCache, cancel);
+            await WriteClassMemberTests(pyTypeCache, cancel);
         }
     }
 }

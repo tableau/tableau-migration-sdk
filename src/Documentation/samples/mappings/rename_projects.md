@@ -10,7 +10,7 @@ In this example, the source project named `Test` is renamed to `Production` on t
 
 #### Registration
 
-[Learn more.](~/samples/intro.md?tabs=Python#hook-registration)
+[Learn more.](~/samples/index.md?tabs=Python#hook-registration)
 
 [//]: <> (Adding this as code as regions are not supported in Python snippets)
 ```Python
@@ -25,7 +25,7 @@ plan_builder.mappings.add(EmailDomainMapping)
 
 #### Registration
 
-[Learn more.](~/samples/intro.md?tabs=CSharp#hook-registration)
+[Learn more.](~/samples/index.md?tabs=CSharp#hook-registration)
 
 [!code-csharp[](../../../../examples/Csharp.ExampleApplication/MyMigrationApplication.cs#ProjectRenameMapping-Registration)]
 

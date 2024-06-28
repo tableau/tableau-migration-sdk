@@ -44,7 +44,7 @@ namespace Tableau.Migration.Api
         /// </summary>
         /// <param name="pageNumber">The 1-indexed page number.</param>
         /// <param name="pageSize">The size of the page.</param>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>A list of a page of workbooks in the current site.</returns>
         Task<IPagedResult<IWorkbook>> GetAllWorkbooksAsync(int pageNumber, int pageSize, CancellationToken cancel);
 
@@ -52,7 +52,7 @@ namespace Tableau.Migration.Api
         /// Gets a workbook by the given ID.
         /// </summary>
         /// <param name="workbookId">The ID to get the workbook for.</param>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>The data sorce result.</returns>
         Task<IResult<IWorkbookDetails>> GetWorkbookAsync(Guid workbookId, CancellationToken cancel);
 
@@ -61,7 +61,7 @@ namespace Tableau.Migration.Api
         /// </summary>
         /// <param name="workbookId">The ID to download the workbook file for.</param>
         /// <param name="includeExtract">Whether or not to include extracts in the workbook file.</param>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>The file download result.</returns>
         Task<IAsyncDisposableResult<FileDownload>> DownloadWorkbookAsync(
             Guid workbookId,
@@ -72,7 +72,7 @@ namespace Tableau.Migration.Api
         /// Uploads the input workbook file.
         /// </summary>
         /// <param name="options">The new workbook's details.</param>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>The published workbook.</returns>
         Task<IResult<IWorkbookDetails>> PublishWorkbookAsync(
             IPublishWorkbookOptions options,
@@ -82,7 +82,7 @@ namespace Tableau.Migration.Api
         /// Updates the workbook after publishing.
         /// </summary>
         /// <param name="workbookId">The ID for the workbook to update.</param>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <param name="newName">The new name of the workbook, or null to not update the name.</param>
         /// <param name="newDescription">The new description of the workbook, or null to not update the description.</param>
         /// <param name="newProjectId">The LUID of a project to move the  workbook to, or null to not update the project.</param>

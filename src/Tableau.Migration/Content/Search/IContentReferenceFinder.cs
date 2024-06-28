@@ -23,18 +23,25 @@ namespace Tableau.Migration.Content.Search
 {
     /// <summary>
     /// Interface for an object that can find <see cref="IContentReference"/>s
-    /// for a given content type and search criteria.
+    /// for given search criteria.
     /// </summary>
-    /// <typeparam name="TContent">The content type.</typeparam>
-    public interface IContentReferenceFinder<TContent>
-        where TContent : IContentReference
+    public interface IContentReferenceFinder
     {
         /// <summary>
         /// Finds the content reference by its unique identifier.
         /// </summary>
         /// <param name="id">The unique identifier.</param>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>The found content reference, or null if no content reference was found.</returns>
         Task<IContentReference?> FindByIdAsync(Guid id, CancellationToken cancel);
     }
+
+    /// <summary>
+    /// Interface for an object that can find <see cref="IContentReference"/>s
+    /// for a given content type and search criteria.
+    /// </summary>
+    /// <typeparam name="TContent">The content type.</typeparam>
+    public interface IContentReferenceFinder<TContent> : IContentReferenceFinder
+        where TContent : IContentReference
+    { }
 }

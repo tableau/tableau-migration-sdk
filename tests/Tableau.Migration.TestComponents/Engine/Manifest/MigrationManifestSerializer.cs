@@ -68,7 +68,7 @@ namespace Tableau.Migration.TestComponents.Engine.Manifest
         /// </summary>
         /// <param name="manifest">The manifest to save.</param>
         /// <param name="path">The file path to save the manifest to.</param>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <param name="jsonOptions">Optional JSON options to use.</param>
         public async Task SaveAsync(IMigrationManifest manifest, string path, JsonSerializerOptions? jsonOptions = null)
         {
@@ -93,7 +93,7 @@ namespace Tableau.Migration.TestComponents.Engine.Manifest
         /// Loads a manifest from JSON format.
         /// </summary>
         /// <param name="path">The file path to load the manifest from.</param>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <param name="jsonOptions">Optional JSON options to use.</param>
         /// <returns>The loaded <see cref="MigrationManifest"/>, or null if the manifest could not be loaded.</returns>
         public async Task<MigrationManifest?> LoadAsync(string path, CancellationToken cancel, JsonSerializerOptions? jsonOptions = null)

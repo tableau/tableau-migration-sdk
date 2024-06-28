@@ -32,7 +32,7 @@ namespace Tableau.Migration.Engine.Endpoints.Search
         /// Finds whether a project is locked.
         /// </summary>
         /// <param name="id">The ID of the project.</param>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <param name="includeWithoutNested">
         /// Whether or not to consider <see cref="ContentPermissions.LockedToProjectWithoutNested"/> as locked.
         /// Except for narrow special cases this is true.

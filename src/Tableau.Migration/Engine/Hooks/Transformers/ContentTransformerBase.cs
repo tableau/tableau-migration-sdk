@@ -29,8 +29,6 @@ namespace Tableau.Migration.Engine.Hooks.Transformers
     public abstract class ContentTransformerBase<TPublish> : IContentTransformer<TPublish>
         where TPublish : IContentReference
     {
-        private readonly ISharedResourcesLocalizer? _localizer;
-        private readonly ILogger<IContentTransformer<TPublish>>? _logger;
         private readonly string _typeName;
 
         /// <summary>
@@ -39,21 +37,36 @@ namespace Tableau.Migration.Engine.Hooks.Transformers
         /// <param name="localizer">A string localizer.</param>
         /// <param name="logger">Default logger.</param>
         public ContentTransformerBase(
-            ISharedResourcesLocalizer? localizer,
-            ILogger<IContentTransformer<TPublish>>? logger)
+            ISharedResourcesLocalizer localizer,
+            ILogger<IContentTransformer<TPublish>> logger)
         {
-            _localizer = localizer;
-            _logger = logger;
-            _typeName = this.GetType().Name;
+            Localizer = localizer;
+            Logger = logger;
+            _typeName = GetType().Name;
         }
 
+        /// <summary>
+        /// The string localizer.
+        /// </summary>
+        protected ISharedResourcesLocalizer Localizer { get; }
+
+        /// <summary>
+        /// Default logger.
+        /// </summary>
+        protected ILogger<IContentTransformer<TPublish>> Logger { get; }
+        
         /// <inheritdoc />
         public async Task<TPublish?> ExecuteAsync(TPublish itemToTransform, CancellationToken cancel)
         {
             var ret = await TransformAsync(itemToTransform, cancel).ConfigureAwait(false);
 
-            if ((_logger is not null) && (_localizer is not null))
-                _logger.LogDebug(_localizer[SharedResourceKeys.ContentTransformerBaseDebugMessage], _typeName, itemToTransform.ToStringForLog());
+            if (Logger is not null && Localizer is not null)
+            {
+                Logger.LogDebug(
+                    Localizer[SharedResourceKeys.ContentTransformerBaseDebugMessage],
+                    _typeName,
+                    itemToTransform.ToStringForLog());
+            }
 
             return ret;
         }
@@ -62,7 +75,7 @@ namespace Tableau.Migration.Engine.Hooks.Transformers
         /// Executes the transformation.
         /// </summary>
         /// <param name="itemToTransform">The input context from the migration engine or previous hook.</param>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>
         /// A task to await containing the context, 
         /// potentially modified to pass on to the next hook or migration engine, 

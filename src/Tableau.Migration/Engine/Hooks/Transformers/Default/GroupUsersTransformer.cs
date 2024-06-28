@@ -30,9 +30,7 @@ namespace Tableau.Migration.Engine.Hooks.Transformers.Default
     public class GroupUsersTransformer : ContentTransformerBase<IPublishableGroup>
     {
         private readonly IDestinationContentReferenceFinder<IUser> _userFinder;
-        private readonly ISharedResourcesLocalizer _localizer;
-        private readonly ILogger<GroupUsersTransformer> _logger;
-
+        
         /// <summary>
         /// Creates a new <see cref="GroupUsersTransformer"/> object.
         /// </summary>
@@ -45,8 +43,6 @@ namespace Tableau.Migration.Engine.Hooks.Transformers.Default
             ILogger<GroupUsersTransformer> logger) : base(localizer, logger)
         {
             _userFinder = destinationFinderFactory.ForDestinationContentType<IUser>();
-            _localizer = localizer;
-            _logger = logger;
         }
 
         /// <inheritdoc />
@@ -66,7 +62,10 @@ namespace Tableau.Migration.Engine.Hooks.Transformers.Default
                 }
                 else
                 {
-                    _logger.LogWarning(_localizer[SharedResourceKeys.GroupUsersTransformerCannotAddUserWarning], sourceGroup.Name, user.User.Location);
+                    Logger.LogWarning(
+                        Localizer[SharedResourceKeys.GroupUsersTransformerCannotAddUserWarning], 
+                        sourceGroup.Name, 
+                        user.User.Location);
                 }
             }
             return sourceGroup;

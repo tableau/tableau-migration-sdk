@@ -28,7 +28,8 @@ namespace Tableau.Migration.Api.Simulation
         /// Creates an API simulator for the given server URL, or retrieves the existing simulator.
         /// </summary>
         /// <param name="serverUrl">The base server URL to get or create the API simulator for.</param>
-        /// <returns>The API simulator.</returns>
-        TableauApiSimulator GetOrCreate(Uri serverUrl);
+        /// <param name="isTableauServer">Indicates whether the current Tableau Data is for Tableau Server (true) or Tableau Cloud (false).</param>
+        /// /// <returns>The API simulator.</returns>
+        TableauApiSimulator GetOrCreate(Uri serverUrl, bool isTableauServer);
     }
 }

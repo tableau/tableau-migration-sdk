@@ -51,6 +51,7 @@ from migration_testcomponents_filters import (
     # SkipAllProjectsFilter,
     # SkipAllDataSourcesFilter,
     # SkipAllWorkbooksFilter,
+    # SkipAllExtractRefreshTasksFilter,
     # Skip Filters: Uncomment when neccesary.
     SkipProjectByParentLocationFilter,
     SkipDataSourceByParentLocationFilter,
@@ -221,6 +222,7 @@ class Program():
         # plan_builder.filters.add(SkipAllProjectsFilter)
         # plan_builder.filters.add(SkipAllDataSourcesFilter)
         # plan_builder.filters.add(SkipAllWorkbooksFilter)
+        # plan_builder.filters.add(SkipAllExtractRefreshTasksFilter)
         # Skip Filters: Uncomment when neccesary.
 
         # Load manifest if available

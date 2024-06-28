@@ -16,7 +16,6 @@
 //
 
 using Microsoft.Extensions.Logging;
-using Polly;
 using Tableau.Migration.Api.Rest.Models;
 using Tableau.Migration.Content;
 using Tableau.Migration.Resources;

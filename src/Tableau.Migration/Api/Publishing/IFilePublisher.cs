@@ -32,7 +32,7 @@ namespace Tableau.Migration.Api.Publishing
         /// Publishes the file with the specified options.
         /// </summary>
         /// <param name="options">The publish options</param>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         Task<IResult<TPublishResult>> PublishAsync(TPublishOptions options, CancellationToken cancel);
     }
 }

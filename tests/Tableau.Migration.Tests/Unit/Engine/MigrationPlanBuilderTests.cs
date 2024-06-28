@@ -19,20 +19,21 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using AutoFixture;
-using Microsoft.Extensions.Logging;
 using Moq;
 using Tableau.Migration.Api.Simulation;
 using Tableau.Migration.Content;
+using Tableau.Migration.Content.Schedules;
+using Tableau.Migration.Content.Schedules.Cloud;
 using Tableau.Migration.Engine;
 using Tableau.Migration.Engine.Endpoints;
 using Tableau.Migration.Engine.Hooks;
 using Tableau.Migration.Engine.Hooks.Filters;
 using Tableau.Migration.Engine.Hooks.Filters.Default;
 using Tableau.Migration.Engine.Hooks.Mappings;
+using Tableau.Migration.Engine.Hooks.PostPublish.Default;
 using Tableau.Migration.Engine.Hooks.Transformers;
 using Tableau.Migration.Engine.Hooks.Transformers.Default;
 using Tableau.Migration.Engine.Options;
-using Tableau.Migration.Engine.Pipelines;
 using Xunit;
 
 namespace Tableau.Migration.Tests.Unit.Engine
@@ -51,7 +52,7 @@ namespace Tableau.Migration.Tests.Unit.Engine
             public MigrationPlanBuilderTest()
             {
                 MockOptionsBuilder = Create<Mock<IMigrationPlanOptionsBuilder>>();
-                MockHookBuilder = Create<Mock<IMigrationHookBuilder>>();
+                MockHookBuilder = new() { CallBase = true };
                 MockMappingBuilder = new() { CallBase = true };
                 MockFilterBuilder = new() { CallBase = true };
                 MockTransformerBuilder = new() { CallBase = true };
@@ -77,16 +78,23 @@ namespace Tableau.Migration.Tests.Unit.Engine
             protected void AssertDefaultExtensions()
             {
                 //Add expected default extensions to assert for here.
-
-                Assert.All(PipelineProfile.ServerToCloud.GetSupportedContentTypes(),
-                    ct => MockFilterBuilder.Verify(b => b.Add(typeof(PreviouslyMigratedFilter<>), It.IsAny<IEnumerable<Type[]>>()), Times.Once));
-
+                MockFilterBuilder.Verify(b => b.Add(typeof(PreviouslyMigratedFilter<>), It.IsAny<IEnumerable<Type[]>>()), Times.Once);
                 MockFilterBuilder.Verify(b => b.Add<GroupAllUsersFilter, IGroup>(It.IsAny<Func<IServiceProvider, GroupAllUsersFilter>>()), Times.Once);
                 MockFilterBuilder.Verify(b => b.Add(typeof(SystemOwnershipFilter<>), It.IsAny<IEnumerable<Type[]>>()), Times.Once);
 
                 MockTransformerBuilder.Verify(x => x.Add<UserAuthenticationTypeTransformer, IUser>(It.IsAny<Func<IServiceProvider, UserAuthenticationTypeTransformer>>()), Times.Once);
                 MockTransformerBuilder.Verify(x => x.Add<GroupUsersTransformer, IPublishableGroup>(It.IsAny<Func<IServiceProvider, GroupUsersTransformer>>()), Times.Once);
+                MockTransformerBuilder.Verify(x => x.Add(typeof(OwnershipTransformer<>), It.IsAny<IEnumerable<Type[]>>()), Times.Once);
                 MockTransformerBuilder.Verify(x => x.Add<TableauServerConnectionUrlTransformer, IPublishableWorkbook>(It.IsAny<Func<IServiceProvider, TableauServerConnectionUrlTransformer>>()), Times.Once);
+                MockTransformerBuilder.Verify(x => x.Add<MappedReferenceExtractRefreshTaskTransformer, ICloudExtractRefreshTask>(It.IsAny<Func<IServiceProvider, MappedReferenceExtractRefreshTaskTransformer>>()), Times.Once);
+                MockTransformerBuilder.Verify(x => x.Add<CloudIncrementalRefreshTransformer, ICloudExtractRefreshTask>(It.IsAny<Func<IServiceProvider, CloudIncrementalRefreshTransformer>>()), Times.Once);
+                MockTransformerBuilder.Verify(x => x.Add(typeof(CloudScheduleCompatibilityTransformer<>), It.IsAny<IEnumerable<Type[]>>()), Times.Once);
+
+                MockHookBuilder.Verify(x => x.Add(typeof(OwnerItemPostPublishHook<,>), It.IsAny<IEnumerable<Type[]>>()), Times.Once);
+                MockHookBuilder.Verify(x => x.Add(typeof(PermissionsItemPostPublishHook<,>), It.IsAny<IEnumerable<Type[]>>()), Times.Once);
+                MockHookBuilder.Verify(x => x.Add(typeof(ChildItemsPermissionsPostPublishHook<,>), It.IsAny<IEnumerable<Type[]>>()), Times.Once);
+                MockHookBuilder.Verify(x => x.Add(typeof(TagItemPostPublishHook<,>), It.IsAny<IEnumerable<Type[]>>()), Times.Once);
+                MockHookBuilder.Verify(x => x.Add(It.IsAny<Func<IServiceProvider, ProjectPostPublishHook>>()), Times.Once);
             }
 
             protected void AssertDefaultServerToCloudExtensions()

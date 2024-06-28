@@ -32,6 +32,7 @@
     <Compile Include="hooks\post_publish\bulk_logging_hook.py" />
     <Compile Include="hooks\transformers\encrypt_extracts_transformer.py" />
     <Compile Include="hooks\transformers\migrated_tag_transformer.py" />
+    <Compile Include="Hooks\transformers\schedule_startat_transformer.py" />
     <Compile Include="print_result.py" />
     <Compile Include="Python.ExampleApplication.py" />
   </ItemGroup>

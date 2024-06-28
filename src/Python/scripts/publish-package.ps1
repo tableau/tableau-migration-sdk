@@ -40,9 +40,6 @@ function Test-CommandExists ($command)
 
 pushd (Join-Path $PSScriptRoot "..")
 
-$env:TWINE_REPOSITORY="tabpypi"
-$env:TWINE_REPOSITORY_URL="https://artifactory.prod.tableautools.com/artifactory/api/pypi/tabpypi"
-$env:TWINE_USERNAME="svc_cmt"
 $env:TWINE_NON_INTERACTIVE="1"
 
 if (-not($SkipPublish)) {
@@ -69,9 +66,9 @@ try {
 	python -m build --sdist # Build the source dist package
 	
 	if (-not($SkipPublish)) {
-		# The package will be uploaded to https://artifactory.prod.tableautools.com/ui/repos/tree/General/tabpypi/tableau-migration/
-		Write-Host "Uploading package to https://artifactory.prod.tableautools.com/ui/repos/tree/General/tabpypi/tableau-migration/"
-		python -m twine upload --repository-url https://artifactory.prod.tableautools.com/artifactory/api/pypi/tabpypi dist/* 
+		# The package will be uploaded to the package repository
+		Write-Host "Uploading package to $($env:TWINE_REPOSITORY_URL)"
+		python -m twine upload --repository-url $env:TWINE_REPOSITORY_URL dist/* 
 	}
 	
 }

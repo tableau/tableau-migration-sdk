@@ -26,6 +26,8 @@ using Tableau.Migration.Api.Rest.Models.Types;
 using Tableau.Migration.Content;
 using Tableau.Migration.Content.Permissions;
 using Tableau.Migration.Net.Rest;
+using CloudResponse = Tableau.Migration.Api.Rest.Models.Responses.Cloud;
+using ServerResponse = Tableau.Migration.Api.Rest.Models.Responses.Server;
 
 namespace Tableau.Migration.Api.Simulation
 {
@@ -38,6 +40,11 @@ namespace Tableau.Migration.Api.Simulation
         /// Gets the default domain of the site.
         /// </summary>
         public string DefaultDomain { get; set; }
+
+        /// <summary>
+        /// Gets the flag indicating whether the current Tableau Data is for Tableau Server (true) or Tableau Cloud (false).
+        /// </summary>
+        public bool IsTableauServer { get; set; }
 
         /// <summary>
         /// Gets or sets the "All Users" group.
@@ -88,6 +95,26 @@ namespace Tableau.Migration.Api.Simulation
         /// Gets or sets the jobs.
         /// </summary>
         public ConcurrentSet<JobResponse.JobType> Jobs { get; set; } = new();
+        
+        /// <summary>
+        /// Gets or sets the schedules.
+        /// </summary>
+        public ConcurrentSet<ServerResponse.ScheduleResponse.ScheduleType> Schedules { get; set; } = new();
+        
+        /// <summary>
+        /// Gets or sets the schedules extract refresh tasks.
+        /// </summary>
+        public ConcurrentSet<ServerResponse.ScheduleExtractRefreshTasksResponse.ExtractType> ScheduleExtractRefreshTasks { get; set; } = new();
+        
+        /// <summary>
+        /// Gets or sets the Tableau Server extract refresh tasks.
+        /// </summary>
+        public ConcurrentSet<ServerResponse.ExtractRefreshTasksResponse.TaskType> ServerExtractRefreshTasks { get; set; } = new();
+
+        /// <summary>
+        /// Gets or sets the Tableau Cloud extract refresh tasks.
+        /// </summary>
+        public ConcurrentSet<CloudResponse.ExtractRefreshTasksResponse.TaskType> CloudExtractRefreshTasks { get; set; } = new();
 
         /// <summary>
         /// Gets or sets the jobs.
@@ -156,6 +183,11 @@ namespace Tableau.Migration.Api.Simulation
         /// Gets the groups that users belong to, by ID.
         /// </summary>
         public ConcurrentDictionary<Guid, ConcurrentSet<Guid>> UserGroups { get; set; } = new();
+
+        /// <summary>
+        /// Gets the extract refresh tasks that users belong to, by ID.
+        /// </summary>
+        public ConcurrentDictionary<Guid, ConcurrentSet<Guid>> ScheduleExtracts { get; set; } = new();
 
         #endregion
 
@@ -352,6 +384,39 @@ namespace Tableau.Migration.Api.Simulation
             AddGroup(group);
 
             AddUserToGroup(user.Id, group.Id);
+        }
+
+        /// <summary>
+        /// Adds a schedule.
+        /// </summary>
+        /// <param name="schedule">The schedule to add.</param>
+        public ServerResponse.ScheduleResponse.ScheduleType AddSchedule(
+            ServerResponse.ScheduleResponse.ScheduleType schedule)
+        {
+            if (ScheduleExtracts.ContainsKey(schedule.Id))
+            {
+                return Schedules.Single(s => s.Id == schedule.Id);
+            }
+
+            Schedules.Add(schedule);
+            ScheduleExtracts.TryAdd(schedule.Id, new());
+
+            return schedule;
+        }
+
+        /// <summary>
+        /// Add a schedule extract refresh task to a schedule.
+        /// </summary>
+        /// <param name="extract">The schedule extract refresh task.</param>
+        /// <param name="schedule">The schedule.</param>
+        public void AddExtractToSchedule(
+            ServerResponse.ScheduleExtractRefreshTasksResponse.ExtractType extract,
+            ServerResponse.ScheduleResponse.ScheduleType schedule)
+        {
+            schedule = AddSchedule(schedule);
+            ScheduleExtractRefreshTasks.Add(extract);
+
+            ScheduleExtracts[schedule.Id].Add(extract.Id);
         }
 
         internal void UpdateFile(string sessionId, byte[] chunk)

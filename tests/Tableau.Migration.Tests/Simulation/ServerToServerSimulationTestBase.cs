@@ -41,11 +41,11 @@ namespace Tableau.Migration.Tests.Simulation
 
         public ServerToServerSimulationTestBase(string sourceUrl = "https://source", string destinationUrl = "https://destination")
         {
-            SourceApi = RegisterApiSimulator(sourceUrl, Create<UsersResponse.UserType>());
+            SourceApi = RegisterTableauServerApiSimulator(sourceUrl, Create<UsersResponse.UserType>());
             SourceSiteConfig = BuildSiteConnectionConfiguration(SourceApi);
             SourceEndpointConfig = new(SourceSiteConfig);
 
-            DestinationApi = RegisterApiSimulator(destinationUrl, Create<UsersResponse.UserType>());
+            DestinationApi = RegisterTableauServerApiSimulator(destinationUrl, Create<UsersResponse.UserType>());
             DestinationSiteConfig = BuildSiteConnectionConfiguration(DestinationApi);
             DestinationEndpointConfig = new(DestinationSiteConfig);
         }

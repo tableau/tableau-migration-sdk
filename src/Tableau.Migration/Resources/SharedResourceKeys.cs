@@ -102,5 +102,11 @@ namespace Tableau.Migration.Resources
         public const string OwnerNotFoundMessage = "OwnerNotFoundMessage";
 
         public const string FailedToGetDefaultPermissionsMessage = "FailedToGetDefaultPermissionsMessage";
+
+        public const string TableauInstanceTypeNotSupportedMessage = "TableauInstanceTypeNotSupportedMessage";
+
+        public const string MappedReferenceExtractRefreshTaskTransformerCannotFindReferenceWarning = "MappedReferenceExtractRefreshTaskTransformerCannotFindReferenceWarning";
+
+        public const string IntervalsChangedWarning = "IntervalsChangedWarning";
     }
 }

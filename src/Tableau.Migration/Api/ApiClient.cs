@@ -15,13 +15,16 @@
 //  limitations under the License.
 //
 
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Tableau.Migration.Api.Models;
+using Tableau.Migration.Api.Rest;
 using Tableau.Migration.Api.Rest.Models.Requests;
 using Tableau.Migration.Api.Rest.Models.Responses;
 using Tableau.Migration.Content;
+using Tableau.Migration.Net;
 using Tableau.Migration.Net.Rest;
 using Tableau.Migration.Resources;
 
@@ -32,6 +35,8 @@ namespace Tableau.Migration.Api
         private readonly ISitesApiClient _sitesApiClient;
         private readonly TableauSiteConnectionConfiguration _siteConnectionConfiguration;
         private readonly IServerSessionProvider _sessionProvider;
+        private readonly IHttpContentSerializer _contentSerializer;
+        internal const string SITES_QUERY_NOT_SUPPORTED = "403069";
 
         /// <summary>
         /// Creates a new <see cref="ApiClient"/> object.
@@ -43,6 +48,7 @@ namespace Tableau.Migration.Api
         /// <param name="loggerFactory">The logger factory to initialize from.</param>
         /// <param name="sitesApiClient">The API client for site operations.</param>
         /// <param name="sharedResourcesLocalizer">A string localizer.</param>
+        /// <param name="contentSerializer">The content serializer.</param>
         public ApiClient(
             IApiClientInput input,
             IRestRequestBuilderFactory restRequestBuilderFactory,
@@ -50,17 +56,19 @@ namespace Tableau.Migration.Api
             IServerSessionProvider sessionProvider,
             ILoggerFactory loggerFactory,
             ISitesApiClient sitesApiClient,
-            ISharedResourcesLocalizer sharedResourcesLocalizer)
+            ISharedResourcesLocalizer sharedResourcesLocalizer,
+            IHttpContentSerializer contentSerializer)
             : base(restRequestBuilderFactory, loggerFactory, sharedResourcesLocalizer)
         {
             _siteConnectionConfiguration = input.SiteConnectionConfiguration;
             _sessionProvider = sessionProvider;
             _sitesApiClient = sitesApiClient;
+            _contentSerializer = contentSerializer;
             tokenProvider.RefreshRequestedAsync += async (cancel) =>
             {
                 var signInResult = await GetSignInResultAsync(cancel).ConfigureAwait(false);
-                
-                if(!signInResult.Success)
+
+                if (!signInResult.Success)
                 {
                     return signInResult.CastFailure<string>();
                 }
@@ -88,7 +96,9 @@ namespace Tableau.Migration.Api
                 return AsyncDisposableResult<ISitesApiClient>.Failed(signInResult.Errors);
             }
 
-            await _sessionProvider.SetCurrentUserAndSiteAsync(signInResult.Value, cancel).ConfigureAwait(false);
+            var instanceType = await GetInstanceTypeAsync(cancel).ConfigureAwait(false);
+
+            await _sessionProvider.SetCurrentSessionAsync(signInResult.Value, instanceType, cancel).ConfigureAwait(false);
 
             return AsyncDisposableResult<ISitesApiClient>.Succeeded(_sitesApiClient);
         }
@@ -105,6 +115,35 @@ namespace Tableau.Migration.Api
                 .ConfigureAwait(false);
 
             return signInResult;
+        }
+
+        internal async Task<TableauInstanceType> GetInstanceTypeAsync(CancellationToken cancel)
+        {
+            // The first version this endpoint is available.
+            // This is needed because we won't know the actual server version prior to this call.
+            const string MINIMUM_API_VERSION = "3.17"; // Tableau Server 2022.3
+
+            var sitesResult = await RestRequestBuilderFactory
+                .CreateUri("/sites")
+                .WithApiVersion(_sessionProvider.Version?.RestApiVersion ?? MINIMUM_API_VERSION)
+                .WithPage(1, 1)
+                .WithSiteId(null)
+                .ForGetRequest()
+                .SendAsync(cancel)
+                .ToResultAsync(_contentSerializer, SharedResourcesLocalizer, cancel)
+                .ConfigureAwait(false);
+
+            if (sitesResult.Success)
+            {
+                return TableauInstanceType.Server;
+            }
+
+            if (sitesResult.Errors.OfType<RestException>().Any(e => e.Code == SITES_QUERY_NOT_SUPPORTED))
+            {
+                return TableauInstanceType.Cloud;
+            }
+
+            return TableauInstanceType.Unknown;
         }
 
         /// <inheritdoc />

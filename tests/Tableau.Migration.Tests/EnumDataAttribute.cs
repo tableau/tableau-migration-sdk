@@ -17,6 +17,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 using System.Reflection;
 using Xunit.Sdk;
 
@@ -25,9 +27,18 @@ namespace Tableau.Migration.Tests
     public class EnumDataAttribute<TEnum> : DataAttribute
         where TEnum : struct, Enum
     {
+        private readonly IImmutableSet<TEnum> _exclude;
+
+        public EnumDataAttribute(params TEnum[] exclude)
+        {
+            _exclude = exclude.ToImmutableHashSet();
+        }
+
         public override IEnumerable<object[]?> GetData(MethodInfo testMethod)
         {
-            foreach (var value in Enum.GetValues<TEnum>())
+            var values = Enum.GetValues<TEnum>().Where(e => !_exclude.Contains(e));
+
+            foreach (var value in values)
             {
                 yield return new object[] { value };
             }

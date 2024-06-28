@@ -15,7 +15,7 @@ namespace Csharp.ExampleApplication.Hooks.Transformers
     {
         private readonly ILogger<IContentTransformer<T>>? _logger;
 
-        public EncryptExtractsTransformer(ISharedResourcesLocalizer? localizer, ILogger<IContentTransformer<T>>? logger) : base(localizer, logger)
+        public EncryptExtractsTransformer(ISharedResourcesLocalizer localizer, ILogger<IContentTransformer<T>> logger) : base(localizer, logger)
         {
             _logger = logger;
         }

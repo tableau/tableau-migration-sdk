@@ -50,7 +50,12 @@ namespace Tableau.Migration.Api
         }
 
         public IViewsApiClient Create()
-            => new ViewsApiClient(_restRequestBuilderFactory, _permissionsClientFactory, _finderFactory, _loggerFactory,
-                _sharedResourcesLocalizer, _tagsClientFactory);
+            => new ViewsApiClient(
+                _restRequestBuilderFactory,
+                _permissionsClientFactory,
+                _finderFactory,
+                _loggerFactory,
+                _sharedResourcesLocalizer,
+                _tagsClientFactory);
     }
 }

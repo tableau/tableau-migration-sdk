@@ -22,6 +22,7 @@ using Tableau.Migration.Api.Permissions;
 using Tableau.Migration.Api.Publishing;
 using Tableau.Migration.Config;
 using Tableau.Migration.Content;
+using Tableau.Migration.Content.Schedules.Server;
 using Tableau.Migration.Content.Search;
 using Tableau.Migration.Net;
 using Tableau.Migration.Net.Rest;
@@ -33,11 +34,16 @@ namespace Tableau.Migration.Tests.Unit.Api
         Mock<IApiClientInput> MockApiClientInput { get; }
         Mock<IConfigReader> MockConfigReader { get; }
         Mock<IContentReferenceFinderFactory> MockContentFinderFactory { get; }
+        Mock<IContentCacheFactory> MockContentCacheFactory { get; }
+        Mock<IContentReferenceFinder<IProject>> MockProjectFinder { get; }
+        Mock<IContentReferenceFinder<IUser>> MockUserFinder { get; }
+        Mock<IContentReferenceFinder<IWorkbook>> MockWorkbookFinder { get; }
+        Mock<IContentReferenceFinder<IDataSource>> MockDataSourceFinder { get; }
+        Mock<IContentReferenceFinder<IServerSchedule>> MockScheduleFinder { get; }
         MockHttpClient MockHttpClient { get; }
         Mock<ILogger> MockLogger { get; }
         Mock<ILoggerFactory> MockLoggerFactory { get; }
         Mock<IPermissionsApiClientFactory> MockPermissionsClientFactory { get; }
-        Mock<IContentReferenceFinder<IProject>> MockProjectFinder { get; }
         Mock<IRequestBuilderFactoryInput> MockRequestBuilderInput { get; }
         Mock<IServerSessionProvider> MockSessionProvider { get; }
         MockSharedResourcesLocalizer MockSharedResourcesLocalizer { get; }

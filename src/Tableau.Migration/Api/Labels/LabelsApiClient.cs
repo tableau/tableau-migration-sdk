@@ -103,41 +103,33 @@ namespace Tableau.Migration.Api.Labels
             IEnumerable<ILabelUpdateOptions> labels,
             CancellationToken cancel)
         {
-            var updateTasks = new List<Task<IResult<IEnumerable<ILabel>>>>();
+            var resultBuilder = new ResultBuilder();
+            var updatedLabels = new List<ILabel>();
 
             foreach (var label in labels)
             {
-                var updateTask = UpdateLabelAsync(
+                var updateResult = await UpdateLabelAsync(
                     contentItemId,
                     _contentItemType,
                     label,
-                    cancel);
+                    cancel)
+                    .ConfigureAwait(false);
 
-                updateTasks.Add(updateTask);
-            }
+                resultBuilder.Add(updateResult);
 
-            var updateResult = await Task.WhenAll(updateTasks).ConfigureAwait(false);
-
-            if (updateResult == null)
-            {
-                return Result<ImmutableList<ILabel>>.Failed(
-                    new Exception($"Failed to create/update one or more labels for {contentItemId}."));
-            }
-
-            if (!updateResult.All(r => r.Success))
-            {
-                return Result<ImmutableList<ILabel>>.Failed(
-                    updateResult.SelectMany(r => r.Errors).ToArray());
-            }
-
-
-            var updatedLabels = new List<ILabel>();
-            foreach (var val in updateResult)
-            {
-                if (val.Value == null)
+                if (!updateResult.Success)
+                {
+                    // Execute all updates like Task.WhenAll
                     continue;
+                }
 
-                updatedLabels.AddRange(val.Value);
+                updatedLabels.AddRange(updateResult.Value);
+            }
+            var result = resultBuilder.Build();
+
+            if (!result.Success)
+            {
+                return Result<ImmutableList<ILabel>>.Failed(result.Errors);
             }
 
             return Result<ImmutableList<ILabel>>.Succeeded(updatedLabels.Distinct().ToImmutableList());

@@ -42,7 +42,7 @@ namespace Tableau.Migration.Api.Simulation
         }
 
         /// <inheritdoc />
-        public TableauApiSimulator GetOrCreate(Uri serverUrl)
+        public TableauApiSimulator GetOrCreate(Uri serverUrl, bool isTableauServer)
         {
             var existing = _simulators.ForServer(serverUrl);
             if (existing is not null)
@@ -59,7 +59,7 @@ namespace Tableau.Migration.Api.Simulation
                 SiteRole = SiteRoles.SiteAdministratorCreator
             };
 
-            var simulator = new TableauApiSimulator(serverUrl, _serializer, simulatorUser);
+            var simulator = new TableauApiSimulator(serverUrl, _serializer, isTableauServer, simulatorUser);
             _simulators.AddOrUpdate(simulator);
             return simulator;
         }

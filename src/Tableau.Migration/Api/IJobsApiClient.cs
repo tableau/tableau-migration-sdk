@@ -28,19 +28,19 @@ namespace Tableau.Migration.Api
     public interface IJobsApiClient : IContentApiClient
     {
         /// <summary>
-        /// Gets the status for a given job ID
+        /// Gets the status for a given job ID.
         /// </summary>
-        /// <param name="jobId">The job's ID</param>
-        /// <param name="cancel">The cancellation token</param>
-        /// <returns>The status for the given job ID</returns>
+        /// <param name="jobId">The job's ID.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
+        /// <returns>The status for the given job ID.</returns>
         Task<IResult<IJob>> GetJobStatusAsync(Guid jobId, CancellationToken cancel);
 
         /// <summary>
         /// Waits for the job with the given ID to complete.
         /// </summary>
-        /// <param name="jobId">The job's ID</param>
-        /// <param name="cancel">The cancellation token</param>
-        /// <returns>The status for the given job ID</returns>
+        /// <param name="jobId">The job's ID.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
+        /// <returns>The status for the given job ID.</returns>
         Task<IResult> WaitForJobAsync(Guid jobId, CancellationToken cancel);
     }
 }

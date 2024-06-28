@@ -19,7 +19,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Text;
 using AutoFixture;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -36,6 +35,7 @@ using Tableau.Migration.Net;
 using Tableau.Migration.Tests.Content.Permissions;
 using Tableau.Migration.Tests.Unit.Content.Permissions;
 using Xunit;
+using Server = Tableau.Migration.Api.Rest.Models.Responses.Server;
 
 namespace Tableau.Migration.Tests.Simulation
 {
@@ -72,11 +72,11 @@ namespace Tableau.Migration.Tests.Simulation
                 return defaultUser;
             }
 
-            SourceApi = RegisterApiSimulator(sourceUrl, CreateDefaultUser());
+            SourceApi = RegisterTableauServerApiSimulator(sourceUrl, CreateDefaultUser());
             SourceSiteConfig = BuildSiteConnectionConfiguration(SourceApi);
             SourceEndpointConfig = new(SourceSiteConfig);
 
-            CloudDestinationApi = RegisterCloudApiSimulator(destinationUrl, CreateDefaultUser());
+            CloudDestinationApi = RegisterTableauCloudApiSimulator(destinationUrl, CreateDefaultUser());
             CloudDestinationSiteConfig = BuildSiteConnectionConfiguration(CloudDestinationApi);
             CloudDestinationEndpointConfig = new(CloudDestinationSiteConfig);
         }
@@ -361,7 +361,7 @@ namespace Tableau.Migration.Tests.Simulation
             return dataSources;
         }
 
-        #endregion - Prepare Source Data (Projects) -
+        #endregion - Prepare Source Data (Data Sources) -
 
         #region - Prepare Source Data (Workbooks) -
 
@@ -493,6 +493,7 @@ namespace Tableau.Migration.Tests.Simulation
 
                 SourceApi.Data.AddWorkbook(workbook, Constants.DefaultEncoding.GetBytes(workbookFileData.ToXml()));
                 workbooks.Add(workbook);
+                counter++;
             }
 
             return workbooks;
@@ -500,5 +501,188 @@ namespace Tableau.Migration.Tests.Simulation
 
         #endregion - Prepare Source Data (Workbooks) -
 
+        #region - Prepare Source Data (Schedules) -
+
+        private List<Server.ScheduleResponse.ScheduleType> PrepareSchedulesData()
+        {
+            var hourlySchedule = new Server.ScheduleResponse.ScheduleType
+            {
+                Id = Guid.NewGuid(),
+                Name = ScheduleFrequencies.Hourly,
+                Type = ScheduleTypes.Extract,
+                Frequency = ScheduleFrequencies.Hourly,
+                State = "Active",
+                Priority = 50,
+                ExecutionOrder = "Parallel",
+                FrequencyDetails = new Server.ScheduleResponse.ScheduleType.FrequencyDetailsType
+                { 
+                    Start = "00:25:00",
+                    End = "01:25:00",
+                    Intervals = [
+                        new Server.ScheduleResponse.ScheduleType.FrequencyDetailsType.IntervalType { Hours = "1" },
+                        new Server.ScheduleResponse.ScheduleType.FrequencyDetailsType.IntervalType { WeekDay = WeekDays.Sunday },
+                        new Server.ScheduleResponse.ScheduleType.FrequencyDetailsType.IntervalType { WeekDay = WeekDays.Saturday }
+                    ]
+                }
+            };
+            var dailySchedule = new Server.ScheduleResponse.ScheduleType
+            {
+                Id = Guid.NewGuid(),
+                Name = ScheduleFrequencies.Daily,
+                Type = ScheduleTypes.Extract,
+                Frequency = ScheduleFrequencies.Daily,
+                State = "Active",
+                Priority = 50,
+                ExecutionOrder = "Parallel",
+                FrequencyDetails = new Server.ScheduleResponse.ScheduleType.FrequencyDetailsType
+                { 
+                    Start = "00:15:00",
+                    End = "12:15:00",
+                    Intervals = [
+                        new Server.ScheduleResponse.ScheduleType.FrequencyDetailsType.IntervalType { Hours = "12" },
+                        new Server.ScheduleResponse.ScheduleType.FrequencyDetailsType.IntervalType { WeekDay = WeekDays.Tuesday },
+                        new Server.ScheduleResponse.ScheduleType.FrequencyDetailsType.IntervalType { WeekDay = WeekDays.Thursday }
+                    ]
+                }
+            };
+            var weeklySchedule = new Server.ScheduleResponse.ScheduleType
+            {
+                Id = Guid.NewGuid(),
+                Name = ScheduleFrequencies.Weekly,
+                Type = ScheduleTypes.Extract,
+                Frequency = ScheduleFrequencies.Weekly,
+                State = "Active",
+                Priority = 50,
+                ExecutionOrder = "Parallel",
+                FrequencyDetails = new Server.ScheduleResponse.ScheduleType.FrequencyDetailsType
+                { 
+                    Start = "03:10:00",
+                    Intervals = [new Server.ScheduleResponse.ScheduleType.FrequencyDetailsType.IntervalType { WeekDay = WeekDays.Sunday }]
+                }
+            };
+            var monthlyMultipleDaysSchedule = new Server.ScheduleResponse.ScheduleType
+            {
+                Id = Guid.NewGuid(),
+                Name = $"{ScheduleFrequencies.Monthly}_Multiple",
+                Type = ScheduleTypes.Extract,
+                Frequency = ScheduleFrequencies.Monthly,
+                State = "Active",
+                Priority = 50,
+                ExecutionOrder = "Parallel",
+                FrequencyDetails = new Server.ScheduleResponse.ScheduleType.FrequencyDetailsType
+                { 
+                    Start = "03:45:00",
+                    Intervals = [
+                        new Server.ScheduleResponse.ScheduleType.FrequencyDetailsType.IntervalType { MonthDay = "1" },
+                        new Server.ScheduleResponse.ScheduleType.FrequencyDetailsType.IntervalType { MonthDay = "10" },
+                        new Server.ScheduleResponse.ScheduleType.FrequencyDetailsType.IntervalType { MonthDay = "20" }
+                    ]
+                }
+            };
+            var monthlyLastSundaySchedule = new Server.ScheduleResponse.ScheduleType
+            {
+                Id = Guid.NewGuid(),
+                Name = $"{ScheduleFrequencies.Monthly}_LastSunday",
+                Type = ScheduleTypes.Extract,
+                Frequency = ScheduleFrequencies.Monthly,
+                State = "Active",
+                Priority = 50,
+                ExecutionOrder = "Parallel",
+                FrequencyDetails = new Server.ScheduleResponse.ScheduleType.FrequencyDetailsType
+                { 
+                    Start = "01:35:00",
+                    Intervals = [new Server.ScheduleResponse.ScheduleType.FrequencyDetailsType.IntervalType { WeekDay = WeekDays.Sunday, MonthDay="LastDay" }]
+                }
+            };
+            var schedules = new List<Server.ScheduleResponse.ScheduleType>
+            {
+                hourlySchedule,
+                dailySchedule,
+                weeklySchedule,
+                monthlyMultipleDaysSchedule,
+                monthlyLastSundaySchedule
+            };
+
+            foreach (var schedule in schedules)
+            {
+                SourceApi.Data.AddSchedule(schedule);
+            }
+
+            return schedules;
+        }
+
+        #endregion - Prepare Source Data (Schedules) -
+
+        #region - Prepare Source Data (ExtractRefreshTasks) -
+
+        protected List<Server.ExtractRefreshTasksResponse.TaskType> PrepareSourceExtractRefreshTasksData()
+        {
+            var extractRefreshTasks = new List<Server.ExtractRefreshTasksResponse.TaskType>();
+
+            var schedules = PrepareSchedulesData();
+
+            var count = 0;
+            foreach (var datasource in SourceApi.Data.DataSources)
+            {
+                extractRefreshTasks.Add(
+                    new Server.ExtractRefreshTasksResponse.TaskType
+                    {
+                        ExtractRefresh = new Server.ExtractRefreshTasksResponse.TaskType.ExtractRefreshType
+                        {
+                            Id = Guid.NewGuid(),
+                            Priority = 50,
+                            DataSource = new Server.ExtractRefreshTasksResponse.TaskType.ExtractRefreshType.DataSourceType
+                            {
+                                Id = datasource.Id
+                            },
+                            Schedule = new Server.ExtractRefreshTasksResponse.TaskType.ExtractRefreshType.ScheduleType
+                            {
+                                Id = schedules[count % schedules.Count].Id
+                            }
+                        }
+                    });
+                count++;
+            }
+
+            foreach (var workbook in SourceApi.Data.Workbooks)
+            {
+                extractRefreshTasks.Add(
+                    new Server.ExtractRefreshTasksResponse.TaskType
+                    {
+                        ExtractRefresh = new Server.ExtractRefreshTasksResponse.TaskType.ExtractRefreshType
+                        {
+                            Id = Guid.NewGuid(),
+                            Priority = 50,
+                            Workbook = new Server.ExtractRefreshTasksResponse.TaskType.ExtractRefreshType.WorkbookType
+                            {
+                                Id = workbook.Id
+                            },
+                            Schedule = new Server.ExtractRefreshTasksResponse.TaskType.ExtractRefreshType.ScheduleType
+                            {
+                                Id = schedules[count % schedules.Count].Id
+                            }
+                        }
+                    });
+                count++;
+            }
+
+            foreach (var extractRefreshTask in extractRefreshTasks)
+            {
+                var schedule = schedules.First(sch => sch.Id == extractRefreshTask.ExtractRefresh!.Schedule!.Id);
+                SourceApi.Data.ServerExtractRefreshTasks.Add(extractRefreshTask);
+                SourceApi.Data.AddExtractToSchedule(
+                    new Server.ScheduleExtractRefreshTasksResponse.ExtractType
+                    {
+                        Id = extractRefreshTask.ExtractRefresh!.Id,
+                        Type = count % 2 == 0 ? ExtractRefreshType.FullRefresh : ExtractRefreshType.ServerIncrementalRefresh
+                    },
+                    schedule);
+                count++;
+            }
+
+            return extractRefreshTasks;
+        }
+
+        #endregion - Prepare Source Data (ExtractRefreshTasks) -
     }
 }

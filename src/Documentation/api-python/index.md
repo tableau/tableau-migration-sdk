@@ -22,7 +22,7 @@ There are advanced features of the Migration SDK that the Python Wrapper cannot 
 
 ## Examples to get started
 
-The following code samples are for writing a simple migration app using the Migration SDK. For details on configuring and customizing the Migration SDK to your specific needs, see [Articles](~/articles/intro.md) and [Code Samples](~/samples/intro.md).
+The following code samples are for writing a simple migration app using the Migration SDK. For details on configuring and customizing the Migration SDK to your specific needs, see [Articles](~/articles/index.md) and [Code Samples](~/samples/index.md).
 
 ### [Startup Script](#tab/startup)
 

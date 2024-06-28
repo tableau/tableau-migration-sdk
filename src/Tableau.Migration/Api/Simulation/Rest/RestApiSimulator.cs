@@ -20,6 +20,7 @@ using Tableau.Migration.Api.Rest.Models;
 using Tableau.Migration.Api.Rest.Models.Responses;
 using Tableau.Migration.Api.Simulation.Rest.Api;
 using Tableau.Migration.Api.Simulation.Rest.Net;
+using Tableau.Migration.Api.Simulation.Rest.Net.Responses;
 using Tableau.Migration.Net.Simulation;
 
 using static Tableau.Migration.Api.Simulation.Rest.Net.Requests.RestUrlPatterns;
@@ -50,6 +51,16 @@ namespace Tableau.Migration.Api.Simulation.Rest
         /// Gets the simulated job API methods.
         /// </summary>
         public JobsRestApiSimulator Jobs { get; }
+        
+        /// <summary>
+        /// Gets the simulated schedule API methods.
+        /// </summary>
+        public SchedulesRestApiSimulator Schedules { get; }
+        
+        /// <summary>
+        /// Gets the simulated task API methods.
+        /// </summary>
+        public TasksRestApiSimulator Tasks { get; }
 
         /// <summary>
         /// Gets the simulated project API methods.
@@ -90,6 +101,11 @@ namespace Tableau.Migration.Api.Simulation.Rest
         /// Gets the simulated current server session query API method.
         /// </summary>
         public MethodSimulator GetCurrentServerSession { get; }
+
+        /// <summary>
+        /// Gets the simulated site query API method.
+        /// </summary>
+        public MethodSimulator QuerySites { get; }
 
         private static ServerSessionResponse.SessionType BuildCurrentSession(TableauData data)
         {
@@ -132,6 +148,8 @@ namespace Tableau.Migration.Api.Simulation.Rest
             DataSources = new(simulator);
             Groups = new(simulator);
             Jobs = new(simulator);
+            Schedules = new(simulator);
+            Tasks = new(simulator);
             Projects = new(simulator);
             Sites = new(simulator);
             Users = new(simulator);
@@ -141,6 +159,9 @@ namespace Tableau.Migration.Api.Simulation.Rest
 
             QueryServerInfo = simulator.SetupRestGet<ServerInfoResponse, ServerInfoResponse.ServerInfoType>(RestApiUrl("serverinfo"), d => d.ServerInfo, requiresAuthentication: false);
             GetCurrentServerSession = simulator.SetupRestGet<ServerSessionResponse, ServerSessionResponse.SessionType>(RestApiUrl("sessions/current"), BuildCurrentSession);
+            QuerySites = simulator.SetupRestGet(
+                RestApiUrl($"sites"),
+                new RestGetSitesResponseBuilder(simulator.Data, simulator.Serializer));
         }
     }
 }

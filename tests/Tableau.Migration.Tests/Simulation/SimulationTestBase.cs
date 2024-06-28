@@ -68,11 +68,21 @@ namespace Tableau.Migration.Tests.Simulation
         /// Registers a <see cref="TableauApiSimulator"/> for HTTP request/response mocking.
         /// </summary>
         /// <param name="serverUri">The URI of the server.</param>
-        /// /// <param name="defaultSignedInUser">Default signed in user. If null, no user will be created or signed in.</param>
-        protected TableauApiSimulator RegisterApiSimulator(Uri serverUri,
-            UsersResponse.UserType? defaultSignedInUser, string defaultDomain = Constants.LocalDomain)
+        /// <param name="isTableauServer">Indicates whether the current Tableau Data is for Tableau Server (true) or Tableau Cloud (false).</param>
+        /// <param name="defaultSignedInUser">Default signed in user. If null, no user will be created or signed in.</param>
+        /// <param name="defaultDomain">The default domain of the site.</param>
+        protected TableauApiSimulator RegisterApiSimulator(
+            Uri serverUri,
+            bool isTableauServer,
+            UsersResponse.UserType? defaultSignedInUser, 
+            string defaultDomain = Constants.LocalDomain)
         {
-            var simulator = new TableauApiSimulator(serverUri, Serializer, defaultSignedInUser, defaultDomain);
+            var simulator = new TableauApiSimulator(
+                serverUri, 
+                Serializer, 
+                isTableauServer, 
+                defaultSignedInUser, 
+                defaultDomain);
             ApiSimulators.AddOrUpdate(simulator);
             return simulator;
         }
@@ -86,19 +96,30 @@ namespace Tableau.Migration.Tests.Simulation
         }
 
         /// <summary>
-        /// Registers a <see cref="TableauApiSimulator"/> for HTTP request/response mocking.
+        /// Registers a Tableau Server <see cref="TableauApiSimulator"/> for HTTP request/response mocking.
         /// </summary>
         /// <param name="serverUrl">The URL of the server.</param>
         /// <param name="defaultSignedInUser">Default signed in user. If null, no user will be created or signed in.</param>
-        protected TableauApiSimulator RegisterApiSimulator(string serverUrl, UsersResponse.UserType? defaultSignedInUser)
-            => RegisterApiSimulator(new Uri(serverUrl), defaultSignedInUser);
+        protected TableauApiSimulator RegisterTableauServerApiSimulator(
+            string serverUrl, 
+            UsersResponse.UserType? defaultSignedInUser)
+            => RegisterApiSimulator(
+                new Uri(serverUrl),
+                true,
+                defaultSignedInUser);
 
         /// <summary>
         /// Registers a Tableau Cloud <see cref="TableauApiSimulator"/> for HTTP request/response mocking.
         /// </summary>
         /// <param name="defaultSignedInUser">Default signed in user. If null, no user will be created or signed in.</param>
-        protected TableauApiSimulator RegisterCloudApiSimulator(string podUrl, UsersResponse.UserType? defaultSignedInUser)
-            => RegisterApiSimulator(new Uri(podUrl), defaultSignedInUser, Constants.TableauIdWithMfaDomain);
+        protected TableauApiSimulator RegisterTableauCloudApiSimulator(
+            string podUrl, 
+            UsersResponse.UserType? defaultSignedInUser)
+            => RegisterApiSimulator(
+                new Uri(podUrl),
+                false,
+                defaultSignedInUser, 
+                Constants.TableauIdWithMfaDomain);
 
         public async ValueTask DisposeAsync()
         {

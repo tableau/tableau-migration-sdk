@@ -38,7 +38,7 @@ namespace Tableau.Migration.Api
         /// Creates a project.
         /// </summary>
         /// <param name="options">The new project's details.</param>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>The newly created project.</returns>
         Task<IResult<IProject>> CreateProjectAsync(
             ICreateProjectOptions options,
@@ -48,7 +48,7 @@ namespace Tableau.Migration.Api
         /// Gets the project's default permissions.
         /// </summary>
         /// <param name="projectId">The project ID.</param>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         Task<IResult<IImmutableDictionary<string, IPermissions>>> GetAllDefaultPermissionsAsync(
             Guid projectId,
             CancellationToken cancel);
@@ -58,7 +58,7 @@ namespace Tableau.Migration.Api
         /// </summary>
         /// <param name="projectId">The project ID.</param>
         /// <param name="permissions">The new permissions.</param>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         Task<IResult<IImmutableDictionary<string, IPermissions>>> UpdateAllDefaultPermissionsAsync(
             Guid projectId,
             IReadOnlyDictionary<string, IPermissions> permissions,
@@ -68,7 +68,7 @@ namespace Tableau.Migration.Api
         /// Updates the project after publishing.
         /// </summary>
         /// <param name="projectId">The ID for the project to update.</param>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <param name="newName">The new name of the project, or null to not update the name.</param>
         /// <param name="newDescription">The new description of the project, or null to not update the description.</param>
         /// <param name="newParentProjectId">
@@ -96,7 +96,7 @@ namespace Tableau.Migration.Api
         /// Deletes a project.
         /// </summary>
         /// <param name="projectId">The ID for the project to delete.</param>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         public Task<IResult> DeleteProjectAsync(Guid projectId, CancellationToken cancel);
     }
 }

@@ -31,7 +31,7 @@ namespace Tableau.Migration.Api
         /// </summary>
         /// <param name="contentItemId">The ID of content item to change the owner.</param>
         /// <param name="newOwnerId">The new owner identificator.</param>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>The result of changing the item ownership.</returns>
         Task<IResult> ChangeOwnerAsync(Guid contentItemId, Guid newOwnerId, CancellationToken cancel);
     }

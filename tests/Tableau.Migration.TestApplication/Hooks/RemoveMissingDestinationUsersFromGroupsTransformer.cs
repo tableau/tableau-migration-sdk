@@ -31,8 +31,8 @@ namespace Tableau.Migration.TestApplication.Hooks
         private readonly IDestinationContentReferenceFinder<IUser> _destinationUserContentReferenceFinder;
         
         public RemoveMissingDestinationUsersFromGroupsTransformer(
-            ISharedResourcesLocalizer? localizer,
-            ILogger<IContentTransformer<IPublishableGroup>>? logger,
+            ISharedResourcesLocalizer localizer,
+            ILogger<IContentTransformer<IPublishableGroup>> logger,
             IDestinationContentReferenceFinderFactory destinationContentReferenceFinderFactory)
             : base(localizer, logger)
         {

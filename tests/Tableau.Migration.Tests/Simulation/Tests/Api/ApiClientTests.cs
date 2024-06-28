@@ -32,6 +32,10 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
     {
         public abstract class ApiClientTest : ApiClientTestBase
         {
+            public ApiClientTest(bool isCloud = false)
+                : base(isCloud)
+            { }
+
             protected void AssertDefaultRestApiVersion(string? expectedVersion)
             {
                 var versionProvider = ServiceProvider.GetRequiredService<ITableauServerVersionProvider>();
@@ -91,6 +95,56 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
                 Assert.IsType<RestException>(error);
 
                 AssertDefaultRestApiVersion(null);
+            }
+        }
+
+        public class GetInstanceTypeForServerAsync : ApiClientTest
+        {
+            public GetInstanceTypeForServerAsync()
+                : base(false)
+            { }
+
+            [Fact]
+            public async Task Returns_Tableau_Server()
+            {
+                var result = await ApiClient.GetInstanceTypeAsync(Cancel);
+
+                Assert.Equal(TableauInstanceType.Server, result);
+            }
+
+            [Fact]
+            public async Task Returns_Unknown()
+            {
+                Api.RestApi.QuerySites.RespondWithError();
+
+                var result = await ApiClient.GetInstanceTypeAsync(Cancel);
+
+                Assert.Equal(TableauInstanceType.Unknown, result);
+            }
+        }
+
+        public class GetInstanceTypeForCloudAsync : ApiClientTest
+        {
+            public GetInstanceTypeForCloudAsync()
+                : base(true)
+            { }
+
+            [Fact]
+            public async Task Returns_Tableau_Cloud()
+            {
+                var result = await ApiClient.GetInstanceTypeAsync(Cancel);
+
+                Assert.Equal(TableauInstanceType.Cloud, result);
+            }
+
+            [Fact]
+            public async Task Returns_Unknown()
+            {
+                Api.RestApi.QuerySites.RespondWithError();
+
+                var result = await ApiClient.GetInstanceTypeAsync(Cancel);
+
+                Assert.Equal(TableauInstanceType.Unknown, result);
             }
         }
 

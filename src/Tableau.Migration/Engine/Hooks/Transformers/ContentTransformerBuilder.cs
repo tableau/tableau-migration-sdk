@@ -54,7 +54,7 @@ namespace Tableau.Migration.Engine.Hooks.Transformers
         }
 
         /// <inheritdoc />
-        public IContentTransformerBuilder Add(Type genericTransformerType, IEnumerable<Type[]> contentTypes)
+        public virtual IContentTransformerBuilder Add(Type genericTransformerType, IEnumerable<Type[]> contentTypes)
         {
             if (!genericTransformerType.IsGenericTypeDefinition)
                 throw new ArgumentException($"Type {genericTransformerType.FullName} is not a generic type definition.");

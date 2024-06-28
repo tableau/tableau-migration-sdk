@@ -35,7 +35,7 @@ namespace Tableau.Migration.Api
         /// </summary>
         /// <param name="name">The new group's name.</param>
         /// <param name="minimumSiteRole">The new group's minimum site role.</param>
-        /// <param name="cancel">The cancellation token.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>The newly created group.</returns>
         Task<IResult<IGroup>> CreateLocalGroupAsync(string name, string? minimumSiteRole, CancellationToken cancel);
 
@@ -46,7 +46,7 @@ namespace Tableau.Migration.Api
         /// <param name="domainName">The Active Directory domain name.</param>
         /// <param name="minimumSiteRole">The new group's minimum site role.</param>
         /// <param name="grantLicenseMode">The mode for automatically applying licenses for group members.</param>
-        /// <param name="cancel">The cancellation token.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>The newly created group.</returns>
         Task<IResult<IGroup>> ImportGroupFromActiveDirectoryAsync(
             string name,
@@ -62,7 +62,7 @@ namespace Tableau.Migration.Api
         /// <param name="domainName">The Active Directory domain name.</param>
         /// <param name="minimumSiteRole">The new group's minimum site role.</param>
         /// <param name="grantLicenseMode">The mode for automatically applying licenses for group members.</param>
-        /// <param name="cancel">The cancellation token.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>The newly created group.</returns>
         Task<IResult<IImportJob>> ImportGroupFromActiveDirectoryBackgroundProcessAsync(
             string name,
@@ -76,7 +76,7 @@ namespace Tableau.Migration.Api
         /// </summary>
         /// <param name="pageNumber">The 1-indexed page number.</param>
         /// <param name="pageSize">The size of the page.</param>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>A list of a page of groups in the current site.</returns>
         Task<IPagedResult<IGroup>> GetAllGroupsAsync(int pageNumber, int pageSize, CancellationToken cancel);
 
@@ -86,7 +86,7 @@ namespace Tableau.Migration.Api
         /// <param name="groupId">The group's ID</param>
         /// <param name="pageNumber">The 1-indexed page number.</param>
         /// <param name="pageSize">The size of the page.</param>
-        /// <param name="cancel">The cancellation token.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>A list of users for the given group ID</returns>
         Task<IPagedResult<IUser>> GetGroupUsersAsync(Guid groupId, int pageNumber, int pageSize, CancellationToken cancel);
 
@@ -95,7 +95,7 @@ namespace Tableau.Migration.Api
         /// </summary>
         /// <param name="groupId">The ID of the group the user should belong to.</param>
         /// <param name="userId">The user's ID.</param>
-        /// <param name="cancel">The cancellation token.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>The operation result.</returns>        
         Task<IResult<IAddUserToGroupResult>> AddUserToGroupAsync(Guid groupId, Guid userId, CancellationToken cancel);
 
@@ -104,7 +104,7 @@ namespace Tableau.Migration.Api
         /// </summary>
         /// <param name="groupId">The id of the group the user belongs to.</param>
         /// <param name="userId">The user-id.</param>
-        /// <param name="cancel">The cancellation token.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>The operation result.</returns>        
         Task<IResult> RemoveUserFromGroupAsync(Guid groupId, Guid userId, CancellationToken cancel);
 
@@ -112,7 +112,7 @@ namespace Tableau.Migration.Api
         /// Deletes a group.
         /// </summary>
         /// <param name="groupId">The id of the group to delete.</param>
-        /// <param name="cancel">The cancellation token.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns></returns>
         Task<IResult> DeleteGroupAsync(Guid groupId, CancellationToken cancel);
     }

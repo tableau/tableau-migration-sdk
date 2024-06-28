@@ -22,7 +22,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-dotnet
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ vars.PYTHON_TEST_VERSIONS }}
           cache: 'pip' # caching pip dependencies

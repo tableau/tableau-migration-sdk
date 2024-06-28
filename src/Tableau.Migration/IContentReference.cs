@@ -16,6 +16,7 @@
 //
 
 using System;
+using Tableau.Migration.Api.Rest;
 
 namespace Tableau.Migration
 {
@@ -23,14 +24,8 @@ namespace Tableau.Migration
     /// Interface for an object that describes information on how to reference an item of content,
     /// for example through a Tableau API.
     /// </summary>
-    public interface IContentReference : IEquatable<IContentReference>
+    public interface IContentReference : IEquatable<IContentReference>, IRestIdentifiable
     {
-        /// <summary>
-        /// Gets the unique identifier of the content item, 
-        /// corresponding to the LUID in the Tableau REST API.
-        /// </summary>
-        Guid Id { get; }
-
         /// <summary>
         /// Get the site-unique "content URL" of the content item, 
         /// or an empty string if the content type does not use a content URL.

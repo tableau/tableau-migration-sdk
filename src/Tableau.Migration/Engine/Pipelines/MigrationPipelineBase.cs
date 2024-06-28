@@ -20,6 +20,9 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.Extensions.DependencyInjection;
 using Tableau.Migration.Content;
+using Tableau.Migration.Content.Schedules;
+using Tableau.Migration.Content.Schedules.Cloud;
+using Tableau.Migration.Content.Schedules.Server;
 using Tableau.Migration.Content.Search;
 using Tableau.Migration.Engine.Actions;
 using Tableau.Migration.Engine.Endpoints.Search;
@@ -104,6 +107,8 @@ namespace Tableau.Migration.Engine.Pipelines
             {
                 case Type source when source == typeof(TPublish):
                     return (IContentItemPreparer<TContent, TPublish>)Services.GetRequiredService<SourceContentItemPreparer<TContent>>();
+                case Type source when source == typeof(IServerExtractRefreshTask) && typeof(TPublish) == typeof(ICloudExtractRefreshTask):
+                    return (IContentItemPreparer<TContent, TPublish>)Services.GetRequiredService<ExtractRefreshTaskServerToCloudPreparer>();
                 default:
                     return Services.GetRequiredService<EndpointContentItemPreparer<TContent, TPublish>>();
             }

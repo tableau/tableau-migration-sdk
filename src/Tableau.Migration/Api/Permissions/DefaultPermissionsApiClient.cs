@@ -106,36 +106,22 @@ namespace Tableau.Migration.Api.Permissions
 
             var defaultPermissions = ImmutableDictionary.CreateBuilder<string, IPermissions>(StringComparer.OrdinalIgnoreCase);
 
-            var getPermissionsTasks = _contentTypeClients
-                .ToDictionary(c => c.Key, c => GetPermissionsAsync(c.Key, projectId, cancel));
-
-            var getPermissionsResults = await Task.WhenAll(getPermissionsTasks.Values).ConfigureAwait(false);
-
-            if (getPermissionsResults is null)
+            foreach (var contentTypeClient in _contentTypeClients)
             {
-                resultBuilder.Add(
-                    Result.Failed(
-                        new Exception($"Failed to get default project permissions for one or more content types for {projectId}.")));
-            }
-            else
-            {
-                foreach (var getPermissionsTask in getPermissionsTasks)
+                var permissionResult = await GetPermissionsAsync(contentTypeClient.Key, projectId, cancel).ConfigureAwait(false);
+
+                resultBuilder.Add(permissionResult);
+
+                if (!permissionResult.Success)
                 {
-                    var getPermissionsResult = getPermissionsTask.Value.Result;
-
-                    if (!getPermissionsResult.Success)
-                    {
-                        resultBuilder.Add(getPermissionsResult);
-                        _logger.LogWarning(
-                            new AggregateException(getPermissionsResult.Errors),
-                            _localizer[SharedResourceKeys.FailedToGetDefaultPermissionsMessage],
-                            getPermissionsTask.Key,
-                            projectId);
-                        continue;
-                    }
-                    
-                    defaultPermissions.Add(getPermissionsTask.Key, getPermissionsResult.Value);
+                    _logger.LogWarning(
+                        new AggregateException(permissionResult.Errors),
+                        _localizer[SharedResourceKeys.FailedToGetDefaultPermissionsMessage],
+                        contentTypeClient.Key,
+                        projectId);
+                    continue;
                 }
+                defaultPermissions.Add(contentTypeClient.Key, permissionResult.Value);
             }
 
             if (defaultPermissions.Any())
@@ -156,38 +142,25 @@ namespace Tableau.Migration.Api.Permissions
 
             var updatedPermissions = ImmutableDictionary.CreateBuilder<string, IPermissions>(StringComparer.OrdinalIgnoreCase);
 
-            var updatePermissionsTasks = new Dictionary<string, Task<IResult<IPermissions>>>(StringComparer.OrdinalIgnoreCase);
-
             foreach (var permission in permissions)
             {
-                updatePermissionsTasks.Add(permission.Key, UpdatePermissionsAsync(permission.Key, projectId, permission.Value, cancel));
-            }
+                var updatePermissionsResult = await UpdatePermissionsAsync(permission.Key, projectId, permission.Value, cancel).ConfigureAwait(false);
 
-            var updatePermissionsResults = await Task.WhenAll(updatePermissionsTasks.Values).ConfigureAwait(false);
-
-            if (updatePermissionsResults is null)
-            {
-                resultBuilder.Add(
-                    Result.Failed(
-                        new Exception($"Failed to update default project permissions for one or more content types for {projectId}.")));
-            }
-            else
-            {
-                foreach (var updatePermissionsTask in updatePermissionsTasks)
+                resultBuilder.Add(updatePermissionsResult);
+                    
+                if (!updatePermissionsResult.Success)
                 {
-                    var updatePermissionsResult = updatePermissionsTask.Value.Result;
-
-                    if (!updatePermissionsResult.Success)
-                        resultBuilder.Add(updatePermissionsResult);
-                    else
-                        updatedPermissions.Add(updatePermissionsTask.Key, updatePermissionsResult.Value);
+                    continue;
                 }
+                updatedPermissions.Add(permission.Key, updatePermissionsResult.Value);
             }
-
+            
             var result = resultBuilder.Build();
 
             if (!result.Success)
+            {
                 return Result<IImmutableDictionary<string, IPermissions>>.Failed(result.Errors);
+            }
 
             return Result<IImmutableDictionary<string, IPermissions>>.Succeeded(updatedPermissions.ToImmutable());
         }

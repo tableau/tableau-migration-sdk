@@ -31,7 +31,7 @@ namespace Tableau.Migration.Engine.Endpoints
         /// <summary>
         /// Performs pre-migration initialization.
         /// </summary>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>An awaitable task with the initialization result.</returns>
         Task<IResult> InitializeAsync(CancellationToken cancel);
 
@@ -46,7 +46,7 @@ namespace Tableau.Migration.Engine.Endpoints
         /// <summary>
         /// Gets the current server session information.
         /// </summary>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>An awaitable task with the server session result.</returns>
         Task<IResult<IServerSession>> GetSessionAsync(CancellationToken cancel);
     }

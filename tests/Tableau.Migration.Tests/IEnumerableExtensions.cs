@@ -18,11 +18,20 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Xunit;
 
 namespace Tableau.Migration.Tests
 {
     public static class IEnumerableExtensions
     {
+        private static readonly Lazy<Random> _random = new();
+
+        public static T PickRandom<T>(this IEnumerable<T> c)
+        {
+            var randomIndex = _random.Value.Next(0, c.Count() - 1);
+            return c.ElementAt(randomIndex);
+        }
+
         /// <summary>
         /// Determine if two <see cref="IEnumerable{T}"/> sequences are equal ignoring ordering.
         /// </summary>
@@ -41,5 +50,20 @@ namespace Tableau.Migration.Tests
 
             return firstSorted.SequenceEqual(secondSorted);
         }
+
+        /// <summary>
+        /// Asserts that all items in the collection are the same.
+        /// </summary>
+        /// <typeparam name="T">The collection type.</typeparam>
+        /// <param name="values">The values to compare.</param>
+        public static void AssertAllSame<T>(this IEnumerable<T> values)
+            where T : class
+            => Assert.All(
+                values,
+                (v, i) =>
+                {
+                    if (i > 0)
+                        Assert.Same(values.ElementAt(i - 1), v);
+                });
     }
 }

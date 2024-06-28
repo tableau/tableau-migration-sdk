@@ -15,21 +15,22 @@
 //  limitations under the License.
 //
 
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Tableau.Migration.Content;
+using Tableau.Migration.Content.Schedules.Cloud;
+using Tableau.Migration.Engine.Manifest;
 using Tableau.Migration.Engine.Pipelines;
 using Tableau.Migration.TestApplication.Config;
-using Tableau.Migration.TestComponents.Engine.Manifest;
 using Tableau.Migration.TestApplication.Hooks;
-using Tableau.Migration.Engine.Manifest;
+using Tableau.Migration.TestComponents.Engine.Manifest;
 
 namespace Tableau.Migration.TestApplication
 {
@@ -102,6 +103,7 @@ namespace Tableau.Migration.TestApplication
             _planBuilder.Hooks.Add<SaveManifestAfterBatchMigrationCompletedHook<IProject>>();
             _planBuilder.Hooks.Add<SaveManifestAfterBatchMigrationCompletedHook<IDataSource>>();
             _planBuilder.Hooks.Add<SaveManifestAfterBatchMigrationCompletedHook<IWorkbook>>();
+            _planBuilder.Hooks.Add<SaveManifestAfterBatchMigrationCompletedHook<ICloudExtractRefreshTask>>();
 
             // Log when a content type is done
             _planBuilder.Hooks.Add<TimeLoggerAfterActionHook>();
@@ -120,6 +122,7 @@ namespace Tableau.Migration.TestApplication
             //_planBuilder.Filters.Add(new SkipFilter<IProject>());
             //_planBuilder.Filters.Add(new SkipFilter<IDataSource>());
             //_planBuilder.Filters.Add(new SkipFilter<IWorkbook>());
+            //_planBuilder.Filters.Add(new SkipFilter<IServerExtractRefreshTask>());
 
             var prevManifest = await LoadManifest(_options.PreviousManifestPath, cancel);
 
@@ -161,11 +164,11 @@ namespace Tableau.Migration.TestApplication
                 var typeResult = result.Manifest.Entries.ForContentType(contentType);
 
                 var countTotal = typeResult.Count;
-                var countMigrated = typeResult.Where(x => x.Status == Engine.Manifest.MigrationManifestEntryStatus.Migrated).Count();
-                var countSkipped = typeResult.Where(x => x.Status == Engine.Manifest.MigrationManifestEntryStatus.Skipped).Count();
-                var countErrored = typeResult.Where(x => x.Status == Engine.Manifest.MigrationManifestEntryStatus.Error).Count();
-                var countCancelled = typeResult.Where(x => x.Status == Engine.Manifest.MigrationManifestEntryStatus.Canceled).Count();
-                var countPending = typeResult.Where(x => x.Status == Engine.Manifest.MigrationManifestEntryStatus.Pending).Count();
+                var countMigrated = typeResult.Where(x => x.Status == MigrationManifestEntryStatus.Migrated).Count();
+                var countSkipped = typeResult.Where(x => x.Status == MigrationManifestEntryStatus.Skipped).Count();
+                var countErrored = typeResult.Where(x => x.Status == MigrationManifestEntryStatus.Error).Count();
+                var countCancelled = typeResult.Where(x => x.Status == MigrationManifestEntryStatus.Canceled).Count();
+                var countPending = typeResult.Where(x => x.Status == MigrationManifestEntryStatus.Pending).Count();
 
                 StringBuilder sb = new StringBuilder();
                 sb.AppendLine($"{contentType.Name}");

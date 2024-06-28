@@ -85,14 +85,14 @@ def get_class_methods(cls):
     methods = [item[0] for item in inspect.getmembers(cls, predicate=inspect.ismethod)
                 if item[0] not in _base_object]
     methods.extend([item[0] for item in inspect.getmembers(cls, predicate=inspect.isfunction) if item[0] not in _base_object])
-    
+
     #Remove python internal methods
     return (m for m in methods if not m.startswith("__"))
-    
+
 
 def get_class_properties(cls):
     """Gets all the properties in a class.
-    
+
     https://stackoverflow.com/a/34643176.
     """
     return [item[0] for item in inspect.getmembers(cls) 
@@ -144,9 +144,9 @@ def compare_names(dotnet_names: List[str], python_names: List[str]) -> str:
     # Count number of unique occurances
     python_set = set(python_normalized) # removes dupes
     dotnet_set = set(dotnet_normalized) # removes dupes
-    
+
     message = ""
-            
+
     # Check what names are missing from python but are available in dotnet
     python_lacks = [x for x in dotnet_set if x not in python_set]
     lacks_message_items = [f"({lacks_item}: (py:???->net:{dotnet_lookup[lacks_item]}))" for lacks_item in python_lacks]
@@ -178,7 +178,7 @@ def compare_lists(expected, actual) -> str:
 
 def verify_enum(python_enum, dotnet_enum):
     """Verify that dotnet and python enum are the same
-    
+
     Currently this is only verified working for 'int' type enums. But should be easily
     modified to support more types if needed
     """
@@ -221,7 +221,7 @@ class TestNameComparison():
 
         message = compare_names(dotnet_names, python_names)
         assert not message
-        
+
 # region _generated
 
 from tableau_migration.migration import (  # noqa: E402, F401
@@ -230,6 +230,8 @@ from tableau_migration.migration import (  # noqa: E402, F401
     PyMigrationCompletionStatus,
     PyResult
 )
+
+from tableau_migration.migration_api_rest import PyRestIdentifiable # noqa: E402, F401
 
 from tableau_migration.migration_api_rest_models import (  # noqa: E402, F401
     PyAdministratorLevels,
@@ -282,6 +284,19 @@ from tableau_migration.migration_content_permissions import (  # noqa: E402, F40
     PyPermissions
 )
 
+from tableau_migration.migration_content_schedules import (  # noqa: E402, F401
+    PyExtractRefreshContentType,
+    PyExtractRefreshTask,
+    PyFrequencyDetails,
+    PyInterval,
+    PySchedule,
+    PyWithSchedule
+)
+
+from tableau_migration.migration_content_schedules_cloud import PyCloudSchedule # noqa: E402, F401
+
+from tableau_migration.migration_content_schedules_server import PyServerSchedule # noqa: E402, F401
+
 from tableau_migration.migration_engine import PyContentMigrationItem # noqa: E402, F401
 
 from tableau_migration.migration_engine_actions import PyMigrationActionResult # noqa: E402, F401
@@ -317,12 +332,14 @@ from Tableau.Migration.Api.Rest.Models.Types import AuthenticationTypes
 from Tableau.Migration.Api.Rest.Models.Types import DataSourceFileTypes
 from Tableau.Migration.Api.Rest.Models.Types import WorkbookFileTypes
 from Tableau.Migration.Content.Permissions import GranteeType
+from Tableau.Migration.Content.Schedules import ExtractRefreshContentType
 from Tableau.Migration.Engine.Manifest import MigrationManifestEntryStatus
 
 _generated_class_data = [
     (PyContentLocation, None),
     (PyContentReference, None),
     (PyResult, [ "CastFailure" ]),
+    (PyRestIdentifiable, None),
     (PyConnection, None),
     (PyConnectionsContent, None),
     (PyContainerContent, None),
@@ -332,7 +349,7 @@ _generated_class_data = [
     (PyExtractContent, None),
     (PyGroup, [ "SetLocation" ]),
     (PyGroupUser, None),
-    (PyLabel, [ "Id" ]),
+    (PyLabel, None),
     (PyProject, [ "Container", "SetLocation" ]),
     (PyPublishableDataSource, [ "DisposeAsync", "File", "SetLocation" ]),
     (PyPublishableGroup, [ "SetLocation" ]),
@@ -350,6 +367,13 @@ _generated_class_data = [
     (PyCapability, None),
     (PyGranteeCapability, None),
     (PyPermissions, None),
+    (PyExtractRefreshTask, None),
+    (PyFrequencyDetails, None),
+    (PyInterval, None),
+    (PySchedule, None),
+    (PyWithSchedule, None),
+    (PyCloudSchedule, None),
+    (PyServerSchedule, [ "ExtractRefreshTasks" ]),
     (PyContentMigrationItem, None),
     (PyMigrationActionResult, [ "CastFailure" ]),
     (PyContentMappingContext, [ "ToTask" ]),
@@ -375,6 +399,7 @@ _generated_enum_data = [
     (PyDataSourceFileTypes, DataSourceFileTypes),
     (PyWorkbookFileTypes, WorkbookFileTypes),
     (PyGranteeType, GranteeType),
+    (PyExtractRefreshContentType, ExtractRefreshContentType),
     (PyMigrationManifestEntryStatus, MigrationManifestEntryStatus)
 ]
 
@@ -410,11 +435,11 @@ def test_classes(python_class, ignored_members):
     assert python_class._dotnet_base
 
     dotnet_class = python_class._dotnet_base
-            
+
     # Get all the python methods and properties
     _all_py_methods = get_class_methods(python_class)
     _all_py_props = get_class_properties(python_class)
-    
+
     # Get all the dotnet methods and properties
     _all_dotnet_methods = InteropHelper.GetMethods(dotnet_class)
     _all_dotnet_props = InteropHelper.GetProperties(dotnet_class)
@@ -430,7 +455,7 @@ def test_classes(python_class, ignored_members):
     # Compare the lists
     method_message = compare_names(_clean_dotnet_method, _all_py_methods)
     prop_message = compare_names(_clean_dotnet_props, _all_py_props)
-    
+
     # Assert
     assert not method_message # Remember that the names are normalize
     assert not prop_message # Remember that the names are normalize

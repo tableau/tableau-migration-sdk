@@ -39,7 +39,7 @@ namespace Tableau.Migration.Api
         /// Gets all the content items that the user has access to.
         /// </summary>
         /// <param name="pageSize">The expected maximum number of items to include in each page.</param>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>The total results.</returns>
         public async Task<IResult<IImmutableList<TContent>>> GetAllAsync(int pageSize, CancellationToken cancel)
             => await GetPager(pageSize).GetAllPagesAsync(cancel).ConfigureAwait(false);

@@ -29,9 +29,23 @@ namespace Tableau.Migration.Tests
 
         public string Name => Location.Name;
 
+        public TestContentType()
+        { }
+
+        public TestContentType(IContentReference reference)
+        {
+            Id = reference.Id;
+            ContentUrl = reference.ContentUrl;
+            Location = reference.Location;
+        }
+
         public bool Equals(IContentReference? other)
         {
-            throw new NotImplementedException();
+            return other is not null &&
+                   Id.Equals(other.Id) &&
+                   ContentUrl == other.ContentUrl &&
+                   Location.Equals(other.Location) &&
+                   Name == other.Name;
         }
     }
 

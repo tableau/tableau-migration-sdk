@@ -12,7 +12,7 @@ Both the C# and Python mapping classes inherit from a base class that handles mo
 
 #### Registration
 
-[Learn more.](~/samples/intro.md?tabs=Python#hook-registration)
+[Learn more.](~/samples/index.md?tabs=Python#hook-registration)
 
 [//]: <> (Adding this as code as regions are not supported in Python snippets)
 ```Python
@@ -28,7 +28,7 @@ plan_builder.mappings.add(ChangeProjectMappingForDataSources)
 
 #### Registration
 
-[Learn more.](~/samples/intro.md?tabs=CSharp#hook-registration)
+[Learn more.](~/samples/index.md?tabs=CSharp#hook-registration)
 
 [!code-csharp[](../../../../examples/Csharp.ExampleApplication/MyMigrationApplication.cs#ChangeProjectMapping-Registration)]
 

@@ -66,10 +66,16 @@ namespace Tableau.Migration.Api.Search
         /// <summary>
         /// Loads all content items from the API client.
         /// </summary>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>All content items.</returns>
         protected async ValueTask<IEnumerable<ContentReferenceStub>> LoadAllAsync(CancellationToken cancel)
         {
+            if (_apiListClient is null)
+            {
+                // Values will be cached by individual searches.
+                return Enumerable.Empty<ContentReferenceStub>();
+            }
+
             var listResult = await _apiListClient.GetAllAsync(BatchSize, cancel).ConfigureAwait(false);
 
             if (!listResult.Success)

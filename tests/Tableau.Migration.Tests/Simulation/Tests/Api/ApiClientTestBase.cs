@@ -30,8 +30,8 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
     {
         internal readonly ApiClient ApiClient;
 
-        public ApiClientTestBase()
-            : base()
+        public ApiClientTestBase(bool isCloud = false)
+            : base(isCloud)
         {
             var apiInputInitializer = ServiceProvider.GetRequiredService<IApiClientInputInitializer>();
             apiInputInitializer.Initialize(SiteConfig);

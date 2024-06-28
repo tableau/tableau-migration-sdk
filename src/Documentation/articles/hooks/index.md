@@ -21,10 +21,13 @@ The Migration SDK has the following types of hooks, categorized broadly based on
 These types of hooks run on content items.
 
 - Filters: Used to exclude certain content items based on known criteria.
+
    > [!Note]
    > Filters do not have a cascading effect. You will need to write similar filters or mappings for the related content items as well.
+
 - Mappings: Used to map a source item to something different at the destination. The original does not change.
 - Transformers: Used to change certain properties within various content types. A good example is permissions where the source and destination have different identifiers.
+  
     > [!Important]
     > Transformers that change properties like names and IDs erase references to the original. If that is not intended, you should use mappings instead.
 
@@ -44,7 +47,7 @@ These types of hooks run before or after certain migration events.
 
 This diagram displays how each [hook](#types-of-hooks) is called as part of the migration process.
 
-![Hooks flowchart](~/images/hooks.png)
+![Hooks flowchart](~/images/hooks.svg){width=70%}
 
 ## Default Hooks
 

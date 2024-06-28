@@ -45,7 +45,7 @@ class PyMigrator():
         Args:
             plan: The migration plan to execute.
             previous_manifest: A manifest from a previous migration of the same plan to use to determine what progress has already been made.
-            cancel: A cancellation token to obey.
+            cancel: The cancellation token to obey.
 
         Returns: The results of the migration.
         """

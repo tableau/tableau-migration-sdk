@@ -12,7 +12,7 @@ To log migration action statuses in Python, you can utilize the following hook c
 
 ### Registration
 
-For guidance on registering the hook, refer to the [documentation](~/samples/intro.md?tabs=Python#hook-registration).
+For guidance on registering the hook, refer to the [documentation](~/samples/index.md?tabs=Python#hook-registration).
 
 [//]: <> (Adding this as code as regions are not supported in python snippets)
 ```Python
@@ -30,7 +30,7 @@ In C#, you can implement the migration action completed hook as demonstrated bel
 
 ### Registration
 
-To register the hook in C#, follow the instructions provided in the [documentation](~/samples/intro.md?tabs=CSharp#hook-registration).
+To register the hook in C#, follow the instructions provided in the [documentation](~/samples/index.md?tabs=CSharp#hook-registration).
 
 [!code-csharp[](../../../../examples/Csharp.ExampleApplication/MyMigrationApplication.cs#LogMigrationActionsHook-Registration)]
 

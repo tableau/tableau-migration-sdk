@@ -37,7 +37,7 @@ namespace Tableau.Migration.Engine.Endpoints
         /// <typeparam name="TPublish">The content type suitable for publishing.</typeparam>
         /// <typeparam name="TPublishResult">The publish result type.</typeparam>
         /// <param name="publishItem">The content item to publish.</param>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>The results of the publishing with a content reference of the newly published item.</returns>
         Task<IResult<TPublishResult>> PublishAsync<TPublish, TPublishResult>(TPublish publishItem, CancellationToken cancel)
             where TPublishResult : class, IContentReference;
@@ -47,7 +47,7 @@ namespace Tableau.Migration.Engine.Endpoints
         /// </summary>
         /// <typeparam name="TPublish">The content type suitable for publishing.</typeparam>
         /// <param name="publishItems">The content items to publish.</param>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>The results of the publishing.</returns>
         Task<IResult> PublishBatchAsync<TPublish>(IEnumerable<TPublish> publishItems, CancellationToken cancel);
 
@@ -56,7 +56,7 @@ namespace Tableau.Migration.Engine.Endpoints
         /// </summary>
         /// <typeparam name="TContent">The content type.</typeparam>
         /// <param name="contentItem">The content item to get permissions for.</param>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>The result of the permissions operation.</returns>
         Task<IResult<IPermissions>> GetPermissionsAsync<TContent>(IContentReference contentItem, CancellationToken cancel)
             where TContent : IPermissionsContent;
@@ -66,7 +66,7 @@ namespace Tableau.Migration.Engine.Endpoints
         /// </summary>
         /// <param name="type">The content type.</param>
         /// <param name="contentItem">The content item to get permissions for.</param>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>The result of the permissions operation.</returns>
         Task<IResult<IPermissions>> GetPermissionsAsync(Type type, IContentReference contentItem,
             CancellationToken cancel);
@@ -98,7 +98,7 @@ namespace Tableau.Migration.Engine.Endpoints
         /// <typeparam name="TContent">The content type.</typeparam>
         /// <param name="contentItem">The content item to update tags for.</param>
         /// <param name="tags">The tags to apply.</param>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>The result of the tag update operation.</returns>
         Task<IResult> UpdateTagsAsync<TContent>(IContentReference contentItem, IEnumerable<ITag> tags, CancellationToken cancel)
             where TContent : IWithTags;
@@ -109,7 +109,7 @@ namespace Tableau.Migration.Engine.Endpoints
         /// <typeparam name="TContent">The content type.</typeparam>
         /// <param name="contentItem">The content item to update ownership for.</param>
         /// <param name="owner">The new owner.</param>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>The result of the owner update operation.</returns>
         Task<IResult> UpdateOwnerAsync<TContent>(IContentReference contentItem, IContentReference owner, CancellationToken cancel)
             where TContent : IWithOwner;

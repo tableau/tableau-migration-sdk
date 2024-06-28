@@ -16,7 +16,6 @@
 //
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -130,7 +129,7 @@ namespace Tableau.Migration.Api.Permissions
                 return Result.Succeeded();
             }
 
-            var deleteTasks = new List<Task<IResult>>();
+            var resultBuilder = new ResultBuilder();
 
             foreach (var item in itemsToDelete)
             {
@@ -138,30 +137,26 @@ namespace Tableau.Migration.Api.Permissions
 
                 foreach (var capability in item.Capabilities)
                 {
-                    var deleteTask = DeleteCapabilityAsync(
+                    var deleteResult = await DeleteCapabilityAsync(
                         contentItemId,
                         granteeId,
                         item.GranteeType,
                         capability,
-                        cancel);
+                        cancel)
+                        .ConfigureAwait(false);
 
-                    deleteTasks.Add(deleteTask);
+                    if (!deleteResult.Success)
+                    {
+                        resultBuilder.Add(deleteResult);
+                    }
                 }
             }
 
-            var deleteResult = await Task.WhenAll(deleteTasks).ConfigureAwait(false);
+            var result = resultBuilder.Build();
 
-            var deleteSuccesful = deleteResult is not null && deleteResult.All(r => r.Success);
-
-            if (!deleteSuccesful)
+            if (!result.Success)
             {
-                var deleteErrors = deleteResult is null ?
-                    new[]
-                    {
-                        new Exception($"Failed to delete one or more capabilities for {contentItemId}.")
-                    }
-                    : deleteResult.SelectMany(r => r.Errors).ToArray();
-                return Result.Failed(deleteErrors);
+                return Result.Failed(result.Errors);
             }
             return Result.Succeeded();
         }

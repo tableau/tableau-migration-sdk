@@ -72,7 +72,7 @@ namespace Tableau.Migration.Api.Rest.Models.Responses
             [XmlElement("workbook")]
             WorkbookReferenceType? Workbook { get; set; }
 
-            IWorkbookReferenceType? IWithWorkbookReferenceType.Workbook => Workbook;
+            IRestIdentifiable? IWithWorkbookReferenceType.Workbook => Workbook;
 
             /// <summary>
             /// Gets or sets the tags for the response.
@@ -120,7 +120,7 @@ namespace Tableau.Migration.Api.Rest.Models.Responses
             /// Class representing a REST API workbook reference response.
             /// </summary>
 
-            public class WorkbookReferenceType : IWorkbookReferenceType
+            public class WorkbookReferenceType : IRestIdentifiable
             {
                 /// <inheritdoc/>
 				[XmlAttribute("label")]

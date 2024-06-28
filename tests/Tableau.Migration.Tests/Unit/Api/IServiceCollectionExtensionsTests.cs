@@ -25,6 +25,7 @@ using Tableau.Migration.Api.Tags;
 using Tableau.Migration.Config;
 using Tableau.Migration.Content;
 using Tableau.Migration.Content.Files;
+using Tableau.Migration.Content.Schedules.Server;
 using Tableau.Migration.Content.Search;
 using Tableau.Migration.Net;
 using Xunit;
@@ -108,6 +109,7 @@ namespace Tableau.Migration.Tests.Unit.Api
                 AssertService<IFlowsApiClient, FlowsApiClient>(scope, ServiceLifetime.Scoped);
                 AssertService<IGroupsApiClient, GroupsApiClient>(scope, ServiceLifetime.Scoped);
                 AssertService<IJobsApiClient, JobsApiClient>(scope, ServiceLifetime.Scoped);
+                AssertService<ISchedulesApiClient, SchedulesApiClient>(scope, ServiceLifetime.Scoped);
                 AssertService<IProjectsApiClient, ProjectsApiClient>(scope, ServiceLifetime.Scoped);
                 AssertService<ISitesApiClient, SitesApiClient>(scope, ServiceLifetime.Scoped);
                 AssertService<IUsersApiClient, UsersApiClient>(scope, ServiceLifetime.Scoped);
@@ -153,7 +155,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async void Uses_existing_DefaultPermissionsContentTypeOptions()
+            public async Task Uses_existing_DefaultPermissionsContentTypeOptions()
             {
                 var existingOptions = new DefaultPermissionsContentTypeOptions();
 
@@ -197,6 +199,27 @@ namespace Tableau.Migration.Tests.Unit.Api
                 var contentFileStore = scope.ServiceProvider.GetRequiredService<IContentFileStore>();
 
                 Assert.Same(apiInput.FileStore, contentFileStore);
+            }
+
+            [Fact]
+            public async Task Registers_content_caches()
+            {
+                await using var scope = InitializeApiScope();
+
+                AssertService<IContentCacheFactory, ContentCacheFactory>(scope, ServiceLifetime.Scoped);
+                AssertService<IContentCache<IServerSchedule>, ApiContentCache<IServerSchedule>>(scope, ServiceLifetime.Scoped);
+                AssertService<BulkApiContentReferenceCache<IServerSchedule>, ApiContentCache<IServerSchedule>>(scope, ServiceLifetime.Scoped);
+
+                var serverScheduleCache = scope.ServiceProvider.GetRequiredService<BulkApiContentReferenceCache<IServerSchedule>>();
+
+                var caches = new object[]
+                {
+                    scope.ServiceProvider.GetRequiredService<ApiContentCache<IServerSchedule>>(),
+                    scope.ServiceProvider.GetRequiredService<IContentCache<IServerSchedule>>(),
+                    scope.ServiceProvider.GetRequiredService<BulkApiContentReferenceCache<IServerSchedule>>()
+                };
+
+                caches.AssertAllSame();
             }
         }
     }

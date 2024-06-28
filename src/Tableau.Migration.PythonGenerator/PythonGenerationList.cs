@@ -15,15 +15,17 @@
 //  limitations under the License.
 //
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.CodeAnalysis;
+using Tableau.Migration.Api.Rest;
 using Tableau.Migration.Api.Rest.Models;
 using Tableau.Migration.Api.Rest.Models.Types;
 using Tableau.Migration.Content;
 using Tableau.Migration.Content.Permissions;
+using Tableau.Migration.Content.Schedules;
+using Tableau.Migration.Content.Schedules.Cloud;
+using Tableau.Migration.Content.Schedules.Server;
 using Tableau.Migration.Engine;
 using Tableau.Migration.Engine.Actions;
 using Tableau.Migration.Engine.Hooks.Mappings;
@@ -36,15 +38,26 @@ namespace Tableau.Migration.PythonGenerator
 {
     internal static class PythonGenerationList
     {
-        private static readonly ImmutableHashSet<string> TYPES_TO_GENERATE = ToTypeNameHash(
+        private static readonly ImmutableHashSet<string> TYPES_TO_GENERATE = GenerationListHelper.ToTypeNameHash(
+        #region - Tableau.Migration -
+
             typeof(ContentLocation),
+            typeof(IRestIdentifiable),
             typeof(IContentReference),
             typeof(IResult),
             typeof(MigrationCompletionStatus),
 
+        #endregion
+
+        #region - Tableau.Migration.Engine.Manifest -
+
             typeof(MigrationManifestEntryStatus),
             typeof(IMigrationManifestEntry),
             typeof(IMigrationManifestEntryEditor),
+
+        #endregion
+
+        #region - Tableau.Migration.Content -
 
             typeof(IConnectionsContent),
             typeof(IContainerContent),
@@ -67,17 +80,53 @@ namespace Tableau.Migration.PythonGenerator
             typeof(IGroupUser),
             typeof(IWorkbookDetails),
             typeof(ILabel),
-
-            typeof(ContentMigrationItem<>),
-            typeof(ContentItemPostPublishContext<,>),
-            typeof(ContentMappingContext<>),
-            typeof(BulkPostPublishContext<>),
-            typeof(IContentItemMigrationResult<>),
-            typeof(IContentBatchMigrationResult<>),
-            typeof(IMigrationActionResult),
             typeof(IPublishableGroup),
             typeof(IWithTags),
             typeof(IWithOwner),
+
+        #endregion
+
+        #region - Tableau.Migration.Engine -
+
+            typeof(ContentMigrationItem<>),
+
+        #endregion
+
+        #region - Tableau.Migration.Engine.Hooks.PostPublish  -
+
+            typeof(ContentItemPostPublishContext<,>),
+
+        #endregion
+
+        #region - Tableau.Migration.Engine.Hooks.Mappings  -
+
+            typeof(ContentMappingContext<>),
+
+        #endregion
+
+        #region - Tableau.Migration.Engine.Hooks.PostPublish  -
+            typeof(BulkPostPublishContext<>),
+
+        #endregion
+
+        #region - Tableau.Migration.Engine.Migrators -
+            typeof(IContentItemMigrationResult<>),
+
+        #endregion
+
+        #region - Tableau.Migration.Engine.Migrators.Batch -
+
+            typeof(IContentBatchMigrationResult<>),
+
+        #endregion
+
+        #region - Tableau.Migration.Engine.Actions -
+
+            typeof(IMigrationActionResult),
+
+        #endregion
+
+        #region - Tableau.Migration.Api.Rest.Models -
 
             typeof(AdministratorLevels),
             typeof(ContentPermissions),
@@ -87,17 +136,49 @@ namespace Tableau.Migration.PythonGenerator
             typeof(PermissionsCapabilityModes),
             typeof(PermissionsCapabilityNames),
             typeof(SiteRoles),
+
+        #endregion
+
+        #region - Tableau.Migration.Api.Rest.Models.Types -
+
             typeof(AuthenticationTypes),
             typeof(DataSourceFileTypes),
             typeof(WorkbookFileTypes),
+
+        #endregion
+
+        #region - Tableau.Migration.Content.Permissions -
+
             typeof(GranteeType),
             typeof(IGranteeCapability),
             typeof(IPermissions),
-            typeof(ICapability)
-        );
+            typeof(ICapability),
 
-        private static ImmutableHashSet<string> ToTypeNameHash(params Type[] types)
-            => types.Select(t => t.FullName!).ToImmutableHashSet();
+        #endregion
+
+        #region - Tableau.Migration.Content.Schedules - 
+            
+            typeof(IInterval),
+            typeof(IFrequencyDetails),
+            typeof(ISchedule),
+            typeof(ExtractRefreshContentType),
+            typeof(IExtractRefreshTask<>),
+            typeof(IWithSchedule<>),
+        
+        #endregion
+
+        #region - Tableau.Migration.Content.Schedules.Server - 
+
+            typeof(IServerSchedule),
+
+        #endregion
+
+        #region - Tableau.Migration.Content.Schedules.Cloud - 
+
+            typeof(ICloudSchedule)
+
+        #endregion
+        );
 
         private static IEnumerable<INamedTypeSymbol> FindTypesToGenerateForNamespace(INamespaceSymbol ns)
         {

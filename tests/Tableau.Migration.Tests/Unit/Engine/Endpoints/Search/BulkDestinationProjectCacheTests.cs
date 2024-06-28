@@ -22,7 +22,6 @@ using Moq;
 using Tableau.Migration.Api.Rest.Models;
 using Tableau.Migration.Content;
 using Tableau.Migration.Engine.Endpoints.Search;
-using Tableau.Migration.Paging;
 using Xunit;
 
 namespace Tableau.Migration.Tests.Unit.Engine.Endpoints.Search

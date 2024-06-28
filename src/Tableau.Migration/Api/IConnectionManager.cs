@@ -34,7 +34,7 @@ namespace Tableau.Migration.Api
         /// </summary>
         /// <param name="urlPrefix">The URL prefix of the content item to get connections for.</param>
         /// <param name="contentItemId">The ID of the content item to get connections for.</param>
-        /// <param name="cancel"></param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns></returns>
         Task<IResult<ImmutableList<IConnection>>> ListConnectionsAsync(
             string urlPrefix,

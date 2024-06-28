@@ -27,7 +27,7 @@ namespace Tableau.Migration.Api
         private readonly ITableauServerVersionProvider _versionProvider;
         private readonly IAuthenticationTokenProvider _tokenProvider;
 
-        internal async Task<string?> GetAuthenticationTokenAsync(CancellationToken cancel) 
+        internal async Task<string?> GetAuthenticationTokenAsync(CancellationToken cancel)
             => await _tokenProvider.GetAsync(cancel).ConfigureAwait(false);
 
         /// <inheritdoc />
@@ -42,6 +42,9 @@ namespace Tableau.Migration.Api
         /// <inheritdoc />
         public Guid? UserId { get; private set; }
 
+        /// <inheritdoc />
+        public TableauInstanceType InstanceType { get; private set; }
+
         public ServerSessionProvider(
             ITableauServerVersionProvider versionProvider,
             IAuthenticationTokenProvider tokenProvider)
@@ -51,25 +54,39 @@ namespace Tableau.Migration.Api
         }
 
         /// <inheritdoc />
-        public async Task SetCurrentUserAndSiteAsync(ISignInResult signInResult, CancellationToken cancel)
-            => await SetCurrentUserAndSiteAsync(signInResult.UserId, signInResult.SiteId, signInResult.SiteContentUrl, signInResult.Token, cancel).ConfigureAwait(false);
+        public async Task SetCurrentSessionAsync(ISignInResult signInResult, TableauInstanceType instanceType, CancellationToken cancel)
+            => await SetCurrentSessionAsync(
+                signInResult.UserId,
+                signInResult.SiteId,
+                signInResult.SiteContentUrl,
+                signInResult.Token,
+                instanceType,
+                cancel).ConfigureAwait(false);
 
         /// <inheritdoc />
-        public async Task SetCurrentUserAndSiteAsync(Guid userId, Guid siteId, string siteContentUrl, string authenticationToken, CancellationToken cancel)
+        public async Task SetCurrentSessionAsync(
+            Guid userId,
+            Guid siteId,
+            string siteContentUrl,
+            string authenticationToken,
+            TableauInstanceType instanceType,
+            CancellationToken cancel)
         {
             SiteId = siteId;
             SiteContentUrl = siteContentUrl;
             UserId = userId;
+            InstanceType = instanceType;
 
             await _tokenProvider.SetAsync(authenticationToken, cancel).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public async Task ClearCurrentUserAndSiteAsync(CancellationToken cancel)
+        public async Task ClearCurrentSessionAsync(CancellationToken cancel)
         {
             SiteId = null;
             SiteContentUrl = null;
             UserId = null;
+            InstanceType = TableauInstanceType.Unknown;
 
             await _tokenProvider.ClearAsync(cancel).ConfigureAwait(false);
         }

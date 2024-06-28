@@ -43,7 +43,7 @@ jobs:
     - uses: ./.github/actions/setup-dotnet
       if: ${{ env.PUBLISH_PACKAGE_KEY != '' && inputs.runs-on-config != 'self-hosted' }}
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       if: ${{ env.PUBLISH_PACKAGE_KEY != '' && inputs.runs-on-config != 'self-hosted' }}
       with:
         python-version: ${{ vars.PYTHON_TEST_VERSIONS }}

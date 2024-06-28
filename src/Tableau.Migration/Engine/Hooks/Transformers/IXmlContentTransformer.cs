@@ -45,7 +45,7 @@ namespace Tableau.Migration.Engine.Hooks.Transformers
         /// The XML of the content item to transform.
         /// Any changes made to the XML are persisted back to the file before publishing.
         /// </param>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>A task to await.</returns>
         Task TransformAsync(TPublish ctx, XDocument xml, CancellationToken cancel);
 

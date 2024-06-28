@@ -15,6 +15,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Tableau.Migration;
 using Tableau.Migration.Content;
+using Tableau.Migration.Content.Schedules.Cloud;
 using Tableau.Migration.Engine.Pipelines;
 
 #region namespace
@@ -120,6 +121,10 @@ namespace Csharp.ExampleApplication
             _planBuilder.Transformers.Add<EncryptExtractsTransformer<IPublishableWorkbook>, IPublishableWorkbook>();
             #endregion
 
+            #region StartAtTransformer-Registration
+            _planBuilder.Transformers.Add<SimpleScheduleStartAtTransformer<ICloudExtractRefreshTask>, ICloudExtractRefreshTask>();
+            #endregion
+
             // Add migration action completed hooks
             #region LogMigrationActionsHook-Registration
             _planBuilder.Hooks.Add<LogMigrationActionsHook>();
@@ -131,6 +136,7 @@ namespace Csharp.ExampleApplication
             _planBuilder.Hooks.Add<LogMigrationBatchesHook<IProject>>();
             _planBuilder.Hooks.Add<LogMigrationBatchesHook<IDataSource>>();
             _planBuilder.Hooks.Add<LogMigrationBatchesHook<IWorkbook>>();
+            _planBuilder.Hooks.Add<LogMigrationBatchesHook<ICloudExtractRefreshTask>>();
             #endregion
 
             // Build the plan

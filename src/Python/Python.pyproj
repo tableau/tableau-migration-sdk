@@ -30,6 +30,7 @@
     <Compile Include="scripts\build_tests.py" />
     <Compile Include="scripts\import_modules.py" />
     <Compile Include="src\tableau_migration\migration.py" />
+    <Compile Include="src\tableau_migration\migration_api_rest.py" />
     <Compile Include="src\tableau_migration\migration_api_rest_models.py" />
     <Compile Include="src\tableau_migration\migration_api_rest_models_types.py" />
     <Compile Include="src\tableau_migration\migration_content.py" />
@@ -56,12 +57,16 @@
     <Compile Include="src\tableau_migration\migration_services.py" />
     <Compile Include="src\tableau_migration\__init__.py" />
     <Compile Include="tests\helpers\autofixture.py" />
+    <Compile Include="tests\test_migration_api_rest.py" />
     <Compile Include="tests\test_migration_content_permissions.py" />
+    <Compile Include="tests\test_migration_content_schedules_cloud.py" />
+    <Compile Include="tests\test_migration_content_schedules_server.py" />
     <Compile Include="tests\test_migration_engine_hooks.py" />
     <Compile Include="tests\test_migration_engine_hooks_filters.py" />
     <Compile Include="tests\test_migration_engine_hooks_mappings.py" />
     <Compile Include="tests\test_migration_engine_hooks_postpublish.py" />
     <Compile Include="tests\test_migration_engine_hooks_transformers.py" />
+    <Compile Include="tests\test_migration_engine_manifest.py" />
     <Compile Include="tests\test_migration_engine_options.py" />
     <Compile Include="tests\test_migration_services.py" />
     <Compile Include="tests\test_migration_api_rest_models.py" />
@@ -75,6 +80,7 @@
     <Compile Include="tests\test_migration.py" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include=".gitignore" />
     <Content Include="Documentation\index.rst" />
     <Content Include="Documentation\make.bat" />
     <Content Include="Documentation\Makefile" />
@@ -89,6 +95,10 @@
     <Content Include="requirements.txt" />
     <Content Include="scripts\build-package.ps1" />
     <Content Include="scripts\publish-package.ps1" />
+    <Content Include="src\tableau_migration\migration_content_schedules.py" />
+    <Content Include="src\tableau_migration\migration_content_schedules_cloud.py" />
+    <Content Include="src\tableau_migration\migration_content_schedules_server.py" />
+    <Content Include="tests\test_migration_content_schedules.py" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Documentation\_templates\" />

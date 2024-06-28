@@ -30,7 +30,7 @@ using Tableau.Migration.Resources;
 namespace Tableau.Migration.Engine.Endpoints
 {
     /// <summary>
-    /// <see cref="ISourceEndpoint"/> implementation that uses Tableau Server/Cloud APIs.
+    /// <see cref="IDestinationEndpoint"/> implementation that uses Tableau Server/Cloud APIs.
     /// </summary>
     public class TableauApiDestinationEndpoint : TableauApiEndpointBase, IDestinationApiEndpoint
     {

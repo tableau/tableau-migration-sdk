@@ -68,21 +68,23 @@ namespace Tableau.Migration
 
         /// <summary>
         /// The name for the built-in admin insights project.
-        /// Admin Insight source: https://gitlab.tableausoftware.com/cloud-scale/admin-insights/genesis/blob/master/genesis/src/main/java/com/tableau/online/admindatasources/genesis/IConstants.java#L20
         /// </summary>
         public const string AdminInsightsProjectName = "Admin Insights";
 
         /// <summary>
         /// Alternate name for the built-in admin insights project.
-        /// /// Admin Insight source: https://gitlab.tableausoftware.com/cloud-scale/admin-insights/genesis/blob/master/genesis/src/main/java/com/tableau/online/admindatasources/genesis/IConstants.java#L20
         /// </summary>
         public const string AdminInsightsTableauProjectName = "Admin Insights (Tableau)";
 
         /// <summary>
         /// Alternate  name for the built-in admin insights project.
-        /// /// Admin Insight source: https://gitlab.tableausoftware.com/cloud-scale/admin-insights/genesis/blob/master/genesis/src/main/java/com/tableau/online/admindatasources/genesis/IConstants.java#L20
         /// </summary>
         public const string AdminInsightsTableauOnlineProjectName = "Admin Insights (Tableau Online)";
+
+        /// <summary>
+        /// Schedules frequency format (<see href="https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_extract_and_encryption.htm#create_cloud_extract_refresh_task">reference</see>).
+        /// </summary>
+        public const string FrequencyTimeFormat = "HH:mm:ss";
 
         /// <summary>
         /// The default text encoding.

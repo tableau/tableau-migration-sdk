@@ -30,7 +30,7 @@ namespace Tableau.Migration.Net.Simulation
         /// Creates a simulated response for the request.
         /// </summary>
         /// <param name="request">The request to respond to.</param>
-        /// <param name="cancellationToken">A cancellation token to obey.</param>
+        /// <param name="cancellationToken">The cancellation token to obey.</param>
         /// <returns>The simulated response message.</returns>
         Task<HttpResponseMessage> RespondAsync(HttpRequestMessage request, CancellationToken cancellationToken);
     }

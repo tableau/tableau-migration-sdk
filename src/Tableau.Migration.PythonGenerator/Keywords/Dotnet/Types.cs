@@ -28,6 +28,7 @@ namespace Tableau.Migration.PythonGenerator.Keywords.Dotnet
         public const string GUID = "Guid";
         public const string LONG = "long";
         public const string INT = "int";
+        public const string TIME_ONLY = "TimeOnly";
 
     }
 }

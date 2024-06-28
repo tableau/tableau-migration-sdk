@@ -44,14 +44,14 @@ namespace Tableau.Migration.Content.Files
         /// <summary>
         /// Opens a stream to read from a file.
         /// </summary>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>The stream to read from.</returns>
         Task<IContentFileStream> OpenReadAsync(CancellationToken cancel);
 
         /// <summary>
         /// Opens a stream to write to a file.
         /// </summary>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>The stream to write to.</returns>
         Task<IContentFileStream> OpenWriteAsync(CancellationToken cancel);
 

@@ -54,7 +54,7 @@ namespace Tableau.Migration.Engine.Hooks
         }
 
         /// <inheritdoc />
-        public IMigrationHookBuilder Add(Type genericHookType, IEnumerable<Type[]> contentTypes)
+        public virtual IMigrationHookBuilder Add(Type genericHookType, IEnumerable<Type[]> contentTypes)
         {
             if (!genericHookType.IsGenericTypeDefinition)
                 throw new ArgumentException($"Type {genericHookType.FullName} is not a generic type definition.");
@@ -75,14 +75,14 @@ namespace Tableau.Migration.Engine.Hooks
         }
 
         /// <inheritdoc />
-        public IMigrationHookBuilder Add<THook>(THook hook)
+        public virtual IMigrationHookBuilder Add<THook>(THook hook)
             where THook : notnull
         {
             return Add(typeof(THook), s => hook);
         }
 
         /// <inheritdoc />
-        public IMigrationHookBuilder Add<THook>(Func<IServiceProvider, THook>? hookFactory = null)
+        public virtual IMigrationHookBuilder Add<THook>(Func<IServiceProvider, THook>? hookFactory = null)
             where THook : notnull
         {
             hookFactory ??= services =>
@@ -93,7 +93,7 @@ namespace Tableau.Migration.Engine.Hooks
         }
 
         /// <inheritdoc />
-        public IMigrationHookBuilder Add<THook, TContext>(Func<TContext, CancellationToken, Task<TContext?>> callback)
+        public virtual IMigrationHookBuilder Add<THook, TContext>(Func<TContext, CancellationToken, Task<TContext?>> callback)
             where THook : IMigrationHook<TContext>
         => Add(typeof(THook), s => new CallbackHookWrapper<THook, TContext>(callback));
 

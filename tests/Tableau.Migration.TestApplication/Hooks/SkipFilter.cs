@@ -17,17 +17,20 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Tableau.Migration.Engine;
-using Tableau.Migration.Interop.Hooks.Filters;
+using Tableau.Migration.Engine.Hooks.Filters;
 
 namespace Tableau.Migration.TestApplication.Hooks
 {
-    class SkipFilter<TContent> : ISyncContentFilter<TContent>
+    class SkipFilter<TContent> : IContentFilter<TContent>
         where TContent : IContentReference
     {
-        public IEnumerable<ContentMigrationItem<TContent>>? Execute(IEnumerable<ContentMigrationItem<TContent>> ctx)
+        public Task<IEnumerable<ContentMigrationItem<TContent>>?> ExecuteAsync(IEnumerable<ContentMigrationItem<TContent>> ctx, CancellationToken token)
         {
-            return Enumerable.Empty<ContentMigrationItem<TContent>>();
+            return Task.FromResult<IEnumerable<ContentMigrationItem<TContent>>?>(
+                Enumerable.Empty<ContentMigrationItem<TContent>>());
         }
     }
 }

@@ -44,7 +44,7 @@ namespace Tableau.Migration.Engine.Hooks.Mappings.Default
         /// </summary>
         /// <typeparam name="T">The <see cref="IUsernameContent"/> type.</typeparam>
         /// <param name="context">The mapping context.</param>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>The mapped context.</returns>
         protected override Task<ContentMappingContext<T>?> ExecuteAsync<T>(ContentMappingContext<T> context, CancellationToken cancel)
         {

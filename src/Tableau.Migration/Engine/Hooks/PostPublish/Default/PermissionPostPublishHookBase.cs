@@ -66,7 +66,7 @@ namespace Tableau.Migration.Engine.Hooks.PostPublish.Default
         /// Finds whether or not the parent/containing project is locked.
         /// </summary>
         /// <param name="ctx">The post publish context.</param>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>Whether or not the parent project is locked.</returns>
         protected async Task<bool> ParentProjectLockedAsync(
             ContentItemPostPublishContext<TPublish, TResult> ctx,

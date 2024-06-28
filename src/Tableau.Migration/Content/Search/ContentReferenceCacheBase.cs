@@ -42,7 +42,7 @@ namespace Tableau.Migration.Content.Search
         /// Searches for content at the given location, possibly returning more locations to opportunistically cache.
         /// </summary>
         /// <param name="searchLocation">The primary location to search for.</param>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>The content references to cache.</returns>
         protected abstract ValueTask<IEnumerable<ContentReferenceStub>> SearchAsync(ContentLocation searchLocation, CancellationToken cancel);
 
@@ -50,7 +50,7 @@ namespace Tableau.Migration.Content.Search
         /// Searches for content at the given ID, possibly returning more references to opportunistically cache.
         /// </summary>
         /// <param name="searchId">The primary ID to search for.</param>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>The content references to cache.</returns>
         protected abstract ValueTask<IEnumerable<ContentReferenceStub>> SearchAsync(Guid searchId, CancellationToken cancel);
 
@@ -58,7 +58,7 @@ namespace Tableau.Migration.Content.Search
         /// Searches for content at the given location.
         /// </summary>
         /// <param name="searchLocation">The primary location to search for.</param>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>The content reference to cache, or null.</returns>
         protected virtual Task<ContentReferenceStub?> IndividualSearchAsync(ContentLocation searchLocation, CancellationToken cancel)
             => Task.FromResult<ContentReferenceStub?>(null);
@@ -67,7 +67,7 @@ namespace Tableau.Migration.Content.Search
         /// Searches for content at the given ID.
         /// </summary>
         /// <param name="searchId">The primary ID to search for.</param>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>The content reference to cache, or null.</returns>
         protected virtual Task<ContentReferenceStub?> IndividualSearchAsync(Guid searchId, CancellationToken cancel)
             => Task.FromResult<ContentReferenceStub?>(null);

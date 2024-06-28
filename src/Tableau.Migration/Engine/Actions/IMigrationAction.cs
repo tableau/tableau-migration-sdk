@@ -28,7 +28,7 @@ namespace Tableau.Migration.Engine.Actions
         /// <summary>
         /// Executes the migration action.
         /// </summary>
-        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>An awaitable task for the overall action result.</returns>
         Task<IMigrationActionResult> ExecuteAsync(CancellationToken cancel);
     }

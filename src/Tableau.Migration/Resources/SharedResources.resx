@@ -247,4 +247,15 @@ Detail: {4}</value>
   <data name="FailedToGetDefaultPermissionsMessage" xml:space="preserve">
     <value>Failed to get Default Permissions {UrlSegment} for {ProjectId}.</value>
   </data>
+  <data name="TableauInstanceTypeNotSupportedMessage" xml:space="preserve">
+    <value>The operation is not supported on {0}.</value>
+  </data>
+  <data name="MappedReferenceExtractRefreshTaskTransformerCannotFindReferenceWarning" xml:space="preserve">
+    <value>Could not update a reference to the destination Extract Refresh Task {ExtractRefreshTaskId}. Reason: Could not find the destination {ReferenceType} for {ReferenceId}.</value>
+  </data>
+  <data name="IntervalsChangedWarning" xml:space="preserve">
+    <value>The following intervals were changed for Extract Refresh Task ID {RefreshTaskId} due to cloud restrictions.
+Server: {OldIntervals}
+Cloud: {NewIntervals}</value>
+  </data>
 </root>
