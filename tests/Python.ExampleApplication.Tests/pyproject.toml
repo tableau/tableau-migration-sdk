@@ -1,0 +1,35 @@
+[project]
+name = "tableau_migration_example_app_tests"
+dynamic = ["version"]
+
+authors = [
+  { name="Salesforce, Inc." },
+]
+description = "Tableau Migration SDK - Example Application Tests"
+
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+
+dependencies = [
+    "tableau_migration",
+    "pytest>=8.2.2"
+]
+
+[tool.ruff]
+# Enable pycodestyle (`E`) and Pyflakes (`F`) codes by default.
+select = ["E", "F"]
+ignore = ["E501"]
+
+[tool.hatch.envs.test]
+dev-mode = false
+dependencies = [
+  "pytest>=8.2.2"
+]
+
+[tool.hatch.envs.test.scripts]
+test = "pytest"
+
+[[tool.hatch.envs.test.matrix]]
+python = ["3.8", "3.9", "3.10", "3.11", "3.12"]
