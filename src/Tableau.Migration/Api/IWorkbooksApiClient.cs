@@ -60,12 +60,10 @@ namespace Tableau.Migration.Api
         /// Downloads the workbook file for the given ID.
         /// </summary>
         /// <param name="workbookId">The ID to download the workbook file for.</param>
-        /// <param name="includeExtract">Whether or not to include extracts in the workbook file.</param>
-        /// <param name="cancel">The cancellation token to obey.</param>
+        /// <param name="cancel">A cancellation token to obey.</param>
         /// <returns>The file download result.</returns>
         Task<IAsyncDisposableResult<FileDownload>> DownloadWorkbookAsync(
             Guid workbookId,
-            bool includeExtract,
             CancellationToken cancel);
 
         /// <summary>

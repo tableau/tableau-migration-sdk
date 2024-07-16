@@ -21,6 +21,7 @@ using Microsoft.Extensions.Localization;
 using Tableau.Migration.Api;
 using Tableau.Migration.Config;
 using Tableau.Migration.Engine;
+using Tableau.Migration.Engine.Manifest;
 using Tableau.Migration.Net;
 using Tableau.Migration.Resources;
 

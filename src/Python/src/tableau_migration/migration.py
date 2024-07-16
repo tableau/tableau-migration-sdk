@@ -199,7 +199,7 @@ class PyMigrationManifest():
             self._migration_manifest.AddErrors(marshalled_error)
             return
 
-        # If somethign else is passed in, let dotnet handle it. 
+        # If something else is passed in, let dotnet handle it. 
         # It's either valid and it works
         # or an exception will be thrown
         self._migration_manifest.AddErrors(errors)

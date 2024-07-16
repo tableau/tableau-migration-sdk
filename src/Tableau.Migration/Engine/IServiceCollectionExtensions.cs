@@ -95,6 +95,9 @@ namespace Tableau.Migration.Engine
             services.AddScoped(typeof(ItemPublishContentBatchMigrator<,,>));
             services.AddScoped(typeof(ContentMigrator<>));
 
+            //Serializer
+            services.AddSingleton<MigrationManifestSerializer>();
+
             //Caches/Content Finders
             //Register concrete types so that the easy way to get interface types is through IMigrationPipeline.
             services.AddScoped(typeof(BulkSourceCache<>));

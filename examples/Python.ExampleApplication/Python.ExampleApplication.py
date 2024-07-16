@@ -2,6 +2,10 @@
 # By default all supported content will be migrated, but can be modified to your specific needs.
 # The application assumes you have already installed the Tableau Migration SDK Python package.
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 import configparser          # configuration parser
 import os                    # environment variables
 import sys                   # system utility
@@ -10,9 +14,20 @@ import print_result
 
 from threading import Thread # threading
 
+from tableau_migration import (
+    MigrationManifestSerializer,
+    MigrationManifest
+    )
+
+serializer = MigrationManifestSerializer()
+
 def migrate():
     """Performs a migration using Tableau Migration SDK."""
     
+    # Get the absolute path of the current file
+    current_file_path = os.path.abspath(__file__)
+    manifest_path = os.path.join(os.path.dirname(current_file_path), 'manifest.json')
+
     plan_builder = tableau_migration.MigrationPlanBuilder()
     migration = tableau_migration.Migrator()
 
@@ -37,6 +52,10 @@ def migrate():
 
     # TODO: add filters, mappings, transformers, etc. here.
 
+
+    # Load the previous manifest file if it exists.
+    prev_manifest = load_manifest(f'{manifest_path}')
+
     # Validate the migration plan.
     validation_result = plan_builder.validate()
 
@@ -45,13 +64,31 @@ def migrate():
     plan = plan_builder.build()
 
     # Run the migration.
-    results = migration.execute(plan)
+    results = migration.execute(plan, prev_manifest)
     
+    # Save the manifest file.
+    serializer.save(results.manifest, f'{manifest_path}')
+
     # TODO: Handle results here.
     print_result(results)
 
     print("All done.")
 
+def load_manifest(manifest_path: str) -> MigrationManifest | None:
+        """Loads a manifest if requested."""
+        manifest = serializer.load(manifest_path)
+    
+        if manifest is not None:
+            while True:
+                answer = input(f'Existing Manifest found at {manifest_path}. Should it be used? [Y/n] ').upper()
+
+                if answer == 'N':
+                    return None
+                elif answer == 'Y' or answer == '':
+                    return manifest
+                
+        return None
+    
 
 if __name__ == '__main__':
     

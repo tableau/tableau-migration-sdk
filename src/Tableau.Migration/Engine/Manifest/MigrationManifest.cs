@@ -17,6 +17,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Extensions.Logging;
 using Tableau.Migration.Resources;
 
@@ -41,7 +42,7 @@ namespace Tableau.Migration.Engine.Manifest
         /// <summary>
         /// The latest manifest version number.
         /// </summary>
-        public const uint LatestManifestVersion = 2;
+        public const uint LatestManifestVersion = 3;
 
         /// <summary>
         /// Creates a new <see cref="MigrationManifest"/> object.
@@ -96,7 +97,12 @@ namespace Tableau.Migration.Engine.Manifest
         {
             if (other is null) return false;
 
-            var equal = PlanId.Equals(other.PlanId) && MigrationId.Equals(other.MigrationId) && ManifestVersion.Equals(other.ManifestVersion) && Entries.Equals(other.Entries);
+            var equal =
+                PlanId.Equals(other.PlanId) &&
+                MigrationId.Equals(other.MigrationId) &&
+                ManifestVersion.Equals(other.ManifestVersion) &&
+                Entries.Equals(other.Entries) &&
+                Errors.SequenceEqual(other.Errors, new ExceptionComparer());
             return equal;
         }
 

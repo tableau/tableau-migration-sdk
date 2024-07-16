@@ -21,7 +21,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Serilog;
 using Tableau.Migration.TestApplication.Config;
-using Tableau.Migration.TestComponents;
 using System;
 using Tableau.Migration.TestApplication.Hooks;
 using Tableau.Migration.Content;
@@ -51,7 +50,6 @@ namespace Tableau.Migration.TestApplication
                         .Configure<TestApplicationOptions>(ctx.Configuration)
                         .Configure<TestTableauCloudUsernameOptions>(ctx.Configuration.GetSection("tableau:migrationOptions"))
                         .AddTableauMigrationSdk(ctx.Configuration.GetSection("tableau:migrationSdk"))
-                        .AddTestComponents()
                         .AddHostedService<TestApplication>()
                         .AddLogging(config =>
                         {

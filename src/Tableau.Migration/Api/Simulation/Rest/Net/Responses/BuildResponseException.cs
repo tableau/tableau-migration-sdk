@@ -20,7 +20,7 @@ using System.Net;
 
 namespace Tableau.Migration.Api.Simulation.Rest.Net.Responses
 {
-    internal class BuildResponseException : Exception
+    internal class BuildResponseException : Exception, IEquatable<BuildResponseException>
     {
         public BuildResponseException(HttpStatusCode statusCode, int subCode, string summary, string detail)
         {
@@ -35,5 +35,30 @@ namespace Tableau.Migration.Api.Simulation.Rest.Net.Responses
         public string Summary { get; set; }
         public string Detail { get; set; }
 
+        #region - IEquatable -
+
+        ///<inheritdoc/>
+        public override bool Equals(object? obj)
+        {
+            return Equals(obj as BuildResponseException);
+        }
+
+        ///<inheritdoc/>
+        public bool Equals(BuildResponseException? other)
+        {
+            return other != null &&
+                   StatusCode == other.StatusCode &&
+                   SubCode == other.SubCode &&
+                   Summary == other.Summary &&
+                   Detail == other.Detail;
+        }
+
+        ///<inheritdoc/>
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(StatusCode, SubCode, Summary, Detail);
+        }
+
+        #endregion
     }
 }

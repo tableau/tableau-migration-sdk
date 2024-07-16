@@ -39,9 +39,6 @@ jobs:
     - name: Net Publish Tests ${{ matrix.config }}
       if: ${{ matrix.os == vars.PUBLISH_OS && matrix.config == 'Release' }}
       run: dotnet publish --no-build -p:DebugType=None -p:DebugSymbols=false -c ${{ matrix.config }} -f ${{ vars.PYTHON_NETPACKAGE_FRAMEWORK }} -o './dist/tests/' './tests/Tableau.Migration.Tests/Tableau.Migration.Tests.csproj'
-    - name: Net Publish TestComponents ${{ matrix.config }}
-      if: ${{ matrix.os == vars.PUBLISH_OS && matrix.config == 'Release' }}
-      run: dotnet publish --no-build -p:DebugType=None -p:DebugSymbols=false -c ${{ matrix.config }} -f ${{ vars.PYTHON_NETPACKAGE_FRAMEWORK }} -o './dist/testcomponents/' './tests/Tableau.Migration.TestComponents/Tableau.Migration.TestComponents.csproj'
     - name: Upload Published Artifacts 
       uses: actions/upload-artifact@v4
       if: ${{ matrix.os == vars.PUBLISH_OS && matrix.config == 'Release' }}
@@ -54,12 +51,6 @@ jobs:
       with:
         name: tests-published-${{ matrix.config }}
         path: './dist/tests/**'
-    - name: Upload TestComponents Artifacts 
-      uses: actions/upload-artifact@v4
-      if: ${{ matrix.os == vars.PUBLISH_OS && matrix.config == 'Release' }}
-      with:
-        name: testcomponents-published-${{ matrix.config }}
-        path: './dist/testcomponents/**'
     - name: Upload Nupkg Artifact 
       uses: actions/upload-artifact@v4
       if: ${{ matrix.os == vars.PUBLISH_OS && matrix.config == 'Release' }}

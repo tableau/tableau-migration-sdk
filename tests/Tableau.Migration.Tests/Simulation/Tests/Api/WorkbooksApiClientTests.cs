@@ -126,7 +126,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
 
                 Api.Data.AddWorkbook(workbook, fileData: Constants.DefaultEncoding.GetBytes(workbook.ToXml()));
 
-                var result = await sitesClient.Workbooks.DownloadWorkbookAsync(workbook.Id, true, Cancel);
+                var result = await sitesClient.Workbooks.DownloadWorkbookAsync(workbook.Id, Cancel);
 
                 Assert.Empty(result.Errors);
                 Assert.True(result.Success);

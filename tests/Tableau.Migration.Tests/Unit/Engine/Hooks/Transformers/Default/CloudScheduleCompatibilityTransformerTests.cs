@@ -55,7 +55,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
             // Assert
             Assert.NotNull(result);
             Assert.Equal(input.Schedule.FrequencyDetails.Intervals.Count, result.Schedule.FrequencyDetails.Intervals.Count);
-            Assert.Empty(Logger.Messages.Where(m => m.LogLevel == LogLevel.Warning));
+            Assert.Empty(Logger.Messages.Where(m => m.LogLevel == LogLevel.Warning).ToList());
         }
 
         [Fact]

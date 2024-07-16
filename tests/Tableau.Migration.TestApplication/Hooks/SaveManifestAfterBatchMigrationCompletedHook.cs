@@ -21,8 +21,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Tableau.Migration.Engine;
 using Tableau.Migration.Engine.Hooks;
+using Tableau.Migration.Engine.Manifest;
 using Tableau.Migration.TestApplication.Config;
-using Tableau.Migration.TestComponents.Engine.Manifest;
 
 namespace Tableau.Migration.TestApplication.Hooks
 {

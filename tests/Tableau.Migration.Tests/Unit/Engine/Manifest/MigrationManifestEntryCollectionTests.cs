@@ -184,12 +184,8 @@ namespace Tableau.Migration.Tests.Unit.Engine.Manifest
         #region - Equality - 
         public class Equality : MigrationManifestEntryCollectionTest
         {
-            protected readonly Mock<IMigrationManifestEntryBuilder> MockEntryBuilder;
-
             public Equality()
-            {
-                MockEntryBuilder = Create<Mock<IMigrationManifestEntryBuilder>>();
-            }
+            { }
 
             private List<MigrationManifestEntry> CreateMigrationManifestEntries(int? count = 10)
             {

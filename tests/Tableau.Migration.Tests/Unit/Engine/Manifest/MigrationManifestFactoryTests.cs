@@ -18,6 +18,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
+using AutoFixture;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Tableau.Migration.Engine;
@@ -61,6 +62,10 @@ namespace Tableau.Migration.Tests.Unit.Engine.Manifest
             [Fact]
             public void InitializesEmptyManifestWithInput()
             {
+                // Customize the AutoFixture instance to remove the customization for IMigrationManifest that was created from AutoFixtureTestBase/FixtureFactory
+                AutoFixture.Customize<IMigrationManifest>(c => c.FromFactory(() =>
+                    new MigrationManifest(AutoFixture.Create<ISharedResourcesLocalizer>(), AutoFixture.Create<ILoggerFactory>(), Guid.NewGuid(), Guid.NewGuid())));
+
                 var manifest = _factory.Create(_mockInput.Object, _migrationId);
 
                 Assert.Equal(_mockInput.Object.Plan.PlanId, manifest.PlanId);

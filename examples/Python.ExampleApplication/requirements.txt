@@ -5,3 +5,4 @@ cffi==1.16.0
 pycparser==2.22
 pythonnet==3.0.3
 typing_extensions==4.12.2
+python-dotenv==1.0.1

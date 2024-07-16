@@ -61,6 +61,27 @@ Python
                 _logger.LogInformation(f"{content_type.Name} {entry.Source.Location} migrated to {entry.Destination.Location}")
 ```
 
+### Python - The SDK isn't loading the *.env* configuration
+
+Environment variables must be set in the system the Python application runs in. This can be done through the OS itself, or by 3rd party libraries. The SDK will load the environment configuration on its **\_\_init\_\_** process.
+
+For the case of the library [dotenv](https://pypi.org/project/python-dotenv/), it is required to execute the command **load_dotenv()** before referring to any **tableau_migration** code. 
+
+```
+# Used to load environment variables
+from dotenv import load_dotenv  
+
+# Load the environment variables before importing tableau_migration
+load_dotenv()
+
+# first tableau_migration reference
+import tableau_migration
+
+# The SDK will not recognize the .env file values
+# Don't load the values here
+# load_dotenv()
+```
+
 ## Errors and Warnings
 
 This section provides a list of potential error and warning log messages that you may encounter in the logs. Each entry includes a description to assist you in debugging.

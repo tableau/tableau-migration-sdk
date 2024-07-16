@@ -25,7 +25,7 @@ namespace Tableau.Migration.Api.Rest
     /// <summary>
     /// Class representing an error from a Tableau REST API
     /// </summary>
-    public class RestException : Exception
+    public class RestException : Exception, IEquatable<RestException>
     {
         /// <summary>
         /// Gets the request URI from Tableau API.
@@ -55,6 +55,28 @@ namespace Tableau.Migration.Api.Rest
         /// <summary>
         /// Creates a new <see cref="RestException"/> instance.
         /// </summary>
+        /// <remarks>This should only be used for deserialization.</remarks>
+        /// <param name="httpMethod">The http method that generated the current error.</param>
+        /// <param name="requestUri">The request URI that generated the current error.</param>
+        /// <param name="error">The <see cref="Error"/> returned from the Tableau API.</param>
+        /// <param name="exceptionMessage">Message for base Exception.</param>
+        internal RestException(
+            HttpMethod? httpMethod,
+            Uri? requestUri,
+            Error error,
+            string exceptionMessage)
+            : base(exceptionMessage)
+        {
+            HttpMethod = httpMethod;
+            RequestUri = requestUri;
+            Code = error.Code;
+            Detail = error.Detail;
+            Summary = error.Summary;
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="RestException"/> instance.
+        /// </summary>
         /// <param name="httpMethod">The http method that generated the current error.</param>
         /// <param name="requestUri">The request URI that generated the current error.</param>
         /// <param name="error">The <see cref="Error"/> returned from the Tableau API.</param>
@@ -64,14 +86,8 @@ namespace Tableau.Migration.Api.Rest
             Uri? requestUri,
             Error error,
             ISharedResourcesLocalizer sharedResourcesLocalizer)
-            : base(FormatError(httpMethod, requestUri, error, sharedResourcesLocalizer))
-        {
-            HttpMethod = httpMethod;
-            RequestUri = requestUri;
-            Code = error.Code;
-            Detail = error.Detail;
-            Summary = error.Summary;
-        }
+            : this(httpMethod, requestUri, error, FormatError(httpMethod, requestUri, error, sharedResourcesLocalizer))
+        { }
 
         private static string FormatError(
             HttpMethod? httpMethod,
@@ -89,5 +105,39 @@ namespace Tableau.Migration.Api.Rest
                 error.Summary ?? nullValue,
                 error.Detail ?? nullValue);
         }
+
+        #region - IEquatable - 
+
+        /// <inheritdoc/>
+        public bool Equals(RestException? other)
+        {
+            if (other == null) return false;
+
+            return HttpMethod == other.HttpMethod &&
+                   RequestUri == other.RequestUri &&
+                   Code == other.Code &&
+                   Detail == other.Detail &&
+                   Summary == other.Summary;
+        }
+
+        /// <inheritdoc/>
+        public override bool Equals(object? obj)
+        {
+            if (obj is RestException other)
+            {
+                return Equals(other);
+            }
+
+            return false;
+        }
+
+        /// <inheritdoc/>
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(HttpMethod, RequestUri, Code, Detail, Summary);
+        }
+
+        #endregion
+
     }
 }

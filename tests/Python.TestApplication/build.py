@@ -32,9 +32,7 @@ def build():
         import shutil
     
         migration_project = abspath("../../tests/Tableau.Migration.Tests/Tableau.Migration.Tests.csproj")
-        test_component_project = abspath("../../tests/Tableau.Migration.TestComponents/Tableau.Migration.TestComponents.csproj")
         shutil.rmtree(bin_path, True)
         subprocess.run(["dotnet", "publish", migration_project, "-o", bin_path, "-f", "net6.0"])
-        subprocess.run(["dotnet", "publish", test_component_project, "-o", bin_path, "-f", "net6.0"])
 
     sys.path.append(bin_path)

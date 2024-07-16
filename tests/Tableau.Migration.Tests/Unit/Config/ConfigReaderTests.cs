@@ -67,24 +67,33 @@ namespace Tableau.Migration.Tests.Unit.Config
                 new()
                 {
                     Type = "Workbook",
-                    BatchSize = 226
+                    BatchSize = 226,
+                    IncludeExtractEnabled = false
                 },
                 new()
                 {
                     Type = "DataSource",
-                    BatchSize = 227
+                    BatchSize = 227,
+                    IncludeExtractEnabled = false
                 }
 
             ];
 
-        public void AssertCustomResult(ContentTypesOptions expected, ContentTypesOptions actual)
+        public void AssertCustomBatchSizeResult(ContentTypesOptions expected, ContentTypesOptions actual)
         {
             Assert.Equal(expected.BatchSize, actual.BatchSize);
+        }
+        
+        public void AssertCustomIncludeExtractResult(ContentTypesOptions expected, ContentTypesOptions actual)
+        {
+            Assert.Equal(expected.IncludeExtractEnabled, actual.IncludeExtractEnabled);
         }
 
         public void AssertDefaultResult(ContentTypesOptions actual)
         {
             Assert.Equal(ContentTypesOptions.Defaults.BATCH_SIZE, actual.BatchSize);
+            Assert.Equal(ContentTypesOptions.Defaults.BATCH_PUBLISHING_ENABLED, actual.BatchPublishingEnabled);
+            Assert.Equal(ContentTypesOptions.Defaults.INCLUDE_EXTRACT_ENABLED, actual.IncludeExtractEnabled);
         }
 
         public class GetContentTypeSpecific : ConfigReaderTests
@@ -96,11 +105,14 @@ namespace Tableau.Migration.Tests.Unit.Config
 
                 var testData = GetContentTypesOptionsTestData();
 
-                AssertCustomResult(testData.First(i => i.Type == "User"), Reader.Get<IUser>());
-                AssertCustomResult(testData.First(i => i.Type == "Group"), Reader.Get<IGroup>());
-                AssertCustomResult(testData.First(i => i.Type == "Project"), Reader.Get<IProject>());
-                AssertCustomResult(testData.First(i => i.Type == "Workbook"), Reader.Get<IWorkbook>());
-                AssertCustomResult(testData.First(i => i.Type == "DataSource"), Reader.Get<IDataSource>());
+                AssertCustomBatchSizeResult(testData.First(i => i.Type == "User"), Reader.Get<IUser>());
+                AssertCustomBatchSizeResult(testData.First(i => i.Type == "Group"), Reader.Get<IGroup>());
+                AssertCustomBatchSizeResult(testData.First(i => i.Type == "Project"), Reader.Get<IProject>());
+                AssertCustomBatchSizeResult(testData.First(i => i.Type == "Workbook"), Reader.Get<IWorkbook>());
+                AssertCustomBatchSizeResult(testData.First(i => i.Type == "DataSource"), Reader.Get<IDataSource>());
+                
+                AssertCustomIncludeExtractResult(testData.First(i => i.Type == "Workbook"), Reader.Get<IWorkbook>());
+                AssertCustomIncludeExtractResult(testData.First(i => i.Type == "DataSource"), Reader.Get<IDataSource>());
             }
 
             [Fact]

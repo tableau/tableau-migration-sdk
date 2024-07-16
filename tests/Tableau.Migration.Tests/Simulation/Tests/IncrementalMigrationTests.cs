@@ -54,7 +54,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests
             {
                 //Scenario: We are migrating workbooks but have mistakenly
                 //included a filter that prevents some of the workbooks from migrating.
-                //We want to re-run the migration an only migrate the workbooks we missed the first run.
+                //We want to re-run the migration and only migrate the workbooks we missed the first run.
 
                 //Arrange - create source content to migrate.
                 var sourceProjects = PrepareSourceProjectsData();

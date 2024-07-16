@@ -7,6 +7,8 @@ on:
     branches:
       - main
       - 'release/**'
+      - 'staging/**'
+      - 'feature/**' 
     paths-ignore:
       - README.md
       - '**/README.md'

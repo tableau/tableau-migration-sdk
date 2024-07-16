@@ -75,6 +75,8 @@ from tableau_migration.migration_engine_endpoints_search import PySourceContentR
 from tableau_migration.migration_engine_endpoints_search import PySourceContentReferenceFinderFactory as ISourceContentReferenceFinderFactory # noqa: E402, F401
 from tableau_migration.migration_content_schedules_cloud import PyCloudExtractRefreshTask as ICloudExtractRefreshTask # noqa: E402, F401
 from tableau_migration.migration_content_schedules_server import PyServerExtractRefreshTask as IServerExtractRefreshTask # noqa: E402, F401
+from tableau_migration.migration_engine_manifest import PyMigrationManifest as MigrationManifest # noqa: E402, F401
+from tableau_migration.migration_engine_manifest import PyMigrationManifestSerializer as MigrationManifestSerializer # noqa: E402, F401
 
 # region _generated
 

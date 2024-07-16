@@ -5,6 +5,7 @@
 *.csproj.user
 .idea/
 /.vscode
+*.pyproj.user
 
 # Python stuff 
 # Source: https://github.com/github/gitignore/blob/main/Python.gitignore

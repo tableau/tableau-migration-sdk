@@ -67,6 +67,9 @@ from tableau_migration.migration_engine_options import (
     PyMigrationPlanOptionsBuilder,
     PyMigrationPlanOptionsCollection)
 
+from tableau_migration.migration_engine_manifest import (
+    PyMigrationManifestSerializer)
+
 from tableau_migration.migration_engine_migrators import (
     PyMigrator)
 
@@ -422,7 +425,8 @@ _test_class_data = [
     (PyDestinationContentReferenceFinder, None),
     (PyDestinationContentReferenceFinderFactory, [ "ForContentType" ]),
     (PySourceContentReferenceFinder, None),
-    (PySourceContentReferenceFinderFactory, [ "ForContentType" ])
+    (PySourceContentReferenceFinderFactory, [ "ForContentType" ]),
+    (PyMigrationManifestSerializer, None),
 ]
 _test_class_data.extend(_generated_class_data)
 

@@ -13,6 +13,41 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+import tempfile
+from tests.helpers.autofixture import AutoFixtureTestBase # noqa: E402, F401
+from Tableau.Migration import IMigrationManifest # noqa: E402, F401
+from tableau_migration import (
+    IMigrationManifestEntry,
+    MigrationManifest,
+    MigrationManifestSerializer)
+
+class TestManifestSaveLoad(AutoFixtureTestBase):
+    
+    def test_saveload(self):
+        serializer = MigrationManifestSerializer()
+        manifest = MigrationManifest(self.create(IMigrationManifest))
+        
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_file_path = os.path.join(temp_dir, 'manifest.json')
+            serializer.save(manifest, temp_file_path)
+            loaded = serializer.load(temp_file_path)
+        
+        assert manifest.plan_id == loaded.plan_id
+        assert manifest.manifest_version == loaded.manifest_version
+        assert manifest.migration_id == loaded.migration_id
+        
+        manifest_entries = [IMigrationManifestEntry(x) for x in manifest.entries]
+        loaded_entries = [IMigrationManifestEntry(x) for x in loaded.entries]
+        assert len(manifest_entries) > 0
+        assert len(loaded_entries) > 0
+        assert len(manifest_entries) == len(loaded_entries)
+        
+        assert manifest.errors.Count > 0
+        assert loaded.errors.Count > 0
+        assert manifest.errors.Count == loaded.errors.Count
+
+
 # region _generated
 
 from enum import IntEnum # noqa: E402, F401

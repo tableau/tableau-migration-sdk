@@ -26,12 +26,13 @@ from tableau_migration.migration_engine import (
 
 from Tableau.Migration.Config import IConfigReader
 from Tableau.Migration.Content import IUser
+from Tableau.Migration.Content import IWorkbook
 
 class TestEndToEnd():
     def test_main(self):
         '''This is mean to mimic a real application'''
         planBuilder = PyMigrationPlanBuilder()
-        
+
         planBuilder = planBuilder \
                 .from_source_tableau_server("http://fakeSourceServer.com", "", "fakeTokenName", "fakeTokenValue") \
                 .to_destination_tableau_cloud("https://online.tableau.com", "", "fakeTokenName", "fakeTokenValue") \
@@ -45,13 +46,13 @@ class TestEndToEnd():
 class TestLogging():
     def test_logging(self):
         '''At this point the module __init()__ has already been called and the logging provider factory has been initialized'''
-        
+
         # Create a migration sdk object so that an ILogger will be instaniated
         PyMigrationPlanBuilder()
-        
+
         # tableau_migration module keeps track of instaniated loggers. Verify that we have at least one
         assert len(_logger_names) > 0
-        
+
         for name in _logger_names:
             # Given that we have a name, we should have a logger
             assert logging.getLogger(name)            
@@ -60,6 +61,7 @@ class TestConfig():
     def test_config(self):
         '''
         Verify that the MigrationSDK__BatchSize variable has been changed
+        Verify that the MigrationSDK__IncludeExtractEnabled variable has been changed
         
         Environment variables act different in different operating systems. For this reason we 
         must set the MigrationSDK_BatchSize in pytest.ini, as that is set before the python
@@ -70,5 +72,7 @@ class TestConfig():
         config_reader = get_service(services, IConfigReader)
 
         batch_size = config_reader.Get[IUser]().BatchSize
+        include_extract = config_reader.Get[IWorkbook]().IncludeExtractEnabled
 
-        assert batch_size==102
+        assert batch_size == 102
+        assert include_extract is False
