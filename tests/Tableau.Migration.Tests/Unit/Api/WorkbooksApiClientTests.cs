@@ -27,6 +27,7 @@ using Moq;
 using Tableau.Migration.Api;
 using Tableau.Migration.Api.Models;
 using Tableau.Migration.Api.Rest.Models.Responses;
+using Tableau.Migration.Config;
 using Tableau.Migration.Content;
 using Tableau.Migration.Content.Files;
 using Tableau.Migration.Content.Permissions;
@@ -39,6 +40,12 @@ namespace Tableau.Migration.Tests.Unit.Api
     {
         public abstract class WorkbooksApiClientTest : PermissionsApiClientTestBase<IWorkbooksApiClient>
         {
+            public WorkbooksApiClientTest()
+            {
+                MockConfigReader
+                    .Setup(x => x.Get<IWorkbook>())
+                    .Returns(new ContentTypesOptions());
+            }
             internal WorkbooksApiClient WorkbooksApiClient => GetApiClient<WorkbooksApiClient>();
         }
 
@@ -213,7 +220,7 @@ namespace Tableau.Migration.Tests.Unit.Api
 
                 var workbookId = Guid.NewGuid();
 
-                var result = await ApiClient.DownloadWorkbookAsync(workbookId, true, Cancel);
+                var result = await ApiClient.DownloadWorkbookAsync(workbookId, Cancel);
 
                 result.AssertFailure();
 
@@ -232,7 +239,7 @@ namespace Tableau.Migration.Tests.Unit.Api
 
                 var workbookId = Guid.NewGuid();
 
-                var result = await ApiClient.DownloadWorkbookAsync(workbookId, true, Cancel);
+                var result = await ApiClient.DownloadWorkbookAsync(workbookId, Cancel);
 
                 result.AssertFailure();
 
@@ -254,13 +261,13 @@ namespace Tableau.Migration.Tests.Unit.Api
 
                 var workbookId = Guid.NewGuid();
 
-                var result = await ApiClient.DownloadWorkbookAsync(workbookId, false, Cancel);
+                var result = await ApiClient.DownloadWorkbookAsync(workbookId, Cancel);
 
                 result.AssertSuccess();
                 Assert.NotNull(result.Value);
 
                 var request = MockHttpClient.AssertSingleRequest();
-                request.AssertRelativeUri($"/api/{TableauServerVersion.RestApiVersion}/sites/{SiteId}/workbooks/{workbookId}/content?includeExtract=False");
+                request.AssertRelativeUri($"/api/{TableauServerVersion.RestApiVersion}/sites/{SiteId}/workbooks/{workbookId}/content?includeExtract=True");
             }
         }
 

@@ -67,12 +67,10 @@ namespace Tableau.Migration.Api
         /// Downloads the data source file for the given ID.
         /// </summary>
         /// <param name="dataSourceId">The ID to download the data source file for.</param>
-        /// <param name="includeExtract">Whether or not to include extracts in the data source file.</param>
-        /// <param name="cancel">The cancellation token to obey.</param>
+        /// <param name="cancel">A cancellation token to obey.</param>
         /// <returns>The file download result.</returns>
         Task<IAsyncDisposableResult<FileDownload>> DownloadDataSourceAsync(
             Guid dataSourceId,
-            bool includeExtract,
             CancellationToken cancel);
 
         /// <summary>

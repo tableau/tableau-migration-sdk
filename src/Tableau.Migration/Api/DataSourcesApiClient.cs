@@ -28,6 +28,7 @@ using Tableau.Migration.Api.Rest;
 using Tableau.Migration.Api.Rest.Models.Requests;
 using Tableau.Migration.Api.Rest.Models.Responses;
 using Tableau.Migration.Api.Tags;
+using Tableau.Migration.Config;
 using Tableau.Migration.Content;
 using Tableau.Migration.Content.Files;
 using Tableau.Migration.Content.Search;
@@ -45,6 +46,7 @@ namespace Tableau.Migration.Api
         private readonly IContentFileStore _fileStore;
         private readonly IDataSourcePublisher _dataSourcePublisher;
         private readonly IConnectionManager _connectionManager;
+        private readonly IConfigReader _configReader;
 
         public DataSourcesApiClient(
             IRestRequestBuilderFactory restRequestBuilderFactory,
@@ -56,7 +58,8 @@ namespace Tableau.Migration.Api
             IDataSourcePublisher dataSourcePublisher,
             ITagsApiClientFactory tagsClientFactory,
             IConnectionManager connectionManager,
-            ILabelsApiClientFactory labelsCLientFactory)
+            ILabelsApiClientFactory labelsCLientFactory,
+            IConfigReader configReader)
             : base(restRequestBuilderFactory, finderFactory, loggerFactory, sharedResourcesLocalizer)
         {
             _fileStore = fileStore;
@@ -65,6 +68,7 @@ namespace Tableau.Migration.Api
             Permissions = permissionsClientFactory.Create(this);
             Tags = tagsClientFactory.Create(this);
             _connectionManager = connectionManager;
+            _configReader = configReader;
         }
 
         #region - ILabelsContentApiClient Implementation -
@@ -152,14 +156,12 @@ namespace Tableau.Migration.Api
         }
 
         /// <inheritdoc />
-        public async Task<IAsyncDisposableResult<FileDownload>> DownloadDataSourceAsync(
-            Guid dataSourceId,
-            bool includeExtract,
+        public async Task<IAsyncDisposableResult<FileDownload>> DownloadDataSourceAsync(Guid dataSourceId,
             CancellationToken cancel)
         {
             var downloadResult = await RestRequestBuilderFactory
                 .CreateUri($"{UrlPrefix}/{dataSourceId.ToUrlSegment()}/{RestUrlPrefixes.Content}")
-                .WithQuery("includeExtract", includeExtract.ToString())
+                .WithQuery("includeExtract", _configReader.Get<IDataSource>().IncludeExtractEnabled.ToString())
                 .ForGetRequest()
                 .DownloadAsync(cancel)
                 .ConfigureAwait(false);
@@ -245,7 +247,7 @@ namespace Tableau.Migration.Api
                 return connectionsResult.CastFailure<IPublishableDataSource>();
             }
 
-            var downloadResult = await DownloadDataSourceAsync(contentItem.Id, true, cancel).ConfigureAwait(false);
+            var downloadResult = await DownloadDataSourceAsync(contentItem.Id, cancel).ConfigureAwait(false);
             if (!downloadResult.Success)
             {
                 return downloadResult.CastFailure<IPublishableDataSource>();

@@ -20,7 +20,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
-using Tableau.Migration.Api.Rest.Models.Types;
 using Tableau.Migration.Content.Schedules;
 using Tableau.Migration.Content.Schedules.Cloud;
 using Xunit;
@@ -50,9 +49,9 @@ namespace Tableau.Migration.Tests.Unit.Content.Schedules
                             new Dictionary<(ExtractRefreshContentType, Guid), ImmutableList<ICloudExtractRefreshTask>>());
                     });
 
-                var result1 = await Cache.GetAndRelease((ExtractRefreshContentType.DataSource,Guid.NewGuid()), Cancel);
+                var result1 = await Cache.GetAndRelease((ExtractRefreshContentType.DataSource, Guid.NewGuid()), Cancel);
 
-                var result2 = await Cache.GetAndRelease((ExtractRefreshContentType.Workbook,Guid.NewGuid()), Cancel);
+                var result2 = await Cache.GetAndRelease((ExtractRefreshContentType.Workbook, Guid.NewGuid()), Cancel);
 
                 Assert.Null(result1);
                 Assert.Null(result2);
@@ -70,7 +69,7 @@ namespace Tableau.Migration.Tests.Unit.Content.Schedules
                     {
                         loaded++;
                         return Task.FromResult(
-                            new Dictionary<(ExtractRefreshContentType, Guid), ImmutableList<ICloudExtractRefreshTask>> 
+                            new Dictionary<(ExtractRefreshContentType, Guid), ImmutableList<ICloudExtractRefreshTask>>
                             {
                                 [(ExtractRefreshContentType.DataSource, id)] = list
                             });
@@ -102,7 +101,7 @@ namespace Tableau.Migration.Tests.Unit.Content.Schedules
                     {
                         loaded++;
                         return Task.FromResult(
-                            new Dictionary<(ExtractRefreshContentType, Guid), ImmutableList<ICloudExtractRefreshTask>> 
+                            new Dictionary<(ExtractRefreshContentType, Guid), ImmutableList<ICloudExtractRefreshTask>>
                             {
                                 [(ExtractRefreshContentType.DataSource, id1)] = list1,
                                 [(ExtractRefreshContentType.Workbook, id2)] = list2,
@@ -168,7 +167,7 @@ namespace Tableau.Migration.Tests.Unit.Content.Schedules
                     {
                         loaded++;
                         return Task.FromResult(
-                            new Dictionary<Guid, ICloudExtractRefreshTask> 
+                            new Dictionary<Guid, ICloudExtractRefreshTask>
                             {
                                 [id] = item
                             });
@@ -209,7 +208,7 @@ namespace Tableau.Migration.Tests.Unit.Content.Schedules
                     {
                         loaded++;
                         return Task.FromResult(
-                            new Dictionary<Guid, ICloudExtractRefreshTask> 
+                            new Dictionary<Guid, ICloudExtractRefreshTask>
                             {
                                 [id1] = item1,
                                 [id2] = item2,
@@ -221,7 +220,7 @@ namespace Tableau.Migration.Tests.Unit.Content.Schedules
                     .Range(1, totalThreads)
                     .Select(x => Cache
                         .GetAndRelease(
-                            x % 3 != 0 
+                            x % 3 != 0
                                 ? x % 3 != 1
                                     ? Guid.NewGuid()
                                     : id2

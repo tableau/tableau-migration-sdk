@@ -32,9 +32,6 @@ sys.path.append(_main_module_path)
 import tableau_migration # noqa: E402, F401 
 import clr               # noqa: E402
 
-clr.AddReference("Tableau.Migration.TestComponents")
-
-
 if isfile('config.DEV.json'):
     with open('config.DEV.json') as config_file:
         config = json.load(config_file)

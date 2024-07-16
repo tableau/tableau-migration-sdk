@@ -18,13 +18,25 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Abstractions;
+using System.IO.Abstractions.TestingHelpers;
 using System.Linq;
+using System.Net.Http;
 using AutoFixture;
 using AutoFixture.AutoMoq;
+using AutoFixture.Kernel;
+using Microsoft.Extensions.Logging;
 using Moq;
+using Tableau.Migration.Api.Models;
 using Tableau.Migration.Api.Rest.Models.Requests;
 using Tableau.Migration.Api.Rest.Models.Responses;
+using Tableau.Migration.Content;
 using Tableau.Migration.Content.Schedules;
+using Tableau.Migration.Engine.Manifest;
+using Tableau.Migration.Engine.Pipelines;
+using Tableau.Migration.JsonConverters.Exceptions;
+using Tableau.Migration.JsonConverters.SerializableObjects;
+using Tableau.Migration.Resources;
 using CloudResponses = Tableau.Migration.Api.Rest.Models.Responses.Cloud;
 using ServerResponses = Tableau.Migration.Api.Rest.Models.Responses.Server;
 
@@ -39,6 +51,8 @@ namespace Tableau.Migration.Tests
             fixture = fixture.Customize(new AutoMoqCustomization { ConfigureMembers = true });
 
             fixture.Customizations.Add(new ImmutableCollectionSpecimenBuilder());
+
+            fixture.Register<IFileSystem>(() => new MockFileSystem());
 
             fixture.Register(() => fixture.Create<MockServiceProvider>().Object);
 
@@ -265,7 +279,161 @@ namespace Tableau.Migration.Tests
                     );
             #endregion
 
+            #region - TimeoutException -
+
+            fixture.Register(() =>
+            {
+                return new TimeoutJobException(new Job(fixture.Create<JobResponse>()), fixture.Create<ISharedResourcesLocalizer>());
+            });
+
+            #endregion
+
+            #region - Serializable Objects - 
+
+            fixture.Register(() => CreateSerializableContentLocation(fixture));
+
+            fixture.Customize<SerializableContentReference>(composer => composer
+                .With(c => c.Id, Guid.NewGuid().ToString()));
+
+            fixture.Register(() => CreateSerializableManifestEntry(fixture));
+
+            #endregion
+
+            #region - MigrationManifestEntry -
+            fixture.Register(() =>
+            {
+                var mockEntryBuilder = fixture.Create<Mock<IMigrationManifestEntryBuilder>>();
+                return new MigrationManifestEntry(mockEntryBuilder.Object, fixture.Create<ContentReferenceStub>());
+            });
+
+            #endregion
+
+            #region - MigrationManifest -
+
+            fixture.Register<IMigrationManifest>(() => CreateMigrationManifest(fixture));
+            fixture.Register(() => CreateMigrationManifest(fixture));
+
+            #endregion
+
             return fixture;
+        }
+
+        /// <summary>
+        /// This creates a <see cref="SerializableContentReference"/> that follows the requirements of a <see cref="ContentLocation"/>
+        /// </summary>
+        internal static SerializableContentLocation CreateSerializableContentLocation(IFixture fixture)
+        {
+            var ret = new SerializableContentLocation();
+
+            string[] pathSegments = fixture.CreateMany<string>().ToArray();
+
+            ret.PathSeparator = Constants.PathSeparator;
+            ret.PathSegments = pathSegments;
+            ret.Path = string.Join(Constants.PathSeparator, pathSegments);
+            ret.Name = pathSegments.LastOrDefault() ?? string.Empty;
+            ret.IsEmpty = (pathSegments.Length == 0);
+
+            return ret;
+        }
+
+        /// <summary>
+        /// Creates a SerializableManifestEntry that follows the requirements of <see cref="MigrationManifestEntry"/>
+        /// </summary>
+        /// <returns></returns>
+        internal static SerializableManifestEntry CreateSerializableManifestEntry(IFixture fixture)
+        {
+            var ret = new SerializableManifestEntry();
+
+            ret.Source = fixture.Create<SerializableContentReference>();
+            ret.Destination = fixture.Create<SerializableContentReference>();
+            ret.MappedLocation = ret.Destination.Location;
+            ret.Status = (int)fixture.Create<MigrationManifestEntryStatus>();
+            ret.SetErrors(CreateErrors(fixture));
+
+            return ret;
+        }
+
+        internal static MigrationManifest CreateMigrationManifest(IFixture fixture)
+        {
+            var ret = new MigrationManifest(fixture.Create<ISharedResourcesLocalizer>(), fixture.Create<ILoggerFactory>(), Guid.NewGuid(), Guid.NewGuid());
+
+            foreach (var type in ServerToCloudMigrationPipeline.ContentTypes)
+            {
+                var p = ret.Entries.GetOrCreatePartition(type.ContentType);
+                p.CreateEntries(fixture.CreateMany<MigrationManifestEntry>().ToList());
+            }
+
+            ret.AddErrors(CreateErrors(fixture));
+
+            return ret;
+        }
+
+        /// <summary>
+        /// Creates a list of exceptions of all the classes in Tableau.Migration.dll that inhert from Exception
+        /// The exception types are registered with AutoFixture to produce fully populated objects.
+        /// </summary>
+        /// <returns>List of exceptions of different types.</returns>
+        public static List<Exception> CreateErrors(IFixture fixture, int countOfEach = 1)
+        {
+            // Note: 
+            // This is bit of a hack, but we need a complete exception object.
+            // The easiest way I can produce this is to throw the exception, catch it,
+            // and then add it to the list.
+
+            var ret = new List<Exception>();
+
+            // First, a default exception
+            try
+            {
+                throw fixture.Create<Exception>();
+            }
+            catch (Exception ex)
+            {
+                ret.Add(ex);
+            }
+
+            // Now a specialized exception
+            try
+            {
+                var httpException = new HttpRequestException(fixture.Create<string>(), fixture.Create<Exception>(), System.Net.HttpStatusCode.BadRequest);
+                httpException.HelpLink = fixture.Create<string>();
+
+                throw httpException;
+            }
+            catch (HttpRequestException ex)
+            {
+                ret.Add(ex);
+            }
+
+            var loadedAssemblies = AppDomain.CurrentDomain.GetAssemblies();
+            var tableauMigrationAssembly = loadedAssemblies.Where(a => a.ManifestModule.Name == "Tableau.Migration.dll").First();
+
+            var exceptionTypes = tableauMigrationAssembly.GetTypes()
+                .Where(t => t.BaseType == typeof(Exception))
+                .Where(t => t != typeof(MismatchException)) // MismatchException will never be in a manifest
+                .ToList();
+
+            foreach (var exceptionType in exceptionTypes)
+            {
+                for (int i = 0; i < countOfEach; i++)
+                {
+                    try
+                    {
+                        throw (Exception)fixture.Create(exceptionType, new SpecimenContext(fixture));
+                    }
+                    catch (Exception ex)
+                    {
+                        if (ex.HelpLink is null)
+                        {
+                            ex.HelpLink = fixture.Create<string>();
+                        }
+
+                        ret.Add(ex);
+                    }
+                }
+            }
+
+            return ret;
         }
     }
 }

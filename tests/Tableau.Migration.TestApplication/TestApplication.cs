@@ -30,7 +30,6 @@ using Tableau.Migration.Engine.Manifest;
 using Tableau.Migration.Engine.Pipelines;
 using Tableau.Migration.TestApplication.Config;
 using Tableau.Migration.TestApplication.Hooks;
-using Tableau.Migration.TestComponents.Engine.Manifest;
 
 namespace Tableau.Migration.TestApplication
 {
@@ -65,18 +64,18 @@ namespace Tableau.Migration.TestApplication
 
         public async Task StartAsync(CancellationToken cancel)
         {
-            var manifestFilepath = $@"{_options.Log.FolderPath}\Manifest-{Program.StartTime.ToString("yyyy-MM-dd-HH-mm-ss")}.json"; 
+            var manifestFilepath = $@"{_options.Log.FolderPath}\Manifest-{Program.StartTime.ToString("yyyy-MM-dd-HH-mm-ss")}.json";
 
             Console.WriteLine("Starting app");
             _logger.LogInformation("Starting app log");
-            
+
             _planBuilder = _planBuilder
-                .FromSourceTableauServer(_options.Source.ServerUrl, _options.Source.SiteContentUrl, _options.Source.AccessTokenName, Environment.GetEnvironmentVariable("TABLEAU_MIGRATION_SOURCE_TOKEN") ?? string.Empty)
-                .ToDestinationTableauCloud(_options.Destination.ServerUrl, _options.Destination.SiteContentUrl, _options.Destination.AccessTokenName, Environment.GetEnvironmentVariable("TABLEAU_MIGRATION_DESTINATION_TOKEN") ?? string.Empty)
+                .FromSourceTableauServer(_options.Source.ServerUrl, _options.Source.SiteContentUrl, _options.Source.AccessTokenName, Environment.GetEnvironmentVariable("TABLEAU_MIGRATION_SOURCE_TOKEN") ?? _options.Source.AccessToken)
+                .ToDestinationTableauCloud(_options.Destination.ServerUrl, _options.Destination.SiteContentUrl, _options.Destination.AccessTokenName, Environment.GetEnvironmentVariable("TABLEAU_MIGRATION_DESTINATION_TOKEN") ?? _options.Destination.AccessToken)
                 .ForServerToCloud();
 
-            
-            if(_options.Destination.SiteContentUrl != "")
+
+            if (_options.Destination.SiteContentUrl != "")
             { // Most likely means it's a Cloud site not a Server
                 _planBuilder = ((IServerToCloudMigrationPlanBuilder)_planBuilder)
                     .WithTableauIdAuthenticationType()

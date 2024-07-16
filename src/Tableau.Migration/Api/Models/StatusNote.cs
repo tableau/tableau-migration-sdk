@@ -15,11 +15,12 @@
 //  limitations under the License.
 //
 
+using System;
 using Tableau.Migration.Api.Rest.Models.Responses;
 
 namespace Tableau.Migration.Api.Models
 {
-    internal class StatusNote : IStatusNote
+    internal record struct StatusNote : IStatusNote
     {
         /// <inheritdoc />
         public string? Type { get; }

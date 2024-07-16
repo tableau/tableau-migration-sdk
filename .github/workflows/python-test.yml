@@ -34,18 +34,9 @@ jobs:
         with:
           name: tests-published-${{ matrix.config }}
           path: ./src/Python/src/tableau_migration/bin/
-      - uses: actions/download-artifact@v4
-        with:
-          name: testcomponents-published-${{ matrix.config }}
-          path: ./tests/Python.TestApplication/bin/
       - name: Lint with ruff
         run: python -m hatch run lint:lint
           
       - name: Test with pytest
         run: |
           python -m hatch --data-dir=.hatch --cache-dir=.hatch_cache run test:testcov
-          
-      - name: Test TestApplication with pytest
-        run: |
-          python -m hatch --data-dir=.hatch --cache-dir=.hatch_cache run test:test
-        working-directory: ./tests/Python.TestApplication

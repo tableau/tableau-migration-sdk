@@ -16,11 +16,21 @@
 //
 
 using System;
+using System.Linq;
 
 namespace Tableau.Migration.Tests
 {
     public static class ObjectExtensions
     {
         public static bool IsDisposable(this object obj) => obj is IDisposable || obj is IAsyncDisposable;
+
+        public static bool ImplementsEquatable(this object obj)
+        {
+            if (obj == null) return false;
+
+            var type = obj.GetType();
+            // Check if the type implements IEquatable<> interface
+            return type.GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IEquatable<>));
+        }
     }
 }

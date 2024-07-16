@@ -21,7 +21,7 @@
 # Class python imports
 import logging
 
-import helper           # Helper code. Must be imported and called before TestComponents can be used 
+import helper
 import os
 import sys
 import time
@@ -35,15 +35,14 @@ from tableau_migration import (
     Migrator, 
     MigrationPlanBuilder, 
     MigrationManifestEntryStatus,
+    MigrationManifestSerializer,
     cancellation_token_source
 )
 from tableau_migration.migration import (
     PyMigrationResult, 
     PyMigrationManifest
 )
-from migration_testcomponents_engine_manifest import (
-    PyMigrationManifestSerializer
-)
+
 from migration_testcomponents_filters import (
     # Skip Filters: Uncomment when neccesary.
     # SkipAllUsersFilter,
@@ -81,7 +80,6 @@ from migration_testcomponents_transformers import (
 
 # CSharp imports
 from Tableau.Migration.Engine.Pipelines import ServerToCloudMigrationPipeline
-from Tableau.Migration.TestComponents import IServiceCollectionExtensions as MigrationTestComponentsSCE
 
 
 class Program():
@@ -164,12 +162,9 @@ class Program():
         """The main migration function."""
         self.logger.info("Starting migration")
         
-        # Add the C# test components we've ported to Python and register them with the DI Service Provider
-        MigrationTestComponentsSCE.AddTestComponents(tableau_migration._service_collection)
-        tableau_migration.migration._build_service_provider(tableau_migration._service_collection)
 
         # Setup base objects for migrations
-        self._manifest_serializer = PyMigrationManifestSerializer()
+        self._manifest_serializer = MigrationManifestSerializer()
         plan_builder = MigrationPlanBuilder()
         migration = Migrator()
     

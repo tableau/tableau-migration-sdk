@@ -26,6 +26,7 @@ from tableau_migration import (
     ContentBatchMigrationCompletedHookBase,
     IContentBatchMigrationResult,
     MigrationActionCompletedHookBase,
+    MigrationManifestSerializer,
     IMigrationActionResult,
     IDataSource,
     IGroup,
@@ -34,7 +35,6 @@ from tableau_migration import (
     IWorkbook
 )
 
-from migration_testcomponents_engine_manifest import PyMigrationManifestSerializer
 
 TContent = TypeVar("TContent")
 
@@ -68,7 +68,7 @@ class SaveManifestHookBase(ContentBatchMigrationCompletedHookBase[TContent]):
         """Executes the hook."""
         self._logger.debug("Saving manifest.")
         
-        serializer = PyMigrationManifestSerializer()
+        serializer = MigrationManifestSerializer()
         manifest = self.services.get_manifest()
         serializer.save(manifest, helper.manifest_path)
     

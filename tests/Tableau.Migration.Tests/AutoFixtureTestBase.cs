@@ -21,6 +21,8 @@ using System.Linq;
 using System.Threading;
 using AutoFixture;
 using AutoFixture.Kernel;
+using Moq;
+using Tableau.Migration.Engine.Manifest;
 
 namespace Tableau.Migration.Tests
 {
@@ -30,6 +32,8 @@ namespace Tableau.Migration.Tests
         /// The configured <see cref="IFixture"/> for this instance.
         /// </summary>
         protected readonly IFixture AutoFixture = CreateFixture();
+
+        protected readonly Mock<IMigrationManifestEntryBuilder> MockEntryBuilder;
 
         protected readonly CancellationTokenSource CancelSource = new();
         protected CancellationToken Cancel => CancelSource.Token;
@@ -44,6 +48,8 @@ namespace Tableau.Migration.Tests
             {
                 TestCancellationTimeout = TimeSpan.FromSeconds(15);
             }
+
+            MockEntryBuilder = Create<Mock<IMigrationManifestEntryBuilder>>();
         }
 
         /// <summary>

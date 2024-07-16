@@ -27,13 +27,10 @@
     <Compile Include="build.py" />
     <Compile Include="helper.py" />
     <Compile Include="main.py" />
-    <Compile Include="migration_testcomponents_engine_manifest.py" />
     <Compile Include="migration_testcomponents_transformers.py" />
     <Compile Include="migration_testcomponents_filters.py" />
     <Compile Include="migration_testcomponents_hooks.py" />
     <Compile Include="migration_testcomponents_mappings.py" />
-    <Compile Include="testapplication_tests\test_classes.py" />
-    <Compile Include="testapplication_tests\__init__.py" />
   </ItemGroup>
   <ItemGroup>
     <Content Include=".gitignore" />
@@ -53,9 +50,6 @@
       <PathEnvironmentVariable>PYTHONPATH</PathEnvironmentVariable>
       <Architecture>X64</Architecture>
     </Interpreter>
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="testapplication_tests\" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in

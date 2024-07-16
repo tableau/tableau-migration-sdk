@@ -37,15 +37,11 @@ Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "Python", "src\Python\Python
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tableau.Migration.TestApplication", "tests\Tableau.Migration.TestApplication\Tableau.Migration.TestApplication.csproj", "{9B20E6B0-E733-4280-9D63-0BAFA0A23276}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tableau.Migration.TestComponents", "tests\Tableau.Migration.TestComponents\Tableau.Migration.TestComponents.csproj", "{0454E8DE-D973-4E8F-95C7-9F6F02EF26FD}"
-EndProject
 Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "Python.TestApplication", "tests\Python.TestApplication\Python.TestApplication.pyproj", "{BCA30617-0CAF-405C-A26B-522CF20DB027}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Examples", "Examples", "{00B78B56-BF89-4F26-AF75-435A4B88D43F}"
 EndProject
 Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "Python.ExampleApplication", "examples\Python.ExampleApplication\Python.ExampleApplication.pyproj", "{9C94FBC9-AE67-4A26-BDDA-EB2CE9FE5C25}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tableau.Migration.TestComponents.Tests", "tests\Tableau.Migration.TestComponents.Tests\Tableau.Migration.TestComponents.Tests.csproj", "{A00DC50C-4184-4658-A437-00AD2A07412C}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Csharp.ExampleApplication", "examples\Csharp.ExampleApplication\Csharp.ExampleApplication.csproj", "{B0D16449-BC58-4873-8B95-F62E805EE39C}"
 EndProject
@@ -85,7 +81,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "setup-dotnet", "setup-dotne
 		.github\actions\setup-dotnet\action.yml = .github\actions\setup-dotnet\action.yml
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tableau.Migration.PythonGenerator", "src\Tableau.Migration.PythonGenerator\Tableau.Migration.PythonGenerator.csproj", "{F20029C7-4514-4668-8941-B2C3BC245CCB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tableau.Migration.PythonGenerator", "src\Tableau.Migration.PythonGenerator\Tableau.Migration.PythonGenerator.csproj", "{F20029C7-4514-4668-8941-B2C3BC245CCB}"
+EndProject
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "Python.ExampleApplication.Tests", "tests\Python.ExampleApplication.Tests\Python.ExampleApplication.Tests.pyproj", "{B1884017-8E25-4A26-8C89-D9D880CFA392}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -109,18 +107,10 @@ Global
 		{9B20E6B0-E733-4280-9D63-0BAFA0A23276}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9B20E6B0-E733-4280-9D63-0BAFA0A23276}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9B20E6B0-E733-4280-9D63-0BAFA0A23276}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0454E8DE-D973-4E8F-95C7-9F6F02EF26FD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0454E8DE-D973-4E8F-95C7-9F6F02EF26FD}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0454E8DE-D973-4E8F-95C7-9F6F02EF26FD}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0454E8DE-D973-4E8F-95C7-9F6F02EF26FD}.Release|Any CPU.Build.0 = Release|Any CPU
 		{BCA30617-0CAF-405C-A26B-522CF20DB027}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{BCA30617-0CAF-405C-A26B-522CF20DB027}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9C94FBC9-AE67-4A26-BDDA-EB2CE9FE5C25}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{9C94FBC9-AE67-4A26-BDDA-EB2CE9FE5C25}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A00DC50C-4184-4658-A437-00AD2A07412C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A00DC50C-4184-4658-A437-00AD2A07412C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A00DC50C-4184-4658-A437-00AD2A07412C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A00DC50C-4184-4658-A437-00AD2A07412C}.Release|Any CPU.Build.0 = Release|Any CPU
 		{B0D16449-BC58-4873-8B95-F62E805EE39C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{B0D16449-BC58-4873-8B95-F62E805EE39C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B0D16449-BC58-4873-8B95-F62E805EE39C}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -133,6 +123,8 @@ Global
 		{F20029C7-4514-4668-8941-B2C3BC245CCB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F20029C7-4514-4668-8941-B2C3BC245CCB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F20029C7-4514-4668-8941-B2C3BC245CCB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B1884017-8E25-4A26-8C89-D9D880CFA392}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B1884017-8E25-4A26-8C89-D9D880CFA392}.Release|Any CPU.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -141,10 +133,8 @@ Global
 		{E71B1084-8907-4070-AD26-2189C80A2C34} = {9BF466A2-E00F-4F2C-AD23-591E9159AD11}
 		{1D53209C-9F3D-4F64-ABDF-FEA30F0C3D5D} = {C5BD8316-60C9-4C96-9B15-820E8BA4DF7F}
 		{9B20E6B0-E733-4280-9D63-0BAFA0A23276} = {9BF466A2-E00F-4F2C-AD23-591E9159AD11}
-		{0454E8DE-D973-4E8F-95C7-9F6F02EF26FD} = {9BF466A2-E00F-4F2C-AD23-591E9159AD11}
 		{BCA30617-0CAF-405C-A26B-522CF20DB027} = {9BF466A2-E00F-4F2C-AD23-591E9159AD11}
 		{9C94FBC9-AE67-4A26-BDDA-EB2CE9FE5C25} = {00B78B56-BF89-4F26-AF75-435A4B88D43F}
-		{A00DC50C-4184-4658-A437-00AD2A07412C} = {9BF466A2-E00F-4F2C-AD23-591E9159AD11}
 		{B0D16449-BC58-4873-8B95-F62E805EE39C} = {00B78B56-BF89-4F26-AF75-435A4B88D43F}
 		{92044843-B4D7-4062-B1D5-DE7596072E33} = {C5BD8316-60C9-4C96-9B15-820E8BA4DF7F}
 		{99DA12FB-BB16-4EE1-9C9C-047755210255} = {00B78B56-BF89-4F26-AF75-435A4B88D43F}
@@ -152,6 +142,7 @@ Global
 		{6B735E6E-1FFB-4C37-8CF6-BD979B4F8D9B} = {90102C4B-EC3B-4279-A6C6-A6CFDFCD4DB4}
 		{EDD52CC0-7289-4167-A01E-E88B015FC67F} = {90102C4B-EC3B-4279-A6C6-A6CFDFCD4DB4}
 		{454EF272-D967-4668-A20D-AD6B3EE96C1A} = {6B735E6E-1FFB-4C37-8CF6-BD979B4F8D9B}
+		{B1884017-8E25-4A26-8C89-D9D880CFA392} = {9BF466A2-E00F-4F2C-AD23-591E9159AD11}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {2C9E9FF4-E825-47A4-90BE-5499D5EDF3CC}

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Csharp.ExampleApplication.Config;
@@ -16,6 +18,7 @@ using Microsoft.Extensions.Options;
 using Tableau.Migration;
 using Tableau.Migration.Content;
 using Tableau.Migration.Content.Schedules.Cloud;
+using Tableau.Migration.Engine.Manifest;
 using Tableau.Migration.Engine.Pipelines;
 
 #region namespace
@@ -30,13 +33,15 @@ namespace Csharp.ExampleApplication
         private readonly IMigrator _migrator;
         private readonly MyMigrationApplicationOptions _options;
         private readonly ILogger<MyMigrationApplication> _logger;
+        private readonly MigrationManifestSerializer _manifestSerializer;
 
         public MyMigrationApplication(
             IHostApplicationLifetime appLifetime,
             IMigrationPlanBuilder planBuilder,
             IMigrator migrator,
             IOptions<MyMigrationApplicationOptions> options,
-            ILogger<MyMigrationApplication> logger)
+            ILogger<MyMigrationApplication> logger,
+            MigrationManifestSerializer manifestSerializer)
         {
             _timer = new Stopwatch();
 
@@ -49,10 +54,19 @@ namespace Csharp.ExampleApplication
             _migrator = migrator;
             _options = options.Value;
             _logger = logger;
+            _manifestSerializer = manifestSerializer;
         }
 
         public async Task StartAsync(CancellationToken cancel)
         {
+            var executablePath = Assembly.GetExecutingAssembly().Location;
+            var currentFolder = Path.GetDirectoryName(executablePath);
+            if (currentFolder is null)
+            {
+                throw new Exception("Could not get the current folder path.");
+            }
+            var manifestPath = $"{currentFolder}/manifest.json";
+
             var startTime = DateTime.UtcNow;
             _timer.Start();
 
@@ -130,7 +144,7 @@ namespace Csharp.ExampleApplication
             _planBuilder.Hooks.Add<LogMigrationActionsHook>();
             #endregion
 
-            //Add batch migration completed hooks
+            // Add batch migration completed hooks
             #region LogMigrationBatchesHook-Registration
             _planBuilder.Hooks.Add<LogMigrationBatchesHook<IUser>>();
             _planBuilder.Hooks.Add<LogMigrationBatchesHook<IProject>>();
@@ -139,13 +153,19 @@ namespace Csharp.ExampleApplication
             _planBuilder.Hooks.Add<LogMigrationBatchesHook<ICloudExtractRefreshTask>>();
             #endregion
 
+            // Load the previous manifest if possible
+            var prevManifest = await LoadManifest(manifestPath, cancel);
+
             // Build the plan
             var plan = _planBuilder.Build();
 
             // Execute the migration
-            var result = await _migrator.ExecuteAsync(plan, cancel);
+            var result = await _migrator.ExecuteAsync(plan, prevManifest, cancel);
 
             _timer.Stop();
+
+            // Save the manifest
+            await _manifestSerializer.SaveAsync(result.Manifest, manifestPath);
 
             PrintResult(result);
 
@@ -205,6 +225,31 @@ namespace Csharp.ExampleApplication
                     }
                 }
             }
+        }
+
+        private async Task<MigrationManifest?> LoadManifest(string manifestFilepath, CancellationToken cancel)
+        {
+            var manifest = await _manifestSerializer.LoadAsync(manifestFilepath, cancel);
+            if (manifest is not null)
+            {
+                ConsoleKey key;
+                do
+                {
+                    Console.Write($"Existing Manifest found at {manifestFilepath}. Should it be used? [Y/n] ");
+                    key = Console.ReadKey().Key;
+                    Console.WriteLine(); // make Console logs prettier
+                } while (key is not ConsoleKey.Enter && key is not ConsoleKey.Y && key is not ConsoleKey.N);
+
+                if (key is ConsoleKey.N)
+                {
+                    return null;
+                }
+
+                _logger.LogInformation($"Using previous manifest from {manifestFilepath}");
+                return manifest;
+            }
+
+            return null;
         }
     }
 }

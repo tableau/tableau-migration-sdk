@@ -24,6 +24,7 @@ using System.Threading.Tasks;
 using Moq;
 using Tableau.Migration.Api;
 using Tableau.Migration.Api.Rest.Models.Responses;
+using Tableau.Migration.Config;
 using Tableau.Migration.Content;
 using Tableau.Migration.Tests.Unit.Api.Permissions;
 using Xunit;
@@ -34,6 +35,12 @@ namespace Tableau.Migration.Tests.Unit.Api
     {
         public abstract class DataSourcesApiClientTest : PermissionsApiClientTestBase<IDataSourcesApiClient>
         {
+            public DataSourcesApiClientTest()
+            {
+                MockConfigReader
+                    .Setup(x => x.Get<IDataSource>())
+                    .Returns(new ContentTypesOptions());
+            }
             internal DataSourcesApiClient DataSourcesApiClient => GetApiClient<DataSourcesApiClient>();
         }
 
@@ -145,7 +152,7 @@ namespace Tableau.Migration.Tests.Unit.Api
 
                 var dataSourceId = Guid.NewGuid();
 
-                var result = await ApiClient.DownloadDataSourceAsync(dataSourceId, true, Cancel);
+                var result = await ApiClient.DownloadDataSourceAsync(dataSourceId, Cancel);
 
                 result.AssertFailure();
 
@@ -164,7 +171,7 @@ namespace Tableau.Migration.Tests.Unit.Api
 
                 var dataSourceId = Guid.NewGuid();
 
-                var result = await ApiClient.DownloadDataSourceAsync(dataSourceId, true, Cancel);
+                var result = await ApiClient.DownloadDataSourceAsync(dataSourceId, Cancel);
 
                 result.AssertFailure();
 
@@ -185,13 +192,13 @@ namespace Tableau.Migration.Tests.Unit.Api
 
                 var dataSourceId = Guid.NewGuid();
 
-                var result = await ApiClient.DownloadDataSourceAsync(dataSourceId, false, Cancel);
+                var result = await ApiClient.DownloadDataSourceAsync(dataSourceId, Cancel);
 
                 result.AssertSuccess();
                 Assert.NotNull(result.Value);
 
                 var request = MockHttpClient.AssertSingleRequest();
-                request.AssertRelativeUri($"/api/{TableauServerVersion.RestApiVersion}/sites/{SiteId}/datasources/{dataSourceId}/content?includeExtract=False");
+                request.AssertRelativeUri($"/api/{TableauServerVersion.RestApiVersion}/sites/{SiteId}/datasources/{dataSourceId}/content?includeExtract=True");
             }
         }
 

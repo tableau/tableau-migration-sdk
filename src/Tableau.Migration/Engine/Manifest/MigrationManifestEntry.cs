@@ -18,6 +18,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using Tableau.Migration.Content;
 
 namespace Tableau.Migration.Engine.Manifest
@@ -55,16 +56,10 @@ namespace Tableau.Migration.Engine.Manifest
             _entryBuilder = entryBuilder;
             Source = previousMigrationEntry.Source;
             MappedLocation = previousMigrationEntry.MappedLocation;
-            
-            //Status is reset since this is a new run.
-            //The HasMigrated flag is copied since it tracks whether the 
-            //item has migrated in any run.
+            Status = previousMigrationEntry.Status;
+            Destination = previousMigrationEntry.Destination;
             HasMigrated = previousMigrationEntry.HasMigrated;
-
-            //Errors are reset since this is a new migration.
-            
-            //Destination is reset in case our IDs are out-of-date
-            //(e.g. a user manually deleted between runs)
+            _errors = previousMigrationEntry.Errors.ToImmutableArray();
         }
 
         /// <summary>
@@ -113,7 +108,6 @@ namespace Tableau.Migration.Engine.Manifest
 
         /// <summary>
         /// Indicates if the current IMigrationManifestEntry is equal to another IMigrationManifestEntry.
-        /// *Note: This ignores if the errors are different*
         /// </summary>
         /// <returns>True if the current object is equal to the other parameter. Otherwise false.</returns>
         public static bool Equals(IMigrationManifestEntry entry, IMigrationManifestEntry? other)
@@ -121,20 +115,19 @@ namespace Tableau.Migration.Engine.Manifest
             if (other is null)
                 return false;
 
-            if ((entry.Source.Equals(other.Source) && entry.MappedLocation.Equals(other.MappedLocation) && entry.Status.Equals(other.Status)) == false)
+            if (!entry.Source.Equals(other.Source) ||
+                !entry.MappedLocation.Equals(other.MappedLocation) ||
+                !entry.Status.Equals(other.Status) ||
+                !entry.Errors.SequenceEqual(other.Errors, new ExceptionComparer()))
                 return false;
 
             // Nullability of Destination must match
-            if (!Object.ReferenceEquals(entry.Destination, other.Destination))
+            if (entry.Destination != other.Destination)
             {
                 if (entry.Destination is null || other.Destination is null)
-                {
                     return false;
-                }
-                else if (!entry.Destination.Equals(other.Destination))
-                {
-                    return false;
-                }
+
+                return entry.Destination.Equals(other.Destination);
             }
 
             return true;

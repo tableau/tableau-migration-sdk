@@ -27,7 +27,6 @@
   <ItemGroup>
     <Compile Include="Documentation\conf.py" />
     <Compile Include="scripts\build_binaries.py" />
-    <Compile Include="scripts\build_tests.py" />
     <Compile Include="scripts\import_modules.py" />
     <Compile Include="src\tableau_migration\migration.py" />
     <Compile Include="src\tableau_migration\migration_api_rest.py" />

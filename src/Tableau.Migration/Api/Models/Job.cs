@@ -68,7 +68,57 @@ namespace Tableau.Migration.Api.Models
             ProgressPercentage = response.Item.Progress;
             FinishCode = response.Item.FinishCode;
 
-            StatusNotes = response.Item.StatusNotes?.Select(s => new StatusNote(s)).ToImmutableArray<IStatusNote>() ?? ImmutableArray<IStatusNote>.Empty;
+            StatusNotes = response.Item.StatusNotes?.Select(s => (IStatusNote)new StatusNote(s)).ToImmutableArray() ?? ImmutableArray<IStatusNote>.Empty;
         }
+
+        #region - IEquatable - 
+
+        /// <inheritdoc />
+        public override bool Equals(object? obj)
+        {
+            return Equals(obj as Job);
+        }
+
+        /// <inheritdoc />
+        public bool Equals(IJob? other)
+        {
+            if (other == null) return false;
+
+            bool statusNotesEqual = StatusNotes != null && other.StatusNotes != null ?
+                                    StatusNotes.SequenceEqual(other.StatusNotes) :
+                                    StatusNotes == null && other.StatusNotes == null;
+
+            return Id == other.Id &&
+                   Type == other.Type &&
+                   CreatedAtUtc == other.CreatedAtUtc &&
+                   Nullable.Equals(UpdatedAtUtc, other.UpdatedAtUtc) &&
+                   Nullable.Equals(CompletedAtUtc, other.CompletedAtUtc) &&
+                   ProgressPercentage == other.ProgressPercentage &&
+                   FinishCode == other.FinishCode &&
+                   statusNotesEqual;
+        }
+
+        /// <inheritdoc />
+        public override int GetHashCode()
+        {
+            HashCode hash = new HashCode();
+            hash.Add(Id);
+            hash.Add(Type);
+            hash.Add(CreatedAtUtc);
+            hash.Add(UpdatedAtUtc);
+            hash.Add(CompletedAtUtc);
+            hash.Add(ProgressPercentage);
+            hash.Add(FinishCode);
+            if (StatusNotes != null)
+            {
+                foreach (var statusNote in StatusNotes)
+                {
+                    hash.Add(statusNote);
+                }
+            }
+            return hash.ToHashCode();
+        }
+
+        #endregion
     }
 }

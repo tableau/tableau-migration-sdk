@@ -17,13 +17,14 @@
 
 using System;
 using System.Collections.Immutable;
+using Tableau.Migration.Api.Rest;
 
 namespace Tableau.Migration.Api.Models
 {
     /// <summary>
     /// Interface for an API client job model.
     /// </summary>
-    public interface IJob
+    public interface IJob : IRestIdentifiable, IEquatable<IJob>
     {
         /// <summary>
         /// Gets the job's type.

@@ -16,7 +16,9 @@
 //
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using AutoFixture;
 using Moq;
 using Tableau.Migration.Content;
 using Tableau.Migration.Engine.Manifest;
@@ -28,11 +30,19 @@ namespace Tableau.Migration.Tests.Unit.Engine.Manifest
     {
         public class MigrationManifestEntryTest : AutoFixtureTestBase
         {
-            protected readonly Mock<IMigrationManifestEntryBuilder> MockEntryBuilder;
-
             public MigrationManifestEntryTest()
             {
-                MockEntryBuilder = Create<Mock<IMigrationManifestEntryBuilder>>();
+                AutoFixture.Register(() =>
+                {
+                    return new Exception(Create<string>());
+                });
+
+                AutoFixture.Register(() =>
+                {
+                    var ret = new MigrationManifestEntry(MockEntryBuilder.Object, Create<ContentReferenceStub>());
+                    ret.SetFailed(FixtureFactory.CreateErrors(AutoFixture));
+                    return ret;
+                });
             }
         }
 
@@ -40,6 +50,21 @@ namespace Tableau.Migration.Tests.Unit.Engine.Manifest
 
         public class Ctor : MigrationManifestEntryTest
         {
+            IMigrationManifestEntry CreateManifestEntry()
+            {
+                var errors = new List<Exception>();
+                errors.Add(new Exception("Test Error"));
+
+                var ret = new Mock<IMigrationManifestEntry>();
+                ret.Setup(x => x.Source).Returns(Create<IContentReference>());
+                ret.Setup(x => x.Destination).Returns(Create<IContentReference>());
+                ret.Setup(x => x.MappedLocation).Returns(Create<ContentLocation>());
+                ret.Setup(x => x.Status).Returns(MigrationManifestEntryStatus.Migrated);
+                ret.Setup(x => x.Errors).Returns(new List<Exception>(errors));
+
+                return ret.Object;
+            }
+
             [Fact]
             public void FromSourceReference()
             {
@@ -57,7 +82,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Manifest
             [Fact]
             public void FromPreviousMigration()
             {
-                var previousEntry = Create<IMigrationManifestEntry>();
+                var previousEntry = CreateManifestEntry();
 
                 var e = new MigrationManifestEntry(MockEntryBuilder.Object, previousEntry);
 
@@ -65,20 +90,15 @@ namespace Tableau.Migration.Tests.Unit.Engine.Manifest
                 Assert.Equal(previousEntry.MappedLocation, e.MappedLocation);
                 Assert.Equal(previousEntry.Status, e.Status);
                 Assert.Equal(previousEntry.HasMigrated, e.HasMigrated);
-
-                //Errors are reset.
-                Assert.NotEmpty(previousEntry.Errors);
-                Assert.Empty(e.Errors);
-
-                //Destination is reset.
-                Assert.NotNull(previousEntry.Destination);
-                Assert.Null(e.Destination);
+                Assert.Equal(previousEntry.Destination, e.Destination);
+                Assert.Equal(previousEntry.Errors, e.Errors);
             }
 
             [Fact]
             public void FromUpdatedPreviousMigration()
             {
-                var previousEntry = Create<IMigrationManifestEntry>();
+                var previousEntry = CreateManifestEntry();
+
                 var sourceRef = Create<ContentReferenceStub>();
 
                 var e = new MigrationManifestEntry(MockEntryBuilder.Object, previousEntry, sourceRef);
@@ -87,14 +107,8 @@ namespace Tableau.Migration.Tests.Unit.Engine.Manifest
                 Assert.Equal(previousEntry.MappedLocation, e.MappedLocation);
                 Assert.Equal(previousEntry.Status, e.Status);
                 Assert.Equal(previousEntry.HasMigrated, e.HasMigrated);
-
-                //Errors are reset.
-                Assert.NotEmpty(previousEntry.Errors);
-                Assert.Empty(e.Errors);
-
-                //Destination is reset.
-                Assert.NotNull(previousEntry.Destination);
-                Assert.Null(e.Destination);
+                Assert.Equal(previousEntry.Destination, e.Destination);
+                Assert.Equal(previousEntry.Errors, e.Errors);
             }
         }
 
@@ -416,21 +430,34 @@ namespace Tableau.Migration.Tests.Unit.Engine.Manifest
             }
 
             [Fact]
-            public void ErrorsDoNotCauseInequality()
+            public void ErrorsDifferent()
             {
                 var e1 = new MigrationManifestEntry(MockEntryBuilder.Object, BaseSource);
                 var e2 = new MigrationManifestEntry(MockEntryBuilder.Object, BaseSource);
 
-                // Set failed, but with different errors
                 e1.SetFailed(CreateMany<Exception>(5).ToList());
-                e2.SetFailed();
+                e2.SetFailed(CreateMany<Exception>(5).ToList());
 
-                // Both ManifestEntries are the same, except one has errors set. They should be equal.
-                Assert.True(e1.Equals(e2));
-                Assert.True(e2.Equals(e1));
+                Assert.False(e1.Equals(e2));
+                Assert.False(e2.Equals(e1));
 
-                Assert.True(e1 == e2);
-                Assert.False(e1 != e2);
+                Assert.False(e1 == e2);
+                Assert.True(e1 != e2);
+            }
+
+            [Fact]
+            public void ErrorsNull()
+            {
+                var e1 = new MigrationManifestEntry(MockEntryBuilder.Object, BaseSource);
+                var e2 = new MigrationManifestEntry(MockEntryBuilder.Object, BaseSource);
+
+                e1.SetFailed(CreateMany<Exception>(5).ToList());
+
+                Assert.False(e1.Equals(e2));
+                Assert.False(e2.Equals(e1));
+
+                Assert.False(e1 == e2);
+                Assert.True(e1 != e2);
             }
         }
 

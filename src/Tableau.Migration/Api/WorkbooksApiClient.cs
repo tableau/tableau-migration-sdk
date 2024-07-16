@@ -27,6 +27,7 @@ using Tableau.Migration.Api.Rest;
 using Tableau.Migration.Api.Rest.Models.Requests;
 using Tableau.Migration.Api.Rest.Models.Responses;
 using Tableau.Migration.Api.Tags;
+using Tableau.Migration.Config;
 using Tableau.Migration.Content;
 using Tableau.Migration.Content.Files;
 using Tableau.Migration.Content.Search;
@@ -43,6 +44,7 @@ namespace Tableau.Migration.Api
         private readonly IContentFileStore _fileStore;
         private readonly IWorkbookPublisher _workbookPublisher;
         private readonly IConnectionManager _connectionManager;
+        private readonly IConfigReader _configReader;
 
         public WorkbooksApiClient(
             IRestRequestBuilderFactory restRequestBuilderFactory,
@@ -54,7 +56,8 @@ namespace Tableau.Migration.Api
             IWorkbookPublisher workbookPublisher,
             ITagsApiClientFactory tagsClientFactory,
             IViewsApiClientFactory viewsClientFactory,
-            IConnectionManager connectionManager)
+            IConnectionManager connectionManager,
+            IConfigReader configReader)
             : base(restRequestBuilderFactory, finderFactory, loggerFactory, sharedResourcesLocalizer)
         {
             _fileStore = fileStore;
@@ -63,6 +66,7 @@ namespace Tableau.Migration.Api
             Tags = tagsClientFactory.Create(this);
             Views = viewsClientFactory.Create();
             _connectionManager = connectionManager;
+            _configReader = configReader;
         }
 
         #region - IPermissionsContentApiClientImplementation -
@@ -150,12 +154,11 @@ namespace Tableau.Migration.Api
         /// <inheritdoc />
         public async Task<IAsyncDisposableResult<FileDownload>> DownloadWorkbookAsync(
             Guid workbookId,
-            bool includeExtract,
             CancellationToken cancel)
         {
             var downloadResult = await RestRequestBuilderFactory
                 .CreateUri($"{UrlPrefix}/{workbookId.ToUrlSegment()}/{RestUrlPrefixes.Content}")
-                .WithQuery("includeExtract", includeExtract.ToString())
+                .WithQuery("includeExtract", _configReader.Get<IWorkbook>().IncludeExtractEnabled.ToString())
                 .ForGetRequest()
                 .DownloadAsync(cancel)
                 .ConfigureAwait(false);
@@ -245,7 +248,7 @@ namespace Tableau.Migration.Api
                 return connectionsResult.CastFailure<IPublishableWorkbook>();
             }
 
-            var downloadResult = await DownloadWorkbookAsync(contentItem.Id, true, cancel).ConfigureAwait(false);
+            var downloadResult = await DownloadWorkbookAsync(contentItem.Id, cancel).ConfigureAwait(false);
             if (!downloadResult.Success)
             {
                 return downloadResult.CastFailure<IPublishableWorkbook>();

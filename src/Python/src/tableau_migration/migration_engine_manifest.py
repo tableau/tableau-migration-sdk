@@ -15,6 +15,57 @@
 
 """Wrapper for classes in Tableau.Migration.Engine.Manifest namespace."""
 
+from tableau_migration import (
+    cancellation_token
+)
+
+from tableau_migration.migration import (  # noqa: E402, F401
+    PyMigrationManifest,
+    get_service_provider,
+    get_service
+)
+
+from Tableau.Migration.Engine.Manifest import (  # noqa: E402, F401
+    MigrationManifestSerializer
+)
+
+class PyMigrationManifestSerializer():
+    """Provides functionality to serialize and deserialize migration manifests in JSON format."""
+    
+    _dotnet_base = MigrationManifestSerializer
+    
+    def __init__(self) -> None:
+        """Creates a new PyMigrationManifestSerializer object.
+        
+        Args:
+            migration_manifest_serializer: A MigrationManifestSerializer object.
+        
+        Returns: None.
+        """
+        self._services = get_service_provider()
+        self._dotnet = get_service(self._services, MigrationManifestSerializer)
+        
+    def save(self, manifest: PyMigrationManifest, path: str) -> None:
+        """Saves a manifest in JSON format.
+        
+        Args:
+            manifest: The manifest to save.
+            path: The file path to save the manifest to.
+        """
+        self._dotnet.SaveAsync(manifest._migration_manifest, path).GetAwaiter().GetResult()
+    
+    def load(self, path: str) -> PyMigrationManifest:
+        """Loads a manifest from JSON format.
+        
+        Args:
+            path: The file path to load the manifest from.
+            cancel: A cancellation token to cancel the operation.
+        
+        Returns: The loaded MigrationManifest, or None if the manifest could not be loaded.
+        """
+        result = self._dotnet.LoadAsync(path, cancellation_token).GetAwaiter().GetResult()
+        return None if result is None else PyMigrationManifest(result)
+
 # region _generated
 
 from enum import IntEnum # noqa: E402, F401
