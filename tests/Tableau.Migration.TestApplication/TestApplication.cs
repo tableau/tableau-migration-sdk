@@ -64,7 +64,7 @@ namespace Tableau.Migration.TestApplication
 
         public async Task StartAsync(CancellationToken cancel)
         {
-            var manifestFilepath = $@"{_options.Log.FolderPath}\Manifest-{Program.StartTime.ToString("yyyy-MM-dd-HH-mm-ss")}.json";
+            var manifestFilePath = LogFileHelper.GetManifestFilePath(_options.Log);
 
             Console.WriteLine("Starting app");
             _logger.LogInformation("Starting app log");
@@ -137,7 +137,7 @@ namespace Tableau.Migration.TestApplication
 
             _timer.Stop();
 
-            await _manifestSerializer.SaveAsync(result.Manifest, manifestFilepath);
+            await _manifestSerializer.SaveAsync(result.Manifest, manifestFilePath);
             PrintResult(result);
 
             _logger.LogInformation($"Migration Started: {startTime}");

@@ -80,8 +80,6 @@ instance/
 # Scrapy stuff:
 .scrapy
 
-# Sphinx documentation
-docs/_build/
 
 # PyBuilder
 .pybuilder/
@@ -179,14 +177,6 @@ launchSettings.json
 UpgradeLog.htm
 *.*.ini
 *.*.json
-/src/Python/Documentation/_build
-/src/Python/Documentation/_static
-/src/Python/Python.pyproj.user
-/src/Documentation/_python
-/src/Python/Documentation/generated
-/tests/Python.TestApplication/manifest.json
-/.git2gus
-/src/Python/scripts/publish-package.ps1
 
 # Public repo ignores
 .github/pull_request_template.md

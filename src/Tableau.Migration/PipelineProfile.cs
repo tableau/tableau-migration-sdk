@@ -22,11 +22,14 @@ namespace Tableau.Migration
     /// </summary>
     public enum PipelineProfile
     {
-        //Custom = 0, //Uncomment when custom pipelines are supported.
-
         /// <summary>
         /// The pipeline to bulk migrate content from a Tableau Server site to a Tableau Cloud site.
         /// </summary>
-        ServerToCloud = 1
+        ServerToCloud = 1,
+
+        /// <summary>
+        /// A custom pipeline supplied by the migration plan is used.
+        /// </summary>
+        Custom = 2
     }
 }

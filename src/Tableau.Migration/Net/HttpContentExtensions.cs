@@ -28,6 +28,9 @@ namespace Tableau.Migration.Net
         internal static bool IsUtf8Content(this HttpContent content)
             => content.Headers.ContentType?.IsUtf8() is true;
 
+        internal static bool IsHtmlContent(this HttpContent content)
+            => content.Headers.ContentType?.IsHtml() is true;
+
         internal static bool IsXmlContent(this HttpContent content)
             => content.Headers.ContentType?.IsXml() is true;
 

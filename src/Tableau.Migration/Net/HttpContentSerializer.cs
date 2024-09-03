@@ -40,6 +40,17 @@ namespace Tableau.Migration.Net
         {
             var data = default(T);
 
+            /* Tableau APIs sometimes return HTML error pages.
+             * We consider those deserialization failures,
+             * but want to include the HTML content in the exception
+             * so users can check it for debugging purposes.
+            */
+            if(content.IsHtmlContent())
+            {
+                var htmlContent = await content.ReadAsEncodedStringAsync(cancel).ConfigureAwait(false);
+                throw new FormatException("Server responded with HTML error page: " + htmlContent);
+            }
+
             if (content.IsXmlContent())
             {
                 var stringContent = await content.ReadAsEncodedStringAsync(cancel).ConfigureAwait(false);
@@ -69,7 +80,7 @@ namespace Tableau.Migration.Net
             }
             else
             {
-                throw new NotSupportedException($"Content Type {content.Headers.ContentType?.MediaType ?? "<null>"} not supported");
+                throw new NotSupportedException($"Content Type {content.Headers.ContentType?.MediaType ?? "<null>"} not supported.");
             }
 
             return data;

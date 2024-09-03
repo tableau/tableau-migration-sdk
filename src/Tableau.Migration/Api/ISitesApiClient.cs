@@ -85,6 +85,11 @@ namespace Tableau.Migration.Api
         ICloudTasksApiClient CloudTasks { get; }
 
         /// <summary>
+        /// Gets the API client for custom view operations.
+        /// </summary>
+        public ICustomViewsApiClient CustomViews { get; }
+
+        /// <summary>
         /// Gets the site with the specified ID.
         /// </summary>
         /// <param name="siteId">The site's ID.</param>

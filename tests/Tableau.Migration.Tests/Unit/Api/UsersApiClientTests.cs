@@ -41,6 +41,16 @@ namespace Tableau.Migration.Tests.Unit.Api
             internal UsersApiClient UsersApiClient => GetApiClient<UsersApiClient>();
         }
 
+        #region - List -
+
+        public class ListClient : PagedListApiClientTestBase<IUsersApiClient, IUser, UsersResponse>
+        { }
+
+        public class PageAccessor : ApiPageAccessorTestBase<IUsersApiClient, IUser, UsersResponse>
+        { }
+
+        #endregion
+
         public class ImportUsersAsync : UsersApiClientTest
         {
             [Fact]

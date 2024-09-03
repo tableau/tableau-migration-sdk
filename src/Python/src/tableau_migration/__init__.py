@@ -99,6 +99,7 @@ from tableau_migration.migration_api_rest_models_types import PyWorkbookFileType
 from tableau_migration.migration_content import PyConnection as IConnection # noqa: E402, F401
 from tableau_migration.migration_content import PyConnectionsContent as IConnectionsContent # noqa: E402, F401
 from tableau_migration.migration_content import PyContainerContent as IContainerContent # noqa: E402, F401
+from tableau_migration.migration_content import PyCustomView as ICustomView # noqa: E402, F401
 from tableau_migration.migration_content import PyDataSource as IDataSource # noqa: E402, F401
 from tableau_migration.migration_content import PyDataSourceDetails as IDataSourceDetails # noqa: E402, F401
 from tableau_migration.migration_content import PyDescriptionContent as IDescriptionContent # noqa: E402, F401
@@ -107,6 +108,7 @@ from tableau_migration.migration_content import PyGroup as IGroup # noqa: E402, 
 from tableau_migration.migration_content import PyGroupUser as IGroupUser # noqa: E402, F401
 from tableau_migration.migration_content import PyLabel as ILabel # noqa: E402, F401
 from tableau_migration.migration_content import PyProject as IProject # noqa: E402, F401
+from tableau_migration.migration_content import PyPublishableCustomView as IPublishableCustomView # noqa: E402, F401
 from tableau_migration.migration_content import PyPublishableDataSource as IPublishableDataSource # noqa: E402, F401
 from tableau_migration.migration_content import PyPublishableGroup as IPublishableGroup # noqa: E402, F401
 from tableau_migration.migration_content import PyPublishableWorkbook as IPublishableWorkbook # noqa: E402, F401
@@ -118,6 +120,7 @@ from tableau_migration.migration_content import PyView as IView # noqa: E402, F4
 from tableau_migration.migration_content import PyWithDomain as IWithDomain # noqa: E402, F401
 from tableau_migration.migration_content import PyWithOwner as IWithOwner # noqa: E402, F401
 from tableau_migration.migration_content import PyWithTags as IWithTags # noqa: E402, F401
+from tableau_migration.migration_content import PyWithWorkbook as IWithWorkbook # noqa: E402, F401
 from tableau_migration.migration_content import PyWorkbook as IWorkbook # noqa: E402, F401
 from tableau_migration.migration_content import PyWorkbookDetails as IWorkbookDetails # noqa: E402, F401
 from tableau_migration.migration_content_permissions import PyCapability as ICapability # noqa: E402, F401

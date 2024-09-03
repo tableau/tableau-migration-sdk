@@ -26,8 +26,9 @@ namespace Tableau.Migration.Net
         /// Creates a new <see cref="IRequestBuilder"/> instance.
         /// </summary>
         /// <param name="path">The URI path.</param>
+        /// <param name="useExperimental">Flag indicating if the experimental API Version should be used.</param>
         /// <returns>A new <see cref="IRequestBuilder"/> instance.</returns>
-        IRequestBuilder CreateUri(string path);
+        IRequestBuilder CreateUri(string path, bool useExperimental = false);
     }
 
     /// <summary>
@@ -40,7 +41,8 @@ namespace Tableau.Migration.Net
         /// Creates a new <typeparamref name="TRequestBuilder"/> instance.
         /// </summary>
         /// <param name="path">The URI path.</param>
+        /// <param name="useExperimental">Flag indicating if the experimental API Version should be used.</param>
         /// <returns>A new <typeparamref name="TRequestBuilder"/> instance.</returns>
-        new TRequestBuilder CreateUri(string path);
+        new TRequestBuilder CreateUri(string path, bool useExperimental = false);
     }
 }

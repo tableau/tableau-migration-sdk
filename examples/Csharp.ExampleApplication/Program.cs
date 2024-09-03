@@ -68,6 +68,10 @@ namespace Csharp.ExampleApplication
             #region UnlicensedUsersFilter-DI
             services.AddScoped<UnlicensedUsersFilter>();
             #endregion
+            
+            #region SharedCustomViewFilter-DI
+            services.AddScoped<SharedCustomViewFilter>();
+            #endregion
 
             #region UpdatePermissionsHook-DI
             services.AddScoped(typeof(UpdatePermissionsHook<,>));
@@ -89,6 +93,10 @@ namespace Csharp.ExampleApplication
 
             #region StartAtTransformer-DI
             services.AddScoped(typeof(SimpleScheduleStartAtTransformer<>));
+            #endregion
+            
+            #region CustomViewDefaultUsersTransformer-DI
+            services.AddScoped<CustomViewExcludeDefaultUserTransformer>();
             #endregion
 
             #region LogMigrationActionsHook-DI

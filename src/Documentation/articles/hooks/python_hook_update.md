@@ -54,8 +54,8 @@ class FilterBob(ContentFilterBase[IUser]):
 ### Version 3 -> Version 4+ Registration Diff
 
 ```diff
--   plan_builder.filters.add(IUser, FilterBob())
-+   plan_builder.filters.add(FilterBob())
+-   plan_builder.filters.add(IUser, FilterBob)
++   plan_builder.filters.add(FilterBob)
 ```
 
 ## Mappings

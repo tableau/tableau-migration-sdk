@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -151,7 +151,10 @@
     <value>File encryption is disabled and should be re-enabled for production migrations.</value>
   </data>
   <data name="GroupUsersTransformerCannotAddUserWarning" xml:space="preserve">
-    <value>Could not add a user to the destination Group {GroupName}. Reason: Could not find the destination user for {UserLocation}.</value>
+    <value>Could not add a user to the destination Group {GroupName}. Reason: Could not find the destination user(s) for for Username(s) {UserNames}.</value>
+  </data>
+  <data name="CustomViewDefaultUsersTransformerNoUserRefsDebugMessage" xml:space="preserve">
+    <value>Could not add a user to the Custom View {CustomViewName}'s default users list. Reason: Could not find the destination user(s) for Username(s) {UserNames}.</value>
   </data>
   <data name="InvalidTransformerPublishTypeValidationMessage" xml:space="preserve">
     <value>Migration transformer for publish type {0} is not supported by the migration pipeline. Did you mean {1}? Count: {2}</value>
@@ -214,11 +217,11 @@ Detail: {4}</value>
   <data name="SiteSettingsSkippedNoAccessLogMessage" xml:space="preserve">
     <value>Destination site settings were not validated - administrator access is required in both source and destination sites.</value>
   </data>
-  <data name="SiteSettingsExtractEncryptionDisabledLogMessage" xml:space="preserve">
-    <value>The destination site has extract encryption disabled. This may cause migration errors for content with encrypted extracts. Enable extract encryption on the destination site, or register a transformer that disables extract encryption during migration.</value>
-  </data>
   <data name="SourceUserNotFoundLogMessage" xml:space="preserve">
     <value>Could not find destination user to map for source user {SourceUsername} (ID: {SourceUserId}).</value>
+  </data>
+  <data name="SourceWorkbookNotFoundLogMessage" xml:space="preserve">
+    <value>Could not find destination workbook to map for source workbook {SourceWorkbookName} (ID: {SourceWorkbookId}).</value>
   </data>
   <data name="TableauCloudUsernameMappingValidationMessage" xml:space="preserve">
     <value>A Tableau Cloud username mapping is required for server to cloud migrations.</value>
@@ -232,6 +235,9 @@ Detail: {4}</value>
   <data name="UnknownMappingContentTypeValidationMessage" xml:space="preserve">
     <value>Migration mapping for content type {0} is not supported by the migration pipeline. Count: {1}</value>
   </data>
+  <data name="UnknownTransformerContentTypeValidationMessage" xml:space="preserve">
+    <value>Migration transformer for content type {0} is not supported by the migration pipeline. Count: {1}</value>
+  </data>
   <data name="UnknownTransformerPublishTypeValidationMessage" xml:space="preserve">
     <value>Migration transformer for publish type {0} is not supported by the migration pipeline. Count: {1}</value>
   </data>
@@ -239,10 +245,10 @@ Detail: {4}</value>
     <value>Could not transform permissions. The {granteeType} for {UserOrGroupName} was not found at the destination.</value>
   </data>
   <data name="ProjectReferenceNotFoundMessage" xml:space="preserve">
-    <value>Project {ProjectName} was not found for {ContentType} {ContentName}.</value>
+    <value>The project with ID {ProjectName} was not found for {ContentType} {ContentName}.</value>
   </data>
   <data name="OwnerNotFoundMessage" xml:space="preserve">
-    <value>Owner {OwnerId} was not found for {ContentType} {ContentName}.</value>
+    <value>The owner with ID {OwnerId} was not found for {ContentType} {ContentName}.</value>
   </data>
   <data name="FailedToGetDefaultPermissionsMessage" xml:space="preserve">
     <value>Failed to get Default Permissions {UrlSegment} for {ProjectId}.</value>
@@ -257,5 +263,56 @@ Detail: {4}</value>
     <value>The following intervals were changed for Extract Refresh Task ID {RefreshTaskId} due to cloud restrictions.
 Server: {OldIntervals}
 Cloud: {NewIntervals}</value>
+  </data>
+  <data name="OwnerNotFoundException" xml:space="preserve">
+    <value>The owner with ID {0} was not found.</value>
+  </data>
+  <data name="ProjectReferenceNotFoundException" xml:space="preserve">
+    <value>The project with ID {0} was not found.</value>
+  </data>
+  <data name="ViewReferenceNotFoundException" xml:space="preserve">
+    <value>The view with ID {0} was not found.</value>
+  </data>
+  <data name="ViewReferenceNotFoundMessage" xml:space="preserve">
+    <value>The view with ID {ViewId} was not found for {ContentType} {ContentName}.</value>
+  </data>
+  <data name="WorkbookReferenceNotFoundException" xml:space="preserve">
+    <value>The workbook with ID {0} was not found.</value>
+  </data>
+  <data name="WorkbookReferenceNotFoundMessage" xml:space="preserve">
+    <value>The workbook with ID {WorkbookId} was not found for {ContentType} {ContentName}.</value>
+  </data>
+  <data name="CustomViewSkippedMissingReferenceWarning" xml:space="preserve">
+    <value>The custom view with ID {CustomViewId} ({CustomViewName}) was skipped because of one or more missing references.
+Workbook with ID {WorkbookId}: {workbook}
+Owner with ID {OwnerID}: {owner}</value>
+  </data>
+  <data name="DataSourceSkippedMissingReferenceWarning" xml:space="preserve">
+    <value>The data source with ID {DataSourceId} ({DataSourceName}) was skipped because of one or more missing references.
+Project with ID {ProjectId}: {project}
+Owner with ID {OwnerID}: {owner}</value>
+  </data>
+  <data name="Found" xml:space="preserve">
+    <value>Found</value>
+  </data>
+  <data name="NotFound" xml:space="preserve">
+    <value>Not Found</value>
+  </data>
+  <data name="WorkbookSkippedMissingReferenceWarning" xml:space="preserve">
+    <value>The workbook with ID {WorkbookId} ({WorkbookName}) was skipped because of one or more missing references.
+Project with ID {ProjectId}: {project}
+Owner with ID {OwnerID}: {owner}</value>
+  </data>
+  <data name="UserReferenceNotFoundException" xml:space="preserve">
+    <value>The user with ID {0} was not found.</value>
+  </data>
+  <data name="UserReferenceNotFoundMessage" xml:space="preserve">
+    <value>The user with ID {UserId} was not found for {ContentType} {ContentName}.</value>
+  </data>
+  <data name="UserWithCustomViewDefaultSkippedMissingReferenceWarning" xml:space="preserve">
+    <value>The user with ID {UserId} had the custom view {CustomViewId} as default custom view skipped.</value>
+  </data>
+  <data name="DuplicateContentTypeConfigurationMessage" xml:space="preserve">
+    <value>Duplicate content type configuration found for content type {0}.</value>
   </data>
 </root>

@@ -32,24 +32,72 @@ namespace Tableau.Migration.Tests.Unit.Engine
             [Fact]
             public void Initializes()
             {
-                var input = Create<IMigrationInput>();
+                var mockPlan = Freeze<Mock<IMigrationPlan>>();
+                mockPlan.Setup(x => x.PipelineFactoryOverride).Returns((Func<IServiceProvider, IMigrationPipelineFactory>?)null);
 
-                var mockPipelineFactory = Create<Mock<IMigrationPipelineFactory>>();
+                var input = Freeze<IMigrationInput>();
+
+                var pipeline = Freeze<IMigrationPipeline>();
+                var mockPipelineFactory = Freeze<Mock<IMigrationPipelineFactory>>();
 
                 var sourceEndpoint = Freeze<ISourceEndpoint>();
                 var destinationEndpoint = Freeze<IDestinationEndpoint>();
 
-                var mockEndpointFactory = Create<Mock<IMigrationEndpointFactory>>();
+                var mockEndpointFactory = Freeze<Mock<IMigrationEndpointFactory>>();
 
-                var manifest = Create<IMigrationManifestEditor>();
+                var manifest = Freeze<IMigrationManifestEditor>();
 
                 var mockManifestFactory = Freeze<Mock<IMigrationManifestFactory>>();
                 mockManifestFactory.Setup(x => x.Create(input, It.IsAny<Guid>())).Returns(manifest);
 
-                var m = new Migration.Engine.Migration(input, mockPipelineFactory.Object, mockEndpointFactory.Object, mockManifestFactory.Object);
+                var m = Create<Migration.Engine.Migration>();
 
                 Assert.Equal(input.MigrationId, m.Id);
                 Assert.Same(input.Plan, m.Plan);
+
+                Assert.Same(pipeline, m.Pipeline);
+                mockPipelineFactory.Verify(x => x.Create(input.Plan), Times.Once);
+
+                Assert.Same(sourceEndpoint, m.Source);
+                Assert.Equal(destinationEndpoint, m.Destination);
+
+                Assert.Same(manifest, m.Manifest);
+                Assert.NotSame(input.PreviousManifest, m.Manifest);
+            }
+
+            [Fact]
+            public void InitializesWithCustomPipeline()
+            {
+                var customPipeline = Create<IMigrationPipeline>();
+                var mockCustomPipelineFactory = new Mock<IMigrationPipelineFactory>();
+                mockCustomPipelineFactory.Setup(x => x.Create(It.IsAny<IMigrationPlan>())).Returns(customPipeline);
+                IMigrationPipelineFactory CustomPipelineInitializer(IServiceProvider s) => mockCustomPipelineFactory.Object;
+
+                var mockPlan = Freeze<Mock<IMigrationPlan>>();
+                mockPlan.Setup(x => x.PipelineFactoryOverride).Returns(CustomPipelineInitializer);
+
+                var input = Freeze<IMigrationInput>();
+
+                var mockDefaultPipelineFactory = Freeze<Mock<IMigrationPipelineFactory>>();
+
+                var sourceEndpoint = Freeze<ISourceEndpoint>();
+                var destinationEndpoint = Freeze<IDestinationEndpoint>();
+
+                var mockEndpointFactory = Freeze<Mock<IMigrationEndpointFactory>>();
+
+                var manifest = Freeze<IMigrationManifestEditor>();
+
+                var mockManifestFactory = Freeze<Mock<IMigrationManifestFactory>>();
+                mockManifestFactory.Setup(x => x.Create(input, It.IsAny<Guid>())).Returns(manifest);
+
+                var m = Create<Migration.Engine.Migration>();
+
+                Assert.Equal(input.MigrationId, m.Id);
+                Assert.Same(input.Plan, m.Plan);
+
+                Assert.Same(customPipeline, m.Pipeline);
+                mockDefaultPipelineFactory.Verify(x => x.Create(input.Plan), Times.Never);
+                mockCustomPipelineFactory.Verify(x => x.Create(input.Plan), Times.Once);
 
                 Assert.Same(sourceEndpoint, m.Source);
                 Assert.Equal(destinationEndpoint, m.Destination);

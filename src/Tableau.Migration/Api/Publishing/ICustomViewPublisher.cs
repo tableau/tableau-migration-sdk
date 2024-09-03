@@ -15,13 +15,14 @@
 //  limitations under the License.
 //
 
-namespace Tableau.Migration
+using Tableau.Migration.Api.Models;
+using Tableau.Migration.Content;
+
+namespace Tableau.Migration.Api.Publishing
 {
-    internal class UserAgentSuffixProvider : IUserAgentSuffixProvider
-    {
-        /// <summary>
-        /// The default User agent suffix is empty. 
-        /// </summary>
-        public string UserAgentSuffix { get; init; } = string.Empty;
-    }
+    /// <summary>
+    /// Interface for Custom View publisher classes.
+    /// </summary>
+    public interface ICustomViewPublisher : IFilePublisher<IPublishCustomViewOptions, ICustomView>
+    { }
 }

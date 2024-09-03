@@ -73,8 +73,10 @@ namespace Tableau.Migration.Api
             services.AddScoped<ISitesApiClient, SitesApiClient>();
             services.AddScoped<IUsersApiClient, UsersApiClient>();
             services.AddScoped<IViewsApiClient, ViewsApiClient>();
+            services.AddScoped<ICustomViewsApiClient, CustomViewsApiClient>();
             services.AddScoped<IWorkbooksApiClient, WorkbooksApiClient>();
             services.AddScoped<ITasksApiClient, TasksApiClient>();
+            services.AddScoped<ICustomViewsApiClient, CustomViewsApiClient>();
 
             //API Simulator.
             services.AddSingleton<ITableauApiSimulatorFactory, TableauApiSimulatorFactory>();
@@ -85,6 +87,7 @@ namespace Tableau.Migration.Api
             services.AddScoped<IDataSourcePublisher, DataSourcePublisher>();
             services.AddScoped<IFlowPublisher, FlowPublisher>();
             services.AddScoped<IWorkbookPublisher, WorkbookPublisher>();
+            services.AddScoped<ICustomViewPublisher, CustomViewPublisher>();
             services.AddScoped<IConnectionManager, ConnectionManager>();
             services.AddScoped(typeof(ILabelsApiClient<>), typeof(LabelsApiClient<>));
 

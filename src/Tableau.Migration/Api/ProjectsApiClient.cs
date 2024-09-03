@@ -78,7 +78,7 @@ namespace Tableau.Migration.Api
                 .ToResultAsync(async (r, c) =>
                 {
                     var response = Guard.AgainstNull(r.Item, () => r.Item);
-                    var project = await RestProjectBuilder.BuildProjectAsync(response, options.ParentProject, UserFinder.Value, c)
+                    var project = await RestProjectBuilder.BuildProjectAsync(response, options.ParentProject, ContentFinderFactory.ForContentType<IUser>(), c)
                         .ConfigureAwait(false);
                     return project;
                 }, SharedResourcesLocalizer, cancel)
@@ -165,7 +165,7 @@ namespace Tableau.Migration.Api
         #region - IListApiClient<IProject> Implementation -
 
         public IPager<IProject> GetPager(int pageSize)
-            => new BreadthFirstPathHierarchyPager<IProject>(new RestProjectBuilderPager(this, UserFinder.Value, pageSize), pageSize);
+            => new BreadthFirstPathHierarchyPager<IProject>(new RestProjectBuilderPager(this, ContentFinderFactory.ForContentType<IUser>(), pageSize), pageSize);
 
         #endregion
 
@@ -213,7 +213,7 @@ namespace Tableau.Migration.Api
                 // The owner may be different, though, which we'll want to know for the post-publish hook.
 
                 var existingProject = await RestProjectBuilder.BuildProjectAsync(existingProjectResult.Value[0],
-                    item.ParentProject, UserFinder.Value, cancel).ConfigureAwait(false);
+                    item.ParentProject, ContentFinderFactory.ForContentType<IUser>(), cancel).ConfigureAwait(false);
 
                 return Result<IProject>.Succeeded(existingProject);
             }

@@ -121,7 +121,7 @@ namespace Tableau.Migration.Api.Rest.Models.Responses
             [XmlElement("owner")]
             public OwnerType? Owner { get; set; }
 
-            IOwnerType? IWithOwnerType.Owner => Owner;
+            IRestIdentifiable? IWithOwnerType.Owner => Owner;
 
             /// <summary>
             /// Gets or sets the data source tags for the response.
@@ -174,7 +174,7 @@ namespace Tableau.Migration.Api.Rest.Models.Responses
             }
 
             /// <inheritdoc/>
-            public class OwnerType : IOwnerType
+            public class OwnerType : IRestIdentifiable
             {
                 /// <inheritdoc/>
                 [XmlAttribute("id")]
@@ -187,10 +187,10 @@ namespace Tableau.Migration.Api.Rest.Models.Responses
                 { }
 
                 /// <summary>
-                /// Constructor to build from <see cref="IOwnerType"/>
+                /// Constructor to build from <see cref="IRestIdentifiable"/>
                 /// </summary>
                 /// <param name="owner"></param>
-                public OwnerType(IOwnerType owner)
+                public OwnerType(IRestIdentifiable owner)
                 {
                     Id = owner.Id;
                 }

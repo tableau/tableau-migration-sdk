@@ -15,11 +15,21 @@
 //  limitations under the License.
 //
 
-namespace Tableau.Migration.Api.Rest.Models
+using System;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace Tableau.Migration.Engine
 {
-    /// <summary>
-    /// Interface representing an XML element for the owner of a content item.
-    /// </summary>
-    public interface IOwnerType : IRestIdentifiable
-    { }
+    internal sealed class MigrationPlanBuilderFactory : IMigrationPlanBuilderFactory
+    {
+        private readonly IServiceProvider _services;
+
+        public MigrationPlanBuilderFactory(IServiceProvider services)
+        {
+            _services = services;
+        }
+
+        /// <inheritdoc />
+        public IMigrationPlanBuilder Create() => _services.GetRequiredService<IMigrationPlanBuilder>();
+    }
 }

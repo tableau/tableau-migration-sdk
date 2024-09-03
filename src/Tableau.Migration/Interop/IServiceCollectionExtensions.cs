@@ -20,7 +20,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
-using Tableau.Migration.Config;
 using Tableau.Migration.Interop.Logging;
 
 namespace Tableau.Migration.Interop
@@ -36,22 +35,18 @@ namespace Tableau.Migration.Interop
         /// </summary>
         /// <param name="services">The service collection to register services with.</param>
         /// <param name="loggerFactory">A factory to use to create new loggers for a given category name.</param>
-        /// <param name="userOptions">The configuration options to initialize the SDK with.</param>
         /// <returns></returns>
         public static IServiceCollection AddPythonSupport(
             this IServiceCollection services,
-            Func<string, NonGenericLoggerBase> loggerFactory, 
-            IConfiguration? userOptions = null)
+            Func<string, NonGenericLoggerBase> loggerFactory)
         {
-            services
+            // Add environment variable configuration.
+            var userOptions = BuildEnvironmentVariableConfiguration();
+
+            return services
                 .AddTableauMigrationSdk(userOptions)
-                // Replace the default IUserAgentSuffixProvider with the python one
-                .Replace(new ServiceDescriptor(typeof(IUserAgentSuffixProvider), typeof(PythonUserAgentSuffixProvider), ServiceLifetime.Singleton))
-                // Add Python Logging
-                .AddLogging(b => b.AddPythonLogging(loggerFactory))
-                // Add environment variable configuration
-                .AddEnvironmentVariableConfiguration();
-            return services;
+                // Add Python logging.
+                .AddLogging(b => b.AddPythonLogging(loggerFactory));
         }
 
         /// <summary>
@@ -78,18 +73,17 @@ namespace Tableau.Migration.Interop
         /// Adds support for setting configuration values via environment variables.
         /// Environment variables start with "MigrationSDK__".
         /// </summary>
-        /// <param name="services"></param>
-        /// <returns></returns>
-        public static IServiceCollection AddEnvironmentVariableConfiguration(this IServiceCollection services)
+        /// <retruns>The build configuration.</retruns>
+        private static IConfiguration BuildEnvironmentVariableConfiguration()
         {
-            var configBuilder =
-                new ConfigurationBuilder()
-                    .AddEnvironmentVariables("MigrationSDK__");
+            // Set standard python configuration values.
+            Environment.SetEnvironmentVariable(Constants.PYTHON_USER_AGENT_COMMENT_CONFIG_KEY, Constants.PYTHON_USER_AGENT_COMMENT);
+
+            var configBuilder = new ConfigurationBuilder()
+                .AddEnvironmentVariables(Constants.PYTHON_ENVIRONMENT_VARIABLE_PREFIX);
+            
             var config = configBuilder.Build();
-
-            services.Configure<MigrationSdkOptions>(nameof(MigrationSdkOptions), config);
-
-            return services;
+            return config;
         }
     }
 }

@@ -96,14 +96,24 @@ namespace Tableau.Migration
         #region - Internal Constants -
 
         /// <summary>
-        /// The default prefix for the user agent string
+        /// The comment for the python user agent.
         /// </summary>
-        internal const string USER_AGENT_PREFIX = "TableauMigrationSDK";
+        internal const string PYTHON_USER_AGENT_COMMENT = "Python";
 
         /// <summary>
-        /// The default suffix for the python user agent string
+        /// The comment for the python user agent.
         /// </summary>
-        internal const string USER_AGENT_PYTHON_SUFFIX = "-Python";
+        internal const string PYTHON_ENVIRONMENT_VARIABLE_PREFIX = "MigrationSDK__";
+
+        /// <summary>
+        /// The comment for the python user agent.
+        /// </summary>
+        internal const string PYTHON_USER_AGENT_COMMENT_CONFIG_KEY = PYTHON_ENVIRONMENT_VARIABLE_PREFIX + "Network__UserAgentComment";
+
+        /// <summary>
+        /// The default prefix for the user agent string.
+        /// </summary>
+        internal const string USER_AGENT_PREFIX = "TableauMigrationSDK";
 
         #endregion
     }

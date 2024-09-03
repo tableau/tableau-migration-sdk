@@ -15,14 +15,12 @@
 //  limitations under the License.
 //
 
-using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Tableau.Migration.Api.Rest;
 using Tableau.Migration.Api.Rest.Models;
-using Tableau.Migration.Content;
 using Tableau.Migration.Content.Search;
 using Tableau.Migration.Net.Rest;
 using Tableau.Migration.Resources;
@@ -32,10 +30,6 @@ namespace Tableau.Migration.Api
     internal abstract class ContentApiClientBase : ApiClientBase, IContentApiClient
     {
         protected readonly IContentReferenceFinderFactory ContentFinderFactory;
-
-        protected readonly Lazy<IContentReferenceFinder<IProject>> ProjectFinder;
-
-        protected readonly Lazy<IContentReferenceFinder<IUser>> UserFinder;
 
         public string UrlPrefix { get; }
 
@@ -50,22 +44,62 @@ namespace Tableau.Migration.Api
             UrlPrefix = urlPrefix ?? RestUrlPrefixes.GetUrlPrefix(GetType());
 
             ContentFinderFactory = finderFactory;
-            ProjectFinder = new(ContentFinderFactory.ForContentType<IProject>);
-            UserFinder = new(ContentFinderFactory.ForContentType<IUser>);
         }
 
         protected async Task<IContentReference?> FindProjectAsync<T>(
             [NotNull] T? response,
             [DoesNotReturnIf(true)] bool throwIfNotFound,
             CancellationToken cancel)
-            where T : IWithProjectType, INamedContent
-            => await ContentFinderFactory.FindProjectAsync(response, Logger, SharedResourcesLocalizer, throwIfNotFound, cancel).ConfigureAwait(false);
+            where T : IWithProjectType, IRestIdentifiable
+            => await ContentFinderFactory
+                .FindProjectAsync(
+                    response,
+                    Logger,
+                    SharedResourcesLocalizer,
+                    throwIfNotFound,
+                    cancel)
+                .ConfigureAwait(false);
+
+        protected async Task<IContentReference?> FindUserAsync<T>(
+            [NotNull] T? response,
+            [DoesNotReturnIf(true)] bool throwIfNotFound,
+            CancellationToken cancel)
+            where T : IRestIdentifiable
+            => await ContentFinderFactory
+                .FindUserAsync(
+                    response,
+                    Logger,
+                    SharedResourcesLocalizer,
+                    throwIfNotFound,
+                    cancel)
+                .ConfigureAwait(false);
 
         protected async Task<IContentReference?> FindOwnerAsync<T>(
             [NotNull] T? response,
             [DoesNotReturnIf(true)] bool throwIfNotFound,
             CancellationToken cancel)
-            where T : IWithOwnerType, INamedContent
-            => await ContentFinderFactory.FindOwnerAsync(response, Logger, SharedResourcesLocalizer, throwIfNotFound, cancel).ConfigureAwait(false);
+            where T : IWithOwnerType, IRestIdentifiable
+            => await ContentFinderFactory
+                .FindOwnerAsync(
+                    response,
+                    Logger,
+                    SharedResourcesLocalizer,
+                    throwIfNotFound,
+                    cancel)
+                .ConfigureAwait(false);
+
+        protected async Task<IContentReference?> FindWorkbookAsync<T>(
+            [NotNull] T? response,
+            [DoesNotReturnIf(true)] bool throwIfNotFound,
+            CancellationToken cancel)
+            where T : IWithWorkbookReferenceType, IRestIdentifiable
+            => await ContentFinderFactory
+                .FindWorkbookAsync(
+                    response,
+                    Logger,
+                    SharedResourcesLocalizer,
+                    throwIfNotFound,
+                    cancel)
+                .ConfigureAwait(false);
     }
 }

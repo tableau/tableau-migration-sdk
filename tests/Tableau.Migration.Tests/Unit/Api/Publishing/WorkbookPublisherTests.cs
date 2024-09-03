@@ -60,6 +60,7 @@ namespace Tableau.Migration.Tests.Unit.Api.Publishing
                     {
                         r.AssertQuery("workbookType", publishOptions.FileType);
                         r.AssertQuery("overwrite", publishOptions.Overwrite.ToString().ToLower());
+                        r.AssertQuery("skipConnectionCheck", publishOptions.SkipConnectionCheck.ToString().ToLower());
                     });
 
                 Assert.Equal(getWorkbookResponse.Item.Id, result.Value.Id);

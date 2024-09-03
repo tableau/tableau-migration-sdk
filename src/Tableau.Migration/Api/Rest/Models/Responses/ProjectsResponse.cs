@@ -115,7 +115,7 @@ namespace Tableau.Migration.Api.Rest.Models.Responses
             public UserType? Owner { get; set; }
 
             ///<inheritdoc/>
-            IOwnerType? IWithOwnerType.Owner => Owner;
+            IRestIdentifiable? IWithOwnerType.Owner => Owner;
 
             /// <summary>
             /// Gets or sets the contentCounts for the response.
@@ -128,7 +128,7 @@ namespace Tableau.Migration.Api.Rest.Models.Responses
             /// <summary>
             /// Class representing a REST API user response.
             /// </summary>
-            public class UserType : IOwnerType
+            public class UserType : IRestIdentifiable
             {
                 /// <summary>
                 /// Gets or sets the ID for the response.

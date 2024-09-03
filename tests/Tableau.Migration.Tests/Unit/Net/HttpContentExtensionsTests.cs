@@ -70,6 +70,40 @@ namespace Tableau.Migration.Tests.Unit.Net
             }
         }
 
+        public class IsHtmlContent
+        {
+            [Fact]
+            public void NullContentType()
+            {
+                var content = new StringContent("utf-8");
+                content.Headers.ContentType = null;
+
+                Assert.False(content.IsHtmlContent());
+            }
+
+            [Theory]
+            [InlineData("text/html")]
+            [InlineData("TEXT/HTML")]
+            public void True(string mediaType)
+            {
+                var content = new StringContent("utf-8");
+                content.Headers.ContentType = new MediaTypeHeaderValue(mediaType);
+
+                Assert.True(content.IsHtmlContent());
+            }
+
+            [Theory]
+            [InlineData("application/xml")]
+            [InlineData("APPLICATION/XML")]
+            public void False(string mediaType)
+            {
+                var content = new StringContent("utf-8");
+                content.Headers.ContentType = new MediaTypeHeaderValue(mediaType);
+
+                Assert.False(content.IsHtmlContent());
+            }
+        }
+
         public class IsJsonContent
         {
             [Fact]

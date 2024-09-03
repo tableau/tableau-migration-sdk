@@ -141,6 +141,7 @@ from Tableau.Migration.Content import (  # noqa: E402, F401
     IConnection,
     IConnectionsContent,
     IContainerContent,
+    ICustomView,
     IDataSource,
     IDataSourceDetails,
     IDescriptionContent,
@@ -149,6 +150,7 @@ from Tableau.Migration.Content import (  # noqa: E402, F401
     IGroupUser,
     ILabel,
     IProject,
+    IPublishableCustomView,
     IPublishableDataSource,
     IPublishableGroup,
     IPublishableWorkbook,
@@ -160,6 +162,7 @@ from Tableau.Migration.Content import (  # noqa: E402, F401
     IWithDomain,
     IWithOwner,
     IWithTags,
+    IWithWorkbook,
     IWorkbook,
     IWorkbookDetails
 )
@@ -168,6 +171,7 @@ from tableau_migration.migration_content import (  # noqa: E402, F401
     PyConnection,
     PyConnectionsContent,
     PyContainerContent,
+    PyCustomView,
     PyDataSource,
     PyDataSourceDetails,
     PyDescriptionContent,
@@ -176,6 +180,7 @@ from tableau_migration.migration_content import (  # noqa: E402, F401
     PyGroupUser,
     PyLabel,
     PyProject,
+    PyPublishableCustomView,
     PyPublishableDataSource,
     PyPublishableGroup,
     PyPublishableWorkbook,
@@ -187,6 +192,7 @@ from tableau_migration.migration_content import (  # noqa: E402, F401
     PyWithDomain,
     PyWithOwner,
     PyWithTags,
+    PyWithWorkbook,
     PyWorkbook,
     PyWorkbookDetails
 )
@@ -261,6 +267,56 @@ class TestPyContainerContentGenerated(AutoFixtureTestBase):
         dotnet = self.create(IContainerContent)
         py = PyContainerContent(dotnet)
         assert py.container == None if dotnet.Container is None else PyContentReference(dotnet.Container)
+    
+class TestPyCustomViewGenerated(AutoFixtureTestBase):
+    
+    def test_ctor(self):
+        dotnet = self.create(ICustomView)
+        py = PyCustomView(dotnet)
+        assert py._dotnet == dotnet
+    
+    def test_created_at_getter(self):
+        dotnet = self.create(ICustomView)
+        py = PyCustomView(dotnet)
+        assert py.created_at == dotnet.CreatedAt
+    
+    def test_updated_at_getter(self):
+        dotnet = self.create(ICustomView)
+        py = PyCustomView(dotnet)
+        assert py.updated_at == dotnet.UpdatedAt
+    
+    def test_last_accessed_at_getter(self):
+        dotnet = self.create(ICustomView)
+        py = PyCustomView(dotnet)
+        assert py.last_accessed_at == dotnet.LastAccessedAt
+    
+    def test_shared_getter(self):
+        dotnet = self.create(ICustomView)
+        py = PyCustomView(dotnet)
+        assert py.shared == dotnet.Shared
+    
+    def test_shared_setter(self):
+        dotnet = self.create(ICustomView)
+        py = PyCustomView(dotnet)
+        
+        # create test data
+        testValue = self.create(Boolean)
+        
+        # set property to new test value
+        py.shared = testValue
+        
+        # assert value
+        assert py.shared == testValue
+    
+    def test_base_view_id_getter(self):
+        dotnet = self.create(ICustomView)
+        py = PyCustomView(dotnet)
+        assert py.base_view_id == None if dotnet.BaseViewId is None else UUID(dotnet.BaseViewId.ToString())
+    
+    def test_base_view_name_getter(self):
+        dotnet = self.create(ICustomView)
+        py = PyCustomView(dotnet)
+        assert py.base_view_name == dotnet.BaseViewName
     
 class TestPyDataSourceGenerated(AutoFixtureTestBase):
     
@@ -523,6 +579,37 @@ class TestPyProjectGenerated(AutoFixtureTestBase):
         dotnet = self.create(IProject)
         py = PyProject(dotnet)
         assert py.parent_project == None if dotnet.ParentProject is None else PyContentReference(dotnet.ParentProject)
+    
+class TestPyPublishableCustomViewGenerated(AutoFixtureTestBase):
+    
+    def test_ctor(self):
+        dotnet = self.create(IPublishableCustomView)
+        py = PyPublishableCustomView(dotnet)
+        assert py._dotnet == dotnet
+    
+    def test_default_users_getter(self):
+        dotnet = self.create(IPublishableCustomView)
+        py = PyPublishableCustomView(dotnet)
+        assert len(dotnet.DefaultUsers) != 0
+        assert len(py.default_users) == len(dotnet.DefaultUsers)
+    
+    def test_default_users_setter(self):
+        dotnet = self.create(IPublishableCustomView)
+        py = PyPublishableCustomView(dotnet)
+        assert len(dotnet.DefaultUsers) != 0
+        assert len(py.default_users) == len(dotnet.DefaultUsers)
+        
+        # create test data
+        dotnetCollection = DotnetList[IContentReference]()
+        dotnetCollection.Add(self.create(IContentReference))
+        dotnetCollection.Add(self.create(IContentReference))
+        testCollection = [] if dotnetCollection is None else [PyContentReference(x) for x in dotnetCollection if x is not None]
+        
+        # set property to new test value
+        py.default_users = testCollection
+        
+        # assert value
+        assert len(py.default_users) == len(testCollection)
     
 class TestPyPublishableGroupGenerated(AutoFixtureTestBase):
     
@@ -812,6 +899,31 @@ class TestPyWithTagsGenerated(AutoFixtureTestBase):
         
         # assert value
         assert len(py.tags) == len(testCollection)
+    
+class TestPyWithWorkbookGenerated(AutoFixtureTestBase):
+    
+    def test_ctor(self):
+        dotnet = self.create(IWithWorkbook)
+        py = PyWithWorkbook(dotnet)
+        assert py._dotnet == dotnet
+    
+    def test_workbook_getter(self):
+        dotnet = self.create(IWithWorkbook)
+        py = PyWithWorkbook(dotnet)
+        assert py.workbook == None if dotnet.Workbook is None else PyContentReference(dotnet.Workbook)
+    
+    def test_workbook_setter(self):
+        dotnet = self.create(IWithWorkbook)
+        py = PyWithWorkbook(dotnet)
+        
+        # create test data
+        testValue = self.create(IContentReference)
+        
+        # set property to new test value
+        py.workbook = None if testValue is None else PyContentReference(testValue)
+        
+        # assert value
+        assert py.workbook == None if testValue is None else PyContentReference(testValue)
     
 class TestPyWorkbookGenerated(AutoFixtureTestBase):
     

@@ -17,6 +17,8 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Linq;
+using Tableau.Migration.Content;
 using Xunit;
 
 namespace Tableau.Migration.Tests.Unit
@@ -219,6 +221,79 @@ namespace Tableau.Migration.Tests.Unit
                 var renamed = loc.Rename(rename);
 
                 Assert.Equal(new ContentLocation(loc.Parent(), rename).Path, renamed.Path);
+            }
+        }
+
+        public class ForContentType : AutoFixtureTestBase
+        {
+            [Theory]
+            [InlineData(typeof(IUser), Constants.DomainNameSeparator)]
+            [InlineData(typeof(IGroup), Constants.DomainNameSeparator)]
+            [InlineData(typeof(IProject), Constants.PathSeparator)]
+            public void DetectsSeparatorByContentType(Type contentType, string expectedSeparator)
+            {
+                var segments = CreateMany<string>();
+
+                var loc = ContentLocation.ForContentType(contentType, segments);
+
+                Assert.Equal(expectedSeparator, loc.PathSeparator);
+                Assert.Equal(segments, loc.PathSegments);
+            }
+
+            [Theory]
+            [InlineData(typeof(IUser), Constants.DomainNameSeparator)]
+            [InlineData(typeof(IGroup), Constants.DomainNameSeparator)]
+            [InlineData(typeof(IProject), Constants.PathSeparator)]
+            public void DetectsSeparatorByContentTypeParams(Type contentType, string expectedSeparator)
+            {
+                var segments = CreateMany<string>().ToArray();
+
+                var loc = ContentLocation.ForContentType(contentType, segments);
+
+                Assert.Equal(expectedSeparator, loc.PathSeparator);
+                Assert.Equal(segments, loc.PathSegments);
+            }
+
+            [Fact]
+            public void DetectsSeparatorByContentTypeGeneric()
+            {
+                var segments = CreateMany<string>();
+
+                var loc = ContentLocation.ForContentType<IUser>(segments);
+
+                Assert.Equal(Constants.DomainNameSeparator, loc.PathSeparator);
+                Assert.Equal(segments, loc.PathSegments);
+
+                loc = ContentLocation.ForContentType<IGroup>(segments);
+
+                Assert.Equal(Constants.DomainNameSeparator, loc.PathSeparator);
+                Assert.Equal(segments, loc.PathSegments);
+
+                loc = ContentLocation.ForContentType<IProject>(segments);
+
+                Assert.Equal(Constants.PathSeparator, loc.PathSeparator);
+                Assert.Equal(segments, loc.PathSegments);
+            }
+
+            [Fact]
+            public void DetectsSeparatorByContentTypeGenericParams()
+            {
+                var segments = CreateMany<string>().ToArray();
+
+                var loc = ContentLocation.ForContentType<IUser>(segments);
+
+                Assert.Equal(Constants.DomainNameSeparator, loc.PathSeparator);
+                Assert.Equal(segments, loc.PathSegments);
+
+                loc = ContentLocation.ForContentType<IGroup>(segments);
+
+                Assert.Equal(Constants.DomainNameSeparator, loc.PathSeparator);
+                Assert.Equal(segments, loc.PathSegments);
+
+                loc = ContentLocation.ForContentType<IProject>(segments);
+
+                Assert.Equal(Constants.PathSeparator, loc.PathSeparator);
+                Assert.Equal(segments, loc.PathSegments);
             }
         }
     }

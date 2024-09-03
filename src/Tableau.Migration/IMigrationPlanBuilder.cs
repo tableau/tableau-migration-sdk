@@ -16,12 +16,14 @@
 //
 
 using System;
+using System.Collections.Generic;
 using Tableau.Migration.Engine.Endpoints;
 using Tableau.Migration.Engine.Hooks;
 using Tableau.Migration.Engine.Hooks.Filters;
 using Tableau.Migration.Engine.Hooks.Mappings;
 using Tableau.Migration.Engine.Hooks.Transformers;
 using Tableau.Migration.Engine.Options;
+using Tableau.Migration.Engine.Pipelines;
 
 namespace Tableau.Migration
 {
@@ -35,6 +37,54 @@ namespace Tableau.Migration
         /// </summary>
         /// <returns>The same plan builder object for fluent API calls.</returns>
         IServerToCloudMigrationPlanBuilder ForServerToCloud();
+
+        /// <summary>
+        /// Initializes the plan to perform a custom migration pipeline using the given pipeline factory.
+        /// </summary>
+        /// <param name="pipelineFactoryOverride">An initializer function to build the pipeline factory.</param>
+        /// <param name="supportedContentTypes">The supported content types of the custom pipeline.</param>
+        /// <returns>The same plan builder object for fluent API calls.</returns>
+        IMigrationPlanBuilder ForCustomPipelineFactory(Func<IServiceProvider, IMigrationPipelineFactory> pipelineFactoryOverride, params MigrationPipelineContentType[] supportedContentTypes);
+
+        /// <summary>
+        /// Initializes the plan to perform a custom migration pipeline using the given pipeline factory.
+        /// </summary>
+        /// <param name="pipelineFactoryOverride">An initializer function to build the pipeline factory.</param>
+        /// <param name="supportedContentTypes">The supported content types of the custom pipeline.</param>
+        /// <returns>The same plan builder object for fluent API calls.</returns>
+        IMigrationPlanBuilder ForCustomPipelineFactory(Func<IServiceProvider, IMigrationPipelineFactory> pipelineFactoryOverride, IEnumerable<MigrationPipelineContentType> supportedContentTypes);
+
+        /// <summary>
+        /// Initializes the plan to perform a custom migration pipeline using the given pipeline factory.
+        /// </summary>
+        /// <param name="supportedContentTypes">The supported content types of the custom pipeline.</param>
+        /// <returns>The same plan builder object for fluent API calls.</returns>
+        IMigrationPlanBuilder ForCustomPipelineFactory<T>(params MigrationPipelineContentType[] supportedContentTypes)
+            where T : IMigrationPipelineFactory;
+
+        /// <summary>
+        /// Initializes the plan to perform a custom migration pipeline using the given pipeline factory.
+        /// </summary>
+        /// <param name="supportedContentTypes">The supported content types of the custom pipeline.</param>
+        /// <returns>The same plan builder object for fluent API calls.</returns>
+        IMigrationPlanBuilder ForCustomPipelineFactory<T>(IEnumerable<MigrationPipelineContentType> supportedContentTypes)
+            where T : IMigrationPipelineFactory;
+
+        /// <summary>
+        /// Initializes the plan to perform a custom migration pipeline.
+        /// </summary>
+        /// <param name="supportedContentTypes">The supported content types of the custom pipeline.</param>
+        /// <returns>The same plan builder object for fluent API calls.</returns>
+        IMigrationPlanBuilder ForCustomPipeline<T>(params MigrationPipelineContentType[] supportedContentTypes)
+            where T : IMigrationPipeline;
+
+        /// <summary>
+        /// Initializes the plan to perform a custom migration pipeline.
+        /// </summary>
+        /// <param name="supportedContentTypes">The supported content types of the custom pipeline.</param>
+        /// <returns>The same plan builder object for fluent API calls.</returns>
+        IMigrationPlanBuilder ForCustomPipeline<T>(IEnumerable<MigrationPipelineContentType> supportedContentTypes)
+            where T : IMigrationPipeline;
 
         /// <summary>
         /// Clears all hooks, filters, mappings, and transformations.

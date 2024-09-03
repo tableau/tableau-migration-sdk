@@ -28,22 +28,6 @@ namespace Tableau.Migration.Engine.Hooks.Filters
     /// </summary>
     public class ContentFilterBuilder : ContentTypeHookBuilderBase, IContentFilterBuilder
     {
-        /// <summary>
-        /// Creates a new empty <see cref="MigrationHookBuilder"/> object.
-        /// </summary>
-        public ContentFilterBuilder()
-        { }
-
-        #region - Private Helper Methods -
-
-        private IContentFilterBuilder Add(Type filterType, Func<IServiceProvider, object> initializer)
-        {
-            AddFactoriesByType(filterType, initializer);
-            return this;
-        }
-
-        #endregion
-
         #region - IContentFilterBuilder Implementation -
 
         /// <inheritdoc />
@@ -54,30 +38,13 @@ namespace Tableau.Migration.Engine.Hooks.Filters
         }
 
         /// <inheritdoc />
-        public virtual IContentFilterBuilder Add(Type genericTransformerType, IEnumerable<Type[]> contentTypes)
-        {
-            if (!genericTransformerType.IsGenericTypeDefinition)
-                throw new ArgumentException($"Type {genericTransformerType.FullName} is not a generic type definition.");
-
-            foreach (var contentType in contentTypes)
-            {
-                var constructedType = genericTransformerType.MakeGenericType(contentType);
-
-                object transformerFactory(IServiceProvider services)
-                {
-                    return services.GetRequiredService(constructedType);
-                }
-
-                Add(constructedType, transformerFactory);
-            }
-
-            return this;
-        }
+        new public virtual IContentFilterBuilder Add(Type genericFilterType, IEnumerable<Type[]> contentTypes)
+            => (IContentFilterBuilder)base.Add(genericFilterType, contentTypes);
 
         /// <inheritdoc />
         public virtual IContentFilterBuilder Add<TContent>(IContentFilter<TContent> filter)
             where TContent : IContentReference
-            => Add(typeof(IContentFilter<TContent>), s => filter);
+            => (IContentFilterBuilder)Add(typeof(IContentFilter<TContent>), s => filter);
 
         /// <inheritdoc />
         public virtual IContentFilterBuilder Add<TFilter, TContent>(Func<IServiceProvider, TFilter>? filterFactory = null)
@@ -85,21 +52,19 @@ namespace Tableau.Migration.Engine.Hooks.Filters
             where TContent : IContentReference
         {
             filterFactory ??= services => services.GetRequiredService<TFilter>();
-            return Add(typeof(IContentFilter<TContent>), s => filterFactory(s));
+            return (IContentFilterBuilder)Add(typeof(IContentFilter<TContent>), s => filterFactory(s));
         }
 
         /// <inheritdoc />
         public virtual IContentFilterBuilder Add<TContent>(Func<IEnumerable<ContentMigrationItem<TContent>>, CancellationToken, Task<IEnumerable<ContentMigrationItem<TContent>>?>> callback)
             where TContent : IContentReference
-            => Add(typeof(IContentFilter<TContent>),
+            => (IContentFilterBuilder)Add(typeof(IContentFilter<TContent>),
                    s => new CallbackHookWrapper<IContentFilter<TContent>, IEnumerable<ContentMigrationItem<TContent>>>(callback));
 
         /// <inheritdoc />
         public IContentFilterBuilder Add<TContent>(Func<IEnumerable<ContentMigrationItem<TContent>>, IEnumerable<ContentMigrationItem<TContent>>?> callback)
             where TContent : IContentReference
-            => Add<TContent>(
-                (ctx, cancel) => Task.FromResult(
-                    callback(ctx)));
+            => Add<TContent>((ctx, cancel) => Task.FromResult(callback(ctx)));
 
         #endregion
     }

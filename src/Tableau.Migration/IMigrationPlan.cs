@@ -19,6 +19,7 @@ using System;
 using Tableau.Migration.Engine.Endpoints;
 using Tableau.Migration.Engine.Hooks;
 using Tableau.Migration.Engine.Options;
+using Tableau.Migration.Engine.Pipelines;
 
 namespace Tableau.Migration
 {
@@ -71,5 +72,10 @@ namespace Tableau.Migration
         /// Gets the collection of registered transformers for each content type.
         /// </summary>
         IMigrationHookFactoryCollection Transformers { get; }
+
+        /// <summary>
+        /// Gets the pipeline factory to use to create the pipeline during migration.
+        /// </summary>
+        Func<IServiceProvider, IMigrationPipelineFactory>? PipelineFactoryOverride { get; }
     }
 }

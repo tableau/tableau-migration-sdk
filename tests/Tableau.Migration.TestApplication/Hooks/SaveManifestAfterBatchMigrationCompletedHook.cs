@@ -33,8 +33,7 @@ namespace Tableau.Migration.TestApplication.Hooks
     {
         private readonly IMigration _migration;
         private readonly MigrationManifestSerializer _manifestSerializer;
-        private readonly TestApplicationOptions _options;
-        private readonly string _manifestFilepath;
+        private readonly string _manifestFilePath;
         private readonly ILogger<SaveManifestAfterBatchMigrationCompletedHook<T>> _logger;
 
         public SaveManifestAfterBatchMigrationCompletedHook(
@@ -45,18 +44,16 @@ namespace Tableau.Migration.TestApplication.Hooks
         {
             _migration = migration;
             _manifestSerializer = manifestSerializer;
-            _options = options.Value;
             _logger = logger;
-
-            _manifestFilepath = $@"{_options.Log.FolderPath}\Manifest-{Program.StartTime.ToString("yyyy-MM-dd-HH-mm-ss")}.json";
+            _manifestFilePath = LogFileHelper.GetManifestFilePath(options.Value.Log);
         }
 
         public async Task<Engine.Migrators.Batch.IContentBatchMigrationResult<T>?> ExecuteAsync(Engine.Migrators.Batch.IContentBatchMigrationResult<T> ctx, CancellationToken cancel)
         {
             _logger.LogDebug("Saving manifest");
-            
+
             // Using default cancellation token because we want to save the manifest even if app is shutting down
-            await _manifestSerializer.SaveAsync(_migration.Manifest, _manifestFilepath); 
+            await _manifestSerializer.SaveAsync(_migration.Manifest, _manifestFilePath);
 
             return ctx;
         }

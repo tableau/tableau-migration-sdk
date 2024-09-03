@@ -64,6 +64,8 @@ namespace Tableau.Migration.Net
             return false;
         }
 
+        internal static bool IsHtml(this MediaTypeHeaderValue header) => IsMediaType(header, MediaTypeNames.Text.Html);
+
         internal static bool IsJson(this MediaTypeHeaderValue header) => IsMediaType(header, MediaTypeNames.Application.Json);
 
         internal static bool IsXml(this MediaTypeHeaderValue header) => IsMediaType(header, MediaTypeNames.Application.Xml);

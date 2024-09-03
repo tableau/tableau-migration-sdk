@@ -120,7 +120,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Pipelines
 
                 var t = new MigrationPipelineContentType(type);
 
-                Assert.Equal(new[] { type }, t.GetContentTypeForInterface(typeof(IContentReference)));
+                Assert.Equal([type], t.GetContentTypeForInterface(typeof(IContentReference)));
             }
         }
 
@@ -141,7 +141,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Pipelines
 
                 var t = new MigrationPipelineContentType(typeof(object)).WithPublishType(type);
 
-                Assert.Equal(new[] { type }, t.GetPublishTypeForInterface(typeof(IContentReference)));
+                Assert.Equal([type], t.GetPublishTypeForInterface(typeof(IContentReference)));
             }
         }
 
@@ -162,14 +162,33 @@ namespace Tableau.Migration.Tests.Unit.Engine.Pipelines
 
                 var t = new MigrationPipelineContentType(typeof(object)).WithPublishType(type).WithResultType(typeof(int));
 
-                Assert.Equal(new[] { type, typeof(int) }, t.GetPostPublishTypesForInterface(typeof(IContentReference)));
+                Assert.Equal([type, typeof(int)], t.GetPostPublishTypesForInterface(typeof(IContentReference)));
             }
         }
 
         public class GetConfigKey
         {
+            private static void AssertConfigKey(MigrationPipelineContentType pipelineContentType, string actualConfigKey)
+            {
+                var contentType = pipelineContentType.ContentType;
+
+                if (!contentType.GenericTypeArguments.Any())
+                {
+                    Assert.Equal(contentType.Name, $"I{actualConfigKey}");
+                    return;
+                }
+
+                var cleanedTypeName = contentType.Name.TrimEnd('1').TrimEnd('`');
+                Assert.StartsWith(cleanedTypeName, $"I{actualConfigKey}");
+
+                foreach (var arg in contentType.GenericTypeArguments)
+                {
+                    Assert.Contains($"_{arg.Name.TrimStart('I')}", actualConfigKey);
+                }
+            }
+
             [Fact]
-            public void Returns_config_keys()
+            public void ReturnsConfigKey()
             {
                 var pipelineContentTypes = ServerToCloudMigrationPipeline.ContentTypes;
 
@@ -178,21 +197,21 @@ namespace Tableau.Migration.Tests.Unit.Engine.Pipelines
                     Assert.NotNull(pipelineContentType);
                     var actualConfigKey = pipelineContentType.GetConfigKey();
 
-                    var contentType = pipelineContentType.ContentType;
-                    
-                    if (contentType.GenericTypeArguments.Length == 0)
-                    {
-                        Assert.Equal(contentType.Name, $"I{actualConfigKey}");
-                        return;
-                    }
+                    AssertConfigKey(pipelineContentType, actualConfigKey);
+                }
+            }
 
-                    var cleanedTypeName = contentType.Name.TrimEnd('1').TrimEnd('`');
-                    Assert.StartsWith(cleanedTypeName, $"I{actualConfigKey}");
+            [Fact]
+            public void StaticType()
+            {
+                var pipelineContentTypes = ServerToCloudMigrationPipeline.ContentTypes;
 
-                    foreach (var arg in contentType.GenericTypeArguments)
-                    {
-                        Assert.Contains($"_{arg.Name.TrimStart('I')}", actualConfigKey);
-                    }
+                foreach (var pipelineContentType in pipelineContentTypes)
+                {
+                    Assert.NotNull(pipelineContentType);
+                    var actualConfigKey = MigrationPipelineContentType.GetConfigKeyForType(pipelineContentType.ContentType);
+
+                    AssertConfigKey(pipelineContentType, actualConfigKey);
                 }
             }
         }

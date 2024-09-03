@@ -10,12 +10,13 @@ In this example, the project named `Default` is filtered out.
 
 #### Registration
 
-[Learn more.](~/samples/index.md?tabs=Python#hook-registration)
-
 [//]: <> (Adding this as code as regions are not supported in Python snippets)
+
 ```Python
 plan_builder.filters.add(DefaultProjectFilter)
 ```
+
+See [hook registration](~/samples/index.md?tabs=Python#hook-registration) for more details.
 
 # [C#](#tab/CSharp)
 

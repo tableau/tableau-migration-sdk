@@ -76,6 +76,7 @@ namespace Tableau.Migration.Engine
             services.AddScoped<IContentTransformerRunner, ContentTransformerRunner>();
 
             //Plan building.
+            services.AddSingleton<IMigrationPlanBuilderFactory, MigrationPlanBuilderFactory>();
             services.AddTransient<IMigrationPlanBuilder, MigrationPlanBuilder>();
             services.AddTransient<IMigrationPlanOptionsBuilder, MigrationPlanOptionsBuilder>();
             services.AddTransient<IMigrationHookBuilder, MigrationHookBuilder>();
@@ -138,15 +139,19 @@ namespace Tableau.Migration.Engine
             services.AddScoped(typeof(CloudScheduleCompatibilityTransformer<>));
             services.AddScoped<CloudIncrementalRefreshTransformer>();
             services.AddScoped<MappedReferenceExtractRefreshTaskTransformer>();
+            services.AddScoped(typeof(EncryptExtractTransformer<>));
 
             services.AddScoped<IPermissionsTransformer, PermissionsTransformer>();
             services.AddScoped<IMappedUserTransformer, MappedUserTransformer>();
-
+            services.AddScoped(typeof(WorkbookReferenceTransformer<>));
+            services.AddScoped<CustomViewDefaultUserReferencesTransformer>();
+            
             services.AddScoped(typeof(OwnerItemPostPublishHook<,>));
             services.AddScoped(typeof(PermissionsItemPostPublishHook<,>));
             services.AddScoped(typeof(TagItemPostPublishHook<,>));
             services.AddScoped<ProjectPostPublishHook>();
             services.AddScoped(typeof(ChildItemsPermissionsPostPublishHook<,>));
+            services.AddScoped<CustomViewDefaultUsersPostPublishHook>();
 
             //Migration engine file store.
             services.AddScoped<MigrationDirectoryContentFileStore>();

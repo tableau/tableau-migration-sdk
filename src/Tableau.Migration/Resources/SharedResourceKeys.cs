@@ -1,4 +1,4 @@
-﻿//
+//
 //  Copyright (c) 2024, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
@@ -57,6 +57,8 @@ namespace Tableau.Migration.Resources
 
         public const string UnknownMappingContentTypeValidationMessage = "UnknownMappingContentTypeValidationMessage";
 
+        public const string UnknownTransformerContentTypeValidationMessage = "UnknownTransformerContentTypeValidationMessage";
+
         public const string InvalidTransformerPublishTypeValidationMessage = "InvalidTransformerPublishTypeValidationMessage";
 
         public const string UnknownTransformerPublishTypeValidationMessage = "UnknownTransformerPublishTypeValidationMessage";
@@ -68,6 +70,8 @@ namespace Tableau.Migration.Resources
         public const string MigrationItemErrorLogMessage = "MigrationItemErrorLogMessage";
 
         public const string SourceUserNotFoundLogMessage = "SourceUserNotFoundLogMessage";
+
+        public const string SourceWorkbookNotFoundLogMessage = "SourceWorkbookNotFoundLogMessage";
 
         public const string PublishedDataSourceReferenceNotFoundLogMessage = "PublishedDataSourceReferenceNotFoundLogMessage";
 
@@ -83,13 +87,13 @@ namespace Tableau.Migration.Resources
 
         public const string GroupUsersTransformerCannotAddUserWarning = "GroupUsersTransformerCannotAddUserWarning";
 
+        public const string CustomViewDefaultUsersTransformerNoUserRefsDebugMessage = "CustomViewDefaultUsersTransformerNoUserRefsDebugMessage";
+
         public const string PermissionsTransformerGranteeNotFoundWarning = "PermissionsTransformerGranteeNotFoundWarning";
 
         public const string SiteSettingsSkippedDisabledLogMessage = "SiteSettingsSkippedDisabledLogMessage";
 
         public const string SiteSettingsSkippedNoAccessLogMessage = "SiteSettingsSkippedNoAccessLogMessage";
-
-        public const string SiteSettingsExtractEncryptionDisabledLogMessage = "SiteSettingsExtractEncryptionDisabledLogMessage";
 
         public const string ApiClientDoesnotImplementIReadApiClientError = "ApiClientDoesnotImplementIReadApiClientError";
 
@@ -99,7 +103,23 @@ namespace Tableau.Migration.Resources
 
         public const string ProjectReferenceNotFoundMessage = "ProjectReferenceNotFoundMessage";
 
+        public const string ProjectReferenceNotFoundException = "ProjectReferenceNotFoundException";
+
         public const string OwnerNotFoundMessage = "OwnerNotFoundMessage";
+
+        public const string OwnerNotFoundException = "OwnerNotFoundException";
+
+        public const string WorkbookReferenceNotFoundMessage = "WorkbookReferenceNotFoundMessage";
+
+        public const string WorkbookReferenceNotFoundException = "WorkbookReferenceNotFoundException";
+
+        public const string ViewReferenceNotFoundMessage = "ViewReferenceNotFoundMessage";
+
+        public const string ViewReferenceNotFoundException = "ViewReferenceNotFoundException";
+
+        public const string UserReferenceNotFoundMessage = "UserReferenceNotFoundMessage";
+
+        public const string UserReferenceNotFoundException = "UserReferenceNotFoundException";
 
         public const string FailedToGetDefaultPermissionsMessage = "FailedToGetDefaultPermissionsMessage";
 
@@ -108,5 +128,19 @@ namespace Tableau.Migration.Resources
         public const string MappedReferenceExtractRefreshTaskTransformerCannotFindReferenceWarning = "MappedReferenceExtractRefreshTaskTransformerCannotFindReferenceWarning";
 
         public const string IntervalsChangedWarning = "IntervalsChangedWarning";
+
+        public const string Found = "Found";
+
+        public const string NotFound = "NotFound";
+
+        public const string CustomViewSkippedMissingReferenceWarning = "CustomViewSkippedMissingReferenceWarning";
+
+        public const string DataSourceSkippedMissingReferenceWarning = "DataSourceSkippedMissingReferenceWarning";
+
+        public const string WorkbookSkippedMissingReferenceWarning = "WorkbookSkippedMissingReferenceWarning";
+
+        public const string UserWithCustomViewDefaultSkippedMissingReferenceWarning = "UserWithCustomViewDefaultSkippedMissingReferenceWarning";
+
+        public const string DuplicateContentTypeConfigurationMessage = "DuplicateContentTypeConfigurationMessage";
     }
 }

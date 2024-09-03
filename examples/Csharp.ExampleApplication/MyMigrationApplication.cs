@@ -113,6 +113,10 @@ namespace Csharp.ExampleApplication
             #region UnlicensedUsersFilter-Registration
             _planBuilder.Filters.Add<UnlicensedUsersFilter, IUser>();
             #endregion
+            
+            #region SharedCustomViewFilter-Registration
+            _planBuilder.Filters.Add<SharedCustomViewFilter, ICustomView>();
+            #endregion
 
             // Add post-publish hooks
             #region UpdatePermissionsHook-Registration
@@ -137,6 +141,10 @@ namespace Csharp.ExampleApplication
 
             #region StartAtTransformer-Registration
             _planBuilder.Transformers.Add<SimpleScheduleStartAtTransformer<ICloudExtractRefreshTask>, ICloudExtractRefreshTask>();
+            #endregion
+            
+            #region CustomViewDefaultUsersTransformer-Registration
+            _planBuilder.Transformers.Add<CustomViewExcludeDefaultUserTransformer, IPublishableCustomView>();
             #endregion
 
             // Add migration action completed hooks

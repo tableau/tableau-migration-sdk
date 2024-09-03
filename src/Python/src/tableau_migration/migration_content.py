@@ -15,6 +15,8 @@
 
 """Wrapper for classes in Tableau.Migration.Content namespace."""
 
+from Tableau.Migration import IContentReference # noqa: E402, F401
+
 # region _generated
 
 from tableau_migration.migration import PyContentReference # noqa: E402, F401
@@ -37,6 +39,7 @@ from Tableau.Migration.Content import (  # noqa: E402, F401
     IConnection,
     IConnectionsContent,
     IContainerContent,
+    ICustomView,
     IDataSource,
     IDataSourceDetails,
     IDescriptionContent,
@@ -45,6 +48,7 @@ from Tableau.Migration.Content import (  # noqa: E402, F401
     IGroupUser,
     ILabel,
     IProject,
+    IPublishableCustomView,
     IPublishableDataSource,
     IPublishableGroup,
     IPublishableWorkbook,
@@ -56,6 +60,7 @@ from Tableau.Migration.Content import (  # noqa: E402, F401
     IWithDomain,
     IWithOwner,
     IWithTags,
+    IWithWorkbook,
     IWorkbook,
     IWorkbookDetails
 )
@@ -144,6 +149,106 @@ class PyContainerContent():
     def container(self) -> PyContentReference:
         """Gets the container for the content item. Relocating the content should be done through mapping."""
         return None if self._dotnet.Container is None else PyContentReference(self._dotnet.Container)
+    
+class PyWithOwner(PyContentReference):
+    """Interface to be inherited by content items with owner."""
+    
+    _dotnet_base = IWithOwner
+    
+    def __init__(self, with_owner: IWithOwner) -> None:
+        """Creates a new PyWithOwner object.
+        
+        Args:
+            with_owner: A IWithOwner object.
+        
+        Returns: None.
+        """
+        self._dotnet = with_owner
+        
+    @property
+    def owner(self) -> PyContentReference:
+        """Gets or sets the owner for the content item."""
+        return None if self._dotnet.Owner is None else PyContentReference(self._dotnet.Owner)
+    
+    @owner.setter
+    def owner(self, value: PyContentReference) -> None:
+        """Gets or sets the owner for the content item."""
+        self._dotnet.Owner = None if value is None else value._dotnet
+    
+class PyWithWorkbook(PyContentReference):
+    """Interface to be inherited by content items with workbook."""
+    
+    _dotnet_base = IWithWorkbook
+    
+    def __init__(self, with_workbook: IWithWorkbook) -> None:
+        """Creates a new PyWithWorkbook object.
+        
+        Args:
+            with_workbook: A IWithWorkbook object.
+        
+        Returns: None.
+        """
+        self._dotnet = with_workbook
+        
+    @property
+    def workbook(self) -> PyContentReference:
+        """Gets or sets the workbook for the content item."""
+        return None if self._dotnet.Workbook is None else PyContentReference(self._dotnet.Workbook)
+    
+    @workbook.setter
+    def workbook(self, value: PyContentReference) -> None:
+        """Gets or sets the workbook for the content item."""
+        self._dotnet.Workbook = None if value is None else value._dotnet
+    
+class PyCustomView(PyWithOwner, PyWithWorkbook):
+    """The interface for a custom view content item."""
+    
+    _dotnet_base = ICustomView
+    
+    def __init__(self, custom_view: ICustomView) -> None:
+        """Creates a new PyCustomView object.
+        
+        Args:
+            custom_view: A ICustomView object.
+        
+        Returns: None.
+        """
+        self._dotnet = custom_view
+        
+    @property
+    def created_at(self) -> str:
+        """Gets the created timestamp."""
+        return self._dotnet.CreatedAt
+    
+    @property
+    def updated_at(self) -> str:
+        """Gets the updated timestamp."""
+        return self._dotnet.UpdatedAt
+    
+    @property
+    def last_accessed_at(self) -> str:
+        """Gets the last accessed timestamp."""
+        return self._dotnet.LastAccessedAt
+    
+    @property
+    def shared(self) -> bool:
+        """Gets or sets whether the custom view is shared with all users (true) or private (false)."""
+        return self._dotnet.Shared
+    
+    @shared.setter
+    def shared(self, value: bool) -> None:
+        """Gets or sets whether the custom view is shared with all users (true) or private (false)."""
+        self._dotnet.Shared = value
+    
+    @property
+    def base_view_id(self) -> UUID:
+        """Gets the ID of the view that this custom view is based on."""
+        return None if self._dotnet.BaseViewId is None else UUID(self._dotnet.BaseViewId.ToString())
+    
+    @property
+    def base_view_name(self) -> str:
+        """Gets the name of the view that this custom view is based on."""
+        return self._dotnet.BaseViewName
     
 class PyPublishedContent():
     """Interface for a content item that has metadata around publishing information."""
@@ -280,31 +385,6 @@ class PyWithTags():
             for x in filter(None,value):
                 dotnet_collection.Add(x._dotnet)
             self._dotnet.Tags = dotnet_collection
-    
-class PyWithOwner(PyContentReference):
-    """Interface to be inherited by content items with owner."""
-    
-    _dotnet_base = IWithOwner
-    
-    def __init__(self, with_owner: IWithOwner) -> None:
-        """Creates a new PyWithOwner object.
-        
-        Args:
-            with_owner: A IWithOwner object.
-        
-        Returns: None.
-        """
-        self._dotnet = with_owner
-        
-    @property
-    def owner(self) -> PyContentReference:
-        """Gets or sets the owner for the content item."""
-        return None if self._dotnet.Owner is None else PyContentReference(self._dotnet.Owner)
-    
-    @owner.setter
-    def owner(self, value: PyContentReference) -> None:
-        """Gets or sets the owner for the content item."""
-        self._dotnet.Owner = None if value is None else value._dotnet
     
 class PyDataSource(PyPublishedContent, PyDescriptionContent, PyExtractContent, PyWithTags, PyContainerContent, PyWithOwner):
     """Interface for a data source content item."""
@@ -560,6 +640,37 @@ class PyProject(PyDescriptionContent, PyWithOwner):
     def parent_project(self) -> PyContentReference:
         """Gets the parent project reference, or null if the project is a top-level project. Should be changed through mapping."""
         return None if self._dotnet.ParentProject is None else PyContentReference(self._dotnet.ParentProject)
+    
+class PyPublishableCustomView(PyCustomView):
+    """Interface for the publishable version of ICustomView."""
+    
+    _dotnet_base = IPublishableCustomView
+    
+    def __init__(self, publishable_custom_view: IPublishableCustomView) -> None:
+        """Creates a new PyPublishableCustomView object.
+        
+        Args:
+            publishable_custom_view: A IPublishableCustomView object.
+        
+        Returns: None.
+        """
+        self._dotnet = publishable_custom_view
+        
+    @property
+    def default_users(self) -> List[PyContentReference]:
+        """The list of users for whom the Custom View is the default."""
+        return [] if self._dotnet.DefaultUsers is None else [PyContentReference(x) for x in self._dotnet.DefaultUsers if x is not None]
+    
+    @default_users.setter
+    def default_users(self, value: List[PyContentReference]) -> None:
+        """The list of users for whom the Custom View is the default."""
+        if value is None:
+            self._dotnet.DefaultUsers = DotnetList[IContentReference]()
+        else:
+            dotnet_collection = DotnetList[IContentReference]()
+            for x in filter(None,value):
+                dotnet_collection.Add(x._dotnet)
+            self._dotnet.DefaultUsers = dotnet_collection
     
 class PyPublishableDataSource(PyDataSourceDetails, PyConnectionsContent):
     """Interface for a IDataSource that has been downloaded and has full information necessary for re-publishing."""

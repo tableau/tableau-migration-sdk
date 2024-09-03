@@ -30,6 +30,7 @@
     <Compile Include="hooks\mappings\project_rename_mapping.py" />
     <Compile Include="hooks\migration_action_completed\log_migration_actions_hook.py" />
     <Compile Include="hooks\post_publish\bulk_logging_hook.py" />
+    <Compile Include="Hooks\transformers\custom_view_default_users_transformer.py" />
     <Compile Include="hooks\transformers\encrypt_extracts_transformer.py" />
     <Compile Include="hooks\transformers\migrated_tag_transformer.py" />
     <Compile Include="Hooks\transformers\schedule_startat_transformer.py" />
@@ -37,6 +38,7 @@
     <Compile Include="Python.ExampleApplication.py" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include=".env" />
     <Content Include="config*.ini" />
     <Content Include="pyproject.toml" />
     <Content Include="requirements.txt" />

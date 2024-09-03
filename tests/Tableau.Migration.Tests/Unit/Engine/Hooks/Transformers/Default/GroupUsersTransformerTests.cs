@@ -15,6 +15,7 @@
 //  limitations under the License.
 //
 
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -51,12 +52,17 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
             public async Task Returns_the_same_object()
             {
                 var group = Create<IPublishableGroup>();
-
+                var users = new List<IContentReference>();
+                foreach (var user in group.Users)
+                {
+                    users.Add(user.User);
+                }
                 var result = await Transformer.TransformAsync(group, Cancel);
 
                 Assert.NotNull(result);
                 Assert.Same(group, result);
-                MockLogger.VerifyWarnings(Times.Exactly(group.Users.Count));
+                Assert.Equal(users, result.Users.Select(u => u.User));
+                MockLogger.VerifyDebug(Times.Once());
             }
 
             [Fact]
@@ -67,14 +73,16 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
                 var destinationUser = Create<IContentReference>();
                 group.Users.Add(new GroupUser(sourceUser));
 
-                MockUserContentFinder.Setup(f => f.FindBySourceLocationAsync(sourceUser.Location, Cancel)).ReturnsAsync(destinationUser);
+                MockUserContentFinder.Setup(f
+                    => f.FindBySourceLocationAsync(sourceUser.Location, Cancel))
+                    .ReturnsAsync(destinationUser);
 
                 var result = await Transformer.TransformAsync(group, Cancel);
 
                 Assert.NotNull(result);
                 Assert.Same(group, result);
-                MockLogger.VerifyWarnings(Times.Exactly(group.Users.Count - 1));
-                Assert.Same(destinationUser, result.Users.Last().User);
+                MockLogger.VerifyDebug(Times.Once());
+                Assert.Equal(destinationUser, result.Users.Last().User);
             }
         }
     }

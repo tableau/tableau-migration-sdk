@@ -92,7 +92,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Pipelines
             {
                 var actions = Pipeline.BuildActions();
 
-                Assert.Equal(7, actions.Length);
+                Assert.Equal(8, actions.Length);
                 Assert.IsType<PreflightAction>(actions[0]);
                 Assert.IsType<MigrateContentAction<IUser>>(actions[1]);
                 Assert.IsType<MigrateContentAction<IGroup>>(actions[2]);
@@ -100,6 +100,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Pipelines
                 Assert.IsType<MigrateContentAction<IDataSource>>(actions[4]);
                 Assert.IsType<MigrateContentAction<IWorkbook>>(actions[5]);
                 Assert.IsType<MigrateContentAction<IServerExtractRefreshTask>>(actions[6]);
+                Assert.IsType<MigrateContentAction<ICustomView>>(actions[7]);
             }
 
             [Fact]

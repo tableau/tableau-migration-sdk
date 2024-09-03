@@ -19,6 +19,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Tableau.Migration.Content;
 
 namespace Tableau.Migration
 {
@@ -45,6 +46,8 @@ namespace Tableau.Migration
         /// Gets whether this location reprents an empty path.
         /// </summary>
         public readonly bool IsEmpty { get; } = PathSegments.IsEmpty;
+
+        #region - Ctor -
 
         /// <summary>
         /// Creates a new <see cref="ContentLocation"/> value.
@@ -80,6 +83,10 @@ namespace Tableau.Migration
             : this(segments.ToImmutableArray(), pathSeparator)
         { }
 
+        #endregion
+
+        #region - Object Overrides -
+
         /// <summary>
         /// Indicates whether this value and a specified value are equal.
         /// </summary>
@@ -101,6 +108,10 @@ namespace Tableau.Migration
         /// <returns>The string representation.</returns>
         public readonly override string ToString() => Path;
 
+        #endregion
+
+        #region - Static Factory Methods -
+
         /// <summary>
         /// Creates a new <see cref="ContentLocation"/> value with the standard user/group name separator.
         /// </summary>
@@ -108,7 +119,7 @@ namespace Tableau.Migration
         /// <param name="username">The user/group name.</param>
         /// <returns>The newly created <see cref="ContentLocation"/>.</returns>
         public static ContentLocation ForUsername(string domain, string username)
-            => new(ImmutableArray.Create(domain, username), Constants.DomainNameSeparator);
+            => new([domain, username], Constants.DomainNameSeparator);
 
         /// <summary>
         /// Creates a new <see cref="ContentLocation"/> value from a string.
@@ -126,6 +137,57 @@ namespace Tableau.Migration
                         StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
                     .ToImmutableArray(),
                 pathSeparator);
+
+        /// <summary>
+        /// Creates a new <see cref="ContentLocation"/> with the appropriate path separator for the content type.
+        /// </summary>
+        /// <typeparam name="TContent">The content type to create the location for.</typeparam>
+        /// <param name="pathSegments">The location path segments.</param>
+        /// <returns></returns>
+        public static ContentLocation ForContentType<TContent>(params string[] pathSegments)
+            => ForContentType(typeof(TContent), (IEnumerable<string>)pathSegments);
+
+        /// <summary>
+        /// Creates a new <see cref="ContentLocation"/> with the appropriate path separator for the content type.
+        /// </summary>
+        /// <typeparam name="TContent">The content type to create the location for.</typeparam>
+        /// <param name="pathSegments">The location path segments.</param>
+        /// <returns></returns>
+        public static ContentLocation ForContentType<TContent>(IEnumerable<string> pathSegments)
+            => ForContentType(typeof(TContent), pathSegments);
+
+        /// <summary>
+        /// Creates a new <see cref="ContentLocation"/> with the appropriate path separator for the content type.
+        /// </summary>
+        /// <param name="contentType">The content type to create the location for.</param>
+        /// <param name="pathSegments">The location path segments.</param>
+        /// <returns></returns>
+        public static ContentLocation ForContentType(Type contentType, params string[] pathSegments)
+            => ForContentType(contentType, (IEnumerable<string>)pathSegments);
+
+        /// <summary>
+        /// Creates a new <see cref="ContentLocation"/> with the appropriate path separator for the content type.
+        /// </summary>
+        /// <param name="contentType">The content type to create the location for.</param>
+        /// <param name="pathSegments">The location path segments.</param>
+        /// <returns></returns>
+        public static ContentLocation ForContentType(Type contentType, IEnumerable<string> pathSegments)
+        {
+            string pathSeparator;
+            switch(contentType)
+            {
+                case Type t when t == typeof(IUser) || t == typeof(IGroup):
+                    pathSeparator = Constants.DomainNameSeparator;
+                    break;
+                default:
+                    pathSeparator = Constants.PathSeparator;
+                    break;
+            }
+
+            return new(pathSeparator, pathSegments);
+        }
+
+        #endregion
 
         /// <summary>
         /// Compares the current instance with another object of the same type and returns

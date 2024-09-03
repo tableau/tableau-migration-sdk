@@ -12,13 +12,14 @@ To log migration action statuses in Python, you can utilize the following hook c
 
 ### Registration
 
-For guidance on registering the hook, refer to the [documentation](~/samples/index.md?tabs=Python#hook-registration).
-
 [//]: <> (Adding this as code as regions are not supported in python snippets)
+
 ```Python
 plan_builder.hooks.add(LogMigrationActionsHookForUsers)
 plan_builder.hooks.add(LogMigrationActionsHookForGroups)
 ```
+
+See [hook registration](~/samples/index.md?tabs=Python#hook-registration) for more details.
 
 # [C#](#tab/CSharp)
 

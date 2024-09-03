@@ -448,6 +448,20 @@ Supported Content Types:
 
 *Description:* The Migration SDK uses [Microsoft.Extensions.Http.Resilience](https://learn.microsoft.com/en-us/dotnet/core/resilience) as a resilience and transient-fault layer. The SDK uses the **PerFileTransferRequestTimeout** property to define the maximum duration of FileTransfer requests.
 
+
+### Network.UserAgentComment
+
+*Reference:* [`NetworkOptions.UserAgentComment`](xref:Tableau.Migration.Config.NetworkOptions#Tableau_Migration_Config_NetworkOptions_UserAgentComment).
+
+*Default:* [`NetworkOptions.Defaults.USER_AGENT_COMMENT`](xref:Tableau.Migration.Config.NetworkOptions.Defaults#Tableau_Migration_Config_NetworkOptions_Defaults_USER_AGENT_COMMENT).
+
+*Python Environment Variable:* `MigrationSDK__Network__UserAgentComment`
+
+*Reload on Edit?:* **No**. Any changes to this configuration will reflect on the next time the application starts.
+
+*Description:* The Migration SDK appends the **UserAgentComment** property to the User-Agent header in all HTTP requests. This property is only used to assist in server-side debugging and it not typically set.
+
+
 ### DefaultPermissionsContentTypes.UrlSegments
 
 *Reference:* [`DefaultPermissionsContentTypeOptions.UrlSegments`](xref:Tableau.Migration.Config.DefaultPermissionsContentTypeOptions#Tableau_Migration_Config_DefaultPermissionsContentTypeOptions_UrlSegments).

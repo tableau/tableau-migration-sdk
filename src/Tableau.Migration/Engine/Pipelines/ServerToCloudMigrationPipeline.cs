@@ -21,7 +21,6 @@ using System.Collections.Immutable;
 using Microsoft.Extensions.DependencyInjection;
 using Tableau.Migration.Config;
 using Tableau.Migration.Content;
-using Tableau.Migration.Content.Schedules;
 using Tableau.Migration.Content.Schedules.Cloud;
 using Tableau.Migration.Content.Schedules.Server;
 using Tableau.Migration.Engine.Actions;
@@ -44,7 +43,8 @@ namespace Tableau.Migration.Engine.Pipelines
             MigrationPipelineContentType.Projects,
             MigrationPipelineContentType.DataSources,
             MigrationPipelineContentType.Workbooks,
-            MigrationPipelineContentType.ServerToCloudExtractRefreshTasks
+            MigrationPipelineContentType.ServerToCloudExtractRefreshTasks,
+            MigrationPipelineContentType.CustomViews
         ];
 
         private readonly IConfigReader _configReader;
@@ -77,6 +77,7 @@ namespace Tableau.Migration.Engine.Pipelines
             yield return CreateMigrateContentAction<IDataSource>();
             yield return CreateMigrateContentAction<IWorkbook>();
             yield return CreateMigrateContentAction<IServerExtractRefreshTask>();
+            yield return CreateMigrateContentAction<ICustomView>();
         }
 
         /// <inheritdoc />
@@ -96,10 +97,12 @@ namespace Tableau.Migration.Engine.Pipelines
                     return Services.GetRequiredService<ItemPublishContentBatchMigrator<TContent>>();
                 case Type dataSource when dataSource == typeof(IDataSource):
                     return Services.GetRequiredService<ItemPublishContentBatchMigrator<TContent, IPublishableDataSource, IDataSourceDetails>>();
-                case Type worbook when worbook == typeof(IWorkbook):
+                case Type workbook when workbook == typeof(IWorkbook):
                     return Services.GetRequiredService<ItemPublishContentBatchMigrator<TContent, IPublishableWorkbook, IWorkbookDetails>>();
                 case Type extractRefreshTask when extractRefreshTask == typeof(IServerExtractRefreshTask):
                     return Services.GetRequiredService<ItemPublishContentBatchMigrator<TContent, ICloudExtractRefreshTask, ICloudExtractRefreshTask>>();
+                case Type customView when customView == typeof(ICustomView):
+                    return Services.GetRequiredService<ItemPublishContentBatchMigrator<TContent, IPublishableCustomView, ICustomView>>();
                 default:
                     return base.GetBatchMigrator<TContent>();
             }

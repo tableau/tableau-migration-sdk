@@ -257,6 +257,7 @@ from tableau_migration.migration_content import (  # noqa: E402, F401
     PyConnection,
     PyConnectionsContent,
     PyContainerContent,
+    PyCustomView,
     PyDataSource,
     PyDataSourceDetails,
     PyDescriptionContent,
@@ -265,6 +266,7 @@ from tableau_migration.migration_content import (  # noqa: E402, F401
     PyGroupUser,
     PyLabel,
     PyProject,
+    PyPublishableCustomView,
     PyPublishableDataSource,
     PyPublishableGroup,
     PyPublishableWorkbook,
@@ -276,6 +278,7 @@ from tableau_migration.migration_content import (  # noqa: E402, F401
     PyWithDomain,
     PyWithOwner,
     PyWithTags,
+    PyWithWorkbook,
     PyWorkbook,
     PyWorkbookDetails
 )
@@ -339,13 +342,14 @@ from Tableau.Migration.Content.Schedules import ExtractRefreshContentType
 from Tableau.Migration.Engine.Manifest import MigrationManifestEntryStatus
 
 _generated_class_data = [
-    (PyContentLocation, None),
+    (PyContentLocation, [ "ForContentType" ]),
     (PyContentReference, None),
     (PyResult, [ "CastFailure" ]),
     (PyRestIdentifiable, None),
     (PyConnection, None),
     (PyConnectionsContent, None),
     (PyContainerContent, None),
+    (PyCustomView, None),
     (PyDataSource, [ "SetLocation" ]),
     (PyDataSourceDetails, [ "SetLocation" ]),
     (PyDescriptionContent, None),
@@ -354,6 +358,7 @@ _generated_class_data = [
     (PyGroupUser, None),
     (PyLabel, None),
     (PyProject, [ "Container", "SetLocation" ]),
+    (PyPublishableCustomView, [ "DisposeAsync", "File" ]),
     (PyPublishableDataSource, [ "DisposeAsync", "File", "SetLocation" ]),
     (PyPublishableGroup, [ "SetLocation" ]),
     (PyPublishableWorkbook, [ "ChildPermissionContentItems", "ChildType", "DisposeAsync", "File", "SetLocation", "ShouldMigrateChildPermissions" ]),
@@ -365,6 +370,7 @@ _generated_class_data = [
     (PyWithDomain, None),
     (PyWithOwner, None),
     (PyWithTags, None),
+    (PyWithWorkbook, None),
     (PyWorkbook, [ "SetLocation" ]),
     (PyWorkbookDetails, [ "ChildPermissionContentItems", "ChildType", "SetLocation", "ShouldMigrateChildPermissions" ]),
     (PyCapability, None),
@@ -409,12 +415,12 @@ _generated_enum_data = [
 # endregion
 
 _test_class_data = [
-    (PyMigrationPlanBuilder, None),
-    (PyServerToCloudMigrationPlanBuilder, None),
+    (PyMigrationPlanBuilder, [ "ForCustomPipeline", "ForCustomPipelineFactory" ]),
+    (PyServerToCloudMigrationPlanBuilder, [ "ForCustomPipeline", "ForCustomPipelineFactory" ]),
     (PyMigrationResult, None),
     (PyMigrationManifest, None),
     (PyMigrator, None),
-    (PyMigrationPlan, None),
+    (PyMigrationPlan, [ "PipelineFactoryOverride" ]),
     (PyMigrationHookBuilder, None),
     (PyContentTransformerBuilder, None),
     (PyContentMappingBuilder, None),

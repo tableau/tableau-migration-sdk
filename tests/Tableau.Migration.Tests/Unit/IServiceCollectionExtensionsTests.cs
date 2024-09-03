@@ -15,12 +15,56 @@
 //  limitations under the License.
 //
 
+using System.Collections.Generic;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
+using Xunit;
 
 namespace Tableau.Migration.Tests.Unit
 {
-    public class IServiceCollectionExtensionsTests : IServiceCollectionExtensionsTestBase
+    public sealed class IServiceCollectionExtensionsTests : IServiceCollectionExtensionsTestBase
     {
         protected override void ConfigureServices(IServiceCollection services) => services.AddTableauMigrationSdk();
+
+        public sealed class AddTableauMigrationSdk
+        {
+            [Fact]
+            public void ThrowsOnInvalidConfiguration()
+            {
+                var configBuilder = new ConfigurationBuilder();
+                
+                configBuilder.AddInMemoryCollection(new Dictionary<string, string?>
+                {
+                    { "contentTypes:0:type", "user" },
+                    { "contentTypes:1:type", "group" },
+                    { "contentTypes:2:type", "user" },
+                });
+
+                var config = configBuilder.Build();
+
+                var serviceCollection = new ServiceCollection();
+
+                Assert.Throws<OptionsValidationException>(() => serviceCollection.AddTableauMigrationSdk(config));
+            }
+
+            [Fact]
+            public void ValidConfiguration()
+            {
+                var serviceCollection = new ServiceCollection();
+
+                var configBuilder = new ConfigurationBuilder();
+
+                configBuilder.AddInMemoryCollection(new Dictionary<string, string?>
+                {
+                    { "contentTypes:0:type", "user" },
+                    { "contentTypes:1:type", "group" }
+                });
+
+                var config = configBuilder.Build();
+
+                serviceCollection.AddTableauMigrationSdk(config);
+            }
+        }
     }
 }

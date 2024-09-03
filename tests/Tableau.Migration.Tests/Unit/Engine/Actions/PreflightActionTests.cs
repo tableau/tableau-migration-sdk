@@ -84,7 +84,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Actions
                 Options.ValidateSettings = false;
 
                 var action = Create<PreflightAction>();
-                
+
                 var result = await action.ExecuteAsync(Cancel);
 
                 result.AssertSuccess();
@@ -248,25 +248,6 @@ namespace Tableau.Migration.Tests.Unit.Engine.Actions
                 MockDestination.Verify(x => x.GetSessionAsync(Cancel), Times.Once);
 
                 MockLogger.VerifyWarnings(Times.Never);
-            }
-
-            [Fact]
-            public async Task InvalidExtractEncryptionModeWarnsAsync()
-            {
-                MockSourceSession.SetupGet(x => x.Settings!.ExtractEncryptionMode).Returns(ExtractEncryptionModes.Enforced);
-                MockDestinationSession.SetupGet(x => x.Settings!.ExtractEncryptionMode).Returns(ExtractEncryptionModes.Disabled);
-
-                var action = Create<PreflightAction>();
-
-                var result = await action.ExecuteAsync(Cancel);
-
-                result.AssertSuccess();
-                Assert.True(result.PerformNextAction);
-
-                MockSource.Verify(x => x.GetSessionAsync(Cancel), Times.Once);
-                MockDestination.Verify(x => x.GetSessionAsync(Cancel), Times.Once);
-
-                MockLogger.VerifyWarnings(Times.Once);
             }
         }
     }

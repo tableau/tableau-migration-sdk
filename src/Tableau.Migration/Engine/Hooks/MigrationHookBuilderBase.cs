@@ -19,6 +19,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Tableau.Migration.Engine.Hooks
 {
@@ -110,6 +111,45 @@ namespace Tableau.Migration.Engine.Hooks
             {
                 AddForHookInterface(hookInterfaceType);
             }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="filterType"></param>
+        /// <param name="initializer"></param>
+        /// <returns></returns>
+        protected MigrationHookBuilderBase Add(Type filterType, Func<IServiceProvider, object> initializer)
+        {
+            AddFactoriesByType(filterType, initializer);
+            return this;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="genericHookType"></param>
+        /// <param name="contentTypes"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
+        protected MigrationHookBuilderBase Add(Type genericHookType, IEnumerable<Type[]> contentTypes)
+        {
+            if (!genericHookType.IsGenericTypeDefinition)
+                throw new ArgumentException($"Type {genericHookType.FullName} is not a generic type definition.");
+
+            foreach (var contentType in contentTypes)
+            {
+                var constructedType = genericHookType.MakeGenericType(contentType);
+
+                object hookFactory(IServiceProvider services)
+                {
+                    return services.GetRequiredService(constructedType);
+                }
+
+                Add(constructedType, hookFactory);
+            }
+
+            return this;
         }
 
         #endregion

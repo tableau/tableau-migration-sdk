@@ -76,8 +76,7 @@ namespace Tableau.Migration.Engine.Hooks
         /// <typeparam name="TContext">The hook's context type.</typeparam>
         /// <param name="callback">A synchronous callback to call for the hook.</param>
         /// <returns>The same hook builder object for fluent API calls.</returns>
-        IMigrationHookBuilder Add<THook, TContext>(
-            Func<TContext, TContext?> callback)
+        IMigrationHookBuilder Add<THook, TContext>(Func<TContext, TContext?> callback)
             where THook : IMigrationHook<TContext>;
 
         /// <summary>

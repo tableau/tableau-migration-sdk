@@ -18,16 +18,18 @@
 using System;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Tableau.Migration.Config;
 using Tableau.Migration.Interop;
 using Tableau.Migration.Interop.Logging;
+using Xunit;
 
 namespace Tableau.Migration.Tests.Unit.Interop
 {
-    public class IServiceCollectionExtensionsTests
+    public sealed class IServiceCollectionExtensionsTests
     {
-        public class AddPythonSupport : IServiceCollectionExtensionsTestBase
+        public sealed class AddPythonSupport : IServiceCollectionExtensionsTestBase, IDisposable
         {
-            class PythonLogger : NonGenericLoggerBase
+            sealed class PythonLogger : NonGenericLoggerBase
             {
                 public override bool IsEnabled(LogLevel logLevel) => true;
 
@@ -46,6 +48,18 @@ namespace Tableau.Migration.Tests.Unit.Interop
             protected override void ConfigureServices(IServiceCollection services)
             {
                 services.AddPythonSupport(GetLogger);
+            }
+
+            public void Dispose()
+            {
+                Environment.SetEnvironmentVariable(Constants.PYTHON_USER_AGENT_COMMENT_CONFIG_KEY, null);
+            }
+
+            [Fact]
+            public void SetsUserAgentCommentConfiguration()
+            {
+                var config = ServiceProvider.GetRequiredService<IConfigReader>();
+                Assert.Equal(Constants.PYTHON_USER_AGENT_COMMENT, config.Get().Network.UserAgentComment);
             }
         }
     }

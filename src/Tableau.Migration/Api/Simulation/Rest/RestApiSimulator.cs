@@ -51,12 +51,12 @@ namespace Tableau.Migration.Api.Simulation.Rest
         /// Gets the simulated job API methods.
         /// </summary>
         public JobsRestApiSimulator Jobs { get; }
-        
+
         /// <summary>
         /// Gets the simulated schedule API methods.
         /// </summary>
         public SchedulesRestApiSimulator Schedules { get; }
-        
+
         /// <summary>
         /// Gets the simulated task API methods.
         /// </summary>
@@ -86,6 +86,11 @@ namespace Tableau.Migration.Api.Simulation.Rest
         /// Gets the simulated view API methods.
         /// </summary>
         public ViewsRestApiSimulator Views { get; }
+
+        /// <summary>
+        /// Gets the simulated custom view API methods.
+        /// </summary>
+        public CustomViewsRestApiSimulator CustomViews { get; }
 
         /// <summary>
         /// Gets the simulated workbook API methods.
@@ -130,7 +135,7 @@ namespace Tableau.Migration.Api.Simulation.Rest
             };
 
             var adminLevel = SiteRoleMapping.GetAdministratorLevel(user.SiteRole);
-            if(!AdministratorLevels.IsAMatch(adminLevel, AdministratorLevels.None))
+            if (!AdministratorLevels.IsAMatch(adminLevel, AdministratorLevels.None))
             {
                 response.Site.ExtractEncryptionMode = site.ExtractEncryptionMode;
             }
@@ -156,6 +161,7 @@ namespace Tableau.Migration.Api.Simulation.Rest
             Workbooks = new(simulator);
             Files = new(simulator);
             Views = new(simulator);
+            CustomViews = new(simulator);
 
             QueryServerInfo = simulator.SetupRestGet<ServerInfoResponse, ServerInfoResponse.ServerInfoType>(RestApiUrl("serverinfo"), d => d.ServerInfo, requiresAuthentication: false);
             GetCurrentServerSession = simulator.SetupRestGet<ServerSessionResponse, ServerSessionResponse.SessionType>(RestApiUrl("sessions/current"), BuildCurrentSession);

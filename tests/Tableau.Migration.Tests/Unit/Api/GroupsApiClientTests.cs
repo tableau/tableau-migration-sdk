@@ -48,6 +48,16 @@ namespace Tableau.Migration.Tests.Unit.Api
             internal GroupsApiClient GroupsApiClient => GetApiClient<GroupsApiClient>();
         }
 
+        #region - List -
+
+        public class ListClient : PagedListApiClientTestBase<IGroupsApiClient, IGroup, GroupsResponse>
+        { }
+
+        public class PageAccessor : ApiPageAccessorTestBase<IGroupsApiClient, IGroup, GroupsResponse>
+        { }
+
+        #endregion
+
         public class CreateLocalGroupAsync : GroupsApiClientTest
         {
             [Fact]

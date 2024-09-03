@@ -56,6 +56,10 @@ namespace Tableau.Migration.Tests
             where T : class, ILogger
             => VerifyLogging(mock, LogLevel.Error, times);
 
+        public static void VerifyDebug<T>(this Mock<T> mock, Times times)
+            where T : class, ILogger
+            => VerifyLogging(mock, LogLevel.Debug, times);
+
         public static void VerifyWarnings<T>(this Mock<T> mock, Func<Times> times)
             where T : class, ILogger
             => VerifyLogging(mock, LogLevel.Warning, times);

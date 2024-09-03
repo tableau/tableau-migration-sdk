@@ -15,13 +15,19 @@
 //  limitations under the License.
 //
 
-namespace Tableau.Migration
+using System.Collections.Immutable;
+using Tableau.Migration.Api.Rest;
+
+namespace Tableau.Migration.Api.Models
 {
     /// <summary>
-    /// Interface for an object that builds the user agent suffix
+    /// The custom view as user default view result item
     /// </summary>
-    internal interface IUserAgentSuffixProvider
+    public interface ICustomViewAsUserDefaultViewResult
     {
-        public string UserAgentSuffix { get; init; }
+        /// <summary>
+        /// Gets the success of set custom view as default for users  
+        /// </summary>
+        bool Success { get; }
     }
 }

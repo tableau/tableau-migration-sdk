@@ -26,7 +26,7 @@ namespace Tableau.Migration.Api.Models
     /// <summary>
     /// Class for API client workbook publish options. 
     /// </summary>
-    public class PublishWorkbookOptions : IPublishWorkbookOptions
+    public class PublishWorkbookOptions : PublishContentWithFileOptions, IPublishWorkbookOptions
     {
         ///<inheritdoc/>
         public string Name { get; }
@@ -53,15 +53,6 @@ namespace Tableau.Migration.Api.Models
         public Guid ProjectId { get; }
 
         ///<inheritdoc/>
-        public Stream File { get; }
-
-        ///<inheritdoc/>
-        public string FileName { get; }
-
-        ///<inheritdoc/>
-        public string FileType { get; }
-
-        ///<inheritdoc/>
         public IEnumerable<string> HiddenViewNames { get; }
 
         /// <summary>
@@ -70,17 +61,21 @@ namespace Tableau.Migration.Api.Models
         /// <param name="workbook">The publishable workbook information.</param>
         /// <param name="file">The workbook file as a <see cref="Stream"/></param>
         /// <param name="fileType">The type of workbook file.</param>
-        public PublishWorkbookOptions(IPublishableWorkbook workbook, Stream file, string fileType = WorkbookFileTypes.Twbx)
+        public PublishWorkbookOptions(
+            IPublishableWorkbook workbook, 
+            Stream file, 
+            string fileType = WorkbookFileTypes.Twbx) 
+                 : base(
+                  file,
+                  workbook.File.OriginalFileName,
+                  fileType)
         {
             Name = workbook.Name;
             Description = workbook.Description;
             ShowTabs = workbook.ShowTabs;
             EncryptExtracts = workbook.EncryptExtracts;
             ThumbnailsUserId = workbook.ThumbnailsUserId;
-            ProjectId = ((IContainerContent)workbook).Container.Id;
-            File = file;
-            FileName = workbook.File.OriginalFileName;
-            FileType = fileType;
+            ProjectId = ((IContainerContent)workbook).Container.Id;            
             HiddenViewNames = workbook.HiddenViewNames;
         }
     }

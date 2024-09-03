@@ -45,9 +45,9 @@ namespace Tableau.Migration.Tests.Unit.Net
                 // Please, respect the same order on the method IServiceCollectionExtensions.AddHttpServices
                 await AssertServiceAsync<ITableauSerializer, TableauSerializer>(ServiceLifetime.Singleton);
 
-                await AssertServiceAsync<IUserAgentSuffixProvider, UserAgentSuffixProvider>(ServiceLifetime.Singleton);
                 await AssertServiceAsync<IMigrationSdk, MigrationSdk>(ServiceLifetime.Singleton);
                 await AssertServiceAsync<IConfigReader, ConfigReader>(ServiceLifetime.Singleton);
+                await AssertServiceAsync<IUserAgentProvider, UserAgentProvider>(ServiceLifetime.Singleton);
                 await AssertServiceAsync<IHttpContentSerializer, HttpContentSerializer>(ServiceLifetime.Singleton);
                 await AssertServiceAsync<INetworkTraceRedactor, NetworkTraceRedactor>(ServiceLifetime.Singleton);
                 await AssertServiceAsync<INetworkTraceLogger, NetworkTraceLogger>(ServiceLifetime.Transient);

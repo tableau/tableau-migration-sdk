@@ -15,7 +15,10 @@
 //  limitations under the License.
 //
 
+using System;
 using System.Net.Http;
+using System.Net.Mime;
+using System.Text;
 using System.Threading.Tasks;
 using Moq;
 using Tableau.Migration.Api.Rest.Models.Responses;
@@ -74,6 +77,19 @@ namespace Tableau.Migration.Tests.Unit.Net
                 var error = await MockSerializer.Object.TryDeserializeErrorAsync(MockContent.Object, Cancel);
 
                 Assert.Null(error);
+            }
+        }
+
+        public sealed class DeserializeAsync : HttpContentSerializerTest
+        {
+            [Fact]
+            public async Task ThrowsHtmlErrorWithContextAsync()
+            {
+                const string HTML = "<html><head></head><body><h1>I Have Error Information!</h1></body>";
+                var htmlErrorContent = new StringContent(HTML, Encoding.UTF8, MediaTypeNames.Text.Html);
+
+                var ex = await Assert.ThrowsAsync<FormatException>(() => MockSerializer.Object.DeserializeAsync<EmptyTableauServerResponse>(htmlErrorContent, Cancel));
+                Assert.Contains(HTML, ex.Message);
             }
         }
     }

@@ -17,6 +17,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
@@ -110,6 +111,17 @@ namespace Tableau.Migration.Engine.Endpoints
         public async Task<IResult<ISite>> UpdateSiteSettingsAsync(ISiteSettingsUpdate newSiteSettings, CancellationToken cancel)
         {
             return await SiteApi.UpdateSiteAsync(newSiteSettings, cancel).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc />
+        public async Task<IResult<IImmutableList<ICustomViewAsUserDefaultViewResult>>> SetCustomViewDefaultUsersAsync(
+            Guid id,
+            IEnumerable<IContentReference> users,
+            CancellationToken cancel)
+        {
+            return await SiteApi.CustomViews
+                .SetCustomViewDefaultUsersAsync(id, users, cancel)
+                .ConfigureAwait(false);
         }
     }
 }

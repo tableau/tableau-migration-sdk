@@ -25,7 +25,10 @@ namespace Tableau.Migration.Engine.Pipelines
     /// </summary>
     public class MigrationPipelineFactory : IMigrationPipelineFactory
     {
-        private readonly IServiceProvider _services;
+        /// <summary>
+        /// Gets the migration-scoped service provider.
+        /// </summary>
+        protected IServiceProvider Services { get; }
 
         /// <summary>
         /// Creates a new <see cref="MigrationPipelineFactory"/> object.
@@ -33,16 +36,16 @@ namespace Tableau.Migration.Engine.Pipelines
         /// <param name="services">A service provider to create pipelines with.</param>
         public MigrationPipelineFactory(IServiceProvider services)
         {
-            _services = services;
+            Services = services;
         }
 
         /// <inheritdoc />
-        public IMigrationPipeline Create(IMigrationPlan plan)
+        public virtual IMigrationPipeline Create(IMigrationPlan plan)
         {
             switch (plan.PipelineProfile)
             {
                 case PipelineProfile.ServerToCloud:
-                    return _services.GetRequiredService<ServerToCloudMigrationPipeline>();
+                    return Services.GetRequiredService<ServerToCloudMigrationPipeline>();
                 default:
                     throw new ArgumentException($"Cannot create a migration pipeline for profile {plan.PipelineProfile}");
             }

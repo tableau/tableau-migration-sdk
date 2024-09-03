@@ -147,5 +147,17 @@ namespace Tableau.Migration.Engine.Endpoints
         /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>The result of the site update operation.</returns>
         Task<IResult<ISite>> UpdateSiteSettingsAsync(ISiteSettingsUpdate newSiteSettings, CancellationToken cancel);
+
+        /// <summary>
+        /// Update the custom view's default users.
+        /// </summary>
+        /// <param name="id">The ID of the custom view.</param>
+        /// <param name="users">The list of users who have the custom view as their default.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
+        /// <returns>The result of the default user list update.</returns>
+        Task<IResult<IImmutableList<ICustomViewAsUserDefaultViewResult>>> SetCustomViewDefaultUsersAsync(
+            Guid id,
+            IEnumerable<IContentReference> users,
+            CancellationToken cancel);
     }
 }

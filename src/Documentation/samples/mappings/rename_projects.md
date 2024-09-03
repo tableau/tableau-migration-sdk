@@ -10,12 +10,13 @@ In this example, the source project named `Test` is renamed to `Production` on t
 
 #### Registration
 
-[Learn more.](~/samples/index.md?tabs=Python#hook-registration)
-
 [//]: <> (Adding this as code as regions are not supported in Python snippets)
+
 ```Python
-plan_builder.mappings.add(EmailDomainMapping)
+plan_builder.mappings.add(ProjectRenameMapping)
 ```
+
+See [hook registration](~/samples/index.md?tabs=Python#hook-registration) for more details.
 
 # [C#](#tab/CSharp)
 

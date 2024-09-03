@@ -24,46 +24,82 @@ namespace Tableau.Migration.Tests.Unit
     {
         public class Build
         {
-            [Fact]
-            public void Builds()
+            public class FromObjectExpression
             {
-                var response = new SignInResponse();
+                [Fact]
+                public void Builds()
+                {
+                    var response = new SignInResponse();
 
-                var actual = NameOf.Build(() => response);
+                    var actual = NameOf.Build(() => response);
 
-                var expected = "response";
+                    var expected = "response";
 
-                Assert.Equal(expected, actual);
+                    Assert.Equal(expected, actual);
+                }
+
+                [Fact]
+                public void BuildsChain()
+                {
+                    var response = new SignInResponse();
+
+                    var actual = NameOf.Build(() => response.Item!.Site!.ContentUrl);
+
+                    var expected = "response.Item.Site.ContentUrl";
+
+                    Assert.Equal(expected, actual);
+                }
+
+                [Fact]
+                public void BuildsChainForValueType()
+                {
+                    var response = new SignInResponse();
+
+                    var actual = NameOf.Build(() => response.Item!.Site!.Id);
+
+                    var expected = "response.Item.Site.Id";
+
+                    Assert.Equal(expected, actual);
+                }
+
+                [Fact]
+                public void DoesNotThrowOnNonMemberExpression()
+                {
+                    Assert.Equal(string.Empty, NameOf.Build(() => 1 + 1));
+                }
             }
 
-            [Fact]
-            public void BuildsChain()
+            public class FromPropertyExpression
             {
-                var response = new SignInResponse();
+                [Fact]
+                public void BuildsChain()
+                {
+                    var response = new SignInResponse();
 
-                var actual = NameOf.Build(() => response.Item!.Site!.ContentUrl);
+                    var actual = NameOf.Build<SignInResponse>(r => r.Item!.Site!.ContentUrl);
 
-                var expected = "response.Item.Site.ContentUrl";
+                    var expected = "Item.Site.ContentUrl";
 
-                Assert.Equal(expected, actual);
-            }
+                    Assert.Equal(expected, actual);
+                }
 
-            [Fact]
-            public void BuildsChainForValueType()
-            {
-                var response = new SignInResponse();
+                [Fact]
+                public void BuildsChainForValueType()
+                {
+                    var response = new SignInResponse();
 
-                var actual = NameOf.Build(() => response.Item!.Site!.Id);
+                    var actual = NameOf.Build<SignInResponse>(r => r.Item!.Site!.Id);
 
-                var expected = "response.Item.Site.Id";
+                    var expected = "Item.Site.Id";
 
-                Assert.Equal(expected, actual);
-            }
+                    Assert.Equal(expected, actual);
+                }
 
-            [Fact]
-            public void DoesNotThrowOnNonMemberExpression()
-            {
-                Assert.Equal(string.Empty, NameOf.Build(() => 1 + 1));
+                [Fact]
+                public void DoesNotThrowOnNonMemberExpression()
+                {
+                    Assert.Equal(string.Empty, NameOf.Build<SignInResponse>(r => 1 + 1));
+                }
             }
         }
     }

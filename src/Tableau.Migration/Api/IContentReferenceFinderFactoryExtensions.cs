@@ -24,7 +24,6 @@ using Tableau.Migration.Api.Rest;
 using Tableau.Migration.Api.Rest.Models;
 using Tableau.Migration.Content;
 using Tableau.Migration.Content.Schedules;
-using Tableau.Migration.Content.Schedules.Server;
 using Tableau.Migration.Content.Search;
 using Tableau.Migration.Resources;
 
@@ -39,26 +38,45 @@ namespace Tableau.Migration.Api
             ISharedResourcesLocalizer localizer,
             [DoesNotReturnIf(true)] bool throwIfNotFound,
             CancellationToken cancel)
-            where T : IWithProjectType, INamedContent
-        {
-            Guard.AgainstNull(response, nameof(response));
+            where T : IWithProjectType, IRestIdentifiable
+            => await finderFactory
+                .FindAsync<T, IProject>(
+                    response,
+                    r =>
+                    {
+                        var project = Guard.AgainstNull(r.Project, () => nameof(response.Project));
+                        return Guard.AgainstDefaultValue(project.Id, () => nameof(response.Project.Id));
+                    },
+                    logger,
+                    localizer,
+                    throwIfNotFound,
+                    SharedResourceKeys.ProjectReferenceNotFoundMessage,
+                    SharedResourceKeys.ProjectReferenceNotFoundException,
+                    cancel)
+                .ConfigureAwait(false);
 
-            var project = Guard.AgainstNull(response.Project, () => nameof(response.Project));
-            var projectId = Guard.AgainstDefaultValue(project.Id, () => nameof(response.Project.Id));
-
-            var projectFinder = finderFactory.ForContentType<IProject>();
-
-            var foundProject = await projectFinder.FindByIdAsync(projectId, cancel).ConfigureAwait(false);
-
-            if (foundProject is not null)
-                return foundProject;
-
-            logger.LogWarning(localizer[SharedResourceKeys.ProjectReferenceNotFoundMessage], response.Project.Name, response.GetType().Name, response.Name);
-
-            return throwIfNotFound
-                ? throw new InvalidOperationException($"The project with ID {projectId} was not found.")
-                : null;
-        }
+        public static async Task<IContentReference?> FindUserAsync<T>(
+            this IContentReferenceFinderFactory finderFactory,
+            [NotNull] T? response,
+            ILogger logger,
+            ISharedResourcesLocalizer localizer,
+            [DoesNotReturnIf(true)] bool throwIfNotFound,
+            CancellationToken cancel)
+            where T : IRestIdentifiable
+            => await finderFactory
+                .FindAsync<T, IUser>(
+                    response,
+                    r =>
+                    {
+                        return Guard.AgainstDefaultValue(r.Id, () => nameof(response.Id));
+                    },
+                    logger,
+                    localizer,
+                    throwIfNotFound,
+                    SharedResourceKeys.UserReferenceNotFoundMessage,
+                    SharedResourceKeys.UserReferenceNotFoundException,
+                    cancel)
+                .ConfigureAwait(false);
 
         public static async Task<IContentReference?> FindOwnerAsync<T>(
             this IContentReferenceFinderFactory finderFactory,
@@ -67,43 +85,46 @@ namespace Tableau.Migration.Api
             ISharedResourcesLocalizer localizer,
             [DoesNotReturnIf(true)] bool throwIfNotFound,
             CancellationToken cancel)
-            where T : IWithOwnerType, INamedContent
-        {
-            Guard.AgainstNull(response, nameof(response));
+            where T : IWithOwnerType, IRestIdentifiable
+            => await finderFactory
+                .FindAsync<T, IUser>(
+                    response,
+                    r =>
+                    {
+                        var owner = Guard.AgainstNull(r.Owner, () => nameof(response.Owner));
+                        return Guard.AgainstDefaultValue(owner.Id, () => nameof(response.Owner.Id));
+                    },
+                    logger,
+                    localizer,
+                    throwIfNotFound,
+                    SharedResourceKeys.OwnerNotFoundMessage,
+                    SharedResourceKeys.OwnerNotFoundException,
+                    cancel)
+                .ConfigureAwait(false);
 
-            var owner = Guard.AgainstNull(response.Owner, () => nameof(response.Owner));
-            var ownerId = Guard.AgainstDefaultValue(owner.Id, () => nameof(response.Owner.Id));
-
-            var userFinder = finderFactory.ForContentType<IUser>();
-
-            var foundOwner = await userFinder.FindByIdAsync(ownerId, cancel).ConfigureAwait(false);
-
-            if (foundOwner is not null)
-                return foundOwner;
-
-            logger.LogWarning(localizer[SharedResourceKeys.OwnerNotFoundMessage], ownerId, response.GetType().Name, response.Name);
-
-            return throwIfNotFound
-                ? throw new InvalidOperationException($"The owner with ID {ownerId} was not found.")
-                : null;
-        }
-
-        public static async Task<IContentReference> FindScheduleAsync(
+        public static async Task<IContentReference?> FindWorkbookAsync<T>(
             this IContentReferenceFinderFactory finderFactory,
-            [NotNull] IWithScheduleReferenceType? response,
+            [NotNull] T? response,
+            ILogger logger,
+            ISharedResourcesLocalizer localizer,
+            [DoesNotReturnIf(true)] bool throwIfNotFound,
             CancellationToken cancel)
-        {
-            Guard.AgainstNull(response, nameof(response));
-
-            var schedule = Guard.AgainstNull(response.Schedule, () => nameof(response.Schedule));
-            var scheduleId = Guard.AgainstDefaultValue(schedule.Id, () => nameof(response.Schedule.Id));
-
-            var scheduleFinder = finderFactory.ForContentType<IServerSchedule>();
-
-            var foundSchedule = await scheduleFinder.FindByIdAsync(scheduleId, cancel).ConfigureAwait(false);
-
-            return Guard.AgainstNull(foundSchedule, nameof(foundSchedule));
-        }
+            where T : IWithWorkbookReferenceType, IRestIdentifiable
+            => await finderFactory
+                .FindAsync<T, IWorkbook>(
+                    response,
+                    r =>
+                    {
+                        var workbook = Guard.AgainstNull(r.Workbook, () => nameof(response.Workbook));
+                        return Guard.AgainstDefaultValue(workbook.Id, () => nameof(response.Workbook.Id));
+                    },
+                    logger,
+                    localizer,
+                    throwIfNotFound,
+                    SharedResourceKeys.WorkbookReferenceNotFoundMessage,
+                    SharedResourceKeys.WorkbookReferenceNotFoundException,
+                    cancel)
+                .ConfigureAwait(false);
 
         public static async Task<IContentReference> FindExtractRefreshContentAsync(
             this IContentReferenceFinderFactory finderFactory,
@@ -116,6 +137,46 @@ namespace Tableau.Migration.Api
             var content = await finder.FindByIdAsync(contentId, cancel).ConfigureAwait(false);
 
             return Guard.AgainstNull(content, nameof(content));
+        }
+
+        private static async Task<IContentReference?> FindAsync<TResponse, TContent>(
+            this IContentReferenceFinderFactory finderFactory,
+            [NotNull] TResponse? response,
+            Func<TResponse, Guid> getResponseId,
+            ILogger logger,
+            ISharedResourcesLocalizer localizer,
+            [DoesNotReturnIf(true)] bool throwIfNotFound,
+            string warningMessageResource,
+            string exceptionMessageResource,
+            CancellationToken cancel)
+            where TResponse : IRestIdentifiable
+            where TContent : class, IContentReference
+        {
+            Guard.AgainstNull(response, nameof(response));
+
+            var responseId = getResponseId(response);
+
+            var finder = finderFactory.ForContentType<TContent>();
+
+            var foundContent = await finder.FindByIdAsync(responseId, cancel).ConfigureAwait(false);
+
+            if (foundContent is not null)
+                return foundContent;
+
+            var namedResponse = response as INamedContent;
+
+            logger.LogWarning(
+                localizer[warningMessageResource],
+                responseId,
+                response.GetType().Name,
+                namedResponse?.Name ?? string.Empty);
+
+            return throwIfNotFound
+                ? throw new InvalidOperationException(
+                    string.Format(
+                        localizer[exceptionMessageResource],
+                        responseId))
+                : null;
         }
     }
 }
