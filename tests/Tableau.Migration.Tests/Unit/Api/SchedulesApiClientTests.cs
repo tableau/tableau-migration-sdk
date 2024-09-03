@@ -23,7 +23,6 @@ using Moq;
 using Tableau.Migration.Api;
 using Tableau.Migration.Api.Rest.Models.Responses.Server;
 using Tableau.Migration.Config;
-using Tableau.Migration.Content.Schedules;
 using Tableau.Migration.Content.Schedules.Server;
 using Tableau.Migration.Net.Rest;
 using Xunit;

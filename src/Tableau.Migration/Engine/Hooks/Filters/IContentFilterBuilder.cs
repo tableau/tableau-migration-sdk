@@ -36,10 +36,10 @@ namespace Tableau.Migration.Engine.Hooks.Filters
         /// <summary>
         /// Adds a factory to resolve the filter type.
         /// </summary>
-        /// <param name="genericTransformerType">The generic type definition for the filter to execute.</param>
+        /// <param name="genericFilterType">The generic type definition for the filter to execute.</param>
         /// <param name="contentTypes">The content types used to construct the filter types.</param>
         /// <returns>The same filter builder object for fluent API calls.</returns>
-        IContentFilterBuilder Add(Type genericTransformerType, IEnumerable<Type[]> contentTypes);
+        IContentFilterBuilder Add(Type genericFilterType, IEnumerable<Type[]> contentTypes);
 
         /// <summary>
         /// Adds an object to be resolved when you build a filter for the content type.
@@ -76,8 +76,7 @@ namespace Tableau.Migration.Engine.Hooks.Filters
         /// <typeparam name="TContent">The content type.</typeparam>
         /// <param name="callback">A synchronously callback to call for the filter.</param>
         /// <returns>The same filter builder object for fluent API calls.</returns>
-        IContentFilterBuilder Add<TContent>(
-            Func<IEnumerable<ContentMigrationItem<TContent>>, IEnumerable<ContentMigrationItem<TContent>>?> callback)
+        IContentFilterBuilder Add<TContent>(Func<IEnumerable<ContentMigrationItem<TContent>>, IEnumerable<ContentMigrationItem<TContent>>?> callback)
             where TContent : IContentReference;
 
         /// <summary>

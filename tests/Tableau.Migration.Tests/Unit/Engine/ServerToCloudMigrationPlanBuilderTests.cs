@@ -16,6 +16,7 @@
 //
 
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Moq;
@@ -26,6 +27,7 @@ using Tableau.Migration.Engine.Endpoints;
 using Tableau.Migration.Engine.Hooks.Mappings;
 using Tableau.Migration.Engine.Hooks.Mappings.Default;
 using Tableau.Migration.Engine.Hooks.Transformers.Default;
+using Tableau.Migration.Engine.Pipelines;
 using Xunit;
 
 namespace Tableau.Migration.Tests.Unit.Engine
@@ -141,6 +143,39 @@ namespace Tableau.Migration.Tests.Unit.Engine
                 var b = ((IMigrationPlanBuilder)Builder).ForServerToCloud();
 
                 MockInnerBuilder.Verify(x => x.ForServerToCloud(), Times.Once);
+            }
+
+            private IMigrationPipelineFactory CreateFactory(IServiceProvider services) => Create<IMigrationPipelineFactory>();
+
+            [Fact]
+            public void ForCustomPipelineFactory()
+            {
+                var contentTypes = CreateMany<MigrationPipelineContentType>();
+                var contentTypesArray = contentTypes.ToArray();
+
+                var b = ((IMigrationPlanBuilder)Builder).ForCustomPipelineFactory<MigrationPipelineFactory>(contentTypesArray);
+                b = ((IMigrationPlanBuilder)Builder).ForCustomPipelineFactory<MigrationPipelineFactory>(contentTypes);
+
+                b = ((IMigrationPlanBuilder)Builder).ForCustomPipelineFactory(CreateFactory, contentTypesArray);
+                b = ((IMigrationPlanBuilder)Builder).ForCustomPipelineFactory(CreateFactory, contentTypes);
+
+                MockInnerBuilder.Verify(x => x.ForCustomPipelineFactory<MigrationPipelineFactory>(contentTypesArray), Times.Once);
+                MockInnerBuilder.Verify(x => x.ForCustomPipelineFactory<MigrationPipelineFactory>(contentTypes), Times.Once);
+                MockInnerBuilder.Verify(x => x.ForCustomPipelineFactory(CreateFactory, contentTypesArray), Times.Once);
+                MockInnerBuilder.Verify(x => x.ForCustomPipelineFactory(CreateFactory, contentTypes), Times.Once);
+            }
+
+            [Fact]
+            public void ForCustomPipeline()
+            {
+                var contentTypes = CreateMany<MigrationPipelineContentType>();
+                var contentTypesArray = contentTypes.ToArray();
+
+                var b = ((IMigrationPlanBuilder)Builder).ForCustomPipeline<ServerToCloudMigrationPipeline>(contentTypesArray);
+                b = ((IMigrationPlanBuilder)Builder).ForCustomPipeline<ServerToCloudMigrationPipeline>(contentTypes);
+
+                MockInnerBuilder.Verify(x => x.ForCustomPipeline<ServerToCloudMigrationPipeline>(contentTypesArray), Times.Once);
+                MockInnerBuilder.Verify(x => x.ForCustomPipeline<ServerToCloudMigrationPipeline>(contentTypes), Times.Once);
             }
 
             [Fact]

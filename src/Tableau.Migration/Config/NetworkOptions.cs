@@ -51,6 +51,11 @@ namespace Tableau.Migration.Config
             /// The default Network Exceptions Logging Flag - Disabled as Default.
             /// </summary>
             public const bool LOG_EXCEPTIONS_ENABLED = false;
+
+            /// <summary>
+            /// The default omitted user agent comment.
+            /// </summary>
+            public const string? USER_AGENT_COMMENT = null;
         }
 
         /// <summary>
@@ -102,6 +107,16 @@ namespace Tableau.Migration.Config
             set => _exceptionsLoggingEnabled = value;
         }
         private bool? _exceptionsLoggingEnabled;
+
+        /// <summary>
+        /// Gets or sets the comment to include in the HTTP user agent header, or null to omit the user agent comment.
+        /// </summary>
+        public string? UserAgentComment
+        {
+            get => _userAgentComment ?? Defaults.USER_AGENT_COMMENT;
+            set => _userAgentComment = value;
+        }
+        private string? _userAgentComment;
 
         /// <summary>
         /// Resilience options related to Tableau connections. 

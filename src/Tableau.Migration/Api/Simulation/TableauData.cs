@@ -95,17 +95,17 @@ namespace Tableau.Migration.Api.Simulation
         /// Gets or sets the jobs.
         /// </summary>
         public ConcurrentSet<JobResponse.JobType> Jobs { get; set; } = new();
-        
+
         /// <summary>
         /// Gets or sets the schedules.
         /// </summary>
         public ConcurrentSet<ServerResponse.ScheduleResponse.ScheduleType> Schedules { get; set; } = new();
-        
+
         /// <summary>
         /// Gets or sets the schedules extract refresh tasks.
         /// </summary>
         public ConcurrentSet<ServerResponse.ScheduleExtractRefreshTasksResponse.ExtractType> ScheduleExtractRefreshTasks { get; set; } = new();
-        
+
         /// <summary>
         /// Gets or sets the Tableau Server extract refresh tasks.
         /// </summary>
@@ -171,6 +171,23 @@ namespace Tableau.Migration.Api.Simulation
         /// </summary>
         public ConcurrentDictionary<string, IEnumerable<byte>> Files { get; set; } = new();
 
+        /// <summary>
+        /// Gets or sets the custom views.
+        /// </summary>
+        public ConcurrentSet<CustomViewResponse.CustomViewType> CustomViews { get; set; } = new();
+
+
+        /// <summary>
+        /// Gets or sets the custom view fileData contents, by ID.
+        /// </summary>
+        public ConcurrentDictionary<Guid, byte[]> CustomViewFiles { get; set; } = new();
+
+
+
+        /// <summary>
+        /// Gets or sets the custom view default users contents, by ID.
+        /// </summary>
+        public ConcurrentDictionary<Guid, List<UsersWithCustomViewAsDefaultViewResponse.UserType>> CustomViewDefaultUsers { get; set; } = new();
 
         #region - Relationships -
 
@@ -509,6 +526,18 @@ namespace Tableau.Migration.Api.Simulation
             Views.Add(view);
         }
 
+        /// <summary>
+        /// Adds a custom view to simulated dataset.
+        /// </summary>
+        /// <param name="customView">The <see cref="CustomViewResponse.CustomViewType"/> metadata</param>
+        /// <param name="fileData">A byte array representing the custom view. If null, empty array is used</param>
+        internal void AddCustomView(
+            CustomViewResponse.CustomViewType customView,
+            byte[]? fileData)
+        {
+            CustomViews.Add(customView);
+            CustomViewFiles[customView.Id] = fileData ?? [];
+        }
         internal void AddDefaultProjectPermissions(Guid projectId, string contentTypeUrlSegment, PermissionsType permissions)
         {
             DefaultProjectPermissions.AddOrUpdate(

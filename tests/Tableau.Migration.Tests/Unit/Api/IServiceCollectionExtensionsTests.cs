@@ -115,6 +115,7 @@ namespace Tableau.Migration.Tests.Unit.Api
                 AssertService<IUsersApiClient, UsersApiClient>(scope, ServiceLifetime.Scoped);
                 AssertService<IWorkbooksApiClient, WorkbooksApiClient>(scope, ServiceLifetime.Scoped);
                 AssertService<IViewsApiClient, ViewsApiClient>(scope, ServiceLifetime.Scoped);
+                AssertService<ICustomViewsApiClient, CustomViewsApiClient>(scope, ServiceLifetime.Scoped);
             }
 
             [Fact]

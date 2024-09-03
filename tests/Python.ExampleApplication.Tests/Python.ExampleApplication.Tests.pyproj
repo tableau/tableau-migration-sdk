@@ -32,6 +32,7 @@
   <ItemGroup>
     <Content Include="pyproject.toml" />
     <Content Include="pytest.ini" />
+    <Content Include="README.md" />
     <Content Include="requirements.txt" />
   </ItemGroup>
   <ItemGroup>

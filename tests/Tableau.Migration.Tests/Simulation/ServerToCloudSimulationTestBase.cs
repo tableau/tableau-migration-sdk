@@ -490,6 +490,7 @@ namespace Tableau.Migration.Tests.Simulation
                 CreateViewsForWorkbook(workbook, workbookFileData);
 
                 CreateConnectionsForWorkbook(workbookFileData);
+                CreateViewsForWorkbook(workbook, workbookFileData);
 
                 SourceApi.Data.AddWorkbook(workbook, Constants.DefaultEncoding.GetBytes(workbookFileData.ToXml()));
                 workbooks.Add(workbook);
@@ -515,7 +516,7 @@ namespace Tableau.Migration.Tests.Simulation
                 Priority = 50,
                 ExecutionOrder = "Parallel",
                 FrequencyDetails = new Server.ScheduleResponse.ScheduleType.FrequencyDetailsType
-                { 
+                {
                     Start = "00:25:00",
                     End = "01:25:00",
                     Intervals = [
@@ -535,7 +536,7 @@ namespace Tableau.Migration.Tests.Simulation
                 Priority = 50,
                 ExecutionOrder = "Parallel",
                 FrequencyDetails = new Server.ScheduleResponse.ScheduleType.FrequencyDetailsType
-                { 
+                {
                     Start = "00:15:00",
                     End = "12:15:00",
                     Intervals = [
@@ -555,7 +556,7 @@ namespace Tableau.Migration.Tests.Simulation
                 Priority = 50,
                 ExecutionOrder = "Parallel",
                 FrequencyDetails = new Server.ScheduleResponse.ScheduleType.FrequencyDetailsType
-                { 
+                {
                     Start = "03:10:00",
                     Intervals = [new Server.ScheduleResponse.ScheduleType.FrequencyDetailsType.IntervalType { WeekDay = WeekDays.Sunday }]
                 }
@@ -570,7 +571,7 @@ namespace Tableau.Migration.Tests.Simulation
                 Priority = 50,
                 ExecutionOrder = "Parallel",
                 FrequencyDetails = new Server.ScheduleResponse.ScheduleType.FrequencyDetailsType
-                { 
+                {
                     Start = "03:45:00",
                     Intervals = [
                         new Server.ScheduleResponse.ScheduleType.FrequencyDetailsType.IntervalType { MonthDay = "1" },
@@ -589,9 +590,9 @@ namespace Tableau.Migration.Tests.Simulation
                 Priority = 50,
                 ExecutionOrder = "Parallel",
                 FrequencyDetails = new Server.ScheduleResponse.ScheduleType.FrequencyDetailsType
-                { 
+                {
                     Start = "01:35:00",
-                    Intervals = [new Server.ScheduleResponse.ScheduleType.FrequencyDetailsType.IntervalType { WeekDay = WeekDays.Sunday, MonthDay="LastDay" }]
+                    Intervals = [new Server.ScheduleResponse.ScheduleType.FrequencyDetailsType.IntervalType { WeekDay = WeekDays.Sunday, MonthDay = "LastDay" }]
                 }
             };
             var schedules = new List<Server.ScheduleResponse.ScheduleType>
@@ -684,5 +685,90 @@ namespace Tableau.Migration.Tests.Simulation
         }
 
         #endregion - Prepare Source Data (ExtractRefreshTasks) -
+
+        #region - Prepare Source Data (Custom Views) -
+        protected List<CustomViewResponse.CustomViewType> PrepareSourceCustomViewsData()
+        {
+            var customViews = new List<CustomViewResponse.CustomViewType>();
+
+            // Get all users that are not support users, and all groups
+            var users = SourceApi.Data.Users.Where(u => u.SiteRole != SiteRoles.SupportUser).ToList();
+            var groups = SourceApi.Data.Groups;
+            var workbooks = SourceApi.Data.Workbooks;
+
+            var rnd = new Random();
+
+            foreach (var workbook in workbooks)
+            {
+                var workbookViewData = SourceApi.Data.GetWorkbookFileData(workbook.Id)?.Views;
+                if (workbookViewData is null)
+                {
+                    continue;
+                }
+
+                foreach (var viewData in workbookViewData)
+                {
+                    var simulatedView = viewData?.View;
+
+                    if (simulatedView is null)
+                    {
+                        continue;
+                    }
+
+                    // pick a random user to be the custom view owner
+
+                    var owner = workbook.Owner!;
+
+                    var newCustomView = CreateCustomView(
+                        workbook,
+                        new()
+                        {
+                            Id = simulatedView.Id,
+                            Name = simulatedView.Name,
+                            ContentUrl = simulatedView.ContentUrl
+                        },
+                        owner);
+
+                    SourceApi.Data.CustomViewDefaultUsers.TryAdd(newCustomView.Id, [new() { Id = owner.Id }]);
+
+                    var customViewFileData = new SimulatedCustomViewData();
+
+                    SourceApi.Data.AddCustomView(newCustomView, Constants.DefaultEncoding.GetBytes(customViewFileData.ToJson()));
+                    customViews.Add(newCustomView);
+                }
+            }
+
+            return customViews;
+
+            CustomViewResponse.CustomViewType CreateCustomView(
+                WorkbookResponse.WorkbookType workbook,
+                WorkbookResponse.WorkbookType.ViewReferenceType view,
+                WorkbookResponse.WorkbookType.OwnerType owner)
+            {
+                return AutoFixture.Build<CustomViewResponse.CustomViewType>()
+                    .With(x
+                        => x.View,
+                        new CustomViewResponse.CustomViewType.ViewType()
+                        {
+                            Id = view.Id,
+                            Name = view.Name
+                        })
+                    .With(x
+                        => x.Workbook,
+                        new CustomViewResponse.CustomViewType.WorkbookType()
+                        {
+                            Id = workbook.Id,
+                            Name = workbook.Name
+                        })
+                    .With(x
+                        => x.Owner,
+                        new CustomViewResponse.CustomViewType.OwnerType()
+                        {
+                            Id = owner.Id
+                        })
+                    .Create();
+            }
+        }
+        #endregion
     }
 }

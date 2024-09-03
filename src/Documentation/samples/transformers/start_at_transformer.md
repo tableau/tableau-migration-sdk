@@ -14,12 +14,13 @@ To adjust the 'Start At' in Python, you can use the following transformer class:
 
 ### Registration
 
-Refer to the [documentation](~/samples/index.md?tabs=Python#hook-registration) for instructions on registering the transformer.
-
 [//]: <> (Adding this as code as regions are not supported in python snippets)
+
 ```Python
 plan_builder.transformers.add(SimpleScheduleStartAtTransformer)
 ```
+
+See [hook registration](~/samples/index.md?tabs=Python#hook-registration) for more details.
 
 ## [C#](#tab/CSharp)
 

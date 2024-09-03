@@ -143,7 +143,7 @@ namespace Tableau.Migration.Tests.Unit.Api
 
         #endregion
 
-        #region - Get -
+        #region - GetAll -
 
         public class GetAllWorkbooksAsync : WorkbooksApiClientTest
         {

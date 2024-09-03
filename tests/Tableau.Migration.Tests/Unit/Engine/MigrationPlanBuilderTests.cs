@@ -1,4 +1,4 @@
-﻿//
+//
 //  Copyright (c) 2024, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
@@ -18,11 +18,11 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 using AutoFixture;
 using Moq;
 using Tableau.Migration.Api.Simulation;
 using Tableau.Migration.Content;
-using Tableau.Migration.Content.Schedules;
 using Tableau.Migration.Content.Schedules.Cloud;
 using Tableau.Migration.Engine;
 using Tableau.Migration.Engine.Endpoints;
@@ -34,6 +34,7 @@ using Tableau.Migration.Engine.Hooks.PostPublish.Default;
 using Tableau.Migration.Engine.Hooks.Transformers;
 using Tableau.Migration.Engine.Hooks.Transformers.Default;
 using Tableau.Migration.Engine.Options;
+using Tableau.Migration.Engine.Pipelines;
 using Xunit;
 
 namespace Tableau.Migration.Tests.Unit.Engine
@@ -89,12 +90,15 @@ namespace Tableau.Migration.Tests.Unit.Engine
                 MockTransformerBuilder.Verify(x => x.Add<MappedReferenceExtractRefreshTaskTransformer, ICloudExtractRefreshTask>(It.IsAny<Func<IServiceProvider, MappedReferenceExtractRefreshTaskTransformer>>()), Times.Once);
                 MockTransformerBuilder.Verify(x => x.Add<CloudIncrementalRefreshTransformer, ICloudExtractRefreshTask>(It.IsAny<Func<IServiceProvider, CloudIncrementalRefreshTransformer>>()), Times.Once);
                 MockTransformerBuilder.Verify(x => x.Add(typeof(CloudScheduleCompatibilityTransformer<>), It.IsAny<IEnumerable<Type[]>>()), Times.Once);
+                MockTransformerBuilder.Verify(x => x.Add(typeof(WorkbookReferenceTransformer<>), It.IsAny<IEnumerable<Type[]>>()), Times.Once);
+                MockTransformerBuilder.Verify(x => x.Add<CustomViewDefaultUserReferencesTransformer, IPublishableCustomView>(It.IsAny<Func<IServiceProvider, CustomViewDefaultUserReferencesTransformer>>()), Times.Once);
 
                 MockHookBuilder.Verify(x => x.Add(typeof(OwnerItemPostPublishHook<,>), It.IsAny<IEnumerable<Type[]>>()), Times.Once);
                 MockHookBuilder.Verify(x => x.Add(typeof(PermissionsItemPostPublishHook<,>), It.IsAny<IEnumerable<Type[]>>()), Times.Once);
                 MockHookBuilder.Verify(x => x.Add(typeof(ChildItemsPermissionsPostPublishHook<,>), It.IsAny<IEnumerable<Type[]>>()), Times.Once);
                 MockHookBuilder.Verify(x => x.Add(typeof(TagItemPostPublishHook<,>), It.IsAny<IEnumerable<Type[]>>()), Times.Once);
                 MockHookBuilder.Verify(x => x.Add(It.IsAny<Func<IServiceProvider, ProjectPostPublishHook>>()), Times.Once);
+                MockHookBuilder.Verify(x => x.Add(It.IsAny<Func<IServiceProvider, CustomViewDefaultUsersPostPublishHook>>()), Times.Once);
             }
 
             protected void AssertDefaultServerToCloudExtensions()
@@ -136,6 +140,118 @@ namespace Tableau.Migration.Tests.Unit.Engine
             }
         }
 
+        public sealed class ForCustomPipelineFactory : MigrationPlanBuilderTest
+        {
+            private static readonly IEnumerable<MigrationPipelineContentType> CustomContentTypes
+                = [MigrationPipelineContentType.Users, MigrationPipelineContentType.Groups];
+
+            [Fact]
+            public void InitializesCustomPipeline()
+            {
+                var initializer = (IServiceProvider s) => Create<IMigrationPipelineFactory>();
+
+                var builderResult = Builder.ForCustomPipelineFactory(initializer, CustomContentTypes);
+
+                Assert.Same(Builder, builderResult);
+
+                var plan = Builder.Build();
+
+                Assert.Equal(PipelineProfile.Custom, plan.PipelineProfile);
+                Assert.Same(initializer, plan.PipelineFactoryOverride);
+
+                AssertExtensionsCleared();
+                AssertDefaultExtensions();
+            }
+
+            [Fact]
+            public void InitializerWithParams()
+            {
+                var initializer = (IServiceProvider s) => Create<IMigrationPipelineFactory>();
+
+                var builderResult = Builder.ForCustomPipelineFactory(initializer, CustomContentTypes.ToArray());
+
+                Assert.Same(Builder, builderResult);
+
+                var plan = Builder.Build();
+
+                Assert.Equal(PipelineProfile.Custom, plan.PipelineProfile);
+                Assert.Same(initializer, plan.PipelineFactoryOverride);
+
+                AssertExtensionsCleared();
+                AssertDefaultExtensions();
+            }
+
+            [Fact]
+            public void GenericFactoryType()
+            {
+                var builderResult = Builder.ForCustomPipelineFactory<MigrationPipelineFactory>(CustomContentTypes);
+
+                Assert.Same(Builder, builderResult);
+
+                var plan = Builder.Build();
+
+                Assert.Equal(PipelineProfile.Custom, plan.PipelineProfile);
+                Assert.NotNull(plan.PipelineFactoryOverride);
+
+                AssertExtensionsCleared();
+                AssertDefaultExtensions();
+            }
+
+            [Fact]
+            public void GenericFactoryTypeWithParams()
+            {
+                var builderResult = Builder.ForCustomPipelineFactory<MigrationPipelineFactory>(CustomContentTypes.ToArray());
+
+                Assert.Same(Builder, builderResult);
+
+                var plan = Builder.Build();
+
+                Assert.Equal(PipelineProfile.Custom, plan.PipelineProfile);
+                Assert.NotNull(plan.PipelineFactoryOverride);
+
+                AssertExtensionsCleared();
+                AssertDefaultExtensions();
+            }
+        }
+
+        public sealed class ForCustomPipeline : MigrationPlanBuilderTest
+        {
+            private static readonly IEnumerable<MigrationPipelineContentType> CustomContentTypes
+                = [MigrationPipelineContentType.Users, MigrationPipelineContentType.Groups];
+
+            [Fact]
+            public void InitializesCustomPipeline()
+            {
+                var builderResult = Builder.ForCustomPipeline<MigrationPipelineBase>(CustomContentTypes);
+
+                Assert.Same(Builder, builderResult);
+
+                var plan = Builder.Build();
+
+                Assert.Equal(PipelineProfile.Custom, plan.PipelineProfile);
+                Assert.NotNull(plan.PipelineFactoryOverride);
+
+                AssertExtensionsCleared();
+                AssertDefaultExtensions();
+            }
+
+            [Fact]
+            public void WithParams()
+            {
+                var builderResult = Builder.ForCustomPipeline<MigrationPipelineBase>(CustomContentTypes.ToArray());
+
+                Assert.Same(Builder, builderResult);
+
+                var plan = Builder.Build();
+
+                Assert.Equal(PipelineProfile.Custom, plan.PipelineProfile);
+                Assert.NotNull(plan.PipelineFactoryOverride);
+
+                AssertExtensionsCleared();
+                AssertDefaultExtensions();
+            }
+        }
+
         public class ClearExtensions : MigrationPlanBuilderTest
         {
             [Fact]
@@ -161,16 +277,16 @@ namespace Tableau.Migration.Tests.Unit.Engine
 
         public class Validate : MigrationPlanBuilderTest
         {
-            private IMigrationPlanBuilder ConfigureBasicBuilder()
+            protected IMigrationPlanBuilder ConfigureBasicBuilder()
                 => Builder
-                    .FromSource(Create<TableauApiEndpointConfiguration>())
-                    .ToDestination(Create<TableauApiEndpointConfiguration>());
+                .FromSource(Create<TableauApiEndpointConfiguration>())
+                .ToDestination(Create<TableauApiEndpointConfiguration>());
 
-            private IServerToCloudMigrationPlanBuilder ConfigureServerToCloudBuilder()
+            protected IServerToCloudMigrationPlanBuilder ConfigureServerToCloudBuilder()
                 => ConfigureBasicBuilder()
                     .ForServerToCloud();
 
-            private IMigrationPlanBuilder ConfigureValidServerToCloudBuilder()
+            protected IMigrationPlanBuilder ConfigureValidServerToCloudBuilder()
                 => ConfigureServerToCloudBuilder()
                     .WithTableauCloudUsernames("salesforce.com")
                     .WithTableauIdAuthenticationType();
@@ -220,82 +336,97 @@ namespace Tableau.Migration.Tests.Unit.Engine
 
                 result.AssertFailure();
             }
+        }
 
+        public class ValidateFilterContentTypes : Validate
+        {
             [Fact]
-            public void CorrectFilterContentType()
+            public void CorrectContentType()
             {
                 ConfigureValidServerToCloudBuilder()
                     .Filters.Add(Create<IContentFilter<IUser>>());
 
-                var result = Builder.Validate();
+                var errors = Builder.ValidateFilterContentTypes(Builder.GetListContentTypes());
 
-                result.AssertSuccess();
+                Assert.Empty(errors);
             }
 
             [Fact]
-            public void UnsupportedFilterContentType()
+            public void UnsupportedContentType()
             {
                 ConfigureValidServerToCloudBuilder()
                     .Filters.Add(Create<IContentFilter<TestContentType>>());
 
-                var result = Builder.Validate();
+                var errors = Builder.ValidateFilterContentTypes(Builder.GetListContentTypes());
 
-                result.AssertFailure();
+                Assert.NotEmpty(errors);
             }
+        }
 
+        public class ValidateMappingContentTypes : Validate
+        {
             [Fact]
-            public void CorrectMappingContentType()
+            public void CorrectContentType()
             {
                 ConfigureValidServerToCloudBuilder()
                     .Mappings.Add(Create<IContentMapping<IUser>>());
 
-                var result = Builder.Validate();
+                var errors = Builder.ValidateMappingContentTypes(Builder.GetListContentTypes());
 
-                result.AssertSuccess();
+                Assert.Empty(errors);
             }
 
             [Fact]
-            public void UnsupportedMappingContentType()
+            public void UnsupportedContentType()
             {
                 ConfigureValidServerToCloudBuilder()
                     .Mappings.Add(Create<IContentMapping<TestContentType>>());
 
-                var result = Builder.Validate();
+                var errors = Builder.ValidateMappingContentTypes(Builder.GetListContentTypes());
 
-                result.AssertFailure();
+                Assert.NotEmpty(errors);
             }
+        }
 
+        public class ValidateTransformerContentTypes : Validate
+        {
             [Fact]
-            public void CorrectTransformerPublishType()
+            public void CorrectPublishType()
             {
                 ConfigureValidServerToCloudBuilder()
                     .Transformers.Add(Create<IContentTransformer<IPublishableGroup>>());
 
-                var result = Builder.Validate();
+                var errors = Builder.ValidateTransformerContentTypes(
+                    Builder.GetListContentTypes(),
+                    Builder.GetPublishContentTypes());
 
-                result.AssertSuccess();
+                Assert.Empty(errors);
             }
 
             [Fact]
-            public void UnsupportedTransformerPublishType()
+            public void UnsupportedPublishType()
             {
                 ConfigureValidServerToCloudBuilder()
                     .Transformers.Add(Create<IContentTransformer<TestContentType>>());
 
-                var result = Builder.Validate();
+                var errors = Builder.ValidateTransformerContentTypes(
+                    Builder.GetListContentTypes(),
+                    Builder.GetPublishContentTypes());
 
-                result.AssertFailure();
+                Assert.NotEmpty(errors);
             }
 
             [Fact]
-            public void TransformerUsingContentTypeInsteadOfPublishType()
+            public void UsingContentTypeInsteadOfPublishType()
             {
                 ConfigureValidServerToCloudBuilder()
                     .Transformers.Add(Create<IContentTransformer<IGroup>>());
 
-                var result = Builder.Validate();
+                var errors = Builder.ValidateTransformerContentTypes(
+                    Builder.GetListContentTypes(),
+                    Builder.GetPublishContentTypes());
 
-                result.AssertFailure();
+                Assert.NotEmpty(errors);
             }
         }
 

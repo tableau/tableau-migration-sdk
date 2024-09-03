@@ -42,23 +42,44 @@ namespace Tableau.Migration.Api.Simulation.Rest.Net.Requests
 
         public static readonly string EntityId = IdPattern(EntityIdGroupName);
 
-        public static Regex RestApiUrl(string suffix) => new($"""^/api/(?<{VersionGroupName}>\d+.\d+)/{suffix.TrimPaths()}/?$""", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        public static Regex RestApiUrl(string suffix, bool useExperimental = false)
+        {
+            string pattern;
 
-        public static Regex SiteUrl(string postSiteSuffix) => RestApiUrl($"""/sites/{SiteId}/{postSiteSuffix.TrimPaths()}""");
+            if (useExperimental)
+            {
+                pattern = $"""^/api/(?<{VersionGroupName}>{ApiClient.EXPERIMENTAL_API_VERSION})/{suffix.TrimPaths()}/?$""";
+            }
+            else
+            {
+                pattern = $"""^/api/(?<{VersionGroupName}>\d+.\d+)/{suffix.TrimPaths()}/?$""";
+
+            }
+
+            return new(pattern, RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        }
+
+        public static Regex SiteUrl(string postSiteSuffix, bool useExperimental = false) 
+            => RestApiUrl($"""/sites/{SiteId}/{postSiteSuffix.TrimPaths()}""", useExperimental);
 
         public static Regex EntityUrl(string preEntitySuffix) => RestApiUrl($"""{preEntitySuffix.TrimPaths()}/{EntityId}""");
 
-        public static Regex SiteEntityUrl(string postSitePreEntitySuffix, string? postEntitySuffix = null)
+        public static Regex SiteEntityUrl(
+            string postSitePreEntitySuffix,
+            string? postEntitySuffix = null,
+            bool useExperimental = false)
         {
             var trimmedSuffix = postEntitySuffix?.TrimPaths();
             trimmedSuffix = string.IsNullOrEmpty(trimmedSuffix) ? string.Empty : $"/{trimmedSuffix}";
 
-            return SiteUrl($"""{postSitePreEntitySuffix.TrimPaths()}/{EntityId}{trimmedSuffix}""");
+            return SiteUrl($"""{postSitePreEntitySuffix.TrimPaths()}/{EntityId}{trimmedSuffix}""", useExperimental);
         }
 
-        public static Regex SiteEntityTagsUrl(string postSitePreEntitySuffix, string? postTagsSuffix = null) => SiteEntityUrl(postSitePreEntitySuffix, $"tags/{postTagsSuffix}".TrimEnd('/'));
+        public static Regex SiteEntityTagsUrl(string postSitePreEntitySuffix, string? postTagsSuffix = null) 
+            => SiteEntityUrl(postSitePreEntitySuffix, $"tags/{postTagsSuffix}".TrimEnd('/'));
 
-        public static Regex SiteEntityTagUrl(string postSitePreEntitySuffix) => SiteEntityTagsUrl(postSitePreEntitySuffix, new Regex(NamePattern, RegexOptions.IgnoreCase).ToString());
+        public static Regex SiteEntityTagUrl(string postSitePreEntitySuffix) 
+            => SiteEntityTagsUrl(postSitePreEntitySuffix, new Regex(NamePattern, RegexOptions.IgnoreCase).ToString());
 
         public static IEnumerable<(string Key, Regex ValuePattern)> SiteCommitFileUploadQueryString(string typeParam)
         {

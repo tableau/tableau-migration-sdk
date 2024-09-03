@@ -24,19 +24,4 @@ There are advanced features of the Migration SDK that the Python Wrapper cannot 
 
 The following code samples are for writing a simple migration app using the Migration SDK. For details on configuring and customizing the Migration SDK to your specific needs, see [Articles](~/articles/index.md) and [Code Samples](~/samples/index.md).
 
-### [Startup Script](#tab/startup)
-
-[!code-python[](../../../examples/Python.ExampleApplication/Python.ExampleApplication.py)]
-
-### [config.ini](#tab/config)
-
-> [!Important]
-> The values below should not be quoted. So ***no*** `'` or `"`.
-
-[!code-ini[](../../../examples/Python.ExampleApplication/config.ini)]
-
-### [requirements.txt](#tab/reqs)
-
-[!code-text[](../../../examples/Python.ExampleApplication/requirements.txt#L3-)]
-
----
+[!include[](~/includes/python-getting-started.md)]

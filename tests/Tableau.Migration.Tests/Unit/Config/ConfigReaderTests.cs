@@ -124,7 +124,6 @@ namespace Tableau.Migration.Tests.Unit.Config
                 AssertDefaultResult(Reader.Get<IWorkbook>());
                 AssertDefaultResult(Reader.Get<IDataSource>());
             }
-
         }
     }
 }

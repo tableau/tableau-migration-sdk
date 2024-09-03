@@ -9,6 +9,12 @@ You can develop your migration application using one of the supported languages
 - [Python](https://www.python.org/)
 - C# using the [.NET Framework](https://dotnet.microsoft.com/en-us/learn/dotnet/what-is-dotnet-framework)
 
+## Versioning
+
+The Migration SDK uses [semantic versioning](https://semver.org).
+
+![Versioning](../images/versioning.svg){width=40%}
+
 ## Prerequisites
 
 To develop your application using the [Migration SDK](https://github.com/tableau/tableau-migration-sdk), you should
@@ -23,30 +29,42 @@ To develop your application using the [Migration SDK](https://github.com/tableau
 - Install a [.NET Runtime](https://dotnet.microsoft.com/en-us/download).
 - Install the Migration SDK
 
-## [Python](#tab/Python)
+### [Python](#tab/Python)
 
-  Install using PIP
-  - [PIP CLI](https://pip.pypa.io/en/stable/cli/pip_install): `pip install tableau_migration`
+Install using PIP
 
-## [C#](#tab/CSharp)
+- [PIP CLI](https://pip.pypa.io/en/stable/cli/pip_install): `pip install tableau_migration`
+
+### [C#](#tab/CSharp)
   
-  Install using NuGet
-  - [dotnet CLI](https://learn.microsoft.com/en-us/nuget/quickstart/install-and-use-a-package-using-the-dotnet-cli): `dotnet add package Tableau.Migration`
-  - [Nuget Package Manager](https://learn.microsoft.com/en-us/nuget/quickstart/install-and-use-a-package-in-visual-studio): Search for `Tableau.Migration`.
+Install using NuGet
+
+- [dotnet CLI](https://learn.microsoft.com/en-us/nuget/quickstart/install-and-use-a-package-using-the-dotnet-cli): `dotnet add package Tableau.Migration`
+- [Nuget Package Manager](https://learn.microsoft.com/en-us/nuget/quickstart/install-and-use-a-package-in-visual-studio): Search for `Tableau.Migration`.
 
 ---
 
-- Use the sample code in one of the [Reference](#getting-started-and-api-reference) sections to get started.
+- Use the sample code in [Example startup code](#example-startup-code) to get started.
 - Use the [Resource](#resources) sections to further customize your application.
 
-## Getting started and API Reference
+## Example startup code
 
-- [Python API Reference](~/api-python/index.md) : Getting started sample and the complete Python API Reference for comprehensive documentation.
-- [C# API Reference](~/api-csharp/index.md): Getting started sample and the complete C# API Reference for detailed documentation.
+The following code samples are for writing a simple migration app using the Migration SDK. For details on configuring and customizing the Migration SDK to your specific needs, see the other articles and [Code Samples](~/samples/index.md).
+
+### [Python](#tab/Python)
+
+[!include[](~/includes/python-getting-started.md)]
+
+### [C#](#tab/CSharp)
+
+[!include[](~/includes/csharp-getting-started.md)]
+
+---
 
 ## Resources
 
-- [Articles](~/articles/index.md): Articles covering a range of topics, including customization of the Migration SDK.
+- [Python API Reference](~/api-python/index.md) : Getting started sample and the complete Python API Reference for comprehensive documentation.
+- [C# API Reference](~/api-csharp/index.md): Getting started sample and the complete C# API Reference for detailed documentation.
 - [Code Samples](~/samples/index.md): Code samples to kickstart your development process.
 
 ## Source Code

@@ -1,11 +1,10 @@
-import tableau_migration
 from tableau_migration.migration import PyMigrationResult
 from tableau_migration import IMigrationManifestEntry, MigrationManifestEntryStatus
 from Tableau.Migration.Engine.Pipelines import ServerToCloudMigrationPipeline
 
-def print_result(self, result: PyMigrationResult):
+def print_result(result: PyMigrationResult):
         """Prints the result of a migration."""
-        self.logger.info(f'Result: {result.status}')
+        print(f'Result: {result.status}')
     
         for pipeline_content_type in ServerToCloudMigrationPipeline.ContentTypes:
             content_type = pipeline_content_type.ContentType
@@ -41,4 +40,4 @@ def print_result(self, result: PyMigrationResult):
             \t{count_pending}/{count_total} pending
             '''
                
-            self.logger.info(output)
+            print(output)

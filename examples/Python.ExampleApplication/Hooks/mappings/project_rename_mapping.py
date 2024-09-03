@@ -11,6 +11,6 @@ class ProjectRenameMapping(ContentMappingBase[IProject]):
         
         new_location = ctx.content_item.location.rename("Production")
         
-        ctx.map_to(new_location)
+        ctx = ctx.map_to(new_location)
         
         return ctx

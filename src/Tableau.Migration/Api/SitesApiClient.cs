@@ -26,7 +26,6 @@ using Tableau.Migration.Api.Rest.Models.Requests;
 using Tableau.Migration.Api.Rest.Models.Responses;
 using Tableau.Migration.Api.Tags;
 using Tableau.Migration.Content;
-using Tableau.Migration.Content.Schedules;
 using Tableau.Migration.Content.Schedules.Cloud;
 using Tableau.Migration.Content.Schedules.Server;
 using Tableau.Migration.Content.Search;
@@ -62,6 +61,7 @@ namespace Tableau.Migration.Api
             IViewsApiClient viewsApiClient,
             IFlowsApiClient flowsApiClient,
             ITasksApiClient tasksApiClient,
+            ICustomViewsApiClient customViewsApiClient,
             ISharedResourcesLocalizer sharedResourcesLocalizer)
             : base(restRequestBuilderFactory, finderFactory, loggerFactory, sharedResourcesLocalizer)
         {
@@ -77,7 +77,8 @@ namespace Tableau.Migration.Api
             Workbooks = workbooksApiClient;
             Views = viewsApiClient;
             Flows = flowsApiClient;
-            
+            CustomViews = customViewsApiClient;
+
             _tasksApiClient = tasksApiClient;
         }
 
@@ -92,7 +93,8 @@ namespace Tableau.Migration.Api
             { typeof(IFlow), client => client.Flows },
             { typeof(IServerSchedule), client => client.Schedules },
             { typeof(IServerExtractRefreshTask), client => client.ServerTasks },
-            { typeof(ICloudExtractRefreshTask), client => client.CloudTasks }
+            { typeof(ICloudExtractRefreshTask), client => client.CloudTasks },
+            { typeof(ICustomView), client => client.CustomViews },
         }
         .ToImmutableDictionary(InheritedTypeComparer.Instance);
 
@@ -110,7 +112,7 @@ namespace Tableau.Migration.Api
 
         /// <inheritdoc />
         public IJobsApiClient Jobs { get; }
-        
+
         /// <inheritdoc />
         public ISchedulesApiClient Schedules { get; }
 
@@ -133,11 +135,14 @@ namespace Tableau.Migration.Api
         public IFlowsApiClient Flows { get; }
 
         /// <inheritdoc />
-        public IServerTasksApiClient ServerTasks 
+        public ICustomViewsApiClient CustomViews { get; }
+
+        /// <inheritdoc />
+        public IServerTasksApiClient ServerTasks
             => ReturnForInstanceType(TableauInstanceType.Server, _sessionProvider.InstanceType, _tasksApiClient);
 
         /// <inheritdoc />
-        public ICloudTasksApiClient CloudTasks 
+        public ICloudTasksApiClient CloudTasks
             => ReturnForInstanceType(TableauInstanceType.Cloud, _sessionProvider.InstanceType, _tasksApiClient);
 
         /// <inheritdoc />

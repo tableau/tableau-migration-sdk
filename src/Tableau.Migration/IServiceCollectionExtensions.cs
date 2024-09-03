@@ -18,10 +18,10 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
+using Microsoft.Extensions.Options;
 using Tableau.Migration.Api;
 using Tableau.Migration.Config;
 using Tableau.Migration.Engine;
-using Tableau.Migration.Engine.Manifest;
 using Tableau.Migration.Net;
 using Tableau.Migration.Resources;
 
@@ -36,8 +36,8 @@ namespace Tableau.Migration
         {
             //Register localization.
             services
-                .AddLogging() //required for AddLocalization, users can customize afterwards by re-calling.
-                .AddLocalization() //required for our shared resource localizer, users can customize afterwards by re-calling.
+                .AddLogging() //Required for AddLocalization, users can customize afterwards by re-calling.
+                .AddLocalization() //Required for our shared resource localizer, users can customize afterwards by re-calling.
                 .AddTransient<ISharedResourcesLocalizer>(provider =>
                 {
                     var localizerFactory = provider.GetRequiredService<IStringLocalizerFactory>();
@@ -48,19 +48,37 @@ namespace Tableau.Migration
             return services;
         }
 
+        internal static IServiceCollection AddMigrationSdkConfiguration(this IServiceCollection services, IConfiguration config)
+        {
+            services.Configure<MigrationSdkOptions>(nameof(MigrationSdkOptions), config);
+            services.AddSingleton<IValidateOptions<MigrationSdkOptions>, UniqueContentTypesValidator>();
+
+            /*
+             * Eager validate configuration.
+             * We want configuration exceptions to happen before any migration work,
+             * so we validate here instead of the first time IConfigReader.Get is called in the migration.
+             * We also don't use the built-in ValidateOnStart since that relies on .NET hosted applications running the validation,
+             * which doesn't cover all our use cases (Python/etc.).
+             */
+            var options = services.BuildServiceProvider().GetRequiredService<IConfigReader>().Get();
+
+            return services;
+        }
+
         /// <summary>
         /// Registers services required for using the Tableau Migration SDK.
         /// </summary>
         /// <param name="services">The service collection to register services with.</param>
-        /// <param name="userOptions">The configuration options to initialize the SDK with</param>
+        /// <param name="userOptions">The configuration options to initialize the SDK with.</param>
         /// <returns>The same service collection as the <paramref name="services"/> parameter.</returns>
-        public static IServiceCollection AddTableauMigrationSdk(this IServiceCollection services, IConfiguration? userOptions = null)
+        public static IServiceCollection AddTableauMigrationSdk(this IServiceCollection services, 
+            IConfiguration? userOptions = null)
         {
             services.AddHttpServices();
 
             if (userOptions is not null)
             {
-                services.Configure<MigrationSdkOptions>(nameof(MigrationSdkOptions), userOptions);
+                services.AddMigrationSdkConfiguration(userOptions);
             }
 
             services.AddMigrationApiClient()

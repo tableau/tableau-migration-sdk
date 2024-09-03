@@ -39,9 +39,9 @@ namespace Tableau.Migration.Net
         }
 
         /// <inheritdoc/>
-        public abstract TRequestBuilder CreateUri(string path);
+        public abstract TRequestBuilder CreateUri(string path, bool useExperimental = false);
 
         /// <inheritdoc/>
-        IRequestBuilder IRequestBuilderFactory.CreateUri(string path) => CreateUri(path);
+        IRequestBuilder IRequestBuilderFactory.CreateUri(string path, bool useExperimental) => CreateUri(path, useExperimental);
     }
 }

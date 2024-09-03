@@ -58,6 +58,8 @@ namespace Tableau.Migration.Tests.Unit.Api
         public Mock<ITagsApiClient> MockTagsApiClient { get; } = new();
         public Mock<IViewsApiClientFactory> MockViewsApiClientFactory { get; } = new();
         public Mock<IViewsApiClient> MockViewsApiClient { get; } = new();
+        
+        public Mock<IViewsApiClient> MockCustomViewsApiClient { get; } = new();
         public IHttpContentSerializer Serializer { get; } = HttpContentSerializer.Instance;
         public IRestRequestBuilderFactory RestRequestBuilderFactory { get; }
 
@@ -68,6 +70,7 @@ namespace Tableau.Migration.Tests.Unit.Api
         public Mock<IContentReferenceFinder<IProject>> MockProjectFinder { get; }
         public Mock<IContentReferenceFinder<IUser>> MockUserFinder { get; }
         public Mock<IContentReferenceFinder<IWorkbook>> MockWorkbookFinder { get; }
+        public Mock<IContentReferenceFinder<IView>> MockViewFinder { get; }
         public Mock<IContentReferenceFinder<IDataSource>> MockDataSourceFinder { get; }
         public Mock<IContentReferenceFinder<IServerSchedule>> MockScheduleFinder { get; }
 
@@ -99,6 +102,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             MockProjectFinder = MockContentFinderFactory.SetupMockFinder<IProject>(autoFixture);
             MockUserFinder = MockContentFinderFactory.SetupMockFinder<IUser>(autoFixture);
             MockWorkbookFinder = MockContentFinderFactory.SetupMockFinder<IWorkbook>(autoFixture);
+            MockViewFinder = MockContentFinderFactory.SetupMockFinder<IView>(autoFixture);
             MockDataSourceFinder = MockContentFinderFactory.SetupMockFinder<IDataSource>(autoFixture);
             MockScheduleFinder = MockContentFinderFactory.SetupMockFinder<IServerSchedule>(autoFixture);
 

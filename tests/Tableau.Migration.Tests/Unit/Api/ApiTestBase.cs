@@ -28,7 +28,6 @@ using Tableau.Migration.Api.Publishing;
 using Tableau.Migration.Api.Rest.Models;
 using Tableau.Migration.Api.Rest.Models.Responses;
 using Tableau.Migration.Api.Rest.Models.Responses.Server;
-using Tableau.Migration.Api.Rest.Models.Types;
 using Tableau.Migration.Api.Tags;
 using Tableau.Migration.Config;
 using Tableau.Migration.Content;
@@ -58,6 +57,7 @@ namespace Tableau.Migration.Tests.Unit.Api
         public Mock<IContentReferenceFinder<IProject>> MockProjectFinder => Dependencies.MockProjectFinder;
         public Mock<IContentReferenceFinder<IUser>> MockUserFinder => Dependencies.MockUserFinder;
         public Mock<IContentReferenceFinder<IWorkbook>> MockWorkbookFinder => Dependencies.MockWorkbookFinder;
+        public Mock<IContentReferenceFinder<IView>> MockViewFinder => Dependencies.MockViewFinder;
         public Mock<IContentReferenceFinder<IDataSource>> MockDataSourceFinder => Dependencies.MockDataSourceFinder;
         public Mock<IContentReferenceFinder<IServerSchedule>> MockScheduleFinder => Dependencies.MockScheduleFinder;
         public Mock<IContentCacheFactory> MockContentCacheFactory => Dependencies.MockContentCacheFactory;

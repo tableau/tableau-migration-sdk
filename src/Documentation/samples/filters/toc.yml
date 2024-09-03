@@ -2,3 +2,5 @@
   href: filter_projects_by_name.md
 - name: Filter users by SiteRole
   href: filter_users_by_site_role.md
+- name: Filter Custom Views by 'Shared' flag
+  href: filter_custom_views_by_shared.md

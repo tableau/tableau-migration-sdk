@@ -31,16 +31,31 @@ namespace Tableau.Migration.Tests.Unit.Api
 {
     public class IContentReferenceFinderFactoryExtensionsTests
     {
-        private class WithProjectType : IWithProjectType, INamedContent
+        private class WithProjectType : IWithProjectType, INamedContent, IRestIdentifiable
         {
+            public virtual Guid Id { get; set; }
             public virtual string? Name { get; set; }
             public virtual IProjectReferenceType? Project { get; set; }
         }
 
-        private class WithOwnerType : IWithOwnerType, INamedContent
+        private class WithUserType : INamedContent, IRestIdentifiable
         {
+            public virtual Guid Id { get; set; }
             public virtual string? Name { get; set; }
-            public virtual IOwnerType? Owner { get; set; }
+        }
+
+        private class WithOwnerType : IWithOwnerType, INamedContent, IRestIdentifiable
+        {
+            public virtual Guid Id { get; set; }
+            public virtual string? Name { get; set; }
+            public virtual IRestIdentifiable? Owner { get; set; }
+        }
+
+        private class WithWorkbookReferenceType : IWithWorkbookReferenceType, INamedContent, IRestIdentifiable
+        {
+            public virtual Guid Id { get; set; }
+            public virtual string? Name { get; set; }
+            public virtual IRestIdentifiable? Workbook { get; set; }
         }
 
         public abstract class IContentReferenceFinderFactoryExtensionsTest : AutoFixtureTestBase
@@ -48,6 +63,8 @@ namespace Tableau.Migration.Tests.Unit.Api
             protected readonly Mock<IContentReferenceFinderFactory> MockFinderFactory = new();
             protected readonly Mock<IContentReferenceFinder<IProject>> MockProjectFinder = new();
             protected readonly Mock<IContentReferenceFinder<IUser>> MockUserFinder = new();
+            protected readonly Mock<IContentReferenceFinder<IWorkbook>> MockWorkbookFinder = new();
+            protected readonly Mock<IContentReferenceFinder<IView>> MockViewFinder = new();
             protected readonly Mock<ILogger> MockLogger = new();
             protected readonly ISharedResourcesLocalizer SharedResourcesLocalizer = new TestSharedResourcesLocalizer();
 
@@ -55,6 +72,8 @@ namespace Tableau.Migration.Tests.Unit.Api
             {
                 MockFinderFactory.Setup(f => f.ForContentType<IProject>()).Returns(MockProjectFinder.Object);
                 MockFinderFactory.Setup(f => f.ForContentType<IUser>()).Returns(MockUserFinder.Object);
+                MockFinderFactory.Setup(f => f.ForContentType<IWorkbook>()).Returns(MockWorkbookFinder.Object);
+                MockFinderFactory.Setup(f => f.ForContentType<IView>()).Returns(MockViewFinder.Object);
             }
         }
 
@@ -182,7 +201,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             [Fact]
             public async Task Throws_when_response_owner_id_is_default()
             {
-                var mockOwnerReference = new Mock<IOwnerType>();
+                var mockOwnerReference = new Mock<IRestIdentifiable>();
                 mockOwnerReference.SetupGet(o => o.Id).Returns(Guid.Empty);
 
                 var response = new WithOwnerType { Owner = mockOwnerReference.Object };
@@ -202,7 +221,7 @@ namespace Tableau.Migration.Tests.Unit.Api
                 var mockContentReference = new Mock<IContentReference>();
                 mockContentReference.SetupGet(o => o.Id).Returns(Guid.NewGuid());
 
-                var mockOwnerReference = new Mock<IOwnerType>();
+                var mockOwnerReference = new Mock<IRestIdentifiable>();
                 mockOwnerReference.SetupGet(o => o.Id).Returns(mockContentReference.Object.Id);
 
                 MockUserFinder.Setup(f => f.FindByIdAsync(mockContentReference.Object.Id, Cancel)).ReturnsAsync(mockContentReference.Object);
@@ -222,7 +241,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             [Fact]
             public async Task Returns_null_when_not_found_and_throw_is_false()
             {
-                var response = new WithOwnerType { Owner = Create<Mock<IOwnerType>>().Object };
+                var response = new WithOwnerType { Owner = Create<Mock<IRestIdentifiable>>().Object };
 
                 var result = await MockFinderFactory.Object.FindOwnerAsync(
                     response,
@@ -237,9 +256,179 @@ namespace Tableau.Migration.Tests.Unit.Api
             [Fact]
             public async Task Throws_when_not_found_and_throw_is_true()
             {
-                var response = new WithOwnerType { Owner = Create<Mock<IOwnerType>>().Object };
+                var response = new WithOwnerType { Owner = Create<Mock<IRestIdentifiable>>().Object };
 
                 await Assert.ThrowsAsync<InvalidOperationException>(() => MockFinderFactory.Object.FindOwnerAsync(
+                    response,
+                    MockLogger.Object,
+                    SharedResourcesLocalizer,
+                    true,
+                    Cancel));
+            }
+        }
+
+        public class FindUserAsync : IContentReferenceFinderFactoryExtensionsTest
+        {
+            [Fact]
+            public async Task Throws_when_response_is_null()
+            {
+                await Assert.ThrowsAsync<ArgumentNullException>(() =>
+                    MockFinderFactory.Object.FindUserAsync<WithUserType>(
+                        null,
+                        MockLogger.Object,
+                        SharedResourcesLocalizer,
+                        true,
+                        Cancel));
+            }
+
+            [Fact]
+            public async Task Throws_when_response_user_is_default()
+            {
+                await Assert.ThrowsAsync<ArgumentException>(() =>
+                    MockFinderFactory.Object.FindUserAsync(
+                        new WithUserType(),
+                        MockLogger.Object,
+                        SharedResourcesLocalizer,
+                        true,
+                        Cancel));
+            }
+
+            [Fact]
+            public async Task Returns_user_when_found()
+            {
+                var mockContentReference = new Mock<IContentReference>();
+                mockContentReference.SetupGet(o => o.Id).Returns(Guid.NewGuid());
+
+                MockUserFinder.Setup(f => f.FindByIdAsync(mockContentReference.Object.Id, Cancel)).ReturnsAsync(mockContentReference.Object);
+
+                var response = new WithUserType { Id = mockContentReference.Object.Id };
+
+                var result = await MockFinderFactory.Object.FindUserAsync(
+                    response,
+                    MockLogger.Object,
+                    SharedResourcesLocalizer,
+                    true,
+                    Cancel);
+
+                Assert.Same(mockContentReference.Object, result);
+            }
+
+            [Fact]
+            public async Task Returns_null_when_not_found_and_throw_is_false()
+            {
+                var response = new WithUserType { Id = Guid.NewGuid() };
+
+                var result = await MockFinderFactory.Object.FindUserAsync(
+                    response,
+                    MockLogger.Object,
+                    SharedResourcesLocalizer,
+                    false,
+                    Cancel);
+
+                Assert.Null(result);
+            }
+
+            [Fact]
+            public async Task Throws_when_not_found_and_throw_is_true()
+            {
+                var response = new WithUserType { Id = Guid.NewGuid() };
+
+                await Assert.ThrowsAsync<InvalidOperationException>(() => MockFinderFactory.Object.FindUserAsync(
+                    response,
+                    MockLogger.Object,
+                    SharedResourcesLocalizer,
+                    true,
+                    Cancel));
+            }
+        }
+
+        public class FindWorkbookAsync : IContentReferenceFinderFactoryExtensionsTest
+        {
+            [Fact]
+            public async Task Throws_when_response_is_null()
+            {
+                await Assert.ThrowsAsync<ArgumentNullException>(() =>
+                    MockFinderFactory.Object.FindWorkbookAsync<WithWorkbookReferenceType>(
+                        null,
+                        MockLogger.Object,
+                        SharedResourcesLocalizer,
+                        true,
+                        Cancel));
+            }
+
+            [Fact]
+            public async Task Throws_when_response_workbook_is_null()
+            {
+                await Assert.ThrowsAsync<ArgumentNullException>(() =>
+                    MockFinderFactory.Object.FindWorkbookAsync(
+                        new WithWorkbookReferenceType(),
+                        MockLogger.Object,
+                        SharedResourcesLocalizer,
+                        true,
+                        Cancel));
+            }
+
+            [Fact]
+            public async Task Throws_when_response_workbook_id_is_default()
+            {
+                var mockWorkbookReference = new Mock<IRestIdentifiable>();
+                mockWorkbookReference.SetupGet(o => o.Id).Returns(Guid.Empty);
+
+                var response = new WithWorkbookReferenceType { Workbook = mockWorkbookReference.Object };
+
+                await Assert.ThrowsAsync<ArgumentException>(() =>
+                    MockFinderFactory.Object.FindWorkbookAsync(
+                        response,
+                        MockLogger.Object,
+                        SharedResourcesLocalizer,
+                        true,
+                        Cancel));
+            }
+
+            [Fact]
+            public async Task Returns_workbook_when_found()
+            {
+                var mockContentReference = new Mock<IContentReference>();
+                mockContentReference.SetupGet(o => o.Id).Returns(Guid.NewGuid());
+
+                var mockWorkbookReference = new Mock<IRestIdentifiable>();
+                mockWorkbookReference.SetupGet(o => o.Id).Returns(mockContentReference.Object.Id);
+
+                MockWorkbookFinder.Setup(f => f.FindByIdAsync(mockContentReference.Object.Id, Cancel)).ReturnsAsync(mockContentReference.Object);
+
+                var response = new WithWorkbookReferenceType { Workbook = mockWorkbookReference.Object };
+
+                var result = await MockFinderFactory.Object.FindWorkbookAsync(
+                    response,
+                    MockLogger.Object,
+                    SharedResourcesLocalizer,
+                    true,
+                    Cancel);
+
+                Assert.Same(mockContentReference.Object, result);
+            }
+
+            [Fact]
+            public async Task Returns_null_when_not_found_and_throw_is_false()
+            {
+                var response = new WithWorkbookReferenceType { Workbook = Create<Mock<IRestIdentifiable>>().Object };
+
+                var result = await MockFinderFactory.Object.FindWorkbookAsync(
+                    response,
+                    MockLogger.Object,
+                    SharedResourcesLocalizer,
+                    false,
+                    Cancel);
+
+                Assert.Null(result);
+            }
+
+            [Fact]
+            public async Task Throws_when_not_found_and_throw_is_true()
+            {
+                var response = new WithWorkbookReferenceType { Workbook = Create<Mock<IRestIdentifiable>>().Object };
+
+                await Assert.ThrowsAsync<InvalidOperationException>(() => MockFinderFactory.Object.FindWorkbookAsync(
                     response,
                     MockLogger.Object,
                     SharedResourcesLocalizer,

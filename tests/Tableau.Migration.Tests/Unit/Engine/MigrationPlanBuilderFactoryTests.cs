@@ -15,18 +15,27 @@
 //  limitations under the License.
 //
 
-using System;
-using System.Collections.Immutable;
+using Moq;
+using Tableau.Migration.Engine;
+using Xunit;
 
-namespace Tableau.Migration.Engine.Pipelines
+namespace Tableau.Migration.Tests.Unit.Engine
 {
-    internal static class PipelineProfileExtensions
+    public sealed class MigrationPlanBuilderFactoryTests
     {
-        public static ImmutableArray<MigrationPipelineContentType> GetSupportedContentTypes(this PipelineProfile profile)
-            => profile switch
+        public sealed class Create : AutoFixtureTestBase
+        {
+            [Fact]
+            public void CreatesFromServices()
             {
-                PipelineProfile.ServerToCloud => ServerToCloudMigrationPipeline.ContentTypes,
-                _ => throw new ArgumentException($"The profile {profile} is not supported", nameof(profile)),
-            };
+                var services = Freeze<MockServiceProvider>();
+
+                var factory = Create<MigrationPlanBuilderFactory>();
+
+                var result = factory.Create();
+
+                services.Verify(x => x.GetService(typeof(IMigrationPlanBuilder)), Times.Once);
+            }
+        }
     }
 }

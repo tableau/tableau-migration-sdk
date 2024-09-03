@@ -88,14 +88,14 @@ namespace Tableau.Migration.Api.Rest.Models.Responses
             public OwnerType? Owner { get; set; }
 
             ///<inheritdoc/>
-            IOwnerType? IWithOwnerType.Owner => Owner;
+            IRestIdentifiable? IWithOwnerType.Owner => Owner;
 
             #region - Object Specific Types -
 
             /// <summary>
             /// Class representing a REST API user response.
             /// </summary>
-            public class OwnerType : IOwnerType
+            public class OwnerType : IRestIdentifiable
             {
                 /// <summary>
                 /// Gets or sets the ID for the response.

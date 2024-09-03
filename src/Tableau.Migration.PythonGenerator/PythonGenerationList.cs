@@ -83,6 +83,9 @@ namespace Tableau.Migration.PythonGenerator
             typeof(IPublishableGroup),
             typeof(IWithTags),
             typeof(IWithOwner),
+            typeof(IWithWorkbook),
+            typeof(ICustomView),
+            typeof(IPublishableCustomView),
 
         #endregion
 
@@ -157,14 +160,14 @@ namespace Tableau.Migration.PythonGenerator
         #endregion
 
         #region - Tableau.Migration.Content.Schedules - 
-            
+
             typeof(IInterval),
             typeof(IFrequencyDetails),
             typeof(ISchedule),
             typeof(ExtractRefreshContentType),
             typeof(IExtractRefreshTask<>),
             typeof(IWithSchedule<>),
-        
+
         #endregion
 
         #region - Tableau.Migration.Content.Schedules.Server - 

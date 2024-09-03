@@ -42,6 +42,10 @@ namespace Tableau.Migration.Content.Files
             {
                 return Path.Combine("workbooks", $"workbook-{wb.Id:N}{extension}");
             }
+            else if (contentItem is ICustomView cv)
+            {
+                return Path.Combine("customviews", $"customview-{cv.Id:N}{extension}");
+            }
 
             throw new ArgumentException($"Cannot generate a file store path for content type {typeof(TContent).Name}");
         }

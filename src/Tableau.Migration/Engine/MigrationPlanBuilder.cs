@@ -20,6 +20,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using Microsoft.Extensions.DependencyInjection;
 using Tableau.Migration.Api.Simulation;
 using Tableau.Migration.Content;
 using Tableau.Migration.Content.Schedules;
@@ -46,6 +47,7 @@ namespace Tableau.Migration.Engine
         private readonly ISharedResourcesLocalizer _localizer;
         private readonly ITableauApiSimulatorFactory _simulatorFactory;
 
+        private Func<IServiceProvider, IMigrationPipelineFactory>? _pipelineFactoryOverride;
         private ServerToCloudMigrationPlanBuilder? _serverToCloudBuilder;
 
         private PipelineProfile _pipelineProfile;
@@ -98,8 +100,9 @@ namespace Tableau.Migration.Engine
         /// <inheritdoc />
         public IServerToCloudMigrationPlanBuilder ForServerToCloud()
         {
-            SetPipelineProfile(PipelineProfile.ServerToCloud);
+            SetPipelineProfile(PipelineProfile.ServerToCloud, ServerToCloudMigrationPipeline.ContentTypes);
 
+            _pipelineFactoryOverride = null;
             _serverToCloudBuilder ??= new(_localizer, this);
 
             ClearExtensions();
@@ -107,6 +110,44 @@ namespace Tableau.Migration.Engine
             return _serverToCloudBuilder
                 .AppendDefaultServerToCloudExtensions();
         }
+
+        /// <inheritdoc />
+        public IMigrationPlanBuilder ForCustomPipelineFactory(Func<IServiceProvider, IMigrationPipelineFactory> pipelineFactoryOverride, params MigrationPipelineContentType[] supportedContentTypes)
+            => ForCustomPipelineFactory(pipelineFactoryOverride, (IEnumerable<MigrationPipelineContentType>)supportedContentTypes);
+
+        /// <inheritdoc />
+        public IMigrationPlanBuilder ForCustomPipelineFactory(Func<IServiceProvider, IMigrationPipelineFactory> pipelineFactoryOverride, IEnumerable<MigrationPipelineContentType> supportedContentTypes)
+        {
+            SetPipelineProfile(PipelineProfile.Custom, supportedContentTypes);
+
+            _pipelineFactoryOverride = pipelineFactoryOverride;
+            _serverToCloudBuilder = null;
+
+            ClearExtensions();
+            AppendDefaultExtensions();
+
+            return this;
+        }
+
+        /// <inheritdoc />
+        public IMigrationPlanBuilder ForCustomPipelineFactory<T>(params MigrationPipelineContentType[] supportedContentTypes)
+            where T : IMigrationPipelineFactory
+            => ForCustomPipelineFactory<T>((IEnumerable<MigrationPipelineContentType>)supportedContentTypes);
+
+        /// <inheritdoc />
+        public IMigrationPlanBuilder ForCustomPipelineFactory<T>(IEnumerable<MigrationPipelineContentType> supportedContentTypes)
+            where T : IMigrationPipelineFactory
+            => ForCustomPipelineFactory(s => s.GetRequiredService<T>(), supportedContentTypes);
+
+        /// <inheritdoc />
+        public IMigrationPlanBuilder ForCustomPipeline<T>(params MigrationPipelineContentType[] supportedContentTypes)
+            where T : IMigrationPipeline
+            => ForCustomPipeline<T>((IEnumerable<MigrationPipelineContentType>)supportedContentTypes);
+
+        /// <inheritdoc />
+        public IMigrationPlanBuilder ForCustomPipeline<T>(IEnumerable<MigrationPipelineContentType> supportedContentTypes)
+            where T : IMigrationPipeline
+            => ForCustomPipelineFactory<CustomMigrationPipelineFactory<T>>(supportedContentTypes);
 
         /// <inheritdoc />
         public IMigrationPlanBuilder AppendDefaultExtensions()
@@ -117,7 +158,7 @@ namespace Tableau.Migration.Engine
             Filters.Add(typeof(PreviouslyMigratedFilter<>), GetAllContentTypes());
             Filters.Add<GroupAllUsersFilter, IGroup>();
             Filters.Add(typeof(SystemOwnershipFilter<>), GetContentTypesByInterface<IWithOwner>());
-            
+
             //Standard migration transformers.
             Transformers.Add<UserAuthenticationTypeTransformer, IUser>();
             Transformers.Add<GroupUsersTransformer, IPublishableGroup>();
@@ -126,6 +167,9 @@ namespace Tableau.Migration.Engine
             Transformers.Add<MappedReferenceExtractRefreshTaskTransformer, ICloudExtractRefreshTask>();
             Transformers.Add<CloudIncrementalRefreshTransformer, ICloudExtractRefreshTask>();
             Transformers.Add(typeof(CloudScheduleCompatibilityTransformer<>), GetPublishTypesByInterface<IWithSchedule<ICloudSchedule>>());
+            Transformers.Add(typeof(WorkbookReferenceTransformer<>), GetPublishTypesByInterface<IWithWorkbook>());
+            Transformers.Add<CustomViewDefaultUserReferencesTransformer, IPublishableCustomView>();
+            Transformers.Add(typeof(EncryptExtractTransformer<>), GetPublishTypesByInterface<IExtractContent>());
 
             // Post-publish hooks.
             Hooks.Add(typeof(OwnerItemPostPublishHook<,>), GetPostPublishTypesByInterface<IRequiresOwnerUpdate>());
@@ -133,6 +177,7 @@ namespace Tableau.Migration.Engine
             Hooks.Add(typeof(ChildItemsPermissionsPostPublishHook<,>), GetPostPublishTypesByInterface<IChildPermissionsContent>());
             Hooks.Add(typeof(TagItemPostPublishHook<,>), GetPostPublishTypesByInterface<IWithTags>());
             Hooks.Add<ProjectPostPublishHook>();
+            Hooks.Add<CustomViewDefaultUsersPostPublishHook>();
 
             return this;
         }
@@ -188,10 +233,10 @@ namespace Tableau.Migration.Engine
         /// <inheritdoc />
         public IContentTransformerBuilder Transformers { get; }
 
-        private void SetPipelineProfile(PipelineProfile pipelineProfile)
+        private void SetPipelineProfile(PipelineProfile pipelineProfile, IEnumerable<MigrationPipelineContentType> supportedContentTypes)
         {
             _pipelineProfile = pipelineProfile;
-            _supportedContentTypes = _pipelineProfile.GetSupportedContentTypes();
+            _supportedContentTypes = supportedContentTypes.ToImmutableArray();
         }
 
         private IImmutableList<Type[]> GetAllContentTypes()
@@ -216,53 +261,93 @@ namespace Tableau.Migration.Engine
             }
 
             var errors = new List<ValidationException>();
+            var listContentTypes = GetListContentTypes();
+            var publishContentTypes = GetPublishContentTypes();
 
-            var listContentTypes = _supportedContentTypes.Select(x => x.ContentType).ToImmutableHashSet();
-            var publishContentTypes = _supportedContentTypes.Select(x => x.PublishType).ToImmutableHashSet();
+            errors.AddRange(ValidateFilterContentTypes(listContentTypes));
+            errors.AddRange(ValidateMappingContentTypes(listContentTypes));
+            errors.AddRange(ValidateTransformerContentTypes(listContentTypes, publishContentTypes));
+
+            return Result.FromErrors(errors);
+        }
+
+        internal ImmutableHashSet<Type> GetListContentTypes()
+            => _supportedContentTypes.Select(x => x.ContentType).ToImmutableHashSet();
+
+        internal ImmutableHashSet<Type> GetPublishContentTypes()
+            => _supportedContentTypes.Select(x => x.PublishType).ToImmutableHashSet();
+
+        internal List<ValidationException> ValidateFilterContentTypes(ImmutableHashSet<Type> listContentTypes)
+        {
+            var errors = new List<ValidationException>();
 
             foreach (var filterType in Filters.ByContentType())
             {
-                if (!listContentTypes.Contains(filterType.Key))
+                if (listContentTypes.Contains(filterType.Key))
                 {
-                    errors.Add(new(_localizer[SharedResourceKeys.UnknownFilterContentTypeValidationMessage,
-                        filterType.Key.Name, filterType.Value.Count()]));
+                    continue;
                 }
+
+                errors.Add(new(_localizer[SharedResourceKeys.UnknownFilterContentTypeValidationMessage,
+                    filterType.Key.Name, filterType.Value.Count()]));
             }
+            return errors;
+        }
+
+        internal List<ValidationException> ValidateMappingContentTypes(ImmutableHashSet<Type> listContentTypes)
+        {
+            var errors = new List<ValidationException>();
 
             foreach (var mappingType in Mappings.ByContentType())
             {
-                if (!listContentTypes.Contains(mappingType.Key))
+                if (listContentTypes.Contains(mappingType.Key))
                 {
-                    errors.Add(new(_localizer[SharedResourceKeys.UnknownMappingContentTypeValidationMessage,
-                        mappingType.Key.Name, mappingType.Value.Count()]));
+                    continue;
                 }
+
+                errors.Add(new(_localizer[SharedResourceKeys.UnknownMappingContentTypeValidationMessage,
+                    mappingType.Key.Name, mappingType.Value.Count()]));
             }
+            return errors;
+        }
+
+        internal List<ValidationException> ValidateTransformerContentTypes(
+            ImmutableHashSet<Type> listContentTypes,
+            ImmutableHashSet<Type> publishContentTypes)
+        {
+            var errors = new List<ValidationException>();
 
             foreach (var transformerType in Transformers.ByContentType())
             {
-                if (!publishContentTypes.Contains(transformerType.Key))
+                if (publishContentTypes.Contains(transformerType.Key))
                 {
-                    //If the user gave us a list content type instead of a publish type
-                    //give the user a validation error with a hint to the right type.
-                    string errorMessage;
-                    if (listContentTypes.Contains(transformerType.Key))
-                    {
-                        var hintType = _supportedContentTypes.First(x => x.ContentType == transformerType.Key).PublishType;
-
-                        errorMessage = _localizer[SharedResourceKeys.UnknownMappingContentTypeValidationMessage,
-                            transformerType.Key.Name, hintType.Name, transformerType.Value.Count()];
-                    }
-                    else
-                    {
-                        errorMessage = _localizer[SharedResourceKeys.UnknownMappingContentTypeValidationMessage,
-                            transformerType.Key.Name, transformerType.Value.Count()];
-                    }
-
-                    errors.Add(new(errorMessage));
+                    continue;
                 }
+
+                //If the user gave us a list content type instead of a publish type
+                //give the user a validation error with a hint to the right type.                
+                if (listContentTypes.Contains(transformerType.Key))
+                {
+                    var hintType = _supportedContentTypes.First(x
+                        => x.ContentType == transformerType.Key)
+                        .PublishType;
+
+                    errors.Add(new(_localizer[
+                        SharedResourceKeys.UnknownTransformerContentTypeValidationMessage,
+                        transformerType.Key.Name,
+                        hintType.Name,
+                        transformerType.Value.Count()]));
+
+                    continue;
+                }
+
+                errors.Add(new(_localizer[
+                    SharedResourceKeys.UnknownTransformerContentTypeValidationMessage,
+                    transformerType.Key.Name,
+                    transformerType.Value.Count()]));
             }
 
-            return Result.FromErrors(errors);
+            return errors;
         }
 
         /// <inheritdoc />
@@ -287,15 +372,17 @@ namespace Tableau.Migration.Engine
         }
 
         /// <inheritdoc />
-        public IMigrationPlan Build() =>
-            new MigrationPlan(PlanId: Guid.NewGuid(),
-                              PipelineProfile: _pipelineProfile,
-                              Options: Options.Build(),
-                              Source: _source,
-                              Destination: _destination,
-                              Hooks: Hooks.Build(),
-                              Mappings: Mappings.Build(),
-                              Filters: Filters.Build(),
-                              Transformers: Transformers.Build());
+        public IMigrationPlan Build()
+            => new MigrationPlan(
+                PlanId: Guid.NewGuid(),
+                PipelineProfile: _pipelineProfile,
+                Options: Options.Build(),
+                Source: _source,
+                Destination: _destination,
+                Hooks: Hooks.Build(),
+                Mappings: Mappings.Build(),
+                Filters: Filters.Build(),
+                Transformers: Transformers.Build(),
+                PipelineFactoryOverride: _pipelineFactoryOverride);
     }
 }

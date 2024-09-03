@@ -16,6 +16,7 @@
 //
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -33,13 +34,20 @@ namespace Tableau.Migration.Engine.Hooks.Mappings
         IContentMappingBuilder Clear();
 
         /// <summary>
+        /// Adds a factory to resolve the mapping type.
+        /// </summary>
+        /// <param name="genericMappingType">The generic type definition for the mapping to execute.</param>
+        /// <param name="contentTypes">The content types used to construct the mapping types.</param>
+        /// <returns>The same mapping builder object for fluent API calls.</returns>
+        IContentMappingBuilder Add(Type genericMappingType, IEnumerable<Type[]> contentTypes);
+
+        /// <summary>
         /// Adds an object to be resolved when you build a mapping for the content type.
         /// </summary>
         /// <typeparam name="TContent">The content type.</typeparam>
         /// <param name="mapping">The mapping to execute.</param>
         /// <returns>The same mapping builder object for fluent API calls.</returns>
-        IContentMappingBuilder Add<TContent>(
-            IContentMapping<TContent> mapping)
+        IContentMappingBuilder Add<TContent>(IContentMapping<TContent> mapping)
             where TContent : IContentReference;
 
         /// <summary>
@@ -49,8 +57,7 @@ namespace Tableau.Migration.Engine.Hooks.Mappings
         /// <typeparam name="TContent">The content type.</typeparam>
         /// <param name="mappingFactory">An initializer function to create the object from, potentially from the migration-scoped dependency injection container.</param>
         /// <returns>The same mapping builder object for fluent API calls.</returns>
-        IContentMappingBuilder Add<TMapping, TContent>(
-            Func<IServiceProvider, TMapping>? mappingFactory = null)
+        IContentMappingBuilder Add<TMapping, TContent>(Func<IServiceProvider, TMapping>? mappingFactory = null)
             where TMapping : IContentMapping<TContent>
             where TContent : IContentReference;
 
@@ -60,8 +67,7 @@ namespace Tableau.Migration.Engine.Hooks.Mappings
         /// <typeparam name="TContent">The content type.</typeparam>
         /// <param name="callback">A callback to call for the mapping.</param>
         /// <returns>The same mapping builder object for fluent API calls.</returns>
-        IContentMappingBuilder Add<TContent>(
-            Func<ContentMappingContext<TContent>, CancellationToken, Task<ContentMappingContext<TContent>?>> callback)
+        IContentMappingBuilder Add<TContent>(Func<ContentMappingContext<TContent>, CancellationToken, Task<ContentMappingContext<TContent>?>> callback)
             where TContent : IContentReference;
 
         /// <summary>
@@ -70,8 +76,7 @@ namespace Tableau.Migration.Engine.Hooks.Mappings
         /// <typeparam name="TContent">The content type.</typeparam>
         /// <param name="callback">A synchronously callback to call for the mapping.</param>
         /// <returns>The same mapping builder object for fluent API calls.</returns>
-        IContentMappingBuilder Add<TContent>(
-            Func<ContentMappingContext<TContent>, ContentMappingContext<TContent>?> callback)
+        IContentMappingBuilder Add<TContent>(Func<ContentMappingContext<TContent>, ContentMappingContext<TContent>?> callback)
             where TContent : IContentReference;
 
         /// <summary>

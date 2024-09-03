@@ -26,14 +26,17 @@ namespace Tableau.Migration.Net.Handlers
     /// </summary>
     internal class UserAgentHttpMessageHandler : DelegatingHandler
     {
-        private readonly string _userAgent;
+        private readonly IUserAgentProvider _userAgentProvider;
 
-        public UserAgentHttpMessageHandler(IMigrationSdk sdk) => _userAgent = sdk.UserAgent;
+        public UserAgentHttpMessageHandler(IUserAgentProvider userAgentProvider)
+        {
+            _userAgentProvider = userAgentProvider;
+        }
 
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             request.Headers.UserAgent.Clear();
-            request.Headers.UserAgent.TryParseAdd(_userAgent);
+            request.Headers.UserAgent.TryParseAdd(_userAgentProvider.UserAgent);
 
             return base.SendAsync(request, cancellationToken);
         }

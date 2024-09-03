@@ -15,6 +15,8 @@
 //  limitations under the License.
 //
 
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -30,7 +32,7 @@ namespace Tableau.Migration.Engine.Hooks.Transformers.Default
     public class GroupUsersTransformer : ContentTransformerBase<IPublishableGroup>
     {
         private readonly IDestinationContentReferenceFinder<IUser> _userFinder;
-        
+
         /// <summary>
         /// Creates a new <see cref="GroupUsersTransformer"/> object.
         /// </summary>
@@ -50,25 +52,38 @@ namespace Tableau.Migration.Engine.Hooks.Transformers.Default
             IPublishableGroup sourceGroup,
             CancellationToken cancel)
         {
+            var missingUsers = new List<string>();
+
             foreach (var user in sourceGroup.Users)
             {
                 var destinationUser = await _userFinder
                     .FindBySourceLocationAsync(user.User.Location, cancel)
                     .ConfigureAwait(false);
 
-                if (destinationUser is not null)
+                if (destinationUser is null)
                 {
-                    user.User = destinationUser;
+                    missingUsers.Add(user.User.Name);
+                    continue;
                 }
-                else
-                {
-                    Logger.LogWarning(
-                        Localizer[SharedResourceKeys.GroupUsersTransformerCannotAddUserWarning], 
-                        sourceGroup.Name, 
-                        user.User.Location);
-                }
+
+                user.User = destinationUser;                
             }
+
+            LogMissingUsers(sourceGroup.Name, missingUsers);
             return sourceGroup;
+        }
+
+        private void LogMissingUsers(string groupName, List<string> missingUsers)
+        {
+            if (!missingUsers.Any())
+            {
+                return;
+            }
+
+            Logger.LogDebug(
+                       Localizer[SharedResourceKeys.GroupUsersTransformerCannotAddUserWarning],
+                       groupName,
+                       string.Join(',', missingUsers));
         }
     }
 }

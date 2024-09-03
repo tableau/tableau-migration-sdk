@@ -36,6 +36,7 @@ namespace Tableau.Migration.Api.Rest
             [typeof(IViewsApiClient)] = Views,
             [typeof(IWorkbooksApiClient)] = Workbooks,
             [typeof(ITasksApiClient)] = Tasks,
+            [typeof(ICustomViewsApiClient)] = CustomViews
         }
         .ToImmutableDictionary(InheritedTypeComparer.Instance);
 
@@ -52,6 +53,7 @@ namespace Tableau.Migration.Api.Rest
         public const string Workbooks = "workbooks";
         public const string Schedules = "schedules";
         public const string Tasks = "tasks";
+        public const string CustomViews = "customviews";
 
         public static string GetUrlPrefix<TApiClient>()
             where TApiClient : IContentApiClient

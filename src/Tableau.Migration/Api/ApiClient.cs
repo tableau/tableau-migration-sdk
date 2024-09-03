@@ -37,6 +37,7 @@ namespace Tableau.Migration.Api
         private readonly IServerSessionProvider _sessionProvider;
         private readonly IHttpContentSerializer _contentSerializer;
         internal const string SITES_QUERY_NOT_SUPPORTED = "403069";
+        internal const string EXPERIMENTAL_API_VERSION = "exp";
 
         /// <summary>
         /// Creates a new <see cref="ApiClient"/> object.

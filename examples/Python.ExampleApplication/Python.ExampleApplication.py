@@ -8,16 +8,15 @@ load_dotenv()
 
 import configparser          # configuration parser
 import os                    # environment variables
-import sys                   # system utility
 import tableau_migration     # Tableau Migration SDK
-import print_result
+from print_result import print_result
 
 from threading import Thread # threading
 
 from tableau_migration import (
     MigrationManifestSerializer,
     MigrationManifest
-    )
+)
 
 serializer = MigrationManifestSerializer()
 
@@ -40,12 +39,14 @@ def migrate():
                         server_url = config['SOURCE']['URL'], 
                         site_content_url = config['SOURCE']['SITE_CONTENT_URL'], 
                         access_token_name = config['SOURCE']['ACCESS_TOKEN_NAME'], 
-                        access_token = os.environ.get('TABLEAU_MIGRATION_SOURCE_TOKEN', config['SOURCE']['ACCESS_TOKEN'])) \
+                        access_token = os.environ.get('TABLEAU_MIGRATION_SOURCE_TOKEN', config['SOURCE']['ACCESS_TOKEN']),
+                        create_api_simulator = os.environ.get('TABLEAU_MIGRATION_SOURCE_SIMULATION', 'False') == 'True') \
                     .to_destination_tableau_cloud(
                         pod_url = config['DESTINATION']['URL'], 
                         site_content_url = config['DESTINATION']['SITE_CONTENT_URL'], 
                         access_token_name = config['DESTINATION']['ACCESS_TOKEN_NAME'], 
-                        access_token = os.environ.get('TABLEAU_MIGRATION_DESTINATION_TOKEN', config['DESTINATION']['ACCESS_TOKEN'])) \
+                        access_token = os.environ.get('TABLEAU_MIGRATION_DESTINATION_TOKEN', config['DESTINATION']['ACCESS_TOKEN']),
+                        create_api_simulator = os.environ.get('TABLEAU_MIGRATION_DESTINATION_SIMULATION', 'False') == 'True') \
                     .for_server_to_cloud() \
                     .with_tableau_id_authentication_type() \
                     .with_tableau_cloud_usernames(config['USERS']['EMAIL_DOMAIN'])                    
@@ -101,7 +102,7 @@ if __name__ == '__main__':
     while not done:
         try:
             migration_thread.join(1)
-            sys.exit(0)
+            done = True
         except KeyboardInterrupt:
             # Ctrl+C was caught, request migration to cancel. 
             print("Caught Ctrl+C, shutting down...")

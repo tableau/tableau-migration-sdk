@@ -15,13 +15,17 @@
 //  limitations under the License.
 //
 
-namespace Tableau.Migration.Interop
+namespace Tableau.Migration.Api.Rest.Models.Types
 {
-    internal class PythonUserAgentSuffixProvider : IUserAgentSuffixProvider
-    {
+    /// <summary>    
+    /// Class containing custom view file type constants.    
+    /// </summary>
+    public class CustomViewFileTypes : StringEnum<CustomViewFileTypes>
+    {        
         /// <summary>
-        /// Python user agent suffix
+        /// Gets the name of the Tde custom view file type.
         /// </summary>
-        public string UserAgentSuffix { get; init; } = Constants.USER_AGENT_PYTHON_SUFFIX;
+        public const string Json = "json";
     }
 }
+

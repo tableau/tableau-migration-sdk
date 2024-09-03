@@ -18,6 +18,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Text;
 using AutoFixture;
 using Tableau.Migration.Api.Rest.Models.Responses;
 using Tableau.Migration.Api.Rest.Models.Responses.Server;
@@ -229,7 +230,7 @@ namespace Tableau.Migration.Tests.Simulation
             if (schedule is null)
             {
                 schedule = data.CreateSchedule(autoFixture);
-            }   
+            }
 
             var composer = autoFixture.Build<ScheduleExtractRefreshTasksResponse.ExtractType>();
 
@@ -409,6 +410,92 @@ namespace Tableau.Migration.Tests.Simulation
             }
 
             return extractRefreshTasks.ToImmutableArray();
+        }
+
+        public static CustomViewResponse.CustomViewType CreateCustomView(
+           this TableauData data,
+           IFixture autoFixture,
+            WorkbookResponse.WorkbookType workbook,
+            UsersResponse.UserType user,
+           byte[]? fileData = null)
+        {
+            var customView = autoFixture.Build<CustomViewResponse.CustomViewType>()
+               .With(cv => cv.Workbook, new CustomViewResponse.CustomViewType.WorkbookType(workbook))
+               .With(cv => cv.Owner, new CustomViewResponse.CustomViewType.OwnerType()
+               {
+                   Id = user.Id
+               })
+               .Create();
+
+            fileData ??= Constants.DefaultEncoding.GetBytes(new SimulatedWorkbookData().ToXml());
+
+            data.AddCustomView(customView, fileData);
+
+            return customView;
+        }
+
+        public static CustomViewResponse.CustomViewType CreateCustomView(this TableauData data, IFixture autoFixture)
+            => data.CreateCustomView(autoFixture, data.CreateWorkbook(autoFixture), data.CreateUser(autoFixture));
+
+        public static IImmutableList<CustomViewResponse.CustomViewType> CreateCustomViews(
+            this TableauData data,
+            IFixture autoFixture,
+            int count)
+        {
+            var customViews = new List<CustomViewResponse.CustomViewType>(count);
+
+            for (var i = 0; i != count; i++)
+            {
+                var customView = CreateCustomView(data, autoFixture);
+
+                customViews.Add(customView);
+            }
+
+            return customViews.ToImmutableArray();
+        }
+
+        public static List<UsersWithCustomViewAsDefaultViewResponse.UserType> CreateCustomViewDefaultUsers(
+            this TableauData data,
+            IFixture autoFixture,
+            Guid customViewId)
+        {
+            var users = CreateUsers(data, autoFixture, 5);
+
+            var customViewUsers = new List<UsersWithCustomViewAsDefaultViewResponse.UserType>();
+            foreach (var user in users)
+            {
+                customViewUsers.Add(new()
+                {
+                    Id = user.Id
+                });
+            }
+
+            if (data.CustomViewDefaultUsers.TryGetValue(
+                customViewId,
+                out List<UsersWithCustomViewAsDefaultViewResponse.UserType>? value))
+            {
+                value.AddRange(customViewUsers);
+            }
+            else
+            {
+                data.CustomViewDefaultUsers.TryAdd(customViewId, customViewUsers);
+            }
+
+            return data.CustomViewDefaultUsers[customViewId];
+        }
+
+        public static SimulatedWorkbookData? GetWorkbookFileData(this TableauData data, Guid workbookId)
+        {
+            var wbFile = data.WorkbookFiles[workbookId];
+            var wbFileText = Encoding.Default.GetString(wbFile);
+
+            if (string.IsNullOrEmpty(wbFileText))
+            {
+                return null;
+            }
+
+            var simulatedWorkbook = wbFileText.FromXml<SimulatedWorkbookData>();
+            return simulatedWorkbook;
         }
     }
 }

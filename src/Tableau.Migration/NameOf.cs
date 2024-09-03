@@ -35,8 +35,20 @@ namespace Tableau.Migration
         /// </para>
         /// </summary>
         /// <param name="expression">The expression to generate the member chain string for.</param>
-        /// <returns></returns>
+        /// <returns>A string representing the specified expression.</returns>
         public static string Build<T>(Expression<Func<T>> expression) => Build(expression.Body);
+
+        /// <summary>
+        /// <para>
+        /// Builds the member chain string for the given expression.
+        /// </para>
+        /// <para>
+        /// For example, given the expression (x) => x.MyInnerObject.MyProperty, the string "MyInnerObject.MyProperty" will be returned.
+        /// </para>
+        /// </summary>
+        /// <param name="expression">The expression to generate the member chain string for.</param>
+        /// <returns>A string representing the specified expression.</returns>
+        public static string Build<T>(Expression<Func<T, object?>> expression) => Build(expression.Body);
 
         private static string Build(Expression? expression)
         {

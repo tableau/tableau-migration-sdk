@@ -20,6 +20,7 @@ using System.ComponentModel.DataAnnotations;
 using Tableau.Migration.Engine.Endpoints;
 using Tableau.Migration.Engine.Hooks;
 using Tableau.Migration.Engine.Options;
+using Tableau.Migration.Engine.Pipelines;
 
 namespace Tableau.Migration.Engine
 {
@@ -35,6 +36,7 @@ namespace Tableau.Migration.Engine
     /// <param name="Mappings"><inheritdoc /></param>
     /// <param name="Filters"><inheritdoc /></param>
     /// <param name="Transformers"><inheritdoc /></param>
+    /// <param name="PipelineFactoryOverride"><inheritdoc /></param>
     public record MigrationPlan(
         Guid PlanId,
         [property: EnumDataType(typeof(PipelineProfile))] PipelineProfile PipelineProfile,
@@ -44,7 +46,8 @@ namespace Tableau.Migration.Engine
         IMigrationHookFactoryCollection Hooks,
         IMigrationHookFactoryCollection Mappings,
         IMigrationHookFactoryCollection Filters,
-        IMigrationHookFactoryCollection Transformers
+        IMigrationHookFactoryCollection Transformers,
+        Func<IServiceProvider, IMigrationPipelineFactory>? PipelineFactoryOverride
     ) : IMigrationPlan
     { }
 }

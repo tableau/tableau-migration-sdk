@@ -20,18 +20,13 @@ using System;
 namespace Tableau.Migration
 {
     /// <summary>
-    /// Abstraction responsible to return the current SDK version and user agent string, based on the Executing Assembly Version.
+    /// Interface for global SDK metadata.
     /// </summary>
     internal interface IMigrationSdk
     {
         /// <summary>
-        /// The current SDK Version
+        /// Gets the current SDK version.
         /// </summary>
-        /// <returns>The current SDK version.</returns>
         Version Version { get; }
-        /// <summary>
-        /// Identifier string for the SDK user-agent.
-        /// </summary>
-        string UserAgent { get; }
     }
 }

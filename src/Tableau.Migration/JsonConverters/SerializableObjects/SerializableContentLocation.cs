@@ -62,7 +62,7 @@ namespace Tableau.Migration.JsonConverters.SerializableObjects
         /// <param name="location">The content location to serialize.</param>
         internal SerializableContentLocation(ContentLocation location)
         {
-            PathSegments = location.PathSegments.ToArray();
+            PathSegments = location.PathSegments == null ? [] : [.. location.PathSegments];
             PathSeparator = location.PathSeparator;
             Path = location.Path;
             Name = location.Name;

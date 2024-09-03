@@ -95,7 +95,7 @@ namespace Tableau.Migration.Api.Rest.Models.Responses
             [XmlElement("owner")]
             public OwnerType? Owner { get; set; }
 
-            IOwnerType? IWithOwnerType.Owner => Owner;
+            IRestIdentifiable? IWithOwnerType.Owner => Owner;
 
             /// <summary>
             /// Gets or sets the tags for the response.
@@ -131,7 +131,7 @@ namespace Tableau.Migration.Api.Rest.Models.Responses
             /// <summary>
             /// Class representing a REST API user response.
             /// </summary>
-            public class OwnerType : IOwnerType
+            public class OwnerType : IRestIdentifiable
             {
                 /// <summary>
                 /// Gets or sets the ID for the response.

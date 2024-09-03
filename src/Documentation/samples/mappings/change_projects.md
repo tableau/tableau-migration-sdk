@@ -12,13 +12,14 @@ Both the C# and Python mapping classes inherit from a base class that handles mo
 
 #### Registration
 
-[Learn more.](~/samples/index.md?tabs=Python#hook-registration)
-
 [//]: <> (Adding this as code as regions are not supported in Python snippets)
+
 ```Python
 plan_builder.mappings.add(ChangeProjectMappingForWorkbooks)
 plan_builder.mappings.add(ChangeProjectMappingForDataSources)
 ```
+
+See [hook registration](~/samples/index.md?tabs=Python#hook-registration) for more details.
 
 # [C#](#tab/CSharp)
 

@@ -125,7 +125,7 @@ namespace Tableau.Migration.Api.Rest.Models.Requests
             /// Gets or sets the views to hide or show in the request
             /// </summary>
             [XmlArray("views")]
-            [XmlArrayItem("views")]
+            [XmlArrayItem("view")]
             public ViewType[] Views { get; set; } = Array.Empty<ViewType>();
 
             #region - Object Specific Types -

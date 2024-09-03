@@ -81,6 +81,22 @@ namespace Tableau.Migration.Tests.Unit.Net.Rest
                 var restUriBuilder = Assert.IsType<RestRequestBuilder>(builder);
 
                 Assert.Equal(version.RestApiVersion, GetApiVersion(restUriBuilder));
+                Assert.NotEqual(ApiClient.EXPERIMENTAL_API_VERSION, GetApiVersion(restUriBuilder));
+            }
+
+            [Fact]
+            public void Sets_experimental_api_version()
+            {
+                var version = Create<TableauServerVersion>();
+
+                MockSessionProvider.SetupGet(p => p.Version).Returns(version);
+
+                var builder = Factory.CreateUri(DefaultPath, useExperimental: true);
+
+                Assert.NotNull(builder);
+                var restUriBuilder = Assert.IsType<RestRequestBuilder>(builder);
+
+                Assert.Equal(ApiClient.EXPERIMENTAL_API_VERSION, GetApiVersion(restUriBuilder));
             }
 
             [Fact]
@@ -89,42 +105,6 @@ namespace Tableau.Migration.Tests.Unit.Net.Rest
                 var siteId = Create<Guid>();
 
                 MockSessionProvider.SetupGet(p => p.SiteId).Returns(siteId);
-
-                var builder = Factory.CreateUri(DefaultPath);
-
-                Assert.NotNull(builder);
-                var restUriBuilder = Assert.IsType<RestRequestBuilder>(builder);
-
-                Assert.Equal(siteId.ToUrlSegment(), GetSiteId(restUriBuilder));
-            }
-        }
-
-        public class SetDefaultApiVersion : RestRequestBuilderFactoryTest
-        {
-            [Fact]
-            public void Sets_default()
-            {
-                var version = Create<string>();
-
-                Factory.SetDefaultApiVersion(version);
-
-                var builder = Factory.CreateUri(DefaultPath);
-
-                Assert.NotNull(builder);
-                var restUriBuilder = Assert.IsType<RestRequestBuilder>(builder);
-
-                Assert.Equal(version, GetApiVersion(restUriBuilder));
-            }
-        }
-
-        public class SetDefaultSiteId : RestRequestBuilderFactoryTest
-        {
-            [Fact]
-            public void Sets_default()
-            {
-                var siteId = Create<Guid>();
-
-                Factory.SetDefaultSiteId(siteId);
 
                 var builder = Factory.CreateUri(DefaultPath);
 

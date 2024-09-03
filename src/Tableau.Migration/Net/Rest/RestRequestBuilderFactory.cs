@@ -25,9 +25,6 @@ namespace Tableau.Migration.Net.Rest
         private readonly IServerSessionProvider _sessionProvider;
         private readonly IHttpRequestBuilderFactory _requestBuilderFactory;
 
-        private string? _apiVersion;
-        private string? _siteId;
-
         public RestRequestBuilderFactory(
             IRequestBuilderFactoryInput input,
             IServerSessionProvider sessionProvider,
@@ -38,27 +35,32 @@ namespace Tableau.Migration.Net.Rest
             _requestBuilderFactory = requestBuilderFactory;
         }
 
-        public void SetDefaultApiVersion(string? version) => _apiVersion = version;
+        private string? GetApiVersion()
+            => _sessionProvider.Version?.RestApiVersion;
 
-        public void SetDefaultSiteId(Guid? siteId) => SetDefaultSiteId(siteId?.ToUrlSegment());
+        private string? GetSiteId()
+            => _sessionProvider.SiteId?.ToUrlSegment();
 
-        public void SetDefaultSiteId(string? siteId) => _siteId = siteId;
-
-        public override IRestRequestBuilder CreateUri(string path)
+        public override IRestRequestBuilder CreateUri(string path, bool useExperimental = false)
         {
             var builder = new RestRequestBuilder(BaseUri, path, _requestBuilderFactory);
 
-            if (_apiVersion is null && _sessionProvider.Version?.RestApiVersion is not null)
-                _apiVersion = _sessionProvider.Version?.RestApiVersion;
+            if (useExperimental)
+            {
+                builder.WithApiVersion(ApiClient.EXPERIMENTAL_API_VERSION);
+            }
+            else
+            {
+                var apiVersion = GetApiVersion();
+                if(apiVersion is not null)
+                {
+                    builder.WithApiVersion(apiVersion);
+                }
+            }
 
-            if (_siteId is null && _sessionProvider.SiteId is not null)
-                _siteId = _sessionProvider.SiteId.Value.ToUrlSegment();
-
-            if (_apiVersion is not null)
-                builder.WithApiVersion(_apiVersion);
-
-            if (_siteId is not null)
-                builder.WithSiteId(_siteId);
+            var siteId = GetSiteId();
+            if (siteId is not null)
+                builder.WithSiteId(siteId);
 
             return builder;
         }

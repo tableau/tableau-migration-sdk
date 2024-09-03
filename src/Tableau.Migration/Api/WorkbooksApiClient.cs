@@ -116,7 +116,17 @@ namespace Tableau.Migration.Api
                             var owner = await FindOwnerAsync(item, false, c).ConfigureAwait(false);
 
                             if (project is null || owner is null)
-                                continue; //Warnings will be logged by prior method calls.
+                            {
+                                Logger.LogWarning(
+                                    SharedResourcesLocalizer[SharedResourceKeys.WorkbookSkippedMissingReferenceWarning],
+                                    item.Id,
+                                    item.Name,
+                                    item.Project!.Id,
+                                    project is null ? SharedResourcesLocalizer[SharedResourceKeys.NotFound] : SharedResourcesLocalizer[SharedResourceKeys.Found],
+                                    item.Owner!.Id,
+                                    owner is null ? SharedResourcesLocalizer[SharedResourceKeys.NotFound] : SharedResourcesLocalizer[SharedResourceKeys.Found]);
+                                continue;
+                            }
 
                             results.Add(new Workbook(item, project, owner));
                         }

@@ -19,9 +19,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Tableau.Migration.Api.Rest.Models;
 using Tableau.Migration.Config;
-using Tableau.Migration.Content;
 using Tableau.Migration.Resources;
 
 namespace Tableau.Migration.Engine.Actions
@@ -43,7 +41,7 @@ namespace Tableau.Migration.Engine.Actions
         /// <param name="migration">The current migration.</param>
         /// <param name="logger">A logger.</param>
         /// <param name="localizer">A localizer.</param>
-        public PreflightAction(IOptions<PreflightOptions> options, IMigration migration, 
+        public PreflightAction(IOptions<PreflightOptions> options, IMigration migration,
             ILogger<PreflightAction> logger, ISharedResourcesLocalizer localizer)
         {
             _options = options.Value;
@@ -52,31 +50,9 @@ namespace Tableau.Migration.Engine.Actions
             _localizer = localizer;
         }
 
-        private void ValidateExtractEncryptionSetting(ISiteSettings source, ISiteSettings destination)
-        {
-            /* Any destination value is valid if source has encryption disabled.
-             * There won't be extract migration errors and there may be destination extracts encrypted.
-             */
-            if (ExtractEncryptionModes.IsAMatch(source.ExtractEncryptionMode, ExtractEncryptionModes.Disabled))
-            {
-                return;
-            }
-
-            /* We don't care if the destination site is enforced/enabled as long as it supports encrypted extracts.
-             * There won't be extract migration errors and the destination gets to keep its preference.
-             */
-            if (!ExtractEncryptionModes.IsAMatch(destination.ExtractEncryptionMode, ExtractEncryptionModes.Disabled))
-            {
-                return;
-            }
-
-            // Warn the user about the potential failure of encrypted extract migration.
-            _logger.LogWarning(_localizer[SharedResourceKeys.SiteSettingsExtractEncryptionDisabledLogMessage]);
-        }
-
         private async ValueTask<IResult> ManageSettingsAsync(CancellationToken cancel)
         {
-            if(!_options.ValidateSettings)
+            if (!_options.ValidateSettings)
             {
                 _logger.LogDebug(_localizer[SharedResourceKeys.SiteSettingsSkippedDisabledLogMessage]);
                 return Result.Succeeded();
@@ -91,7 +67,7 @@ namespace Tableau.Migration.Engine.Actions
             var sourceSessionResult = sourceSessionTask.Result;
             var destinationSessionResult = destinationSessionTask.Result;
 
-            if(!sourceSessionResult.Success || !destinationSessionResult.Success)
+            if (!sourceSessionResult.Success || !destinationSessionResult.Success)
             {
                 return new ResultBuilder().Add(sourceSessionResult, destinationSessionResult).Build();
             }
@@ -100,15 +76,11 @@ namespace Tableau.Migration.Engine.Actions
             var sourceSession = sourceSessionResult.Value;
             var destinationSession = destinationSessionResult.Value;
 
-            if(!sourceSession.IsAdministrator || !destinationSession.IsAdministrator)
+            if (!sourceSession.IsAdministrator || !destinationSession.IsAdministrator)
             {
                 _logger.LogDebug(_localizer[SharedResourceKeys.SiteSettingsSkippedNoAccessLogMessage]);
                 return Result.Succeeded();
             }
-
-            // Validate supported settings.
-
-            ValidateExtractEncryptionSetting(sourceSession.Settings, destinationSession.Settings);            
 
             /* We currently don't update settings for the user because
              * Tableau Cloud returns an error when site administrators update site settings,

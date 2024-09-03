@@ -25,6 +25,6 @@ namespace Tableau.Migration.Api.Rest.Models
         /// <summary>
         /// Gets the owner for the response.
         /// </summary>
-        IOwnerType? Owner { get; }
+        IRestIdentifiable? Owner { get; }
     }
 }

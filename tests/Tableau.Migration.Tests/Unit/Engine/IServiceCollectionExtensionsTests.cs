@@ -180,6 +180,12 @@ namespace Tableau.Migration.Tests.Unit.Engine
             }
 
             [Fact]
+            public async Task RegistersSingletonPlanBuilderFactory()
+            {
+                await AssertServiceAsync<IMigrationPlanBuilderFactory, MigrationPlanBuilderFactory>(ServiceLifetime.Singleton);
+            }
+
+            [Fact]
             public async Task RegistersTransientPlanBuilder()
             {
                 await AssertServiceAsync<IMigrationPlanBuilder, MigrationPlanBuilder>(ServiceLifetime.Transient);

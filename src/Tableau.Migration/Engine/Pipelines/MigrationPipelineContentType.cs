@@ -20,7 +20,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using Tableau.Migration.Content;
-using Tableau.Migration.Content.Schedules;
 using Tableau.Migration.Content.Schedules.Cloud;
 using Tableau.Migration.Content.Schedules.Server;
 
@@ -75,6 +74,12 @@ namespace Tableau.Migration.Engine.Pipelines
             .WithPublishType<ICloudExtractRefreshTask>();
 
         /// <summary>
+        /// Gets the custom views <see cref="MigrationPipelineContentType"/>.
+        /// </summary>
+        public static readonly MigrationPipelineContentType CustomViews = new MigrationPipelineContentType<ICustomView>()
+            .WithPublishType<IPublishableCustomView>();
+
+        /// <summary>
         /// Gets the publish type.
         /// </summary>
         public Type PublishType { get; private init; } = ContentType;
@@ -120,42 +125,50 @@ namespace Tableau.Migration.Engine.Pipelines
         /// </summary>
         /// <param name="interface">The interface to search for.</param>
         public Type[]? GetPublishTypeForInterface(Type @interface)
-            => HasInterface(PublishType, @interface) ? new[] { PublishType } : null;
+            => HasInterface(PublishType, @interface) ? [PublishType] : null;
 
         /// <summary>
         /// Gets the <see cref="ContentType"/> value if it implements the given interface, or null if it does not.
         /// </summary>
         /// <param name="interface">The interface to search for.</param>
         public Type[]? GetContentTypeForInterface(Type @interface)
-            => HasInterface(ContentType, @interface) ? new[] { ContentType } : null;
+            => HasInterface(ContentType, @interface) ? [ContentType] : null;
 
         /// <summary>
         /// Gets the <see cref="PublishType"/> and <see cref="ResultType"/> array if it implements the given interface, or null if it does not.
         /// </summary>
         /// <param name="interface">The interface to search for.</param>
         public Type[]? GetPostPublishTypesForInterface(Type @interface)
-            => HasInterface(PublishType, @interface) ? new[] { PublishType, ResultType } : null;
+            => HasInterface(PublishType, @interface) ? [PublishType, ResultType] : null;
 
         /// <summary>
         /// Gets the config key for this content type.
         /// </summary>
         /// <returns>The config key string.</returns>
         public string GetConfigKey()
+             => GetConfigKeyForType(ContentType);
+
+        /// <summary>
+        /// Gets the config key for a content type.
+        /// </summary>
+        /// <param name="contentType">The content type.</param>
+        /// <returns>The config key string.</returns>
+        public static string GetConfigKeyForType(Type contentType)
         {
-            if (!ContentType.IsGenericType)
+            if (!contentType.IsGenericType)
             {
-                var typeName = ContentType.Name;
+                var typeName = contentType.Name;
                 return typeName.TrimStart('I');
             }
 
             var convertedName = new StringBuilder()
                 .Append(
-                    ContentType.Name
+                    contentType.Name
                         .TrimStart('I')
                         .TrimEnd('1')
                         .TrimEnd('`'));
 
-            foreach (var arg in ContentType.GenericTypeArguments)
+            foreach (var arg in contentType.GenericTypeArguments)
             {
                 convertedName.Append($"_{arg.Name.TrimStart('I')}");
             }

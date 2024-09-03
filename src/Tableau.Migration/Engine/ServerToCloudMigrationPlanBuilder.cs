@@ -31,6 +31,7 @@ using Tableau.Migration.Engine.Hooks.Mappings.Default;
 using Tableau.Migration.Engine.Hooks.Transformers;
 using Tableau.Migration.Engine.Hooks.Transformers.Default;
 using Tableau.Migration.Engine.Options;
+using Tableau.Migration.Engine.Pipelines;
 using Tableau.Migration.Resources;
 
 namespace Tableau.Migration.Engine
@@ -80,6 +81,24 @@ namespace Tableau.Migration.Engine
 
         IServerToCloudMigrationPlanBuilder IMigrationPlanBuilder.ForServerToCloud()
             => _innerBuilder.ForServerToCloud();
+
+        IMigrationPlanBuilder IMigrationPlanBuilder.ForCustomPipelineFactory(Func<IServiceProvider, IMigrationPipelineFactory> pipelineFactoryOverride, params MigrationPipelineContentType[] supportedContentTypes)
+            => _innerBuilder.ForCustomPipelineFactory(pipelineFactoryOverride, supportedContentTypes);
+
+        IMigrationPlanBuilder IMigrationPlanBuilder.ForCustomPipelineFactory(Func<IServiceProvider, IMigrationPipelineFactory> pipelineFactoryOverride, IEnumerable<MigrationPipelineContentType> supportedContentTypes)
+            => _innerBuilder.ForCustomPipelineFactory(pipelineFactoryOverride, supportedContentTypes);
+
+        IMigrationPlanBuilder IMigrationPlanBuilder.ForCustomPipelineFactory<T>(params MigrationPipelineContentType[] supportedContentTypes)
+            => _innerBuilder.ForCustomPipelineFactory<T>(supportedContentTypes);
+
+        IMigrationPlanBuilder IMigrationPlanBuilder.ForCustomPipelineFactory<T>(IEnumerable<MigrationPipelineContentType> supportedContentTypes)
+            => _innerBuilder.ForCustomPipelineFactory<T>(supportedContentTypes);
+
+        IMigrationPlanBuilder IMigrationPlanBuilder.ForCustomPipeline<T>(params MigrationPipelineContentType[] supportedContentTypes)
+            => _innerBuilder.ForCustomPipeline<T>(supportedContentTypes);
+
+        IMigrationPlanBuilder IMigrationPlanBuilder.ForCustomPipeline<T>(IEnumerable<MigrationPipelineContentType> supportedContentTypes)
+            => _innerBuilder.ForCustomPipeline<T>(supportedContentTypes);
 
         IMigrationPlanBuilder IMigrationPlanBuilder.FromSource(IMigrationPlanEndpointConfiguration config)
             => _innerBuilder.FromSource(config);

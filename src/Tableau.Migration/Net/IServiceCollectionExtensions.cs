@@ -41,8 +41,7 @@ namespace Tableau.Migration.Net
         /// </summary>
         /// <param name="services">The <see cref="IServiceCollection"/> to add the service to.</param>
         /// <returns>A reference to this instance after the operation has completed.</returns>
-        internal static IServiceCollection AddHttpServices(
-            this IServiceCollection services)
+        internal static IServiceCollection AddHttpServices(this IServiceCollection services)
         {
             services.AddSharedResourcesLocalization();
 
@@ -51,9 +50,9 @@ namespace Tableau.Migration.Net
             services.AddSingleton<IResponseSimulatorProvider, NullResponseSimulatorProvider>();
 
             services
-                .AddSingleton<IUserAgentSuffixProvider, UserAgentSuffixProvider>()
                 .AddSingleton<IMigrationSdk, MigrationSdk>()
                 .AddSingleton<IConfigReader, ConfigReader>()
+                .AddSingleton<IUserAgentProvider, UserAgentProvider>()
                 .AddSingleton<IHttpContentSerializer, HttpContentSerializer>()
                 .AddSingleton<INetworkTraceRedactor, NetworkTraceRedactor>()
                 .AddTransient<INetworkTraceLogger, NetworkTraceLogger>()

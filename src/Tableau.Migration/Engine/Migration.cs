@@ -16,6 +16,7 @@
 //
 
 using System;
+using Microsoft.Extensions.DependencyInjection;
 using Tableau.Migration.Engine.Endpoints;
 using Tableau.Migration.Engine.Manifest;
 using Tableau.Migration.Engine.Pipelines;
@@ -30,21 +31,21 @@ namespace Tableau.Migration.Engine
         /// <summary>
         /// Creates a new <see cref="Migration"/> object.
         /// </summary>
-        /// <param name="input">The migration input to initialize plan and previous manifest from.</param>
-        /// <param name="pipelineFactory">An object to create pipelines with.</param>
-        /// <param name="endpointFactory">An object to create endpoints with.</param>
-        /// <param name="manifestFactory">An object to create manifests with.</param>
-        public Migration(IMigrationInput input, IMigrationPipelineFactory pipelineFactory,
-            IMigrationEndpointFactory endpointFactory, IMigrationManifestFactory manifestFactory)
+        /// <param name="services">The service provider to use to initialize the migration.</param>
+        public Migration(IServiceProvider services)
         {
+            var input = services.GetRequiredService<IMigrationInput>();
             Id = input.MigrationId;
             Plan = input.Plan;
 
+            var pipelineFactory = Plan.PipelineFactoryOverride?.Invoke(services) ?? services.GetRequiredService<IMigrationPipelineFactory>();
             Pipeline = pipelineFactory.Create(Plan);
 
+            var endpointFactory = services.GetRequiredService<IMigrationEndpointFactory>();
             Source = endpointFactory.CreateSource(Plan);
             Destination = endpointFactory.CreateDestination(Plan);
 
+            var manifestFactory = services.GetRequiredService<IMigrationManifestFactory>();
             Manifest = manifestFactory.Create(input, Id);
         }
 

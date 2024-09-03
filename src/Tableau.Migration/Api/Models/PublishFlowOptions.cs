@@ -25,7 +25,7 @@ namespace Tableau.Migration.Api.Models
     /// <summary>
     /// Class for API client prep flow publish options. 
     /// </summary>
-    public class PublishFlowOptions : IPublishFlowOptions
+    public class PublishFlowOptions : PublishContentWithFileOptions, IPublishFlowOptions
     {
         ///<inheritdoc/>
         public string Name { get; }
@@ -39,29 +39,24 @@ namespace Tableau.Migration.Api.Models
         ///<inheritdoc/>
         public Guid ProjectId { get; }
 
-        ///<inheritdoc/>
-        public Stream File { get; }
-
-        ///<inheritdoc/>
-        public string FileName { get; }
-
-        ///<inheritdoc/>
-        public string FileType { get; }
-
         /// <summary>
         /// Creates a new <see cref="PublishFlowOptions"/> instance.
         /// </summary>
         /// <param name="flow">The publishable prep flow information.</param>
         /// <param name="file">The prep flow file as a <see cref="Stream"/></param>
         /// <param name="fileType">The type of prep flow file.</param>
-        public PublishFlowOptions(IPublishableFlow flow, Stream file, string fileType = FlowFileTypes.Tflx)
+        public PublishFlowOptions(
+            IPublishableFlow flow,
+            Stream file,
+            string fileType = FlowFileTypes.Tflx)
+              : base(
+                  file,
+                  flow.File.OriginalFileName,
+                  fileType)
         {
             Name = flow.Name;
             Description = flow.Description;
             ProjectId = ((IContainerContent)flow).Container.Id;
-            File = file;
-            FileName = flow.File.OriginalFileName;
-            FileType = fileType;
         }
     }
 }
