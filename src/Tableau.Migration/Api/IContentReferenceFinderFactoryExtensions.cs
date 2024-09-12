@@ -23,7 +23,6 @@ using Microsoft.Extensions.Logging;
 using Tableau.Migration.Api.Rest;
 using Tableau.Migration.Api.Rest.Models;
 using Tableau.Migration.Content;
-using Tableau.Migration.Content.Schedules;
 using Tableau.Migration.Content.Search;
 using Tableau.Migration.Resources;
 
@@ -125,19 +124,6 @@ namespace Tableau.Migration.Api
                     SharedResourceKeys.WorkbookReferenceNotFoundException,
                     cancel)
                 .ConfigureAwait(false);
-
-        public static async Task<IContentReference> FindExtractRefreshContentAsync(
-            this IContentReferenceFinderFactory finderFactory,
-            ExtractRefreshContentType contentType,
-            Guid contentId,
-            CancellationToken cancel)
-        {
-            var finder = finderFactory.ForExtractRefreshContent(contentType);
-
-            var content = await finder.FindByIdAsync(contentId, cancel).ConfigureAwait(false);
-
-            return Guard.AgainstNull(content, nameof(content));
-        }
 
         private static async Task<IContentReference?> FindAsync<TResponse, TContent>(
             this IContentReferenceFinderFactory finderFactory,

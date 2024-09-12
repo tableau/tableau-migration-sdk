@@ -315,4 +315,7 @@ Owner with ID {OwnerID}: {owner}</value>
   <data name="DuplicateContentTypeConfigurationMessage" xml:space="preserve">
     <value>Duplicate content type configuration found for content type {0}.</value>
   </data>
+  <data name="UnknownExtractRefreshContentTypeWarning" xml:space="preserve">
+    <value>The extract refresh task with ID {TaskId} references an unknown content type. The task will be ignored.</value>
+  </data>
 </root>

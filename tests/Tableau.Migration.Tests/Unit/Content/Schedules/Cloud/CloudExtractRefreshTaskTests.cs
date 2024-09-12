@@ -16,9 +16,10 @@
 //
 
 using System;
+using System.Linq;
+using System.Threading.Tasks;
 using Tableau.Migration.Api.Rest.Models.Responses;
 using Tableau.Migration.Api.Rest.Models.Responses.Cloud;
-using Tableau.Migration.Api.Rest.Models.Types;
 using Tableau.Migration.Content.Schedules;
 using Tableau.Migration.Content.Schedules.Cloud;
 using Xunit;
@@ -27,7 +28,7 @@ using ExtractRefreshType = Tableau.Migration.Api.Rest.Models.Responses.Cloud.Ext
 
 namespace Tableau.Migration.Tests.Unit.Content.Schedules.Cloud
 {
-    public class CloudExtractRefreshTaskTests
+    public sealed class CloudExtractRefreshTaskTests
     {
         public abstract class CloudExtractRefreshTaskTest : ExtractRefreshTaskTestBase
         {
@@ -55,7 +56,7 @@ namespace Tableau.Migration.Tests.Unit.Content.Schedules.Cloud
             }
         }
 
-        public class Ctor : CloudExtractRefreshTaskTest
+        public sealed class Ctor : CloudExtractRefreshTaskTest
         {
             [Theory, ExtractRefreshContentTypeData]
             public void Initializes(ExtractRefreshContentType contentType)
@@ -71,6 +72,29 @@ namespace Tableau.Migration.Tests.Unit.Content.Schedules.Cloud
                 Assert.Equal(type, task.Type);
                 Assert.Equal(contentType, task.ContentType);
                 Assert.Same(schedule, task.Schedule);
+            }
+        }
+
+        public sealed class CreateManyAsync : CloudExtractRefreshTaskTest
+        {
+            [Theory, ExtractRefreshContentTypeData]
+            public async Task IgnoresPersonalSpaceTasksAsync(ExtractRefreshContentType contentType)
+            {
+                var response = new ExtractRefreshTasksResponse
+                {
+                    Items = Enumerable.Range(1, 10)
+                        .Select(i => new ExtractRefreshTasksResponse.TaskType
+                            {
+                                ExtractRefresh = CreateExtractRefreshResponse(GetRandomType(), contentType)
+                            })
+                        .ToArray()
+                };
+
+                ExtractRefreshTestCaches.SetupExtractRefreshContentFinder(response.Items.Select(i => i.ExtractRefresh).ExceptNulls().Skip(1));
+
+                var tasks = await CloudExtractRefreshTask.CreateManyAsync(response, MockFinderFactory.Object, Logger, Localizer, Cancel);
+
+                Assert.Equal(response.Items.Length - 1, tasks.Count);
             }
         }
     }

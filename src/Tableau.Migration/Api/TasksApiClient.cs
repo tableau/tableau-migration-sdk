@@ -32,6 +32,7 @@ using Tableau.Migration.Net;
 using Tableau.Migration.Net.Rest;
 using Tableau.Migration.Paging;
 using Tableau.Migration.Resources;
+
 using CloudResponses = Tableau.Migration.Api.Rest.Models.Responses.Cloud;
 using ServerResponses = Tableau.Migration.Api.Rest.Models.Responses.Server;
 
@@ -70,17 +71,11 @@ namespace Tableau.Migration.Api
 
         /// <inheritdoc />
         public IServerTasksApiClient ForServer()
-            => ExecuteForInstanceType(
-                TableauInstanceType.Server,
-                _sessionProvider.InstanceType,
-                () => this);
+            => ExecuteForInstanceType(TableauInstanceType.Server, _sessionProvider.InstanceType, () => this);
 
         /// <inheritdoc />
         public ICloudTasksApiClient ForCloud()
-            => ExecuteForInstanceType(
-                TableauInstanceType.Cloud,
-                _sessionProvider.InstanceType,
-                () => this);
+            => ExecuteForInstanceType(TableauInstanceType.Cloud, _sessionProvider.InstanceType, () => this);
 
         #endregion
 
@@ -105,10 +100,7 @@ namespace Tableau.Migration.Api
         async Task<IResult<IImmutableList<ICloudExtractRefreshTask>>> ICloudTasksApiClient.GetAllExtractRefreshTasksAsync(
             CancellationToken cancel)
             => await GetAllExtractRefreshTasksAsync<CloudResponses.ExtractRefreshTasksResponse, ICloudExtractRefreshTask, ICloudSchedule>(
-                (r, c) => CloudExtractRefreshTask.CreateManyAsync(
-                    r,
-                    ContentFinderFactory,
-                    c),
+                (r, c) => CloudExtractRefreshTask.CreateManyAsync(r, ContentFinderFactory, Logger, SharedResourcesLocalizer, c),
                 cancel)
                 .ConfigureAwait(false);
 
@@ -122,14 +114,18 @@ namespace Tableau.Migration.Api
                 .ForPostRequest()
                 .WithXmlContent(new CreateExtractRefreshTaskRequest(options))
                 .SendAsync<CloudResponses.CreateExtractRefreshTaskResponse>(cancel)
-                .ToResultAsync((r, c) =>
-                    CloudExtractRefreshTask.CreateAsync(
-                        r.Item,
-                        r.Schedule,
-                        ContentFinderFactory,
-                        c),
-                    SharedResourcesLocalizer,
-                    cancel)
+                .ToResultAsync(async (r, c) =>
+                {
+                    var task = Guard.AgainstNull(r.Item, () => r.Item);
+                    var finder = ContentFinderFactory.ForExtractRefreshContent(task.GetContentType());
+
+                    var contentReference = await finder.FindByIdAsync(task.GetContentId(), cancel).ConfigureAwait(false);
+
+                    // Since we published with a content reference, we expect the reference returned is valid/knowable.
+                    Guard.AgainstNull(contentReference, () => contentReference);
+
+                    return CloudExtractRefreshTask.Create(task, r.Schedule, contentReference); 
+                }, SharedResourcesLocalizer, cancel)
                 .ConfigureAwait(false);
 
             return result;
@@ -158,11 +154,7 @@ namespace Tableau.Migration.Api
         /// <inheritdoc />
         async Task<IResult<IImmutableList<IServerExtractRefreshTask>>> IServerTasksApiClient.GetAllExtractRefreshTasksAsync(CancellationToken cancel)
             => await GetAllExtractRefreshTasksAsync<ServerResponses.ExtractRefreshTasksResponse, IServerExtractRefreshTask, IServerSchedule>(
-                (r, c) => ServerExtractRefreshTask.CreateManyAsync(
-                    r,
-                    ContentFinderFactory,
-                    _contentCacheFactory,
-                    c),
+                (r, c) => ServerExtractRefreshTask.CreateManyAsync(r, ContentFinderFactory, _contentCacheFactory, Logger, SharedResourcesLocalizer, c),
                 cancel)
                 .ConfigureAwait(false);
 

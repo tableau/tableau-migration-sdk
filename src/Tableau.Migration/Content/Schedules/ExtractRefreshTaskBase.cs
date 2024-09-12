@@ -20,10 +20,11 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Tableau.Migration.Api;
+using Microsoft.Extensions.Logging;
 using Tableau.Migration.Api.Rest.Models;
 using Tableau.Migration.Api.Rest.Models.Responses;
 using Tableau.Migration.Content.Search;
+using Tableau.Migration.Resources;
 
 namespace Tableau.Migration.Content.Schedules
 {
@@ -32,8 +33,11 @@ namespace Tableau.Migration.Content.Schedules
         where TSchedule : ISchedule
     {
         public string Type { get; set; }
+
         public ExtractRefreshContentType ContentType { get; set; }
+
         public IContentReference Content { get; set; }
+
         public TSchedule Schedule { get; }
 
         protected ExtractRefreshTaskBase(
@@ -54,57 +58,43 @@ namespace Tableau.Migration.Content.Schedules
             Schedule = schedule;
         }
 
-        protected static async Task<TExtractRefreshTask> CreateAsync<TExtractRefreshType, TExtractRefreshTask>(
-            TExtractRefreshType? response,
-            IContentReferenceFinderFactory finderFactory,
-            Func<TExtractRefreshType, IContentReference, CancellationToken, Task<TExtractRefreshTask>> modelFactory,
-            CancellationToken cancel)
-            where TExtractRefreshType : class, IExtractRefreshType
-            where TExtractRefreshTask: IExtractRefreshTask<TSchedule>
-        {
-            Guard.AgainstNull(response, nameof(response));
-
-            var contentReference = await finderFactory
-                .FindExtractRefreshContentAsync(
-                    response.GetContentType(),
-                    response.GetContentId(),
-                    cancel)
-                .ConfigureAwait(false);
-
-            var model = await modelFactory(
-                    response, 
-                    contentReference,
-                    cancel)
-                .ConfigureAwait(false);
-
-            return model;
-        }
-
-        protected static async Task<IImmutableList<TExtractRefreshTask>> CreateManyAsync<TResponse,TExtractRefreshType, TExtractRefreshTask>(
-            TResponse? response,
+        protected static async Task<IImmutableList<TExtractRefreshTask>> CreateManyAsync<TResponse, TExtractRefreshType, TExtractRefreshTask>(
+            TResponse response,
             Func<TResponse, IEnumerable<TExtractRefreshType?>> responseItemFactory,
             Func<TExtractRefreshType, IContentReference, CancellationToken, Task<TExtractRefreshTask>> modelFactory,
             IContentReferenceFinderFactory finderFactory,
+            ILogger logger, ISharedResourcesLocalizer localizer,
             CancellationToken cancel)
             where TResponse : ITableauServerResponse
             where TExtractRefreshType : class, IExtractRefreshType
             where TExtractRefreshTask: IExtractRefreshTask<TSchedule>
         {
-            Guard.AgainstNull(response, nameof(response));
-
-            var tasks = ImmutableArray.CreateBuilder<TExtractRefreshTask>();
-
-            var items = responseItemFactory(response).ExceptNulls();
+            var items = responseItemFactory(response).ExceptNulls().ToImmutableArray();
+            var tasks = ImmutableArray.CreateBuilder<TExtractRefreshTask>(items.Length);
 
             foreach (var item in items)
             {
-                tasks.Add(
-                    await CreateAsync(
-                        item, 
-                        finderFactory, 
-                        modelFactory, 
-                        cancel)
-                    .ConfigureAwait(false));
+                var contentType = item.GetContentType();
+
+                if(contentType is ExtractRefreshContentType.Unknown)
+                {
+                    logger.LogWarning(localizer[SharedResourceKeys.UnknownExtractRefreshContentTypeWarning], item.Id);
+                    continue;
+                }
+
+                var finder = finderFactory.ForExtractRefreshContent(contentType);
+                var contentReference = await finder.FindByIdAsync(item.GetContentId(), cancel).ConfigureAwait(false);
+
+                /*
+                 * Content reference is null when the referenced content item (e.g. workbook/data source)
+                 * is in a private space or other "pre-manifest" filter.
+                 * 
+                 * We similarly filter out those extract refresh tasks.
+                 */
+                if(contentReference is not null)
+                {
+                    tasks.Add(await modelFactory(item, contentReference, cancel).ConfigureAwait(false));
+                }
             }
 
             return tasks.ToImmutable();

@@ -30,13 +30,15 @@ using Tableau.Migration.Api.Rest.Models.Types;
 using Tableau.Migration.Content.Schedules;
 using Tableau.Migration.Content.Schedules.Cloud;
 using Tableau.Migration.Content.Schedules.Server;
+using Tableau.Migration.Tests.Unit.Content.Schedules;
 using Xunit;
+
 using CloudResponses = Tableau.Migration.Api.Rest.Models.Responses.Cloud;
 using ServerResponses = Tableau.Migration.Api.Rest.Models.Responses.Server;
 
 namespace Tableau.Migration.Tests.Unit.Api
 {
-    public class TasksApiClientTests
+    public sealed class TasksApiClientTests
     {
         public abstract class TasksApiClientTest : ApiClientTestBase<ITasksApiClient>
         {
@@ -44,9 +46,13 @@ namespace Tableau.Migration.Tests.Unit.Api
 
             protected TableauInstanceType CurrentInstanceType { get; set; }
 
+            protected ExtractRefreshTestCaches ExtractRefreshTestCaches { get; }
+
             public TasksApiClientTest()
             {
                 MockSessionProvider.SetupGet(p => p.InstanceType).Returns(() => CurrentInstanceType);
+
+                ExtractRefreshTestCaches = new(AutoFixture, MockDataSourceFinder, MockWorkbookFinder, MockScheduleFinder, MockScheduleCache);
             }
 
             protected static List<TExtractRefreshTask> AssertSuccess<TExtractRefreshTask, TSchedule>(IResult<IImmutableList<TExtractRefreshTask>> result)
@@ -204,7 +210,7 @@ namespace Tableau.Migration.Tests.Unit.Api
 
                     var response = CreateCloudResponse(ExtractRefreshContentType.DataSource);
 
-                    SetupExtractRefreshContentFinder(response.Items.Select(i => i.ExtractRefresh).ExceptNulls());
+                    ExtractRefreshTestCaches.SetupExtractRefreshContentFinder(response.Items.Select(i => i.ExtractRefresh).ExceptNulls());
 
                     SetupSuccessResponse(response);
 
@@ -224,7 +230,7 @@ namespace Tableau.Migration.Tests.Unit.Api
 
                     var response = CreateCloudResponse(ExtractRefreshContentType.Workbook);
 
-                    SetupExtractRefreshContentFinder(response.Items.Select(i => i.ExtractRefresh).ExceptNulls());
+                    ExtractRefreshTestCaches.SetupExtractRefreshContentFinder(response.Items.Select(i => i.ExtractRefresh).ExceptNulls());
 
                     SetupSuccessResponse(response);
 
@@ -235,6 +241,25 @@ namespace Tableau.Migration.Tests.Unit.Api
 
                     Assert.Equal(expectedExtractRefreshes.Count, actualExtractRefreshes.Count);
                     Assert.DoesNotContain(actualExtractRefreshes, item => item.ContentType == ExtractRefreshContentType.DataSource);
+                }
+
+                [Fact]
+                public async Task Ignores_personal_spaces_workbook_tasks()
+                {
+                    MockSessionProvider.SetupGet(p => p.InstanceType).Returns(TableauInstanceType.Cloud);
+
+                    var response = CreateCloudResponse(ExtractRefreshContentType.Workbook);
+
+                    ExtractRefreshTestCaches.SetupExtractRefreshContentFinder(response.Items.Select(i => i.ExtractRefresh).ExceptNulls().Skip(1));
+
+                    SetupSuccessResponse(response);
+
+                    var result = await CloudTasksApiClient.GetAllExtractRefreshTasksAsync(Cancel);
+
+                    var actualExtractRefreshes = AssertSuccess<ICloudExtractRefreshTask, ICloudSchedule>(result);
+                    var expectedExtractRefreshes = response.Items.ToList();
+
+                    Assert.Equal(expectedExtractRefreshes.Count - 1, actualExtractRefreshes.Count);
                 }
             }
 
@@ -263,7 +288,7 @@ namespace Tableau.Migration.Tests.Unit.Api
                     response.Schedule!.Frequency = cloudSchedule.Frequency;
 
                     SetupSuccessResponse(response);
-                    SetupExtractRefreshContentFinder(response.Item);
+                    ExtractRefreshTestCaches.SetupExtractRefreshContentFinder(response.Item);
 
                     // Act
                     var result = await CloudTasksApiClient.CreateExtractRefreshTaskAsync(
@@ -296,7 +321,7 @@ namespace Tableau.Migration.Tests.Unit.Api
                     response.Schedule!.Frequency = cloudSchedule.Frequency;
 
                     SetupSuccessResponse(response);
-                    SetupExtractRefreshContentFinder(response.Item);
+                    ExtractRefreshTestCaches.SetupExtractRefreshContentFinder(response.Item);
 
                     // Act
                     var result = await CloudTasksApiClient.CreateExtractRefreshTaskAsync(
@@ -333,6 +358,34 @@ namespace Tableau.Migration.Tests.Unit.Api
                     // Assert
                     Assert.False(result.Success);
                     Assert.Null(result.Value);
+                }
+
+                [Fact]
+                public async Task Fails_content_reference_not_found()
+                {
+                    // Arrange
+                    MockSessionProvider.SetupGet(p => p.InstanceType).Returns(TableauInstanceType.Cloud);
+                    var contentReference = AutoFixture.Create<IContentReference>();
+                    var cloudSchedule = AutoFixture.Create<ICloudSchedule>();
+                    var createTaskOptions = new CreateExtractRefreshTaskOptions(
+                        ExtractRefreshType.FullRefresh,
+                        ExtractRefreshContentType.Workbook,
+                        contentReference.Id,
+                        cloudSchedule);
+
+                    var response = AutoFixture.CreateResponse<CloudResponses.CreateExtractRefreshTaskResponse>();
+                    response.Item!.DataSource = null;
+                    response.Item.Workbook!.Id = contentReference.Id;
+                    response.Schedule!.Frequency = cloudSchedule.Frequency;
+
+                    SetupSuccessResponse(response);
+
+                    // Act
+                    var result = await CloudTasksApiClient.CreateExtractRefreshTaskAsync(createTaskOptions, Cancel);
+
+                    // Assert
+                    result.AssertFailure();
+                    Assert.IsType<ArgumentNullException>(result.Errors.Single());
                 }
             }
 
@@ -381,7 +434,7 @@ namespace Tableau.Migration.Tests.Unit.Api
                     MockSessionProvider.SetupGet(p => p.InstanceType).Returns(TableauInstanceType.Server);
                     var response = CreateServerResponse(ExtractRefreshContentType.Workbook);
 
-                    SetupExtractRefreshContentFinder(response.Items.Select(i => i.ExtractRefresh).ExceptNulls());
+                    ExtractRefreshTestCaches.SetupExtractRefreshContentFinder(response.Items.Select(i => i.ExtractRefresh).ExceptNulls());
 
                     SetupSuccessResponse(response);
 
@@ -401,7 +454,7 @@ namespace Tableau.Migration.Tests.Unit.Api
 
                     var response = CreateServerResponse(ExtractRefreshContentType.DataSource);
 
-                    SetupExtractRefreshContentFinder(response.Items.Select(i => i.ExtractRefresh).ExceptNulls());
+                    ExtractRefreshTestCaches.SetupExtractRefreshContentFinder(response.Items.Select(i => i.ExtractRefresh).ExceptNulls());
 
                     SetupSuccessResponse(response);
 
@@ -412,6 +465,25 @@ namespace Tableau.Migration.Tests.Unit.Api
 
                     Assert.Equal(expectedExtractRefreshes.Count, actualExtractRefreshes.Count);
                     Assert.DoesNotContain(actualExtractRefreshes, item => item.ContentType == ExtractRefreshContentType.Workbook);
+                }
+
+                [Fact]
+                public async Task Ignores_personal_spaces_workbook_tasks()
+                {
+                    MockSessionProvider.SetupGet(p => p.InstanceType).Returns(TableauInstanceType.Server);
+
+                    var response = CreateServerResponse(ExtractRefreshContentType.Workbook);
+
+                    ExtractRefreshTestCaches.SetupExtractRefreshContentFinder(response.Items.Select(i => i.ExtractRefresh).ExceptNulls().Skip(1));
+
+                    SetupSuccessResponse(response);
+
+                    var result = await ServerTasksApiClient.GetAllExtractRefreshTasksAsync(Cancel);
+
+                    var actualExtractRefreshes = AssertSuccess<IServerExtractRefreshTask, IServerSchedule>(result);
+                    var expectedExtractRefreshes = response.Items.ToList();
+
+                    Assert.Equal(expectedExtractRefreshes.Count - 1, actualExtractRefreshes.Count);
                 }
             }
 

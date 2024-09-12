@@ -142,5 +142,7 @@ namespace Tableau.Migration.Resources
         public const string UserWithCustomViewDefaultSkippedMissingReferenceWarning = "UserWithCustomViewDefaultSkippedMissingReferenceWarning";
 
         public const string DuplicateContentTypeConfigurationMessage = "DuplicateContentTypeConfigurationMessage";
+
+        public const string UnknownExtractRefreshContentTypeWarning = "UnknownExtractRefreshContentTypeWarning";
     }
 }

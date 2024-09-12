@@ -177,6 +177,7 @@ launchSettings.json
 UpgradeLog.htm
 *.*.ini
 *.*.json
+src/Documentation/python
 
 # Public repo ignores
 .github/pull_request_template.md

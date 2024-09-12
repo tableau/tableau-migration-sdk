@@ -15,13 +15,42 @@
 //  limitations under the License.
 //
 
+using Microsoft.Extensions.Logging;
 using Moq;
+using Tableau.Migration.Content;
+using Tableau.Migration.Content.Schedules.Server;
 using Tableau.Migration.Content.Search;
+using Tableau.Migration.Resources;
 
 namespace Tableau.Migration.Tests.Unit.Content.Schedules
 {
     public abstract class ExtractRefreshTaskTestBase : ScheduleTestBase
     {
-        protected readonly Mock<IContentReferenceFinderFactory> MockFinderFactory = new();
+        protected readonly Mock<IContentReferenceFinderFactory> MockFinderFactory = new() { CallBase = true };
+
+        protected readonly Mock<IContentReferenceFinder<IDataSource>> MockDataSourceFinder = new();
+
+        protected readonly Mock<IContentCache<IServerSchedule>> MockScheduleCache = new();
+
+        protected readonly Mock<IContentReferenceFinder<IServerSchedule>> MockScheduleFinder = new();
+
+        protected readonly Mock<IContentReferenceFinder<IWorkbook>> MockWorkbookFinder = new();
+
+        protected ILogger Logger { get; }
+
+        protected ISharedResourcesLocalizer Localizer { get; }
+
+        protected ExtractRefreshTestCaches ExtractRefreshTestCaches { get; }
+
+        protected ExtractRefreshTaskTestBase()
+        {
+            Logger = Create<ILogger>();
+            Localizer = Create<ISharedResourcesLocalizer>();
+
+            MockFinderFactory.Setup(x => x.ForContentType<IDataSource>()).Returns(MockDataSourceFinder.Object);
+            MockFinderFactory.Setup(x => x.ForContentType<IWorkbook>()).Returns(MockWorkbookFinder.Object);
+
+            ExtractRefreshTestCaches = new(AutoFixture, MockDataSourceFinder, MockWorkbookFinder, MockScheduleFinder, MockScheduleCache);
+        }
     }
 }
