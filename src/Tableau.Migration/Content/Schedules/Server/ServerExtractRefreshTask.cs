@@ -20,9 +20,11 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Tableau.Migration.Api.Rest.Models.Responses;
 using Tableau.Migration.Api.Rest.Models.Responses.Server;
 using Tableau.Migration.Content.Search;
+using Tableau.Migration.Resources;
 
 namespace Tableau.Migration.Content.Schedules.Server
 {
@@ -47,26 +49,25 @@ namespace Tableau.Migration.Content.Schedules.Server
         { }
 
         public static async Task<IImmutableList<IServerExtractRefreshTask>> CreateManyAsync(
-            ExtractRefreshTasksResponse? response,
+            ExtractRefreshTasksResponse response,
             IContentReferenceFinderFactory finderFactory,
             IContentCacheFactory contentCacheFactory,
+            ILogger logger, ISharedResourcesLocalizer localizer,
             CancellationToken cancel)
             => await CreateManyAsync(
                 response,
                 response => response.Items.ExceptNulls(i => i.ExtractRefresh),
                 async (r, c, cnl) => await CreateAsync(r, c, contentCacheFactory, cnl).ConfigureAwait(false),
-                finderFactory,
+                finderFactory, logger, localizer,
                 cancel)
                 .ConfigureAwait(false);
 
         private static async Task<IServerExtractRefreshTask> CreateAsync(
-            IServerExtractRefreshType? response,
+            IServerExtractRefreshType response,
             IContentReference content,
             IContentCacheFactory contentCacheFactory,
             CancellationToken cancel)
         {
-            Guard.AgainstNull(response, nameof(response));
-
             var scheduleCache = contentCacheFactory.ForContentType<IServerSchedule>(true);
 
             var schedule = await scheduleCache.ForIdAsync(response.Schedule.Id, cancel).ConfigureAwait(false);

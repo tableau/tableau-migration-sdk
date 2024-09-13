@@ -19,9 +19,11 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Tableau.Migration.Api.Rest.Models.Responses;
 using Tableau.Migration.Api.Rest.Models.Responses.Cloud;
 using Tableau.Migration.Content.Search;
+using Tableau.Migration.Resources;
 
 namespace Tableau.Migration.Content.Schedules.Cloud
 {
@@ -34,54 +36,33 @@ namespace Tableau.Migration.Content.Schedules.Cloud
             ExtractRefreshContentType contentType,
             IContentReference contentReference,
             ICloudSchedule schedule)
-            : base(
-                  extractRefreshId,
-                  type,
-                  contentType,
-                  contentReference,
-                  schedule)
+            : base(extractRefreshId, type, contentType, contentReference, schedule)
         { }
 
         public static async Task<IImmutableList<ICloudExtractRefreshTask>> CreateManyAsync(
-            ExtractRefreshTasksResponse? response,
+            ExtractRefreshTasksResponse response,
             IContentReferenceFinderFactory finderFactory,
+            ILogger logger, ISharedResourcesLocalizer localizer,
             CancellationToken cancel)
             => await CreateManyAsync(
                 response,
                 response => response.Items.ExceptNulls(i => i.ExtractRefresh),
                 (r, c, cnl) => Task.FromResult(Create(r, r.Schedule, c)),
-                finderFactory,
+                finderFactory, logger, localizer,
                 cancel)
                 .ConfigureAwait(false);
 
-        public static async Task<ICloudExtractRefreshTask> CreateAsync(
-            ICloudExtractRefreshType? response,
-            ICloudScheduleType? schedule,
-            IContentReferenceFinderFactory finderFactory,
-            CancellationToken cancel)
-            => await CreateAsync(
-                response,
-                finderFactory,
-                (r, c, cnl) => Task.FromResult(Create(r, schedule, c)),
-                cancel)
-                .ConfigureAwait(false);
-
-        private static ICloudExtractRefreshTask Create(
-            IExtractRefreshType? response,
-            ICloudScheduleType? schedule,
+        public static ICloudExtractRefreshTask Create(
+            IExtractRefreshType response,
+            ICloudScheduleType schedule,
             IContentReference content)
         {
-            Guard.AgainstNull(response, nameof(response));
-
             return new CloudExtractRefreshTask(
                     response.Id,
                     response.Type!,
                     response.GetContentType(),
                     content,
-                    new CloudSchedule(
-                        Guard.AgainstNull(
-                            schedule,
-                            () => schedule)));
+                    new CloudSchedule(schedule));
         }
     }
 }

@@ -16,10 +16,11 @@
 //
 
 using System;
+using System.Linq;
+using System.Threading.Tasks;
 using Moq;
 using Tableau.Migration.Api.Rest.Models.Responses;
 using Tableau.Migration.Api.Rest.Models.Responses.Server;
-using Tableau.Migration.Api.Rest.Models.Types;
 using Tableau.Migration.Content.Schedules;
 using Tableau.Migration.Content.Schedules.Server;
 using Tableau.Migration.Content.Search;
@@ -29,12 +30,11 @@ using ExtractRefreshType = Tableau.Migration.Api.Rest.Models.Responses.Server.Ex
 
 namespace Tableau.Migration.Tests.Unit.Content.Schedules.Server
 {
-    public class ServerExtractRefreshTaskTests
+    public sealed class ServerExtractRefreshTaskTests
     {
         public abstract class ServerExtractRefreshTaskTest : ExtractRefreshTaskTestBase
         {
             protected readonly Mock<IContentCacheFactory> MockContentCacheFactory = new();
-            protected readonly Mock<IContentCache<IServerSchedule>> MockScheduleCache = new();
 
             public ServerExtractRefreshTaskTest()
             {
@@ -67,7 +67,7 @@ namespace Tableau.Migration.Tests.Unit.Content.Schedules.Server
             }
         }
 
-        public class Ctor : ServerExtractRefreshTaskTest
+        public sealed class Ctor : ServerExtractRefreshTaskTest
         {
             [Theory, ExtractRefreshContentTypeData]
             public void Initializes(ExtractRefreshContentType contentType)
@@ -83,6 +83,29 @@ namespace Tableau.Migration.Tests.Unit.Content.Schedules.Server
                 Assert.Equal(type, task.Type);
                 Assert.Equal(contentType, task.ContentType);
                 Assert.Same(schedule, task.Schedule);
+            }
+        }
+
+        public sealed class CreateManyAsync : ServerExtractRefreshTaskTest
+        {
+            [Theory, ExtractRefreshContentTypeData]
+            public async Task IgnoresPersonalSpaceTasksAsync(ExtractRefreshContentType contentType)
+            {
+                var response = new ExtractRefreshTasksResponse
+                {
+                    Items = Enumerable.Range(1, 10)
+                        .Select(i => new ExtractRefreshTasksResponse.TaskType
+                        {
+                            ExtractRefresh = CreateExtractRefreshResponse(GetRandomType(), contentType)
+                        })
+                        .ToArray()
+                };
+
+                ExtractRefreshTestCaches.SetupExtractRefreshContentFinder(response.Items.Select(i => i.ExtractRefresh).ExceptNulls().Skip(1));
+
+                var tasks = await ServerExtractRefreshTask.CreateManyAsync(response, MockFinderFactory.Object, MockContentCacheFactory.Object, Logger, Localizer, Cancel);
+
+                Assert.Equal(response.Items.Length - 1, tasks.Count);
             }
         }
     }

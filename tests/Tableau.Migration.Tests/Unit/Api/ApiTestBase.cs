@@ -16,9 +16,7 @@
 //
 
 using System;
-using System.Collections.Generic;
 using System.Net.Http;
-using System.Threading;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -27,11 +25,9 @@ using Tableau.Migration.Api.Permissions;
 using Tableau.Migration.Api.Publishing;
 using Tableau.Migration.Api.Rest.Models;
 using Tableau.Migration.Api.Rest.Models.Responses;
-using Tableau.Migration.Api.Rest.Models.Responses.Server;
 using Tableau.Migration.Api.Tags;
 using Tableau.Migration.Config;
 using Tableau.Migration.Content;
-using Tableau.Migration.Content.Schedules;
 using Tableau.Migration.Content.Schedules.Server;
 using Tableau.Migration.Content.Search;
 using Tableau.Migration.Net;
@@ -129,60 +125,5 @@ namespace Tableau.Migration.Tests.Unit.Api
         protected TService CreateService<TService>()
             where TService : class
             => ActivatorUtilities.CreateInstance<TService>(Dependencies);
-
-        protected void SetupExtractRefreshContentFinder(IExtractRefreshType extractRefresh)
-        {
-            var contentType = extractRefresh.GetContentType();
-            var contentId = extractRefresh.GetContentId();
-
-            var contentReference = Create<Mock<IContentReference>>(m =>
-            {
-                m.SetupGet(r => r.Id).Returns(contentId);
-            })
-            .Object;
-
-            switch (contentType)
-            {
-                case ExtractRefreshContentType.Workbook:
-                    SetupContentFinder(MockWorkbookFinder);
-                    break;
-
-                case ExtractRefreshContentType.DataSource:
-                    SetupContentFinder(MockDataSourceFinder);
-                    break;
-
-                default:
-                    throw new NotSupportedException($"Content type {contentType} is not supported.");
-            }
-
-            if (extractRefresh is IServerExtractRefreshType serverExtractRefresh)
-            {
-                Guard.AgainstNull(serverExtractRefresh.Schedule, () => serverExtractRefresh.Schedule);
-
-                var scheduleId = serverExtractRefresh.Schedule.Id;
-
-                var cachedSchedule = Create<Mock<IServerSchedule>>(m =>
-                {
-                    m.SetupGet(s => s.Id).Returns(scheduleId);
-                })
-                .Object;
-
-                var scheduleReference = cachedSchedule.ToStub();
-
-                MockScheduleFinder.Setup(f => f.FindByIdAsync(scheduleId, It.IsAny<CancellationToken>())).ReturnsAsync(scheduleReference);
-
-                MockScheduleCache.Setup(f => f.ForIdAsync(scheduleId, It.IsAny<CancellationToken>())).ReturnsAsync(cachedSchedule);
-            }
-
-            void SetupContentFinder<T>(Mock<IContentReferenceFinder<T>> mockFinder)
-                where T : IContentReference
-                => mockFinder.Setup(f => f.FindByIdAsync(contentId, It.IsAny<CancellationToken>())).ReturnsAsync(contentReference);
-        }
-
-        protected void SetupExtractRefreshContentFinder(IEnumerable<IExtractRefreshType> extractRefreshes)
-        {
-            foreach (var extractRefresh in extractRefreshes)
-                SetupExtractRefreshContentFinder(extractRefresh);
-        }
     }
 }
