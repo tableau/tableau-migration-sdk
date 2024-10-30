@@ -59,7 +59,10 @@ namespace Tableau.Migration.PythonGenerator
                     documentation: XmlDocumentationProvider.CreateFromFile(Path.Combine(_options.ImportPath, "Tableau.Migration.xml"))));
 
             var module = compilation.SourceModule.ReferencedAssemblySymbols.Single().Modules.Single();
-            var rootNamespace = module.GlobalNamespace.GetNamespaceMembers().Single().GetNamespaceMembers().Single();
+            var rootNamespace = module.GlobalNamespace
+                .GetNamespaceMembers()
+                .Where(ns => ns.Name.StartsWith("Tableau", StringComparison.Ordinal))
+                .Single().GetNamespaceMembers().Single();
 
             var dotNetTypes = PythonGenerationList.FindTypesToGenerate(rootNamespace);
 

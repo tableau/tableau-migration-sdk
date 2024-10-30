@@ -17,6 +17,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 
 namespace Tableau.Migration.Engine.Manifest
 {
@@ -29,5 +30,17 @@ namespace Tableau.Migration.Engine.Manifest
         /// Gets the content type the partition holds manifest entries for.
         /// </summary>
         Type ContentType { get; }
+
+        /// <summary>
+        /// Gets the number of entries that are expected to be migrated for the partition's content type.
+        /// This value is based on total count returned by the source, and may change as batches are migrated.
+        /// </summary>
+        int ExpectedTotalCount { get; }
+
+        /// <summary>
+        /// Gets the total counts for all the manifest entries in the partition by status.
+        /// </summary>
+        /// <returns>The total count of entries by status.</returns>
+        ImmutableDictionary<MigrationManifestEntryStatus, int> GetStatusTotals();
     }
 }

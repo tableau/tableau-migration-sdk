@@ -46,11 +46,6 @@ namespace Tableau.Migration.Content.Permissions
         public const string Flows = "flows";
 
         /// <summary>
-        /// Gets the metric content type URL path segment.
-        /// </summary>
-        public const string Metrics = "metrics";
-
-        /// <summary>
         /// Gets the database content type URL path segment.
         /// </summary>
         public const string Databases = "databases";

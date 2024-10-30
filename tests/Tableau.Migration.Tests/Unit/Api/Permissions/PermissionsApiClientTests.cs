@@ -16,192 +16,70 @@
 //
 
 using System;
-using System.Collections.Immutable;
-using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
-using Moq;
 using Tableau.Migration.Api.Permissions;
 using Tableau.Migration.Api.Rest;
-using Tableau.Migration.Api.Rest.Models;
-using Tableau.Migration.Api.Rest.Models.Types;
+using Tableau.Migration.Api.Rest.Models.Responses;
 using Tableau.Migration.Content.Permissions;
-using Tableau.Migration.Net;
-using Tableau.Migration.Net.Rest;
-using Tableau.Migration.Resources;
 using Xunit;
 
 namespace Tableau.Migration.Tests.Unit.Api.Permissions
 {
     public class PermissionsApiClientTests
     {
-        public abstract class PermissionsApiClientTest : AutoFixtureTestBase
+        public abstract class PermissionsApiClientTest : SiteApiTestBase
         {
-            protected readonly Mock<IRestRequestBuilderFactory> MockRestRequestBuilderFactory = new();
-            protected readonly Mock<IHttpContentSerializer> MockSerializer = new();
-            protected readonly Mock<IPermissionsUriBuilder> MockUriBuilder = new();
-            protected readonly Mock<ISharedResourcesLocalizer> MockSharedResourcesLocalizer = new();
+            protected const string ContentTypePrefix = "test";
 
-            internal readonly Mock<PermissionsApiClient> MockPermissionsClient;
-            internal readonly PermissionsApiClient PermissionsClient;
+            internal readonly PermissionsApiClient ApiClient;
 
             public PermissionsApiClientTest()
             {
-                MockPermissionsClient = new Mock<PermissionsApiClient>(
-                    MockRestRequestBuilderFactory.Object,
-                    MockSerializer.Object,
-                    MockUriBuilder.Object,
-                    MockSharedResourcesLocalizer.Object)
+                var permissionsUriBuilder = new PermissionsUriBuilder(ContentTypePrefix);
+                ApiClient = new(RestRequestBuilderFactory, Serializer, permissionsUriBuilder, MockSharedResourcesLocalizer.Object);
+            }
+        }
+
+        public class GetPermissionsAsync : PermissionsApiClientTest
+        {
+            [Fact]
+            public async Task Success()
+            {
+                var id = Guid.NewGuid();
+
+                SetupSuccessResponse<PermissionsResponse>();
+
+                var result = await ApiClient.GetPermissionsAsync(id, Cancel);
+
+                result.AssertSuccess();
+
+                MockHttpClient.AssertSingleRequest(r =>
                 {
-                    CallBase = true
-                };
-
-                PermissionsClient = MockPermissionsClient.Object;
+                    AssertSiteUri(r, $"test/{id}/permissions");
+                    r.AssertHttpMethod(HttpMethod.Get);
+                });
             }
 
-            #region - Test Helpers -
-
-            public void SetupGetCapabilitiesToDelete(IGranteeCapability[] capabilities)
+            [Fact]
+            public async Task ReponseError()
             {
-                var deleteSetup = MockPermissionsClient
-                                    .Setup(x =>
-                                        x.GetCapabilitiesToDelete(
-                                            It.IsAny<IGranteeCapability[]>(),
-                                            It.IsAny<IGranteeCapability[]>()));
+                SetupErrorResponse();
 
-                deleteSetup.Returns(capabilities.ToImmutableArray());
+                var result = await ApiClient.GetPermissionsAsync(Guid.NewGuid(), Cancel);
+
+                result.AssertFailure();
             }
 
-            public void SetupDeleteCapabilityAsync(bool success = true)
+            [Fact]
+            public async Task RequestException()
             {
-                var deleteSetup = MockPermissionsClient
-                    .Setup(c => c.DeleteCapabilityAsync(
-                        It.IsAny<Guid>(),
-                        It.IsAny<Guid>(),
-                        It.IsAny<GranteeType>(),
-                        It.IsAny<ICapability>(),
-                        Cancel));
+                SetupExceptionResponse();
 
-                if (success)
-                {
-                    deleteSetup.Returns(Task.FromResult<IResult>(Result.Succeeded()));
-                    return;
-                }
+                var result = await ApiClient.GetPermissionsAsync(Guid.NewGuid(), Cancel);
 
-                deleteSetup.Returns(Task.FromResult<IResult>(Result.Failed(new Exception())));
+                result.AssertFailure();
             }
-
-            public void VerifyDeleteCapabilityAsync(Times times)
-            {
-                MockPermissionsClient
-                    .Verify(c => c.DeleteCapabilityAsync(
-                        It.IsAny<Guid>(),
-                        It.IsAny<Guid>(),
-                        It.IsAny<GranteeType>(),
-                        It.IsAny<ICapability>(),
-                        Cancel),
-                        times);
-            }
-            public void SetupDeletePermissionsAsync(bool success = true)
-            {
-                var deleteSetup = MockPermissionsClient
-                    .Setup(c => c.DeletePermissionsAsync(
-                        It.IsAny<Guid>(),
-                        It.IsAny<IPermissions>(),
-                        It.IsAny<IPermissions>(),
-                        Cancel));
-
-                if (success)
-                {
-                    deleteSetup.Returns(Task.FromResult<IResult>(Result.Succeeded()));
-                    return;
-                }
-
-                deleteSetup.Returns(Task.FromResult<IResult>(Result.Failed(new Exception())));
-            }
-
-            public void SetupCreatePermissionsAsync(bool success, IPermissions? permissions = null)
-            {
-                var setup = MockPermissionsClient
-                    .Setup(c => c.CreatePermissionsAsync(
-                        It.IsAny<Guid>(),
-                        It.IsAny<IPermissions>(),
-                        Cancel));
-
-                if (success)
-                {
-                    Assert.NotNull(permissions);
-
-                    setup.Returns(
-                            Task.FromResult<IResult<IPermissions>>(
-                                Result<IPermissions>.Create(Result.Succeeded(), permissions)));
-                    return;
-                }
-
-                setup.Returns(Task.FromResult<IResult<IPermissions>>(Result<IPermissions>.Failed(new Exception())));
-            }
-
-            public void VerifyCreatePermissionsAsync(Times times)
-            {
-                MockPermissionsClient
-                    .Verify(c => c.CreatePermissionsAsync(
-                        It.IsAny<Guid>(),
-                        It.IsAny<IPermissions>(),
-                        Cancel),
-                        times);
-            }
-
-            public void SetupUpdatePermissionsAsync(bool success, IPermissions? permissions = null)
-            {
-                var setup = MockPermissionsClient
-                    .Setup(c => c.UpdatePermissionsAsync(
-                        It.IsAny<Guid>(),
-                        It.IsAny<IPermissions>(),
-                        Cancel));
-
-                if (success)
-                {
-                    Assert.NotNull(permissions);
-
-                    setup.Returns(
-                            Task.FromResult<IResult<IPermissions>>(
-                                Result<IPermissions>.Create(Result.Succeeded(), permissions)));
-                    return;
-                }
-
-                setup.Returns(Task.FromResult<IResult<IPermissions>>(Result<IPermissions>.Failed(new Exception())));
-            }
-
-            public void SetupGetPermissionsAsync(bool success, IPermissions? permissions = null)
-            {
-                var setup = MockPermissionsClient
-                    .Setup(c => c.GetPermissionsAsync(
-                        It.IsAny<Guid>(),
-                        Cancel));
-
-                if (success)
-                {
-                    Assert.NotNull(permissions);
-
-                    setup.Returns(
-                            Task.FromResult<IResult<IPermissions>>(
-                                Result<IPermissions>.Create(Result.Succeeded(), permissions)));
-                    return;
-                }
-
-                setup.Returns(Task.FromResult<IResult<IPermissions>>(Result<IPermissions>.Failed(new Exception())));
-            }
-
-            public void VerifyGetPermissionsAsync(Times times)
-            {
-                MockPermissionsClient
-                    .Verify(c => c.GetPermissionsAsync(
-                        It.IsAny<Guid>(),
-                        Cancel),
-                        times);
-            }
-
-
-            #endregion
         }
 
         public class CreatePermissionsAsync : PermissionsApiClientTest
@@ -209,65 +87,57 @@ namespace Tableau.Migration.Tests.Unit.Api.Permissions
             [Fact]
             public async Task Success()
             {
+                var id = Guid.NewGuid();
                 var destinationPermissions = Create<IPermissions>();
 
-                SetupCreatePermissionsAsync(true, destinationPermissions);
+                SetupSuccessResponse<PermissionsResponse>();
 
-                var result = await PermissionsClient.CreatePermissionsAsync(
-                    Guid.NewGuid(),
-                    destinationPermissions,
-                    Cancel);
+                var result = await ApiClient.CreatePermissionsAsync(id, destinationPermissions, Cancel);
 
-                Assert.True(result.Success);
+                result.AssertSuccess();
+
+                MockHttpClient.AssertSingleRequest(r =>
+                {
+                    AssertSiteUri(r, $"test/{id}/permissions");
+                    r.AssertHttpMethod(HttpMethod.Put);
+                });
             }
 
             [Fact]
-            public async Task Does_not_create_when_no_grantees()
+            public async Task SkipsNoGrantees()
             {
                 var destinationPermissions = Create<IPermissions>();
                 destinationPermissions.GranteeCapabilities = Array.Empty<IGranteeCapability>();
 
-                var result = await PermissionsClient.CreatePermissionsAsync(
-                    Guid.NewGuid(),
-                    destinationPermissions,
-                    Cancel);
+                var result = await ApiClient.CreatePermissionsAsync(Guid.NewGuid(), destinationPermissions, Cancel);
 
                 Assert.True(result.Success);
 
-                MockRestRequestBuilderFactory.VerifyNoOtherCalls();
-            }
-        }
-
-        public class DeleteAllPermissionsAsync : PermissionsApiClientTest
-        {
-            [Fact]
-            public async Task Success()
-            {
-                var destinationPermissions = Create<IPermissions>();
-
-                SetupDeleteCapabilityAsync(true);
-
-                var result = await PermissionsClient.DeleteAllPermissionsAsync(
-                    Guid.NewGuid(),
-                    destinationPermissions,
-                    Cancel);
-
-                Assert.True(result.Success);
+                MockHttpClient.AssertNoRequests();
             }
 
             [Fact]
-            public async Task Failure()
+            public async Task ReponseError()
             {
                 var destinationPermissions = Create<IPermissions>();
 
-                SetupDeleteCapabilityAsync(false);
+                SetupErrorResponse();
 
-                var result = await PermissionsClient.DeleteAllPermissionsAsync(
-                    Guid.NewGuid(),
-                    destinationPermissions,
-                    Cancel);
+                var result = await ApiClient.CreatePermissionsAsync(Guid.NewGuid(), destinationPermissions, Cancel);
 
-                Assert.False(result.Success);
+                result.AssertFailure();
+            }
+
+            [Fact]
+            public async Task RequestException()
+            {
+                var destinationPermissions = Create<IPermissions>();
+
+                SetupExceptionResponse();
+
+                var result = await ApiClient.CreatePermissionsAsync(Guid.NewGuid(), destinationPermissions, Cancel);
+
+                result.AssertFailure();
             }
         }
 
@@ -276,160 +146,78 @@ namespace Tableau.Migration.Tests.Unit.Api.Permissions
             [Fact]
             public async Task Success()
             {
-                SetupDeleteCapabilityAsync(true);
+                SetupSuccessResponse();
 
-                var result = await PermissionsClient.DeleteCapabilityAsync(
-                    Guid.NewGuid(),
-                    Guid.NewGuid(),
-                    GranteeType.Group,
-                    new Capability(new CapabilityType()
-                    {
-                        Name = PermissionsCapabilityNames.Read,
-                        Mode = PermissionsCapabilityModes.Allow
-                    }),
-                    Cancel);
-                Assert.True(result.Success);
+                var id = Guid.NewGuid();
+                var result = await ApiClient.DeleteCapabilityAsync(id, Guid.NewGuid(), GranteeType.User, Create<ICapability>(), Cancel);
+
+                result.AssertSuccess();
+
+                MockHttpClient.AssertSingleRequest(r =>
+                {
+                    r.AssertHttpMethod(HttpMethod.Delete);
+                });
             }
 
             [Fact]
-            public async Task Failure()
+            public async Task ReponseError()
             {
-                SetupDeleteCapabilityAsync(false);
+                SetupErrorResponse();
 
-                var result = await PermissionsClient.DeleteCapabilityAsync(
-                    Guid.NewGuid(),
-                    Guid.NewGuid(),
-                    GranteeType.Group,
-                    new Capability(new CapabilityType()
-                    {
-                        Name = PermissionsCapabilityNames.Read,
-                        Mode = PermissionsCapabilityModes.Allow
-                    }),
-                    Cancel);
-                Assert.False(result.Success);
-            }
-        }
+                var result = await ApiClient.DeleteCapabilityAsync(Guid.NewGuid(), Guid.NewGuid(), GranteeType.User, Create<ICapability>(), Cancel);
 
-        public class DeletePermissionsAsync : PermissionsApiClientTest
-        {
-            public DeletePermissionsAsync()
-            { }
-
-            [Fact]
-            public async Task Success()
-            {
-                var sourcePermissions = Create<IPermissions>();
-                var destinationPermissions = Create<IPermissions>();
-
-                SetupDeleteCapabilityAsync(true);
-
-                var result = await PermissionsClient.DeletePermissionsAsync(
-                    Guid.NewGuid(),
-                    sourcePermissions,
-                    destinationPermissions,
-                    Cancel);
-
-                Assert.True(result.Success);
+                result.AssertFailure();
             }
 
             [Fact]
-            public async Task Success_with_no_destination_permissions()
+            public async Task RequestException()
             {
-                var sourcePermissions = Create<IPermissions>();
-                var destinationPermissions = Create<IPermissions>();
-                destinationPermissions.GranteeCapabilities = Array.Empty<IGranteeCapability>();
+                SetupExceptionResponse();
 
-                SetupDeletePermissionsAsync(true);
+                var result = await ApiClient.DeleteCapabilityAsync(Guid.NewGuid(), Guid.NewGuid(), GranteeType.User, Create<ICapability>(), Cancel);
 
-                var result = await PermissionsClient.DeletePermissionsAsync(
-                    Guid.NewGuid(),
-                    sourcePermissions,
-                    destinationPermissions,
-                    Cancel);
-
-                Assert.True(result.Success);
-            }
-
-            [Fact]
-            public async Task Fails_upon_delete_capability_fail()
-            {
-                var sourcePermissions = Create<IPermissions>();
-                var destinationPermissions = Create<IPermissions>();
-
-                SetupDeleteCapabilityAsync(false);
-                SetupGetCapabilitiesToDelete(destinationPermissions.GranteeCapabilities);
-
-                var result = await PermissionsClient.DeletePermissionsAsync(
-                    Guid.NewGuid(),
-                    sourcePermissions,
-                    destinationPermissions,
-                    Cancel);
-
-                Assert.False(result.Success);
-                Assert.True(result.Errors.Count > 0);
+                result.AssertFailure();
             }
         }
 
         public class UpdatePermissionsAsync : PermissionsApiClientTest
         {
-            public UpdatePermissionsAsync()
-            { }
-
             [Fact]
             public async Task Success()
             {
-                var sourcePermissions = Create<IPermissions>();
-                var destinationPermissions = Create<IPermissions>();
+                var id = Guid.NewGuid();
 
-                SetupGetPermissionsAsync(true, destinationPermissions);
-                SetupGetCapabilitiesToDelete(destinationPermissions.GranteeCapabilities);
-                SetupDeleteCapabilityAsync(true);
-                SetupCreatePermissionsAsync(true, destinationPermissions);
+                SetupSuccessResponse();
 
-                var result = await PermissionsClient.UpdatePermissionsAsync(
-                    Guid.NewGuid(),
-                    sourcePermissions,
-                    Cancel);
+                var result = await ApiClient.UpdatePermissionsAsync(id, Create<IPermissions>(), Cancel);
 
-                Assert.True(result.Success);
+                result.AssertSuccess();
 
-                // Get permissions is called once.
-                VerifyGetPermissionsAsync(Times.Once());
-
-                // Delete capabilities is called the same number of times as
-                // the count of destination capabilities.
-                var capabilityCount = destinationPermissions.GranteeCapabilities.SelectMany(gc => gc.Capabilities).Count();
-                VerifyDeleteCapabilityAsync(Times.Exactly(capabilityCount));
-
-                // Create permissions is called once.
-                VerifyCreatePermissionsAsync(Times.Once());
+                MockHttpClient.AssertSingleRequest(r =>
+                {
+                    AssertSiteUri(r, $"test/{id}/permissions");
+                    r.AssertHttpMethod(HttpMethod.Post);
+                });
             }
 
             [Fact]
-            public async Task Fails_when_get_permissions_fails()
+            public async Task ReponseError()
             {
-                var sourcePermissions = Create<IPermissions>();
-                var destinationPermissions = Create<IPermissions>();
+                SetupErrorResponse();
 
-                SetupGetPermissionsAsync(false);
-                SetupDeletePermissionsAsync(true);
-                SetupCreatePermissionsAsync(true, destinationPermissions);
+                var result = await ApiClient.UpdatePermissionsAsync(Guid.NewGuid(), Create<IPermissions>(), Cancel);
 
-                var result = await PermissionsClient.UpdatePermissionsAsync(
-                    Guid.NewGuid(),
-                    sourcePermissions,
-                    Cancel);
+                result.AssertFailure();
+            }
 
-                Assert.False(result.Success);
+            [Fact]
+            public async Task RequestException()
+            {
+                SetupExceptionResponse();
 
-                // Get permissions is called once.
-                VerifyGetPermissionsAsync(Times.Once());
+                var result = await ApiClient.UpdatePermissionsAsync(Guid.NewGuid(), Create<IPermissions>(), Cancel);
 
-                // Delete capability is never called.
-                VerifyDeleteCapabilityAsync(Times.Never());
-
-                // Create permissions is never called.
-                VerifyCreatePermissionsAsync(Times.Never());
+                result.AssertFailure();
             }
         }
     }

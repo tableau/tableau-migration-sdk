@@ -36,9 +36,10 @@ namespace Tableau.Migration.Engine.Manifest
         /// <typeparam name="TResultItem">The result item to return.</typeparam>
         /// <param name="sourceContentItems">The source content items to create or link manifest entries for.</param>
         /// <param name="resultFactory">A factory function to produce result items for, useful for linking a created manifest entry with the source content item it is associated with.</param>
+        /// <param name="expectedTotalCount">The updated expected total entry count. This should reflect the total number of content items that will be processed, regardless of paging or filtering.</param>
         /// <returns>An immutable array of results returned by <paramref name="resultFactory" /> for each new entry.</returns>
         ImmutableArray<TResultItem> CreateEntries<TItem, TResultItem>(IReadOnlyCollection<TItem> sourceContentItems,
-            Func<TItem, IMigrationManifestEntryEditor, TResultItem> resultFactory)
+            Func<TItem, IMigrationManifestEntryEditor, TResultItem> resultFactory, int expectedTotalCount)
             where TItem : IContentReference;
 
         /// <summary>
@@ -58,6 +59,13 @@ namespace Tableau.Migration.Engine.Manifest
         /// <param name="entry">The manifest entry that was updated.</param>
         /// <param name="oldDestinationInfo">The old destination information.</param>
         void DestinationInfoUpdated(IMigrationManifestEntryEditor entry, IContentReference? oldDestinationInfo);
+
+        /// <summary>
+        /// Registers a status change update for an entry to update totals.
+        /// </summary>
+        /// <param name="entry">The manifest entry that was updated.</param>
+        /// <param name="oldStatus">The old status.</param>
+        void StatusUpdated(IMigrationManifestEntryEditor entry, MigrationManifestEntryStatus oldStatus);
 
         /// <summary>
         /// Registers that migration failed for a content item for logging.

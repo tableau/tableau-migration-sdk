@@ -15,7 +15,10 @@
 //  limitations under the License.
 //
 
+using System;
 using System.Net.Http;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace Tableau.Migration.Net.Rest
 {
@@ -29,6 +32,23 @@ namespace Tableau.Migration.Net.Rest
             {
                 request.Headers.TryAddWithoutValidation(RestHeaders.AuthenticationToken, token);
             }
+        }
+
+        /// <summary>
+        /// The default ToString() method for HttpRequestMessage includes the X-Tableau-Auth header, which is a security risk.
+        /// </summary>
+        public static string ToSanitizedString(this HttpRequestMessage request)
+        {
+            if (request == null) throw new ArgumentNullException(nameof(request));
+
+            var sb = new StringBuilder();
+
+            sb.AppendLine($"Method: {request.Method}");
+            sb.AppendLine($"RequestUri: {request.RequestUri}");
+            sb.AppendLine($"Version: {request.Version}");
+            sb.AppendLine($"Content: {request.Content?.ReadAsStringAsync().GetAwaiter().GetResult() ?? "null"}");
+
+            return sb.ToString();
         }
     }
 }

@@ -12,7 +12,7 @@ authors = [
 description = "Tableau Migration SDK"
 readme = "README.md"
 # https://devguide.python.org/versions/
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 classifiers = [
     "Programming Language :: Python :: 3",
     "Operating System :: OS Independent",
@@ -64,7 +64,7 @@ test = "pytest -vv"
 testcov = "test --cov-config=pyproject.toml --cov=tableau_migration"
 
 [[tool.hatch.envs.test.matrix]]
-python = ["3.8", "3.9", "3.10", "3.11", "3.12"]
+python = ["3.9", "3.10", "3.11", "3.12"]
 
 [project.urls]
 "Homepage" = "http://www.tableau.com"

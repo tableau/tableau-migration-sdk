@@ -2,6 +2,7 @@
 using Csharp.ExampleApplication.Config;
 using Csharp.ExampleApplication.Hooks.BatchMigrationCompleted;
 using Csharp.ExampleApplication.Hooks.Filters;
+using Csharp.ExampleApplication.Hooks.InitializeMigration;
 using Csharp.ExampleApplication.Hooks.Mappings;
 using Csharp.ExampleApplication.Hooks.MigrationActionCompleted;
 using Csharp.ExampleApplication.Hooks.PostPublish;
@@ -44,6 +45,14 @@ namespace Csharp.ExampleApplication
         /// <returns>The same service collection as the <paramref name="services"/> parameter.</returns>
         public static IServiceCollection AddCustomizations(this IServiceCollection services)
         {
+            #region SetCustomContext-Service-DI
+            services.AddScoped<CustomContext>();
+            #endregion
+
+            #region SetCustomContext-Hook-DI
+            services.AddScoped<SetMigrationContextHook>();
+            #endregion
+
             #region EmailDomainMapping-DI
             services.AddScoped<EmailDomainMapping>();
             #endregion

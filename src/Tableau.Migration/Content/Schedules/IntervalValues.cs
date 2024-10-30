@@ -15,6 +15,7 @@
 //  limitations under the License.
 //
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using Tableau.Migration.Api.Rest.Models.Types;
@@ -23,34 +24,44 @@ namespace Tableau.Migration.Content.Schedules
 {
     internal static class IntervalValues
     {
-        public static readonly IImmutableList<int?> HoursValues = new int?[] { 1, 2, 4, 6, 8, 12, 24 }
-            .Prepend(null)
+        public static readonly IImmutableList<int> ServerHoursValues = new int[] { 1, 2, 4, 6, 8, 12, 24 }
             .ToImmutableList();
 
-        public static readonly IImmutableList<int?> MinutesValues = new int?[] { 15, 30, 60 }
-            .Prepend(null)
+        public static readonly IImmutableList<int> CloudHoursValues = new int[] { 2, 4, 6, 8, 12, 24 }
             .ToImmutableList();
 
-        public static readonly IImmutableList<string?> WeekDaysValues = WeekDays.GetAll()
-            .Prepend(null)
+        public static readonly IImmutableList<int> MinutesValues = new int[] { 15, 30, 60 }
             .ToImmutableList();
 
-        public const string First = "First";
-        public const string Second = "Second";
-        public const string Third = "Third";
-        public const string Fourth = "Fourth";
-        public const string Fifth = "Fifth";
-        public const string LastDay = "LastDay";
+        public static readonly IImmutableList<string> WeekDaysValues = WeekDays.GetAll()
+            .ToImmutableList();
 
-        public static readonly IImmutableList<string?> MonthDaysValues = Enumerable.Range(1, 31)
+        public static readonly IImmutableList<string> MonthDaysValues = Enumerable.Range(1, 31)
             .Select(d => d.ToString())
-            .Prepend(null)
-            .Append(First)
-            .Append(Second)
-            .Append(Third)
-            .Append(Fourth)
-            .Append(Fifth)
-            .Append(LastDay)
+            .Append(OccurrenceOfWeekday.First.ToString())
+            .Append(OccurrenceOfWeekday.Second.ToString())
+            .Append(OccurrenceOfWeekday.Third.ToString())
+            .Append(OccurrenceOfWeekday.Fourth.ToString())
+            .Append(OccurrenceOfWeekday.Fifth.ToString())
+            .Append(OccurrenceOfWeekday.LastDay.ToString())
             .ToImmutableList();
+
+        public static readonly IImmutableList<string> MonthDayNumberValues = Enumerable.Range(1, 31)
+            .Select(d => d.ToString())
+            .Append("LastDay")
+            .ToImmutableList();
+
+        public static readonly IImmutableList<string> MonthDayOccurrenceValues = Enum.GetNames(typeof(OccurrenceOfWeekday))
+            .ToImmutableList();
+
+        internal enum OccurrenceOfWeekday
+        {
+            First,
+            Second,
+            Third,
+            Fourth,
+            Fifth,
+            LastDay
+        }
     }
 }

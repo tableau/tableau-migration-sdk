@@ -58,7 +58,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Manifest
 
         #region - Ctor -
 
-        public class Ctor : MigrationManifestEntryCollectionTest
+        public sealed class Ctor : MigrationManifestEntryCollectionTest
         {
             [Fact]
             public void IntializesEmpty()
@@ -70,10 +70,23 @@ namespace Tableau.Migration.Tests.Unit.Engine.Manifest
             [Fact]
             public void CopiesFromPreviousEntries()
             {
+                var previousEntries = CreateMany<IMigrationManifestEntry>().ToImmutableArray();
+
                 var mockPreviousCollection = Create<Mock<IMigrationManifestEntryCollection>>();
+                mockPreviousCollection.Setup(x => x.CopyTo(It.IsAny<IMigrationManifestEntryCollectionEditor>()))
+                    .Callback<IMigrationManifestEntryCollectionEditor>(e =>
+                    {
+                        e.GetOrCreatePartition(typeof(IWorkbook)).CreateEntries(previousEntries);
+                    });
 
                 var c = new MigrationManifestEntryCollection(MockLocalizer.Object, MockLoggerFactory.Object, mockPreviousCollection.Object);
                 mockPreviousCollection.Verify(x => x.CopyTo(c), Times.Once);
+
+                Assert.Equal(previousEntries.Length, c.Count());
+                foreach (var entry in c)
+                {
+                    Assert.Equal(MigrationManifestEntryStatus.Pending, entry.Status);
+                }
             }
         }
 

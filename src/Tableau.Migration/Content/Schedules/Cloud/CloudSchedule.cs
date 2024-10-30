@@ -28,5 +28,9 @@ namespace Tableau.Migration.Content.Schedules.Cloud
         public CloudSchedule(string frequency, IFrequencyDetails frequencyDetails)
             : base(frequency, frequencyDetails, null)
         { }
+
+        public CloudSchedule(ISchedule schedule)
+            : base(schedule.Frequency, schedule.FrequencyDetails, schedule.NextRunAt)
+        { }
     }
 }

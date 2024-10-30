@@ -47,9 +47,7 @@ namespace Tableau.Migration.Api.Permissions
         /// <param name="projectId">The ID of the project.</param>
         /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>The permissions result with content type <see cref="IPermissions"/>.</returns>
-        Task<IResult<IImmutableDictionary<string, IPermissions>>> GetAllPermissionsAsync(
-            Guid projectId,
-            CancellationToken cancel);
+        Task<IResult<IImmutableDictionary<string, IPermissions>>> GetAllPermissionsAsync(Guid projectId, CancellationToken cancel);
 
         /// <summary>
         /// Creates the content type's default permissions for the project with the specified ID.
@@ -84,20 +82,6 @@ namespace Tableau.Migration.Api.Permissions
             CancellationToken cancel);
 
         /// <summary>
-        /// Remove all content type's default <paramref name="permissions"/> for a project.
-        /// </summary>
-        /// <param name="contentTypeUrlSegment">The permissions' content type URL segment.</param>
-        /// <param name="projectId">The ID of the project.</param>
-        /// <param name="permissions"></param>
-        /// <param name="cancel">The cancellation token to obey.</param>
-        /// <returns></returns>
-        Task<IResult> DeleteAllPermissionsAsync(
-            string contentTypeUrlSegment,
-            Guid projectId,
-            IPermissions permissions,
-            CancellationToken cancel);
-
-        /// <summary>
         /// Updates the content type's default permissions for the project with the specified ID.
         /// </summary>
         /// <param name="contentTypeUrlSegment">The permissions' content type URL segment.</param>
@@ -105,7 +89,7 @@ namespace Tableau.Migration.Api.Permissions
         /// <param name="permissions">The permissions of the content item.</param>
         /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>The permissions result with <see cref="IPermissions"/>.</returns>
-        Task<IResult<IPermissions>> UpdatePermissionsAsync(
+        Task<IResult> UpdatePermissionsAsync(
             string contentTypeUrlSegment,
             Guid projectId,
             IPermissions permissions,
@@ -118,7 +102,7 @@ namespace Tableau.Migration.Api.Permissions
         /// <param name="permissions">The permissions of the content items, keyed by the content type's URL segment.</param>
         /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>The permissions result with <see cref="IPermissions"/>.</returns>
-        Task<IResult<IImmutableDictionary<string, IPermissions>>> UpdateAllPermissionsAsync(
+        Task<IResult> UpdateAllPermissionsAsync(
             Guid projectId,
             IReadOnlyDictionary<string, IPermissions> permissions,
             CancellationToken cancel);

@@ -37,11 +37,11 @@ using Xunit;
 
 namespace Tableau.Migration.Tests.Unit.Engine.Migrators
 {
-    public class ContentMigratorTests
+    public sealed class ContentMigratorTests
     {
         #region - Test Classes -
 
-        public class TestContentMigrator : ContentMigrator<TestContentType>
+        public sealed class TestContentMigrator : ContentMigrator<TestContentType>
         {
             public TestContentMigrator(
                 IMigrationPipeline pipeline,
@@ -56,7 +56,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Migrators
             new public int BatchSize => base.BatchSize;
         }
 
-        public class ContentMigratorTest : AutoFixtureTestBase
+        public abstract class ContentMigratorTest : AutoFixtureTestBase
         {
             protected readonly Mock<IConfigReader> MockConfigReader;
             protected readonly Mock<ISourceEndpoint> MockSourceEndpoint;
@@ -100,8 +100,9 @@ namespace Tableau.Migration.Tests.Unit.Engine.Migrators
                 MockManifestEntryBuilder = Freeze<Mock<IMigrationManifestEntryBuilder>>();
                 MockManifestEntryBuilder.Setup(x => x.CreateEntries(
                     It.IsAny<IReadOnlyCollection<TestContentType>>(),
-                    It.IsAny<Func<TestContentType, IMigrationManifestEntryEditor, ContentMigrationItem<TestContentType>>>()))
-                    .Returns((IReadOnlyCollection<TestContentType> c, Func<TestContentType, IMigrationManifestEntryEditor, ContentMigrationItem<TestContentType>> f)
+                    It.IsAny<Func<TestContentType, IMigrationManifestEntryEditor, ContentMigrationItem<TestContentType>>>(),
+                    It.IsAny<int>()))
+                    .Returns((IReadOnlyCollection<TestContentType> c, Func<TestContentType, IMigrationManifestEntryEditor, ContentMigrationItem<TestContentType>> f, int i)
                     =>
                     {
                         return c.Select(i =>
@@ -153,7 +154,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Migrators
 
         #region - Ctor -
 
-        public class Ctor : ContentMigratorTest
+        public sealed class Ctor : ContentMigratorTest
         {
             [Fact]
             public void GetBatchMigratorByContentType()
@@ -166,7 +167,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Migrators
 
         #region - BatchSize -
 
-        public class BatchSize : ContentMigratorTest
+        public sealed class BatchSize : ContentMigratorTest
         {
             [Fact]
             public void GetsConfigBatchSize()
@@ -182,7 +183,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Migrators
 
         #region - MigrateAsync -
 
-        public class MigrateAsync : ContentMigratorTest
+        public sealed class MigrateAsync : ContentMigratorTest
         {
             [Fact]
             public async Task MigratesInBatchesAsync()
@@ -197,6 +198,10 @@ namespace Tableau.Migration.Tests.Unit.Engine.Migrators
                 Assert.Equal(2, NumSourcePages);
 
                 MockBatchMigrator.Verify(x => x.MigrateAsync(It.IsAny<ImmutableArray<ContentMigrationItem<TestContentType>>>(), Cancel), Times.Exactly(NumSourcePages));
+
+                MockManifestEntryBuilder.Verify(x => x.CreateEntries(It.IsAny<IReadOnlyCollection<TestContentType>>(),
+                    It.IsAny<Func<TestContentType, IMigrationManifestEntryEditor, ContentMigrationItem<TestContentType>>>(),
+                    SourceContent.Count), Times.Exactly(NumSourcePages));
             }
 
             [Fact]
@@ -218,6 +223,10 @@ namespace Tableau.Migration.Tests.Unit.Engine.Migrators
                 Assert.Equal(2, NumSourcePages);
 
                 MockBatchMigrator.Verify(x => x.MigrateAsync(It.Is<ImmutableArray<ContentMigrationItem<TestContentType>>>(i => i.Length == 1), Cancel), Times.Exactly(NumSourcePages));
+
+                MockManifestEntryBuilder.Verify(x => x.CreateEntries(It.IsAny<IReadOnlyCollection<TestContentType>>(),
+                    It.IsAny<Func<TestContentType, IMigrationManifestEntryEditor, ContentMigrationItem<TestContentType>>>(),
+                    SourceContent.Count), Times.Exactly(NumSourcePages));
             }
 
             [Fact]
@@ -240,6 +249,10 @@ namespace Tableau.Migration.Tests.Unit.Engine.Migrators
 
                 MockBatchMigrator.Verify(x => x.MigrateAsync(It.Is<ImmutableArray<ContentMigrationItem<TestContentType>>>(i => i.Length == 1), Cancel), Times.Exactly(NumSourcePages));
 
+                MockManifestEntryBuilder.Verify(x => x.CreateEntries(It.IsAny<IReadOnlyCollection<TestContentType>>(),
+                    It.IsAny<Func<TestContentType, IMigrationManifestEntryEditor, ContentMigrationItem<TestContentType>>>(),
+                    SourceContent.Count), Times.Exactly(NumSourcePages));
+
                 Assert.Equal(MigrationManifestEntryStatus.Skipped, MigrationItems[0].ManifestEntry.Status);
                 Assert.NotEqual(MigrationManifestEntryStatus.Skipped, MigrationItems[1].ManifestEntry.Status);
                 Assert.Equal(MigrationManifestEntryStatus.Skipped, MigrationItems[2].ManifestEntry.Status);
@@ -257,7 +270,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Migrators
                             .Cast<IContentItemMigrationResult<TestContentType>>()
                             .ToImmutableArray();
 
-                        return ContentBatchMigrationResult<TestContentType>.Failed(itemResults, new[] { new Exception() });
+                        return ContentBatchMigrationResult<TestContentType>.Failed(itemResults, [new Exception()]);
                     });
 
                 var result = await Migrator.MigrateAsync(Cancel);
@@ -269,6 +282,10 @@ namespace Tableau.Migration.Tests.Unit.Engine.Migrators
 
                 Assert.Equal(2, NumSourcePages);
                 MockBatchMigrator.Verify(x => x.MigrateAsync(It.IsAny<ImmutableArray<ContentMigrationItem<TestContentType>>>(), Cancel), Times.Exactly(NumSourcePages));
+
+                MockManifestEntryBuilder.Verify(x => x.CreateEntries(It.IsAny<IReadOnlyCollection<TestContentType>>(),
+                    It.IsAny<Func<TestContentType, IMigrationManifestEntryEditor, ContentMigrationItem<TestContentType>>>(),
+                    SourceContent.Count), Times.Exactly(NumSourcePages));
             }
 
             [Fact]
@@ -293,7 +310,11 @@ namespace Tableau.Migration.Tests.Unit.Engine.Migrators
                 MockManifestPartition.Verify(x => x.GetEntryBuilder(SourceContent.Count), Times.Once);
 
                 Assert.Equal(2, NumSourcePages);
-                MockBatchMigrator.Verify(x => x.MigrateAsync(It.IsAny<ImmutableArray<ContentMigrationItem<TestContentType>>>(), Cancel), Times.Once());
+                MockBatchMigrator.Verify(x => x.MigrateAsync(It.IsAny<ImmutableArray<ContentMigrationItem<TestContentType>>>(), Cancel), Times.Once);
+
+                MockManifestEntryBuilder.Verify(x => x.CreateEntries(It.IsAny<IReadOnlyCollection<TestContentType>>(),
+                    It.IsAny<Func<TestContentType, IMigrationManifestEntryEditor, ContentMigrationItem<TestContentType>>>(),
+                    SourceContent.Count), Times.Once);
             }
 
             [Fact]
@@ -302,6 +323,10 @@ namespace Tableau.Migration.Tests.Unit.Engine.Migrators
                 var result = await Migrator.MigrateAsync(Cancel);
 
                 result.AssertSuccess();
+
+                MockManifestEntryBuilder.Verify(x => x.CreateEntries(It.IsAny<IReadOnlyCollection<TestContentType>>(),
+                    It.IsAny<Func<TestContentType, IMigrationManifestEntryEditor, ContentMigrationItem<TestContentType>>>(),
+                    SourceContent.Count), Times.Exactly(NumSourcePages));
 
                 MockManifestEntryBuilder.Verify(x => x.MapEntriesAsync(It.IsAny<IEnumerable<TestContentType>>(), MockMappingRunner.Object, Cancel), Times.Exactly(NumSourcePages));
             }

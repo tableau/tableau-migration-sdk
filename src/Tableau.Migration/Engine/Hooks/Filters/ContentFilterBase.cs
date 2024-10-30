@@ -44,7 +44,7 @@ namespace Tableau.Migration.Engine.Hooks.Filters
         {
             Localizer = localizer;
             Logger = logger;
-            _typeName = GetType().Name;
+            _typeName = GetType().GetFormattedName();
         }
 
         /// <summary>

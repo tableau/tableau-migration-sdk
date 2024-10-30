@@ -35,13 +35,15 @@ These types of hooks run on content items.
 
 These types of hooks run before or after certain migration events.
 
+- Migration Initialized: Executed after preflight validation is completed successfully, but before any migration actions are started.
+
 - Post-Publish: Run on the destination content after the items for the content type have been published.
 
-- Bulk Post-Publish: Execute after publishing a batch of content, when bulk publishing is supported. You can make changes to the published set of items with this type of hook. You can write this type of hook for content types such as Users.
+- Bulk Post-Publish: Executed after publishing a batch of content, when bulk publishing is supported. You can make changes to the published set of items with this type of hook. You can write this type of hook for content types such as Users.
 
-- Migration Action Completed: Execute after the migration of each content type.
+- Migration Action Completed: Executed after the migration of each content type.
   
-- Batch Migration Completed: Execute after the completion of the migration of a batch of Tableau’s content.
+- Batch Migration Completed: Executed after the completion of the migration of a batch of Tableau’s content.
 
 ## Hook execution flow
 

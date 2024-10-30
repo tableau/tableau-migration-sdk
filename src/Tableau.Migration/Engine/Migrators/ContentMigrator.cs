@@ -97,7 +97,7 @@ namespace Tableau.Migration.Engine.Migrators
             var manifestEntryBuilder = manifestPartition.GetEntryBuilder(sourcePage.TotalCount);
             while (!sourcePage.Value.IsNullOrEmpty())
             {
-                var batchItems = manifestEntryBuilder.CreateEntries(sourcePage.Value, BuildMigrationItem);
+                var batchItems = manifestEntryBuilder.CreateEntries(sourcePage.Value, BuildMigrationItem, sourcePage.TotalCount);
 
                 cancel.ThrowIfCancellationRequested();
 

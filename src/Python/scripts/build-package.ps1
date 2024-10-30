@@ -38,7 +38,7 @@ try
 {
 	Remove-Item -Recurse -ErrorAction SilentlyContinue dist/* 
 	
-	dotnet publish /p:DebugType=None /p:DebugSymbols=false  $projectToBuild -c $Configuration -o .\src\tableau_migration\bin -f net6.0		
+	dotnet publish /p:DebugType=None /p:DebugSymbols=false  $projectToBuild -c $Configuration -o .\src\tableau_migration\bin -f net8.0		
 }
 finally
 {

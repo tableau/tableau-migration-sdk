@@ -79,7 +79,7 @@ from Tableau.Migration import (
 _module_path = abspath(Path(__file__).parent.resolve().__str__() + "/../src/tableau_migration")
 sys.path.append(_module_path)
 
-def get_class_methods(cls):
+def get_class_methods(cls) -> List[str]:
     """Gets all the methods in a class.
 
     https://stackoverflow.com/a/4241225.
@@ -90,10 +90,10 @@ def get_class_methods(cls):
     methods.extend([item[0] for item in inspect.getmembers(cls, predicate=inspect.isfunction) if item[0] not in _base_object])
 
     #Remove python internal methods
-    return (m for m in methods if not m.startswith("__"))
+    return [m for m in methods if not m.startswith("__")]
 
 
-def get_class_properties(cls):
+def get_class_properties(cls) -> List[str]:
     """Gets all the properties in a class.
 
     https://stackoverflow.com/a/34643176.
@@ -109,14 +109,7 @@ def get_enum(enumType: Enum):
 def normalize_name(name: str) -> str:
     return name.replace("_", "").lower()
 
-def remove_suffix(input: str, suffix_to_remove: str) -> str:
-    """str.removesuffix() was introduced in python 3.9"""
-    if(input.endswith(suffix_to_remove)):
-        return input[:-len(suffix_to_remove)]
-    else:
-        return input
-
-def compare_names(dotnet_names: List[str], python_names: List[str]) -> str:
+def compare_names(dotnet_names: List[str], python_names: List[str], ) -> str:
     """Compares dotnet names with python names
 
     dotnet names look like 'DoWalk'
@@ -135,7 +128,7 @@ def compare_names(dotnet_names: List[str], python_names: List[str]) -> str:
     for item in dotnet_names:
         # Python does not support await/async so all method need to be syncronous
         # The wrapper method is expected to handle this, so the "Async" suffix should be dropped
-        normalized_name = normalize_name(remove_suffix(item, "Async"))
+        normalized_name = normalize_name(item.removesuffix("Async"))
         dotnet_normalized.append(normalized_name)
         dotnet_lookup[normalized_name] = item
 
@@ -151,12 +144,12 @@ def compare_names(dotnet_names: List[str], python_names: List[str]) -> str:
     message = ""
 
     # Check what names are missing from python but are available in dotnet
-    python_lacks = [x for x in dotnet_set if x not in python_set]
+    python_lacks = [x for x in dotnet_set if x not in python_set and "get" + x not in python_set and "set" not in python_set]
     lacks_message_items = [f"({lacks_item}: (py:???->net:{dotnet_lookup[lacks_item]}))" for lacks_item in python_lacks]
     message += f"Python lacks elements {lacks_message_items}\n" if lacks_message_items else ''
 
     # Check what names are extra in python and missing from dotnet
-    python_extra = [x for x in python_set if x not in dotnet_set]
+    python_extra = [x for x in python_set if x not in dotnet_set and x.removeprefix("get") not in dotnet_set and x.removeprefix("set") not in dotnet_set]
     extra_message_items = [f"({extra_item}: (py:{python_lookup[extra_item]}->net:???))" for extra_item in python_extra]
     message += f"Python has extra elements {extra_message_items}\n" if extra_message_items else ''
 
@@ -195,8 +188,8 @@ def verify_enum(python_enum, dotnet_enum):
 
 class TestNameComparison():
     def test_valid(self):
-        dotnet_names = ["DoWalk", "RunAsync", "RunAsync"]
-        python_names = ["do_walk", "run", "run"]
+        dotnet_names = ["DoWalk", "RunAsync", "RunAsync", "Static"]
+        python_names = ["do_walk", "run", "run", "get_static", "set_static"]
 
         message = compare_names(dotnet_names, python_names)
         assert not message
@@ -324,6 +317,11 @@ from tableau_migration.migration_engine_migrators import PyContentItemMigrationR
 
 from tableau_migration.migration_engine_migrators_batch import PyContentBatchMigrationResult # noqa: E402, F401
 
+from tableau_migration.migration_engine_pipelines import (  # noqa: E402, F401
+    PyMigrationPipelineContentType,
+    PyServerToCloudMigrationPipeline
+)
+
 
 from Tableau.Migration import MigrationCompletionStatus
 from Tableau.Migration.Api.Rest.Models import AdministratorLevels
@@ -391,7 +389,9 @@ _generated_class_data = [
     (PyMigrationManifestEntry, None),
     (PyMigrationManifestEntryEditor, [ "SetFailed" ]),
     (PyContentItemMigrationResult, [ "CastFailure" ]),
-    (PyContentBatchMigrationResult, [ "CastFailure" ])
+    (PyContentBatchMigrationResult, [ "CastFailure" ]),
+    (PyMigrationPipelineContentType, [ "GetContentTypeForInterface", "GetPostPublishTypesForInterface", "GetPublishTypeForInterface", "WithPublishType", "WithResultType" ]),
+    (PyServerToCloudMigrationPipeline, [ "BuildActions", "BuildPipeline", "CreateDestinationCache", "CreateSourceCache", "GetBatchMigrator", "GetDestinationLockedProjectCache", "GetItemPreparer", "GetMigrator" ])
 ]
 
 _generated_enum_data = [
@@ -441,34 +441,32 @@ def test_classes(python_class, ignored_members):
     """Verify that all the python wrapper classes actually wrap all the dotnet methods and properties."""
     from Tableau.Migration.Interop import InteropHelper
 
-    # Verify that this class has a _dotnet_base
+    # Verify that this class has a _dotnet_base.
     assert python_class._dotnet_base
 
     dotnet_class = python_class._dotnet_base
 
-    # Get all the python methods and properties
+    # Get all the python methods and properties.
     _all_py_methods = get_class_methods(python_class)
     _all_py_props = get_class_properties(python_class)
 
-    # Get all the dotnet methods and properties
-    _all_dotnet_methods = InteropHelper.GetMethods(dotnet_class)
-    _all_dotnet_props = InteropHelper.GetProperties(dotnet_class)
+    # Get all the dotnet methods and field/properties.
+    _all_dotnet_methods = [m for m in InteropHelper.GetMethods(dotnet_class)]
+    _all_dotnet_props = [p for p in InteropHelper.GetProperties(dotnet_class)] + [f for f in InteropHelper.GetFields(dotnet_class)]
 
-    # Clean methods that should be ignored
+    # Clean methods that should be ignored.
     if ignored_members is None:
-        _clean_dotnet_method = _all_dotnet_methods
+        _clean_dotnet_methods = _all_dotnet_methods
         _clean_dotnet_props = _all_dotnet_props
     else:
-        _clean_dotnet_method = [method for method in _all_dotnet_methods if method not in ignored_members]
+        _clean_dotnet_methods = [method for method in _all_dotnet_methods if method not in ignored_members]
         _clean_dotnet_props = [prop for prop in _all_dotnet_props if prop not in ignored_members]
 
-    # Compare the lists
-    method_message = compare_names(_clean_dotnet_method, _all_py_methods)
-    prop_message = compare_names(_clean_dotnet_props, _all_py_props)
+    # Compare the lists.
+    member_message = compare_names(_clean_dotnet_methods + _clean_dotnet_props, _all_py_methods + _all_py_props)
 
     # Assert
-    assert not method_message # Remember that the names are normalize
-    assert not prop_message # Remember that the names are normalize
+    assert not member_message # Remember that the names are normalized.
 
 _test_enum_data = []
 _test_enum_data.extend(_generated_enum_data)

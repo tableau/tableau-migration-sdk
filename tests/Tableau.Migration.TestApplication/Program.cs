@@ -23,7 +23,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Events;
-using Tableau.Migration.Content;
 using Tableau.Migration.TestApplication.Config;
 using Tableau.Migration.TestApplication.Hooks;
 
@@ -57,15 +56,11 @@ namespace Tableau.Migration.TestApplication
         public static IServiceCollection AddCustomizations(this IServiceCollection services)
         {
             services
+                .AddScoped(typeof(SkipFilter<>))
                 .AddScoped<TestTableauCloudUsernameMapping>()
                 .AddScoped<TimeLoggerAfterActionHook>() // print and log the time when an action was completed
-
-                // I would like to have a AfterBatchMigrationCompletedHook without the content type
-                .AddScoped<SaveManifestAfterBatchMigrationCompletedHook<IUser>>()
-                .AddScoped<SaveManifestAfterBatchMigrationCompletedHook<IGroup>>()
-                .AddScoped<SaveManifestAfterBatchMigrationCompletedHook<IProject>>()
-                .AddScoped<SaveManifestAfterBatchMigrationCompletedHook<IDataSource>>()
-                .AddScoped<SaveManifestAfterBatchMigrationCompletedHook<IWorkbook>>()
+                .AddScoped(typeof(LogMigrationBatchSummaryHook<>))
+                .AddScoped(typeof(SaveManifestAfterBatchMigrationCompletedHook<>))
                 .AddScoped<UnlicensedUserFilter>()
                 .AddScoped<UnlicensedUserMapping>()
                 .AddScoped<SpecialUserFilter>()
@@ -73,7 +68,9 @@ namespace Tableau.Migration.TestApplication
                 .AddScoped<NonDomainUserFilter>()
                 .AddScoped(typeof(SkipByParentLocationFilter<>))
                 .AddScoped(typeof(ContentWithinSkippedLocationMapping<>))
-                .AddScoped<RemoveMissingDestinationUsersFromGroupsTransformer>();
+                .AddScoped<RemoveMissingDestinationUsersFromGroupsTransformer>()
+                .AddScoped(typeof(ViewerOwnerTransformer<>));
+
             return services;
         }
 
@@ -83,18 +80,14 @@ namespace Tableau.Migration.TestApplication
                 config =>
                 {
                     config.ClearProviders();
-                    config.AddSerilog(
-                        new LoggerConfiguration()
-                        .Enrich.WithThreadId()
-                        .WriteTo.File(
-                            path: LogFileHelper.GetLogFilePath(ctx.Configuration.GetSection("log:folderPath").Value),
-                            outputTemplate: LogFileHelper.LOG_LINE_TEMPLATE)
 
+                    var serilogConfig = new LoggerConfiguration()
+                        .Enrich.WithThreadId()
+                        .Enrich.With<ActivityEnricher>()
                         // Set the log level to Debug for select interfaces.
                         .MinimumLevel.Override("Tableau.Migration.Engine.Hooks.Filters.IContentFilter", LogEventLevel.Debug)
                         .MinimumLevel.Override("Tableau.Migration.Engine.Hooks.Mappings.IContentMapping", LogEventLevel.Debug)
                         .MinimumLevel.Override("Tableau.Migration.Engine.Hooks.Transformers.IContentTransformer", LogEventLevel.Debug)
-
                         .WriteTo.Logger(lc => lc
                              // Create a filter that writes certain loggers to the console
                              .Filter.ByIncludingOnly((logEvent) =>
@@ -110,13 +103,26 @@ namespace Tableau.Migration.TestApplication
                                  string[] sourceContextToPrint =
                                  [
                                      "Tableau.Migration.TestApplication.TestApplication",
-                                     "Tableau.Migration.TestApplication.Hooks.TimeLoggerAfterActionHook"
+                                     "Tableau.Migration.TestApplication.Hooks.TimeLoggerAfterActionHook",
+                                     "Tableau.Migration.TestApplication.Hooks.LogMigrationBatchSummaryHook"
                                  ];
 
                                  return sourceContextToPrint.Contains(sourceContext);
                              })
-                             .WriteTo.Console())
-                         .CreateLogger());
+                             .WriteTo.Console());
+
+                    var logPath = ctx.Configuration.GetSection("log:folderPath").Value;
+                    if (!string.IsNullOrEmpty(logPath))
+                    {
+                        serilogConfig = serilogConfig.WriteTo.File(
+                            path: LogFileHelper.GetLogFilePath(logPath),
+                            outputTemplate: LogFileHelper.LOG_LINE_TEMPLATE,
+                            fileSizeLimitBytes: 250 * 1024 * 1024, // 250MB
+                            rollOnFileSizeLimit: true,
+                            retainedFileCountLimit: null); // Retain all log files
+                    }
+
+                    config.AddSerilog(serilogConfig.CreateLogger());
                 });
             return services;
         }

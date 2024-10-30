@@ -75,10 +75,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests
                 void AssertCustomViewMigrated(CustomViewResponse.CustomViewType sourceCustomView)
                 {
                     // Get destination custom view
-                    var destinationCustomView = Assert.Single(
-                        CloudDestinationApi.Data.CustomViews.Where(cv =>
-                             cv.Name == sourceCustomView.Name
-                         ));
+                    var destinationCustomView = Assert.Single(CloudDestinationApi.Data.CustomViews, cv => cv.Name == sourceCustomView.Name);
 
                     Assert.NotEqual(sourceCustomView.Id, destinationCustomView.Id);
                     Assert.Equal(sourceCustomView.Name, destinationCustomView.Name);

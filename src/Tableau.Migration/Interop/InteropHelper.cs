@@ -123,6 +123,29 @@ namespace Tableau.Migration.Interop
         }
 
         /// <summary>
+        /// Gets the fields of a class.
+        /// </summary>
+        /// <typeparam name="T">The type to get fields from.</typeparam>
+        /// <returns>The field names.</returns>
+        public static IEnumerable<string> GetFields<T>()
+            => GetFields(typeof(T));
+
+        /// <summary>
+        /// Gets the fields of a class.
+        /// </summary>
+        /// <param name="type">The type to get fields from.</param>
+        /// <returns>The field names.</returns>
+        public static IEnumerable<string> GetFields(Type type)
+        {
+            if (type.ContainsGenericParameters)
+            {
+                return GetFields(MakeSampleGenericType(type));
+            }
+
+            return type.GetFields().Select(p => p.Name);
+        }
+
+        /// <summary>
         /// Gets all the names and values of an enumeration.
         /// </summary>
         /// <typeparam name="T">The enum type.</typeparam>

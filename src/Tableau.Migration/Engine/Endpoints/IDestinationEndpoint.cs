@@ -78,7 +78,7 @@ namespace Tableau.Migration.Engine.Endpoints
         /// <param name="permissions">The permissions of the content item.</param>
         /// <param name="cancel">The cancellation token.</param>
         /// <returns>The permissions result with <see cref="IPermissions"/>.</returns>
-        Task<IResult<IPermissions>> UpdatePermissionsAsync<TContent>(IContentReference contentItem, IPermissions permissions, CancellationToken cancel)
+        Task<IResult> UpdatePermissionsAsync<TContent>(IContentReference contentItem, IPermissions permissions, CancellationToken cancel)
             where TContent : IPermissionsContent;
 
         /// <summary>
@@ -89,7 +89,7 @@ namespace Tableau.Migration.Engine.Endpoints
         /// <param name="permissions">The permissions of the content item.</param>
         /// <param name="cancel">The cancellation token.</param>
         /// <returns>The permissions result with <see cref="IPermissions"/>.</returns>
-        Task<IResult<IPermissions>> UpdatePermissionsAsync(Type type, IContentReference contentItem,
+        Task<IResult> UpdatePermissionsAsync(Type type, IContentReference contentItem,
             IPermissions permissions, CancellationToken cancel);
 
         /// <summary>

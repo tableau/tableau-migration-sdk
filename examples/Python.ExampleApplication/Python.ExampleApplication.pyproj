@@ -25,6 +25,7 @@
     <Compile Include="hooks\batch_migration_completed\log_migration_batches_hook.py" />
     <Compile Include="hooks\filters\default_project_filter.py" />
     <Compile Include="hooks\filters\unlicensed_user_filter.py" />
+    <Compile Include="hooks\initialize_migration\set_custom_context_hook.py" />
     <Compile Include="hooks\mappings\change_project_mapping.py" />
     <Compile Include="hooks\mappings\email_domain_mapping.py" />
     <Compile Include="hooks\mappings\project_rename_mapping.py" />
@@ -60,6 +61,7 @@
     <Folder Include="hooks\mappings\" />
     <Folder Include="hooks\migration_action_completed\" />
     <Folder Include="hooks\batch_migration_completed\" />
+    <Folder Include="hooks\initialize_migration\" />
     <Folder Include="hooks\post_publish\" />
     <Folder Include="hooks\transformers\" />
   </ItemGroup>

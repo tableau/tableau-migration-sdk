@@ -48,7 +48,8 @@ namespace Tableau.Migration.Net
                 "Expires",
                 "Last-Modified",
                 "Status",
-                "User-Agent"
+                "User-Agent",
+                Constants.REQUEST_CORRELATION_ID_HEADER
             },
             StringComparer.OrdinalIgnoreCase);
 
@@ -88,12 +89,16 @@ namespace Tableau.Migration.Net
                 cancel)
                 .ConfigureAwait(false);
 
+            var correlationId = response.Headers.GetCorrelationId();
+
             _logger.LogInformation(
                 _localizer[SharedResourceKeys.NetworkTraceLogMessage],
                 request.Method,
                 request.RequestUri,
                 response.StatusCode,
-                detailsBuilder.ToString());
+                correlationId,
+                detailsBuilder.ToString()
+                );
         }
 
         public async Task WriteNetworkExceptionLogsAsync(
@@ -114,11 +119,14 @@ namespace Tableau.Migration.Net
 
             AddHttpExceptionDetails(detailsBuilder, exception);
 
+            var correlationId = request.Headers.GetCorrelationId();
+
             _logger.LogError(
                 _localizer[SharedResourceKeys.NetworkTraceExceptionLogMessage],
                 request.Method,
                 request.RequestUri,
                 exception.Message,
+                correlationId,
                 detailsBuilder.ToString());
         }
 
@@ -256,7 +264,7 @@ namespace Tableau.Migration.Net
                     }
                     else
                     {
-                        if(contentToWrite.Headers.ContentLength > int.MaxValue)
+                        if (contentToWrite.Headers.ContentLength > int.MaxValue)
                         {
                             detailsBuilder.AppendLine(_localizer[SharedResourceKeys.NetworkTraceTooLargeDetails]);
                         }
@@ -272,7 +280,7 @@ namespace Tableau.Migration.Net
                 else
                 {
                     detailsBuilder.AppendLine(_localizer[SharedResourceKeys.NetworkTraceNotDisplayedDetails]);
-                }                
+                }
             }
 
             if (content is MultipartFormDataContent multipartContent)

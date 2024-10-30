@@ -21,7 +21,12 @@ T = TypeVar("T")
 from tableau_migration.migration_content import PyUser
 from tableau_migration.migration_engine_actions import PyMigrationActionResult
 from tableau_migration.migration_engine_hooks import PyMigrationHookBuilder
-from tableau_migration.migration_engine_hooks_interop import PyContentBatchMigrationCompletedHookBase, PyMigrationActionCompletedHookBase
+from tableau_migration.migration_engine_hooks_interop import (
+    PyContentBatchMigrationCompletedHookBase,
+    PyInitializeMigrationHookBase,
+    PyMigrationActionCompletedHookBase
+)
+from tableau_migration.migration_engine_hooks_results import PyInitializeMigrationHookResult
 from tableau_migration.migration_engine_migrators_batch import PyContentBatchMigrationResult
 from tableau_migration.migration_services import ScopedMigrationServices
 
@@ -32,8 +37,9 @@ from System.Threading import CancellationToken
 from Tableau.Migration.Content import IUser
 from Tableau.Migration.Engine.Actions import IMigrationActionResult
 from Tableau.Migration.Engine.Hooks import (
-    IContentBatchMigrationCompletedHook, IMigrationActionCompletedHook, 
-    IMigrationHook, MigrationHookBuilder
+    IContentBatchMigrationCompletedHook, 
+    IInitializeMigrationHookResult, IInitializeMigrationHook,
+    IMigrationActionCompletedHook, IMigrationHook, MigrationHookBuilder
 )
 from Tableau.Migration.Engine.Migrators.Batch import IContentBatchMigrationResult
 
@@ -169,3 +175,68 @@ class TestContentBatchCompletedHookInterop(AutoFixtureTestBase):
         hook_result = hook.ExecuteAsync(ctx, CancellationToken(False)).GetAwaiter().GetResult()
 
         assert hook_result.PerformNextBatch == False
+        
+class PyInitializeMigrationHook(PyInitializeMigrationHookBase):
+    
+    def execute(self, ctx: PyInitializeMigrationHookResult) -> PyInitializeMigrationHookResult:
+        return ctx.to_failure()
+    
+def init_migration(ctx: PyInitializeMigrationHookResult) -> PyInitializeMigrationHookResult:
+    return ctx.to_failure()
+
+def init_migration_services(ctx: PyInitializeMigrationHookResult, services: ScopedMigrationServices) -> PyInitializeMigrationHookResult:
+    return ctx.to_failure()
+
+class TestInitializeMigrationHookInterop(AutoFixtureTestBase):
+    def test_interop_class(self):
+        hook_builder = PyMigrationHookBuilder(MigrationHookBuilder())
+        
+        result = hook_builder.add(PyInitializeMigrationHook)
+        assert result is hook_builder
+        
+        hook_factories = hook_builder.build().get_hooks(IInitializeMigrationHook)
+        assert len(hook_factories) == 1
+
+        services = self.create(IServiceProvider)
+        ctx = self.create(IInitializeMigrationHookResult)
+        
+        hook = hook_factories[0].Create[IMigrationHook[IInitializeMigrationHookResult]](services)
+        hook_result = hook.ExecuteAsync(ctx, CancellationToken(False)).GetAwaiter().GetResult()
+
+        assert hook_result.Success == False
+
+    def test_interop_callback(self):
+        hook_builder = PyMigrationHookBuilder(MigrationHookBuilder())
+
+        ctx = self.create(IInitializeMigrationHookResult)
+
+        result = hook_builder.add(PyInitializeMigrationHookResult, init_migration)
+        assert result is hook_builder
+
+        hook_factories = hook_builder.build().get_hooks(IInitializeMigrationHook)
+        assert len(hook_factories) == 1
+        
+        services = self.create(IServiceProvider)
+        
+        hook = hook_factories[0].Create[IMigrationHook[IInitializeMigrationHookResult]](services)
+        hook_result = hook.ExecuteAsync(ctx, CancellationToken(False)).GetAwaiter().GetResult()
+
+        assert hook_result.Success == False
+    
+    def test_interop_callback_services(self):
+        hook_builder = PyMigrationHookBuilder(MigrationHookBuilder())
+
+        ctx = self.create(IInitializeMigrationHookResult)
+
+        result = hook_builder.add(PyInitializeMigrationHookResult, init_migration_services)
+        assert result is hook_builder
+
+        hook_factories = hook_builder.build().get_hooks(IInitializeMigrationHook)
+        assert len(hook_factories) == 1
+        
+        services = self.create(IServiceProvider)
+        
+        hook = hook_factories[0].Create[IMigrationHook[IInitializeMigrationHookResult]](services)
+        hook_result = hook.ExecuteAsync(ctx, CancellationToken(False)).GetAwaiter().GetResult()
+
+        assert hook_result.Success == False

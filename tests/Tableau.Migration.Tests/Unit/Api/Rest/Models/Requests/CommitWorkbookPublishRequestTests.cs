@@ -15,7 +15,6 @@
 //  limitations under the License.
 //
 
-using System.Linq;
 using Tableau.Migration.Api.Models;
 using Tableau.Migration.Api.Rest.Models.Requests;
 using Xunit;
@@ -48,7 +47,7 @@ namespace Tableau.Migration.Tests.Unit.Api.Rest.Models.Requests
 
                 Assert.Equal(options.ProjectId, request.Workbook.Project.Id);
 
-                Assert.All(options.HiddenViewNames, v => Assert.Single(request.Workbook.Views.Where(wbv => wbv.Name == v && wbv.Hidden)));
+                Assert.All(options.HiddenViewNames, v => Assert.Single(request.Workbook.Views, wbv => wbv.Name == v && wbv.Hidden));
             }
         }
     }

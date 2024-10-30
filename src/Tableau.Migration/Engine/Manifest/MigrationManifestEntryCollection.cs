@@ -46,7 +46,18 @@ namespace Tableau.Migration.Engine.Manifest
             _localizer = localizer;
             _partitionLogger = loggerFactory.CreateLogger<MigrationManifestContentTypePartition>();
 
-            copy?.CopyTo(this);
+            if(copy is not null)
+            {
+                copy.CopyTo(this);
+
+                foreach (var partition in _partitions)
+                {
+                    foreach(var entry in partition)
+                    {
+                        entry.ResetStatus();
+                    }
+                }
+            }
         }
 
         #region - IMigrationManifestEntryCollection Implementation -

@@ -17,11 +17,16 @@
 
 namespace Tableau.Migration.PythonGenerator.Keywords.Dotnet
 {
-    internal class Namespaces
+    internal static class Namespaces
     {
         public const string SYSTEM = "System";
-        public const string TABLEAU_MIGRATION = "Tableau.Migration";
+
         public const string SYSTEM_COLLECTIONS_GENERIC = "System.Collections.Generic";
+
         public const string SYSTEM_EXCEPTION = "System.Exception";
+
+        public const string SYSTEM_TYPE = "System.Type";
+
+        public const string TABLEAU_MIGRATION = "Tableau.Migration";
     }
 }

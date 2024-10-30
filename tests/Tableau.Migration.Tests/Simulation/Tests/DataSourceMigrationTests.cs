@@ -73,11 +73,9 @@ namespace Tableau.Migration.Tests.Simulation.Tests
 
                 void AssertDataSourceMigrated(DataSourceResponse.DataSourceType sourceDataSource)
                 {
-                    var destinationDataSource = Assert.Single(
-                        CloudDestinationApi.Data.DataSources.Where(ds =>
+                    var destinationDataSource = Assert.Single(CloudDestinationApi.Data.DataSources, ds =>
                             ds.Name == sourceDataSource.Name &&
-                            ds.Description == sourceDataSource.Description
-                        ));
+                            ds.Description == sourceDataSource.Description);
 
                     Assert.NotEqual(sourceDataSource.Id, destinationDataSource.Id);
                     Assert.Equal(sourceDataSource.Name, destinationDataSource.Name);

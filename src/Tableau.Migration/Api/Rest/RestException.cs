@@ -53,22 +53,30 @@ namespace Tableau.Migration.Api.Rest
         public readonly string? Summary;
 
         /// <summary>
+        /// Gets the request Correlation ID
+        /// </summary>
+        public readonly string? CorrelationId;
+
+        /// <summary>
         /// Creates a new <see cref="RestException"/> instance.
         /// </summary>
         /// <remarks>This should only be used for deserialization.</remarks>
         /// <param name="httpMethod">The http method that generated the current error.</param>
         /// <param name="requestUri">The request URI that generated the current error.</param>
+        /// <param name="correlationId">The request Correlation ID</param>
         /// <param name="error">The <see cref="Error"/> returned from the Tableau API.</param>
         /// <param name="exceptionMessage">Message for base Exception.</param>
         internal RestException(
             HttpMethod? httpMethod,
             Uri? requestUri,
+            string? correlationId,
             Error error,
             string exceptionMessage)
             : base(exceptionMessage)
         {
             HttpMethod = httpMethod;
             RequestUri = requestUri;
+            CorrelationId = correlationId;
             Code = error.Code;
             Detail = error.Detail;
             Summary = error.Summary;
@@ -79,19 +87,22 @@ namespace Tableau.Migration.Api.Rest
         /// </summary>
         /// <param name="httpMethod">The http method that generated the current error.</param>
         /// <param name="requestUri">The request URI that generated the current error.</param>
+        /// <param name="correlationId">The request Correlation ID</param>
         /// <param name="error">The <see cref="Error"/> returned from the Tableau API.</param>
         /// <param name="sharedResourcesLocalizer">A string localizer.</param>
         public RestException(
             HttpMethod? httpMethod,
             Uri? requestUri,
+            string? correlationId,
             Error error,
             ISharedResourcesLocalizer sharedResourcesLocalizer)
-            : this(httpMethod, requestUri, error, FormatError(httpMethod, requestUri, error, sharedResourcesLocalizer))
+            : this(httpMethod, requestUri, correlationId, error, FormatError(httpMethod, requestUri, correlationId, error, sharedResourcesLocalizer))
         { }
 
         private static string FormatError(
             HttpMethod? httpMethod,
             Uri? requestUri,
+            string? correlationId,
             Error error,
             ISharedResourcesLocalizer sharedResourcesLocalizer)
         {
@@ -101,6 +112,7 @@ namespace Tableau.Migration.Api.Rest
                 sharedResourcesLocalizer[SharedResourceKeys.RestExceptionContent],
                 httpMethod,
                 requestUri,
+                correlationId,
                 error.Code ?? nullValue,
                 error.Summary ?? nullValue,
                 error.Detail ?? nullValue);

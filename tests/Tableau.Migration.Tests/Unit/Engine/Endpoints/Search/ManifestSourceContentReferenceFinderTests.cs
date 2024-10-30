@@ -65,7 +65,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints.Search
                 var sourceItem = Create<TestContentType>();
 
                 var entry = Manifest.Entries.GetOrCreatePartition<TestContentType>().GetEntryBuilder(1)
-                    .CreateEntries(new[] { sourceItem }, (i, e) => e)
+                    .CreateEntries(new[] { sourceItem }, (i, e) => e, 0)
                     .Single();
 
                 var result = await Finder.FindByIdAsync(sourceItem.Id, Cancel);
@@ -108,7 +108,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints.Search
                 var sourceItem = Create<TestContentType>();
 
                 var entry = Manifest.Entries.GetOrCreatePartition<TestContentType>().GetEntryBuilder(1)
-                    .CreateEntries(new[] { sourceItem }, (i, e) => e)
+                    .CreateEntries(new[] { sourceItem }, (i, e) => e, 0)
                     .Single();
 
                 var result = await Finder.FindBySourceLocationAsync(sourceItem.Location, Cancel);

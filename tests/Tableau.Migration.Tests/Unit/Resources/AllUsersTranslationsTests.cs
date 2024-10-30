@@ -67,7 +67,7 @@ namespace Tableau.Migration.Tests.Unit.Resources
 
                 var all = AllUsersTranslations.GetAll(extras);
 
-                Assert.Single(all.Where(t => t == extra));
+                Assert.Single(all, t => t == extra);
             }
 
             [Fact]

@@ -39,7 +39,7 @@ namespace Tableau.Migration.Tests.Unit.JsonConverter.SerializableObjects
 
             Assert.Equal(input.Source!.AsContentReferenceStub(), output.Source);
             Assert.Equal(input.MappedLocation!.AsContentLocation(), output.MappedLocation);
-            Assert.Equal((int)input.Status, (int)output.Status);
+            Assert.Equal(input.Status, output.Status.ToString());
             Assert.Equal(input.HasMigrated, output.HasMigrated);
             Assert.Equal(input.Destination?.AsContentReferenceStub(), output.Destination);
             Assert.Equal(input?.Errors?.Select(e => e.Error), output.Errors);
@@ -59,7 +59,7 @@ namespace Tableau.Migration.Tests.Unit.JsonConverter.SerializableObjects
             Assert.Equal(input.Source!.AsContentReferenceStub(), output.Source);
             Assert.Null(output.Destination);
             Assert.Equal(input.MappedLocation!.AsContentLocation(), output.MappedLocation);
-            Assert.Equal((int)input.Status, (int)output.Status);
+            Assert.Equal(input.Status, output.Status.ToString());
             Assert.Equal(input.HasMigrated, output.HasMigrated);
             Assert.Equal(input?.Errors?.Select(e => e.Error), output.Errors);
         }
@@ -78,6 +78,15 @@ namespace Tableau.Migration.Tests.Unit.JsonConverter.SerializableObjects
         {
             var input = Create<SerializableManifestEntry>();
             input.MappedLocation = null;
+
+            Assert.Throws<ArgumentNullException>(() => input.AsMigrationManifestEntry(mockPartition.Object));
+        }
+
+        [Fact]
+        public void BadDeserialization_NullStatus()
+        {
+            var input = Create<SerializableManifestEntry>();
+            input.Status = null;
 
             Assert.Throws<ArgumentNullException>(() => input.AsMigrationManifestEntry(mockPartition.Object));
         }

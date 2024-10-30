@@ -61,11 +61,7 @@ namespace Tableau.Migration.Api.Permissions
                 return client;
             });
         }
-
-        public Task<IResult<IPermissions>> GetPermissionsAsync(
-            string contentTypeUrlSegment,
-            Guid projectId,
-            CancellationToken cancel)
+        public Task<IResult<IPermissions>> GetPermissionsAsync(string contentTypeUrlSegment, Guid projectId, CancellationToken cancel)
             => EnsurePermissionsClient(contentTypeUrlSegment).GetPermissionsAsync(projectId, cancel);
 
         public Task<IResult<IPermissions>> CreatePermissionsAsync(
@@ -84,14 +80,7 @@ namespace Tableau.Migration.Api.Permissions
             CancellationToken cancel)
             => EnsurePermissionsClient(contentTypeUrlSegment).DeleteCapabilityAsync(projectId, granteeId, granteeType, capability, cancel);
 
-        public Task<IResult> DeleteAllPermissionsAsync(
-            string contentTypeUrlSegment,
-            Guid projectId,
-            IPermissions permissions,
-            CancellationToken cancel)
-            => EnsurePermissionsClient(contentTypeUrlSegment).DeleteAllPermissionsAsync(projectId, permissions, cancel);
-
-        public Task<IResult<IPermissions>> UpdatePermissionsAsync(
+        public Task<IResult> UpdatePermissionsAsync(
             string contentTypeUrlSegment,
             Guid projectId,
             IPermissions permissions,
@@ -133,14 +122,12 @@ namespace Tableau.Migration.Api.Permissions
                 resultBuilder.Build().Errors);
         }
 
-        public async Task<IResult<IImmutableDictionary<string, IPermissions>>> UpdateAllPermissionsAsync(
+        public async Task<IResult> UpdateAllPermissionsAsync(
             Guid projectId,
             IReadOnlyDictionary<string, IPermissions> permissions,
             CancellationToken cancel)
         {
             var resultBuilder = new ResultBuilder();
-
-            var updatedPermissions = ImmutableDictionary.CreateBuilder<string, IPermissions>(StringComparer.OrdinalIgnoreCase);
 
             foreach (var permission in permissions)
             {
@@ -152,17 +139,9 @@ namespace Tableau.Migration.Api.Permissions
                 {
                     continue;
                 }
-                updatedPermissions.Add(permission.Key, updatePermissionsResult.Value);
             }
             
-            var result = resultBuilder.Build();
-
-            if (!result.Success)
-            {
-                return Result<IImmutableDictionary<string, IPermissions>>.Failed(result.Errors);
-            }
-
-            return Result<IImmutableDictionary<string, IPermissions>>.Succeeded(updatedPermissions.ToImmutable());
+            return resultBuilder.Build();
         }
     }
 }

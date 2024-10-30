@@ -108,7 +108,6 @@ namespace Tableau.Migration.Tests.Unit.Api
 
             MockScheduleCache = MockContentCacheFactory.SetupMockCache<IServerSchedule>(autoFixture);
 
-
             MockApiClientInput.SetupGet(i => i.SiteConnectionConfiguration).Returns(SiteConnectionConfiguration);
             MockSessionProvider.SetupGet(p => p.Version).Returns(TableauServerVersion);
 

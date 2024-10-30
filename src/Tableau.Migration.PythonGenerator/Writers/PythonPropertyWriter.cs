@@ -36,12 +36,25 @@ namespace Tableau.Migration.PythonGenerator.Writers
         {
             var typeDeclaration = ToPythonTypeDeclaration(type, property.Type);
 
+            var thisParam = property.IsStatic ? "cls" : "self";
+
             if (property.Getter)
             {
-                builder.AppendLine("@property");
-                using (var getterBuilder = builder.AppendLineAndIndent($"def {property.Name}(self) -> {typeDeclaration}:"))
+                string getterPrefix;
+                if(property.IsStatic)
                 {
-                    BuildGetterBody(property, getterBuilder);
+                    builder.AppendLine("@classmethod");
+                    getterPrefix = "get_";
+                }
+                else
+                {
+                    builder.AppendLine("@property");
+                    getterPrefix = string.Empty;
+                }
+
+                using (var getterBuilder = builder.AppendLineAndIndent($"def {getterPrefix}{property.Name}({thisParam}) -> {typeDeclaration}:"))
+                {
+                    BuildGetterBody(type, property, getterBuilder);
                 }
 
                 builder.AppendLine();
@@ -49,43 +62,62 @@ namespace Tableau.Migration.PythonGenerator.Writers
 
             if (property.Setter)
             {
-                builder.AppendLine($"@{property.Name}.setter");
-                var paramName = "value";
-                using (var setterBuilder = builder.AppendLineAndIndent($"def {property.Name}(self, {paramName}: {typeDeclaration}) -> None:"))
+                string setterPrefix;
+                if (property.IsStatic)
                 {
-                    BuildSetterBody(property, setterBuilder, paramName);
+                    builder.AppendLine("@classmethod");
+                    setterPrefix = "set_";
+                }
+                else
+                {
+                    builder.AppendLine($"@{property.Name}.setter");
+                    setterPrefix = string.Empty;
+                }
+
+                var paramName = "value";
+                using (var setterBuilder = builder.AppendLineAndIndent($"def {setterPrefix}{property.Name}({thisParam}, {paramName}: {typeDeclaration}) -> None:"))
+                {
+                    BuildSetterBody(type, property, setterBuilder, paramName);
                 }
 
                 builder.AppendLine();
             }
         }
 
-        private void BuildGetterBody(PythonProperty property, IndentingStringBuilder getterBuilder)
+        private void BuildGetterBody(PythonType type, PythonProperty property, IndentingStringBuilder getterBuilder)
         {
             _docWriter.Write(getterBuilder, property.Documentation);
 
-            var getterExpression = ToPythonType(property.Type, $"self.{PythonTypeWriter.DOTNET_OBJECT}.{property.DotNetProperty.Name}");
+            var getterExpression = ToPythonType(property.Type, DotNetPropertyInvocation(type, property));
 
             getterBuilder.AppendLine($"return {getterExpression}");
         }
+
+        private static string DotNetPropertyReference(PythonType type, PythonProperty property)
+            => property.IsStatic? DotNetTypeName(type) : $"self.{PythonTypeWriter.DOTNET_OBJECT}";
+
+        private static string DotNetPropertyInvocation(PythonType type, PythonProperty property)
+            => $"{DotNetPropertyReference(type, property)}.{property.DotNetProperty.Name}";
 
         private static void BuildForLoop(IndentingStringBuilder builder, string condition, Action<IndentingStringBuilder> body)
         {
             var forLoopBuilder = builder.AppendLineAndIndent($"for {condition}:");
             body(forLoopBuilder);
         }
+
         private static void BuildIfBlock(IndentingStringBuilder builder, string condition, Action<IndentingStringBuilder> body)
         {
             var ifBuilder = builder.AppendLineAndIndent($"if {condition}:");
             body(ifBuilder);
         }
+
         private static void BuildElseBlock(IndentingStringBuilder builder, Action<IndentingStringBuilder> body)
         {
             var elseBuilder = builder.AppendLineAndIndent($"else:");
             body(elseBuilder);
         }
 
-        private void BuildSetterBody(PythonProperty property, IndentingStringBuilder setterBuilder, string paramName)
+        private void BuildSetterBody(PythonType type, PythonProperty property, IndentingStringBuilder setterBuilder, string paramName)
         {
             _docWriter.Write(setterBuilder, property.Documentation);
 
@@ -105,7 +137,7 @@ namespace Tableau.Migration.PythonGenerator.Writers
 
                         BuildIfBlock(setterBuilder, $"{paramName} is None", (builder) =>
                         {
-                            builder.AppendLine($"self.{PythonTypeWriter.DOTNET_OBJECT}.{property.DotNetProperty.Name} = {collectionTypeAlias}[{dotnetType.Name}]()");
+                            builder.AppendLine($"{DotNetPropertyInvocation(type, property)} = {collectionTypeAlias}[{dotnetType.Name}]()");
                         });
 
                         BuildElseBlock(setterBuilder, (builder) =>
@@ -131,25 +163,25 @@ namespace Tableau.Migration.PythonGenerator.Writers
                                 }
                             });
 
-                            if (conversionMode == ConversionMode.WrapArray)
+                            if (conversionMode is ConversionMode.WrapArray)
                             {
-                                builder.AppendLine($"self.{PythonTypeWriter.DOTNET_OBJECT}.{property.DotNetProperty.Name} = dotnet_collection.ToArray()");
+                                builder.AppendLine($"{DotNetPropertyInvocation(type, property)} = dotnet_collection.ToArray()");
                                 return;
                             }
-                            builder.AppendLine($"self.{PythonTypeWriter.DOTNET_OBJECT}.{property.DotNetProperty.Name} = dotnet_collection");
+                            builder.AppendLine($"{DotNetPropertyInvocation(type, property)} = dotnet_collection");
                         });
                         break;
                     }
                 case ConversionMode.Enum:
                     {
                         var setterExpression = ToDotNetType(property.Type, paramName);
-                        setterBuilder.AppendLine($"self.{PythonTypeWriter.DOTNET_OBJECT}.{property.DotNetProperty.Name}.value__ = {property.Type.Name}({setterExpression})");
+                        setterBuilder.AppendLine($"{DotNetPropertyInvocation(type, property)}.value__ = {property.Type.Name}({setterExpression})");
                         break;
                     }
                 default:
                     {
                         var setterExpression = ToDotNetType(property.Type, paramName);
-                        setterBuilder.AppendLine($"self.{PythonTypeWriter.DOTNET_OBJECT}.{property.DotNetProperty.Name} = {setterExpression}");
+                        setterBuilder.AppendLine($"{DotNetPropertyInvocation(type, property)} = {setterExpression}");
                         break;
                     }
             }
@@ -157,7 +189,7 @@ namespace Tableau.Migration.PythonGenerator.Writers
             static string? GetCollectionTypeAlias(ConversionMode conversionMode, string typeRefName)
             {
                 string? collectionTypeAlias;
-                if (conversionMode == ConversionMode.WrapArray)
+                if (conversionMode is ConversionMode.WrapArray)
                 {
                     collectionTypeAlias = PythonMemberGenerator.LIST_REFERENCE.ImportAlias;
                 }

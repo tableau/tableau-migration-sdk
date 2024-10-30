@@ -25,6 +25,8 @@ using Tableau.Migration.Api.Search;
 using Tableau.Migration.Api.Simulation;
 using Tableau.Migration.Api.Tags;
 using Tableau.Migration.Content.Files;
+using Tableau.Migration.Content.Schedules;
+using Tableau.Migration.Content.Schedules.Cloud;
 using Tableau.Migration.Content.Schedules.Server;
 using Tableau.Migration.Content.Search;
 using Tableau.Migration.Net;
@@ -96,10 +98,10 @@ namespace Tableau.Migration.Api
             services.AddScoped(p => p.GetRequiredService<ApiClientInput>().ContentReferenceFinderFactory);
             services.AddScoped(typeof(BulkApiContentReferenceCache<>));
 
-            //Content caches
+            //Content caches.
             services.AddScoped<IContentCacheFactory, ContentCacheFactory>();
 
-            //Server schedules content cache
+            //Server schedules content caches.
             services.AddScoped<ApiContentCache<IServerSchedule>>();
             services.AddScoped<IContentCache<IServerSchedule>>(p => p.GetRequiredService<ApiContentCache<IServerSchedule>>());
             services.AddScoped<BulkApiContentReferenceCache<IServerSchedule>>(p => p.GetRequiredService<ApiContentCache<IServerSchedule>>());
@@ -110,6 +112,11 @@ namespace Tableau.Migration.Api
             services.AddScoped<TemporaryDirectoryContentFileStore>();
             services.AddScoped(p => new EncryptedFileStore(p, p.GetRequiredService<TemporaryDirectoryContentFileStore>()));
             services.AddScoped(p => p.GetRequiredService<ApiClientInput>().FileStore);
+
+            //Extract Refresh Task converters.
+            services.AddScoped<IExtractRefreshTaskConverter<IServerExtractRefreshTask, IServerSchedule, ICloudExtractRefreshTask, ICloudSchedule>, ServerToCloudExtractRefreshTaskConverter>();
+            services.AddScoped<IScheduleValidator<IServerSchedule>, ServerScheduleValidator>();
+            services.AddScoped<IScheduleValidator<ICloudSchedule>, CloudScheduleValidator>();
 
             return services;
         }

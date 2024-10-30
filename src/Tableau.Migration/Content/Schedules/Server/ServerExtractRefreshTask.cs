@@ -78,7 +78,7 @@ namespace Tableau.Migration.Content.Schedules.Server
 
             return new ServerExtractRefreshTask(
                 response.Id,
-                taskFromCache== null ? string.Empty: taskFromCache.Type,
+                taskFromCache == null ? string.Empty : taskFromCache.Type,
                 response.GetContentType(),
                 content,
                 schedule);

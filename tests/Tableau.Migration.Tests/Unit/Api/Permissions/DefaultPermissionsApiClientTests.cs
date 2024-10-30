@@ -97,30 +97,6 @@ namespace Tableau.Migration.Tests.Unit.Api.Permissions
             }
         }
 
-        public class DeleteAllPermissionsAsync : DefaultPermissionsApiClientTest
-        {
-            [Theory]
-            [DefaultPermissionsContentTypeUrlSegmentData]
-            public async Task Calls_inner_client(string contentTypeUrlSegment)
-            {
-                var projectId = Create<Guid>();
-                var permissions = Create<IPermissions>();
-
-                var mockResult = new Mock<IResult>();
-
-                MockPermissionsClients[contentTypeUrlSegment]
-                    .Setup(c => c.DeleteAllPermissionsAsync(projectId, permissions, Cancel))
-                    .ReturnsAsync(mockResult.Object);
-
-                var result = await DefaultPermissionsClient.DeleteAllPermissionsAsync(contentTypeUrlSegment, projectId, permissions, Cancel);
-
-                Assert.Same(mockResult.Object, result);
-
-                MockPermissionsClients[contentTypeUrlSegment].VerifyAll();
-                MockPermissionsClients[contentTypeUrlSegment].VerifyNoOtherCalls();
-            }
-        }
-
         public class DeleteCapabilityAsync : DefaultPermissionsApiClientTest
         {
             [Theory]

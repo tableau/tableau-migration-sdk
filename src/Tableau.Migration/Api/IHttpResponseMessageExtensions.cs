@@ -17,8 +17,10 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Tableau.Migration;
 using Tableau.Migration.Api.Models;
 using Tableau.Migration.Api.Rest;
 using Tableau.Migration.Api.Rest.Models.Responses;
@@ -56,11 +58,14 @@ namespace Tableau.Migration.Api
                     // Deserializing it here if it exists so we can include it in the result.
                     var tsError = await serializer.TryDeserializeErrorAsync(response.Content, cancel).ConfigureAwait(false);
 
+                    var correlationId = response.Headers.GetCorrelationId();
+
                     if (tsError is not null)
                     {
                         throw new RestException(
                             response.RequestMessage?.Method,
                             response.RequestMessage?.RequestUri,
+                            correlationId,
                             tsError,
                             sharedResourcesLocalizer);
                     }
@@ -118,9 +123,12 @@ namespace Tableau.Migration.Api
 
                 if (restError is not null)
                 {
+                    var correlationId = response.Headers.GetCorrelationId();
+
                     throw new RestException(
                         response.RequestMessage?.Method,
                         response.RequestMessage?.RequestUri,
+                        correlationId,
                         restError,
                         sharedResourcesLocalizer);
                 }
@@ -149,9 +157,12 @@ namespace Tableau.Migration.Api
 
                 if (restError is not null)
                 {
+                    var correlationId = response.Headers.GetCorrelationId();
+
                     throw new RestException(
                         response.RequestMessage?.Method,
                         response.RequestMessage?.RequestUri,
+                        correlationId,
                         restError,
                         sharedResourcesLocalizer);
                 }
@@ -196,9 +207,12 @@ namespace Tableau.Migration.Api
 
                 if (restError is not null)
                 {
+                    var correlationId = response.Headers.GetCorrelationId();
+
                     throw new RestException(
                         response.RequestMessage?.Method,
                         response.RequestMessage?.RequestUri,
+                        correlationId,
                         restError,
                         sharedResourcesLocalizer);
                 }
@@ -245,9 +259,12 @@ namespace Tableau.Migration.Api
 
                 if (restError is not null)
                 {
+                    var correlationId = response.Headers.GetCorrelationId();
+
                     throw new RestException(
                         response.RequestMessage?.Method,
                         response.RequestMessage?.RequestUri,
+                        correlationId,
                         restError,
                         sharedResourcesLocalizer);
                 }

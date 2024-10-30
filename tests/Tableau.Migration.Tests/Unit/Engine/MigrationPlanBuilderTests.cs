@@ -88,8 +88,6 @@ namespace Tableau.Migration.Tests.Unit.Engine
                 MockTransformerBuilder.Verify(x => x.Add(typeof(OwnershipTransformer<>), It.IsAny<IEnumerable<Type[]>>()), Times.Once);
                 MockTransformerBuilder.Verify(x => x.Add<TableauServerConnectionUrlTransformer, IPublishableWorkbook>(It.IsAny<Func<IServiceProvider, TableauServerConnectionUrlTransformer>>()), Times.Once);
                 MockTransformerBuilder.Verify(x => x.Add<MappedReferenceExtractRefreshTaskTransformer, ICloudExtractRefreshTask>(It.IsAny<Func<IServiceProvider, MappedReferenceExtractRefreshTaskTransformer>>()), Times.Once);
-                MockTransformerBuilder.Verify(x => x.Add<CloudIncrementalRefreshTransformer, ICloudExtractRefreshTask>(It.IsAny<Func<IServiceProvider, CloudIncrementalRefreshTransformer>>()), Times.Once);
-                MockTransformerBuilder.Verify(x => x.Add(typeof(CloudScheduleCompatibilityTransformer<>), It.IsAny<IEnumerable<Type[]>>()), Times.Once);
                 MockTransformerBuilder.Verify(x => x.Add(typeof(WorkbookReferenceTransformer<>), It.IsAny<IEnumerable<Type[]>>()), Times.Once);
                 MockTransformerBuilder.Verify(x => x.Add<CustomViewDefaultUserReferencesTransformer, IPublishableCustomView>(It.IsAny<Func<IServiceProvider, CustomViewDefaultUserReferencesTransformer>>()), Times.Once);
 

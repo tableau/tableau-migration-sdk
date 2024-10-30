@@ -60,6 +60,7 @@ namespace Tableau.Migration.Net
                 .AddTransient<AuthenticationHandler>()
                 .AddTransient<LoggingHandler>()
                 .AddTransient<SimulationHttpHandler>()
+                .AddTransient<RequestCorrelationIdHandler>()
                 // Keeping a single HttpClient instance alive for a long duration is a common pattern used before the inception
                 // of IHttpClientFactory. This pattern becomes unnecessary after migrating to IHttpClientFactory.
                 // Source: https://learn.microsoft.com/en-us/aspnet/core/fundamentals/http-requests?view=aspnetcore-7.0#httpclient-and-lifetime-management
@@ -102,7 +103,7 @@ namespace Tableau.Migration.Net
 
                     builder.Build(pipelineBuilder, options, ref onPipelineDisposed);
 
-                    if(onPipelineDisposed is not null)
+                    if (onPipelineDisposed is not null)
                     {
                         ctx.OnPipelineDisposed(onPipelineDisposed);
                     }
@@ -112,6 +113,7 @@ namespace Tableau.Migration.Net
             httpClientBuilder
                 .AddHttpMessageHandler<AuthenticationHandler>()
                 .AddHttpMessageHandler<LoggingHandler>()
+                .AddHttpMessageHandler<RequestCorrelationIdHandler>()
                 .AddHttpMessageHandler<SimulationHttpHandler>(); //Must be last for simulation to function.
 
             //Bootstrap and scope state tracking services.

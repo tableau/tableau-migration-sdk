@@ -48,7 +48,7 @@ namespace Tableau.Migration.JsonConverters.SerializableObjects
         /// <summary>
         /// Gets or sets the status of the migration for this entry.
         /// </summary>
-        public int Status { get; set; }
+        public string? Status { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether the content has been migrated.
@@ -74,7 +74,7 @@ namespace Tableau.Migration.JsonConverters.SerializableObjects
             Source = new SerializableContentReference(entry.Source);
             MappedLocation = new SerializableContentLocation(entry.MappedLocation);
             Destination = entry.Destination == null ? null : new SerializableContentReference(entry.Destination);
-            Status = (int)entry.Status;
+            Status = entry.Status.ToString();
             HasMigrated = entry.HasMigrated;
 
             Errors = entry.Errors.Select(e => new SerializableException(e)).ToList();
@@ -86,7 +86,7 @@ namespace Tableau.Migration.JsonConverters.SerializableObjects
 
         IContentReference? IMigrationManifestEntry.Destination => Destination?.AsContentReferenceStub();
 
-        MigrationManifestEntryStatus IMigrationManifestEntry.Status => (MigrationManifestEntryStatus)Status;
+        MigrationManifestEntryStatus IMigrationManifestEntry.Status => (MigrationManifestEntryStatus)Enum.Parse(typeof(MigrationManifestEntryStatus), Status!);
 
         bool IMigrationManifestEntry.HasMigrated => HasMigrated;
 

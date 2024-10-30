@@ -122,7 +122,7 @@ namespace Tableau.Migration.Tests
 
                     return property switch
                     {
-                        hours => customized.With(i => i.Hours, GetRandomValue(IntervalValues.HoursValues)),
+                        hours => customized.With(i => i.Hours, GetRandomValue(IntervalValues.ServerHoursValues)),
                         minutes => customized.With(i => i.Minutes, GetRandomValue(IntervalValues.MinutesValues)),
                         weekDay => customized.With(i => i.WeekDay, GetRandomValue(IntervalValues.WeekDaysValues)),
                         monthDay => customized.With(i => i.MonthDay, GetRandomValue(IntervalValues.MonthDaysValues)),
@@ -347,7 +347,7 @@ namespace Tableau.Migration.Tests
             ret.Source = fixture.Create<SerializableContentReference>();
             ret.Destination = fixture.Create<SerializableContentReference>();
             ret.MappedLocation = ret.Destination.Location;
-            ret.Status = (int)fixture.Create<MigrationManifestEntryStatus>();
+            ret.Status = fixture.Create<MigrationManifestEntryStatus>().ToString();
             ret.SetErrors(CreateErrors(fixture));
 
             return ret;
@@ -409,7 +409,7 @@ namespace Tableau.Migration.Tests
             var tableauMigrationAssembly = loadedAssemblies.Where(a => a.ManifestModule.Name == "Tableau.Migration.dll").First();
 
             var exceptionTypes = tableauMigrationAssembly.GetTypes()
-                .Where(t => t.BaseType == typeof(Exception))
+                .Where(t => t.BaseType == typeof(Exception) && !t.IsAbstract)
                 .Where(t => t != typeof(MismatchException)) // MismatchException will never be in a manifest
                 .ToList();
 

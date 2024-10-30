@@ -51,15 +51,21 @@ class PyMigrationHookFactoryCollection():
 
 def _get_wrapper_from_callback_context(t: type) -> type:
     from migration_engine_actions import PyMigrationActionResult
-    from migration_engine_hooks_interop import _PyMigrationActionCompletedHookWrapper, _PyContentBatchMigrationCompletedHookWrapper
+    from migration_engine_hooks_interop import (
+        _PyContentBatchMigrationCompletedHookWrapper, 
+        _PyInitializeMigrationHookWrapper,
+        _PyMigrationActionCompletedHookWrapper
+    )
     from migration_engine_hooks_postpublish import PyBulkPostPublishContext, PyContentItemPostPublishContext
     from migration_engine_hooks_postpublish_interop import _PyBulkPostPublishHookWrapper, _PyContentItemPostPublishHookWrapper
+    from migration_engine_hooks_results import PyInitializeMigrationHookResult
     from migration_engine_migrators_batch import PyContentBatchMigrationResult
 
     types = {
         PyBulkPostPublishContext.__name__: _PyBulkPostPublishHookWrapper,
         PyContentBatchMigrationResult.__name__: _PyContentBatchMigrationCompletedHookWrapper,
         PyContentItemPostPublishContext.__name__: _PyContentItemPostPublishHookWrapper,
+        PyInitializeMigrationHookResult.__name__: _PyInitializeMigrationHookWrapper,
         PyMigrationActionResult.__name__: _PyMigrationActionCompletedHookWrapper
     }
 

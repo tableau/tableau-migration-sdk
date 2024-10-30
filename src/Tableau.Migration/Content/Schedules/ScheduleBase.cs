@@ -15,6 +15,8 @@
 //  limitations under the License.
 //
 
+using System.Linq;
+using System.Text;
 using Tableau.Migration.Api.Rest.Models;
 
 namespace Tableau.Migration.Content.Schedules
@@ -29,7 +31,7 @@ namespace Tableau.Migration.Content.Schedules
 
         /// <inheritdoc />
         public string? NextRunAt { get; }
-        
+
         /// <summary>
         /// Creates a new <see cref="ScheduleBase"/> instance.
         /// </summary>
@@ -52,7 +54,18 @@ namespace Tableau.Migration.Content.Schedules
         {
             Frequency = Guard.AgainstNullEmptyOrWhiteSpace(frequency, nameof(frequency));
             NextRunAt = nextRunAt;
-            FrequencyDetails = frequencyDetails;
+            FrequencyDetails = new FrequencyDetails(frequencyDetails.StartAt, frequencyDetails.EndAt, frequencyDetails.Intervals.ToList());
+        }
+
+        public override string ToString()
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine($"Frequency: {Frequency}");
+            sb.AppendLine($"Next Run At: {NextRunAt}");
+            sb.AppendLine($"Frequency Details:\n{FrequencyDetails}");
+
+            return sb.ToString();
+
         }
     }
 }

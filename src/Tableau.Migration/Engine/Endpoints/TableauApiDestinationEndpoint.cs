@@ -67,14 +67,14 @@ namespace Tableau.Migration.Engine.Endpoints
         }
 
         /// <inheritdoc />
-        public async Task<IResult<IPermissions>> UpdatePermissionsAsync<TContent>(IContentReference contentItem, IPermissions permissions, CancellationToken cancel)
+        public async Task<IResult> UpdatePermissionsAsync<TContent>(IContentReference contentItem, IPermissions permissions, CancellationToken cancel)
             where TContent : IPermissionsContent
         {
             return await UpdatePermissionsAsync(typeof(TContent), contentItem, permissions, cancel).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public async Task<IResult<IPermissions>> UpdatePermissionsAsync(Type type, IContentReference contentItem, IPermissions permissions, CancellationToken cancel)
+        public async Task<IResult> UpdatePermissionsAsync(Type type, IContentReference contentItem, IPermissions permissions, CancellationToken cancel)
         {
             var apiClient = SiteApi.GetPermissionsApiClient(type);
             return await apiClient.UpdatePermissionsAsync(contentItem.Id, permissions, cancel).ConfigureAwait(false);
