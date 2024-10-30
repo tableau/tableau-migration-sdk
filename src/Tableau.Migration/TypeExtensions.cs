@@ -79,6 +79,26 @@ namespace Tableau.Migration
             return FindAllInterfaceMethods(interfaceType, bindingAttr).ToArray();
         }
 
+        /// <summary>
+        /// Gets the formatted name of the specified <see cref="Type"/>.
+        /// </summary>
+        /// <param name="type">The <see cref="Type"/> to get the formatted name for.</param>
+        /// <returns>The formatted name of the <see cref="Type"/>.</returns>
+        public static string GetFormattedName(this Type type)
+        {
+            if (type.IsGenericType)
+            {
+                Type genericTypeDefinition = type.GetGenericTypeDefinition();
+                Type[] genericArguments = type.GetGenericArguments();
+                string genericArgumentsString = string.Join(", ", genericArguments.Select(t => t.GetFormattedName()));
+                return $"{genericTypeDefinition.Name.Substring(0, genericTypeDefinition.Name.IndexOf('`'))}<{genericArgumentsString}>";
+            }
+            else
+            {
+                return type.Name;
+            }
+        }
+
         #region - private implementations 
 
         private static List<PropertyInfo> FindAllInterfaceProperties(this Type interfaceType, BindingFlags bindingAttr = BindingFlags.Default)

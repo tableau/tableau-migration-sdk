@@ -49,28 +49,28 @@ namespace Tableau.Migration.Engine.Manifest
         /// Creates a new <see cref="MigrationManifestEntry"/> object.
         /// </summary>
         /// <param name="entryBuilder">The entry builder to notify with changes.</param>
-        /// <param name="previousMigrationEntry">An entry from a previous migration manifest to copy values from.</param>
+        /// <param name="copy">An entry from to copy values from.</param>
         public MigrationManifestEntry(IMigrationManifestEntryBuilder entryBuilder,
-            IMigrationManifestEntry previousMigrationEntry)
+            IMigrationManifestEntry copy)
         {
             _entryBuilder = entryBuilder;
-            Source = previousMigrationEntry.Source;
-            MappedLocation = previousMigrationEntry.MappedLocation;
-            Status = previousMigrationEntry.Status;
-            Destination = previousMigrationEntry.Destination;
-            HasMigrated = previousMigrationEntry.HasMigrated;
-            _errors = previousMigrationEntry.Errors.ToImmutableArray();
+            Source = copy.Source;
+            MappedLocation = copy.MappedLocation;
+            _status = copy.Status;
+            Destination = copy.Destination;
+            HasMigrated = copy.HasMigrated;
+            _errors = copy.Errors.ToImmutableArray();
         }
 
         /// <summary>
         /// Creates a new <see cref="MigrationManifestEntry"/> object.
         /// </summary>
         /// <param name="entryBuilder">The entry builder to notify with changes.</param>
-        /// <param name="previousMigrationEntry">An entry from a previous migration manifest to copy values from.</param>
+        /// <param name="copy">An entry to copy values from.</param>
         /// <param name="sourceReference">The content item's updated source information, as a stub.</param>
         public MigrationManifestEntry(IMigrationManifestEntryBuilder entryBuilder,
-            IMigrationManifestEntry previousMigrationEntry, ContentReferenceStub sourceReference)
-            : this(entryBuilder, previousMigrationEntry)
+            IMigrationManifestEntry copy, ContentReferenceStub sourceReference)
+            : this(entryBuilder, copy)
         {
             Source = sourceReference;
         }
@@ -98,7 +98,21 @@ namespace Tableau.Migration.Engine.Manifest
         private IContentReference? _destination;
 
         /// <inheritdoc />
-        public virtual MigrationManifestEntryStatus Status { get; private set; }
+        public virtual MigrationManifestEntryStatus Status
+        {
+            get => _status;
+            set
+            {
+                var oldStatus = _status;
+                _status = value;
+
+                if(oldStatus != _status)
+                {
+                    _entryBuilder.StatusUpdated(this, oldStatus);
+                }
+            }
+        }
+        private MigrationManifestEntryStatus _status;
 
         /// <inheritdoc />
         public virtual bool HasMigrated { get; private set; }
@@ -166,6 +180,17 @@ namespace Tableau.Migration.Engine.Manifest
         #endregion
 
         #region - IMigrationManifestEntryEditor Implementation -
+
+        /// <inheritdoc />
+        public virtual IMigrationManifestEntryEditor ResetStatus()
+        {
+            // Mapped location, destination info, and long-term migrated flag are not reset between migrations.
+
+            _errors = ImmutableArray<Exception>.Empty;
+            Status = MigrationManifestEntryStatus.Pending;
+
+            return this;
+        }
 
         /// <inheritdoc />
         public virtual IMigrationManifestEntryEditor MapToDestination(ContentLocation destinationLocation)

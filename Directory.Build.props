@@ -4,7 +4,7 @@
 		<Nullable>enable</Nullable>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-		<Version>4.3.1</Version>
+		<Version>5.0.0</Version>
 		<Authors>Salesforce, Inc.</Authors>
 		<Company>Salesforce, Inc.</Company>
 		<Copyright>Copyright (c) 2024, Salesforce, Inc. and its licensors</Copyright>

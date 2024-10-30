@@ -70,6 +70,8 @@ namespace Tableau.Migration.PythonGenerator.Generators
             DotNetParseFunction: "TimeOnly.Parse",
             ExtraImports: ImmutableArray.Create(
                 new PythonTypeReference(Dotnet.Types.TIME_ONLY, ImportModule: Dotnet.Namespaces.SYSTEM, ConversionMode.Direct)));
+
+        private static readonly PythonTypeReference TYPE = new(Dotnet.Namespaces.SYSTEM_TYPE, Dotnet.Namespaces.SYSTEM, ConversionMode.Direct);
         
         private readonly PythonGeneratorOptions _options;
 
@@ -182,6 +184,8 @@ namespace Tableau.Migration.PythonGenerator.Generators
                     return STRING;
                 case nameof(TimeOnly):
                     return TIME_ONLY;
+                case nameof(Type):
+                    return TYPE;
                 default:
                     if (t is IArrayTypeSymbol symbol)
                     {

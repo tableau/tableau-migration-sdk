@@ -44,12 +44,14 @@
     <Compile Include="src\tableau_migration\migration_engine_hooks_mappings_interop.py" />
     <Compile Include="src\tableau_migration\migration_engine_hooks_postpublish.py" />
     <Compile Include="src\tableau_migration\migration_engine_hooks_postpublish_interop.py" />
+    <Compile Include="src\tableau_migration\migration_engine_hooks_results.py" />
     <Compile Include="src\tableau_migration\migration_engine_hooks_transformers.py" />
     <Compile Include="src\tableau_migration\migration_engine_hooks_transformers_interop.py" />
     <Compile Include="src\tableau_migration\migration_engine_manifest.py" />
     <Compile Include="src\tableau_migration\migration_engine_migrators.py" />
     <Compile Include="src\tableau_migration\migration_engine_migrators_batch.py" />
     <Compile Include="src\tableau_migration\migration_engine_options.py" />
+    <Compile Include="src\tableau_migration\migration_engine_pipelines.py" />
     <Compile Include="src\tableau_migration\migration_enum.py" />
     <Compile Include="src\tableau_migration\migration_logger.py" />
     <Compile Include="src\tableau_migration\migration_engine.py" />
@@ -67,6 +69,7 @@
     <Compile Include="tests\test_migration_engine_hooks_transformers.py" />
     <Compile Include="tests\test_migration_engine_manifest.py" />
     <Compile Include="tests\test_migration_engine_options.py" />
+    <Compile Include="tests\test_migration_engine_pipelines.py" />
     <Compile Include="tests\test_migration_services.py" />
     <Compile Include="tests\test_migration_api_rest_models.py" />
     <Compile Include="tests\test_migration_content.py" />

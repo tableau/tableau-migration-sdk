@@ -15,15 +15,13 @@
 //  limitations under the License.
 //
 
-using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Tableau.Migration.Engine.Actions;
 using Tableau.Migration.Engine.Hooks;
+using Tableau.Migration.Engine.Pipelines;
 
 namespace Tableau.Migration.TestApplication.Hooks
 {
@@ -33,15 +31,21 @@ namespace Tableau.Migration.TestApplication.Hooks
     internal class TimeLoggerAfterActionHook : IMigrationActionCompletedHook
     {
         private ILogger<TimeLoggerAfterActionHook> _logger;
+        private MigrationPipelineRunner _pipelineRunner;
 
-        public TimeLoggerAfterActionHook(ILogger<TimeLoggerAfterActionHook> logger )
+        public TimeLoggerAfterActionHook(
+            ILogger<TimeLoggerAfterActionHook> logger,
+            IMigrationPipelineRunner pipelineRunner)
         {
             _logger = logger;
+            _pipelineRunner = (MigrationPipelineRunner)pipelineRunner;
         }
 
         public Task<IMigrationActionResult?> ExecuteAsync(IMigrationActionResult ctx, CancellationToken cancel)
         {
-            _logger.LogInformation("Migration action completed");
+            string actionName = _pipelineRunner.CurrentAction?.GetType().GetFormattedName() ?? "Unknown";
+
+            _logger.LogInformation($"Action {actionName} completed");
             return Task.FromResult((IMigrationActionResult?)ctx);
         }
     }

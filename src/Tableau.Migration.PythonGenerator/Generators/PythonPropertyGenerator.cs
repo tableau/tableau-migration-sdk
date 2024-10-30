@@ -15,7 +15,6 @@
 //  limitations under the License.
 //
 
-using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.Extensions.Options;
@@ -41,25 +40,48 @@ namespace Tableau.Migration.PythonGenerator.Generators
 
         public ImmutableArray<PythonProperty> GenerateProperties(INamedTypeSymbol dotNetType)
         {
+            // Enums don't generate any properties, but "enum values" through IPythonEnumValueGenerator.
+            if(dotNetType.IsAnyEnum())
+            {
+                return ImmutableArray<PythonProperty>.Empty;
+            }
+
             var results = ImmutableArray.CreateBuilder<PythonProperty>();
 
+            // Generate both C# fields and properties as Python properties.
             foreach (var dotNetMember in dotNetType.GetMembers())
             {
-                if(dotNetMember.IsStatic || 
-                    !(dotNetMember is IPropertySymbol dotNetProperty) || 
-                    IgnoreMember(dotNetType, dotNetProperty) ||
-                    IGNORED_PROPERTIES.Contains(dotNetProperty.Name))
+                if(IgnoreMember(dotNetType, dotNetMember) || IGNORED_PROPERTIES.Contains(dotNetMember.Name))
                 {
                     continue;
                 }
 
-                var type = ToPythonType(dotNetProperty.Type);
-                var docs = _docGenerator.Generate(dotNetProperty);
+                bool hasGetter, hasSetter, isStatic;
+                ITypeSymbol dotNetMemberType;
+                if (dotNetMember is IPropertySymbol dotNetProperty)
+                {
+                    dotNetMemberType = dotNetProperty.Type;
+                    hasGetter = !dotNetProperty.IsWriteOnly;
+                    hasSetter = !(dotNetProperty.IsReadOnly || (dotNetProperty.SetMethod is not null && dotNetProperty.SetMethod.IsInitOnly));
+                    isStatic = dotNetProperty.IsStatic;
+                }
+                else if(dotNetMember is IFieldSymbol dotNetField)
+                {
+                    dotNetMemberType = dotNetField.Type;
+                    hasGetter = true;
+                    hasSetter = !dotNetField.IsReadOnly;
+                    isStatic = dotNetField.IsStatic;
+                }
+                else
+                {
+                    continue;
+                }
 
-                var pyProperty = new PythonProperty(dotNetProperty.Name.ToSnakeCase(), type, 
-                    !dotNetProperty.IsWriteOnly,
-                    !(dotNetProperty.IsReadOnly || (dotNetProperty.SetMethod is not null && dotNetProperty.SetMethod.IsInitOnly)),
-                    docs, dotNetProperty);
+                var type = ToPythonType(dotNetMemberType);
+                var docs = _docGenerator.Generate(dotNetMember);
+
+                var pyProperty = new PythonProperty(dotNetMember.Name.ToSnakeCase(), type,
+                    hasGetter, hasSetter, isStatic, docs, dotNetMember, dotNetMemberType);
 
                 results.Add(pyProperty);
             }

@@ -66,6 +66,11 @@ class PyMigrationManifestSerializer():
         result = self._dotnet.LoadAsync(path, cancellation_token).GetAwaiter().GetResult()
         return None if result is None else PyMigrationManifest(result)
 
+    @classmethod
+    def get_supported_manifest_version(cls) -> int:
+        """This is the current MigrationManifest.ManifestVersion that this serializer supports."""
+        return MigrationManifestSerializer.SupportedManifestVersion
+
 # region _generated
 
 from enum import IntEnum # noqa: E402, F401
@@ -161,6 +166,14 @@ class PyMigrationManifestEntryEditor(PyMigrationManifestEntry):
         """
         self._dotnet = migration_manifest_entry_editor
         
+    def reset_status(self) -> Self:
+        """Resets the status to Pending.
+        
+        Returns: The current entry editor, for fluent API usage.
+        """
+        result = self._dotnet.ResetStatus()
+        return None if result is None else PyMigrationManifestEntryEditor(result)
+    
     def map_to_destination(self, destination_location: PyContentLocation) -> Self:
         """Sets the intended mapped destination location to the manifest entry. Clears the Destination information if the mapped location is different.
         

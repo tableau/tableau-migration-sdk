@@ -163,13 +163,13 @@
     <value>An error occurred during migration. Error: {Exception}</value>
   </data>
   <data name="MigrationItemErrorLogMessage" xml:space="preserve">
-    <value>An error occurred migrating {ContentType} item "{SourcePath}". Error: {Exception}</value>
+    <value>An error occurred migrating {ContentType} item "{SourcePath}". Error: {Exception}. Data: {Data}</value>
   </data>
   <data name="NetworkTraceExceptionLogMessage" xml:space="preserve">
-    <value>HTTP {Method} {RequestUri} failed. Error: "{ErrorMessage}". Details: {Details}</value>
+    <value>HTTP {Method} {RequestUri} failed. Error: "{ErrorMessage}". Correlation ID: {RequestId}. Details: {Details}. </value>
   </data>
   <data name="NetworkTraceLogMessage" xml:space="preserve">
-    <value>HTTP {Method} {RequestUri} responded {ResponseStatus}. Details: {Details}</value>
+    <value>HTTP {Method} {RequestUri} responded {ResponseStatus}. Correlation ID: {RequestId}. Details: {Details}.</value>
   </data>
   <data name="NetworkTraceNotDisplayedDetails" xml:space="preserve">
     <value>&lt;Not Displayed&gt;</value>
@@ -192,9 +192,10 @@
   <data name="RestExceptionContent" xml:space="preserve">
     <value>An error was returned from the Tableau API:
 URL: {0} {1}
-Code: {2}
-Summary: {3}
-Detail: {4}</value>
+Correlation Id: {2}
+Code: {3}
+Summary: {4}
+Detail: {5}</value>
   </data>
   <data name="SectionException" xml:space="preserve">
     <value># Exception</value>
@@ -261,8 +262,14 @@ Detail: {4}</value>
   </data>
   <data name="IntervalsChangedWarning" xml:space="preserve">
     <value>The following intervals were changed for Extract Refresh Task ID {RefreshTaskId} due to cloud restrictions.
+Frequency: {Frequency}
 Server: {OldIntervals}
 Cloud: {NewIntervals}</value>
+  </data>
+  <data name="IntervalNotChangedDebugMessage" xml:space="preserve">
+    <value>The following intervals are compatible with cloud restrictions. Extract Refresh Task ID {RefreshTaskId} was not changed. 
+Frequency: {Frequency}
+Intervals: {Intervals}</value>
   </data>
   <data name="OwnerNotFoundException" xml:space="preserve">
     <value>The owner with ID {0} was not found.</value>
@@ -317,5 +324,110 @@ Owner with ID {OwnerID}: {owner}</value>
   </data>
   <data name="UnknownExtractRefreshContentTypeWarning" xml:space="preserve">
     <value>The extract refresh task with ID {TaskId} references an unknown content type. The task will be ignored.</value>
+  </data>
+  <data name="AtLeastOneIntervalError" xml:space="preserve">
+    <value>{0} schedule must have at least one interval.</value>
+  </data>
+  <data name="AtLeastOneIntervalWithHourOrMinutesError" xml:space="preserve">
+    <value>{0} schedule must have at least one interval with hours or minutes set.</value>
+  </data>
+  <data name="BothHoursAndMinutesIntervalError" xml:space="preserve">
+    <value>Cannot specify both hours and minutes intervals.</value>
+  </data>
+  <data name="FrequencyNotSetError" xml:space="preserve">
+    <value>Frequency is not set.</value>
+  </data>
+  <data name="FrequencyNotSupportedError" xml:space="preserve">
+    <value>Frequency is not supported</value>
+  </data>
+  <data name="IntervalsIgnoredWarning" xml:space="preserve">
+    <value>{0} schedule should not have intervals. All intervals will be ignored.</value>
+  </data>
+  <data name="InvalidHourlyIntervalForServerError" xml:space="preserve">
+    <value>Invalid hours interval specified. Must be 1, 2, 4, 6, 8, or 12.</value>
+  </data>
+  <data name="InvalidHourlyIntervalForCloudError" xml:space="preserve">
+    <value>Invalid hours interval specified. Must be 2, 4, 6, 8, 12, or 24.</value>
+  </data>
+  <data name="InvalidMinuteIntervalError" xml:space="preserve">
+    <value>Minutes must be 15 or 30.</value>
+  </data>
+  <data name="InvalidMinuteIntervalWarning" xml:space="preserve">
+    <value>Minutes should be 15 or 30 for best compatibility. {schedule}</value>
+  </data>
+  <data name="InvalidScheduleError" xml:space="preserve">
+    <value>Invalid Schedule: {0}</value>
+  </data>
+  <data name="InvalidWeekdayError" xml:space="preserve">
+    <value>Invalid weekday specified. Must be Sunday, Monday, Tuesday, Wednesday, Thursday, Friday, or Saturday.</value>
+  </data>
+  <data name="WeeklyScheduleIntervalError" xml:space="preserve">
+    <value>Weekly schedule must have between 1 and 7 intervals.</value>
+  </data>
+  <data name="ScheduleMustHaveStartAtTimeError" xml:space="preserve">
+    <value>{0} schedule must have a StartAt time.</value>
+  </data>
+  <data name="ScheduleMustHaveEndAtTimeError" xml:space="preserve">
+    <value>{0} schedule must have an EndAt time.</value>
+  </data>
+  <data name="ScheduleMustNotHaveEndAtTimeError" xml:space="preserve">
+    <value>{0} schedule must not have an EndAt time.</value>
+  </data>
+  <data name="InvalidMonthDayError" xml:space="preserve">
+    <value>Invalid month day specified. Must be a number between 1 and 31 or 'LastDay'.</value>
+  </data>
+  <data name="FrequencyNotExpectedError" xml:space="preserve">
+    <value>Frequency is not {0}.</value>
+  </data>
+  <data name="AtLeastOneValidWeekdayError" xml:space="preserve">
+    <value>{0} schedules must have at least one weekDay interval. Week day must be Sunday, Monday, Tuesday, Wednesday, Thursday, Friday, or Saturday.</value>
+  </data>
+  <data name="AtLeastOneValidMonthDayError" xml:space="preserve">
+    <value>{0} schedule must have at least one interval with MonthDay set.</value>
+  </data>
+  <data name="ScheduleShouldOnlyHaveOneHoursIntervalWarning" xml:space="preserve">
+    <value>{0} schedule should only have one hours interval. Last one will be used.</value>
+  </data>
+  <data name="ScheduleMustHaveExactlyOneWeekdayIntervalError" xml:space="preserve">
+    <value>{0} schedule must have exactly one weekday interval.</value>
+  </data>
+  <data name="ScheduleMustOnlyHaveOneIntervalWithLastDayError" xml:space="preserve">
+    <value>{0} schedule can only have one interval with LastDay.</value>
+  </data>
+  <data name="InvalidScheduleForMonthlyError" xml:space="preserve">
+    <value>Invalid interval for monthly schedule. Valid values for monthDay are 1 to 31 or LastDay, and for occurrence_of_weekday are First, Second, Third, Fourth, Fifth, or LastDay.</value>
+  </data>
+  <data name="ExactlyOneHourOrMinutesError" xml:space="preserve">
+    <value>Schedule must have exactly one interval where either hours or minutes is set, but not both.</value>
+  </data>
+  <data name="IntervalMustBe1HourOr60MinError" xml:space="preserve">
+    <value>{0} schedule must have interval set to 1 hour or 60 minutes.</value>
+  </data>
+  <data name="StartEndTimeDifferenceError" xml:space="preserve">
+    <value>The difference between start and end times must be in increments of 60 minutes.</value>
+  </data>
+  <data name="ReplacingHourlyIntervalMessage" xml:space="preserve">
+    <value>Updated intervals to 60 minutes.</value>
+  </data>
+  <data name="ScheduleUpdateFailedError" xml:space="preserve">
+    <value>Schedule convertion failed.\r\nSource:\r\n{0}\r\nFinal:\r\n{1}</value>
+  </data>
+  <data name="ScheduleUpdatedMessage" xml:space="preserve">
+    <value>Schedules have been update.\r\nSource:\r\n{0}\r\nFinal:\r\n{1}\r\nChanges:{2}</value>
+  </data>
+  <data name="ScheduleUpdatedFrequencyToDailyMessage" xml:space="preserve">
+    <value>Updated frequency to Daily.</value>
+  </data>
+  <data name="ScheduleUpdatedAddedWeekdayMessage" xml:space="preserve">
+    <value>Updated schedule to include all weekdays.</value>
+  </data>
+  <data name="ScheduleUpdatedAddedEndAtMessage" xml:space="preserve">
+    <value>Updated schedule to add EndAt property.</value>
+  </data>
+  <data name="ScheduleUpdatedRemovedEndAtMessage" xml:space="preserve">
+    <value>Updated schedule to remove EndAt property.</value>
+  </data>
+  <data name="ScheduleUpdatedHoursMessage" xml:space="preserve">
+    <value>Updated schedule hours from {0} to {1}</value>
   </data>
 </root>

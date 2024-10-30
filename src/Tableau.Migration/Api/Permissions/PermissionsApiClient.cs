@@ -16,7 +16,6 @@
 //
 
 using System;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -49,16 +48,7 @@ namespace Tableau.Migration.Api.Permissions
             _sharedResourcesLocalizer = sharedResourcesLocalizer;
         }
 
-        internal virtual ImmutableArray<IGranteeCapability> GetCapabilitiesToDelete(
-            IGranteeCapability[] sourceItems,
-            IGranteeCapability[] destinationItems)
-        {
-            return destinationItems.Except(sourceItems).ToImmutableArray();
-        }
-
-        public async virtual Task<IResult<IPermissions>> GetPermissionsAsync(
-            Guid id,
-            CancellationToken cancel)
+        public async Task<IResult<IPermissions>> GetPermissionsAsync(Guid id, CancellationToken cancel)
         {
             return await _restRequestBuilderFactory
                 .CreatePermissionsUri(_uriBuilder, id)
@@ -68,10 +58,7 @@ namespace Tableau.Migration.Api.Permissions
                 .ConfigureAwait(false);
         }
 
-        public async virtual Task<IResult<IPermissions>> CreatePermissionsAsync(
-            Guid contentItemId,
-            IPermissions permissions,
-            CancellationToken cancel)
+        public async Task<IResult<IPermissions>> CreatePermissionsAsync(Guid contentItemId, IPermissions permissions, CancellationToken cancel)
         {
             // The REST API will error if you try to update with no grantees. 
             if (!permissions.GranteeCapabilities.Any())
@@ -86,7 +73,7 @@ namespace Tableau.Migration.Api.Permissions
                 .ConfigureAwait(false);
         }
 
-        public async virtual Task<IResult> DeleteCapabilityAsync(
+        public async Task<IResult> DeleteCapabilityAsync(
             Guid contentItemId,
             Guid granteeId,
             GranteeType granteeType,
@@ -101,97 +88,14 @@ namespace Tableau.Migration.Api.Permissions
                 .ConfigureAwait(false);
         }
 
-        public async Task<IResult> DeleteAllPermissionsAsync(
-            Guid contentItemId,
-            IPermissions destinationPermissions,
-            CancellationToken cancel)
+        public async Task<IResult> UpdatePermissionsAsync(Guid contentItemId, IPermissions permissions, CancellationToken cancel)
         {
-            return await DeletePermissionsAsync(
-                contentItemId,
-                new Content.Permissions.Permissions(),
-                destinationPermissions,
-                cancel)
-                .ConfigureAwait(false);
-        }
-
-        public async virtual Task<IResult> DeletePermissionsAsync(
-            Guid contentItemId,
-            IPermissions sourcePermissions,
-            IPermissions destinationPermissions,
-            CancellationToken cancel)
-        {
-            var itemsToDelete = GetCapabilitiesToDelete(
-                sourcePermissions.GranteeCapabilities,
-                destinationPermissions.GranteeCapabilities);
-
-            if (itemsToDelete.IsNullOrEmpty())
-            {
-                return Result.Succeeded();
-            }
-
-            var resultBuilder = new ResultBuilder();
-
-            foreach (var item in itemsToDelete)
-            {
-                var granteeId = item.GranteeId;
-
-                foreach (var capability in item.Capabilities)
-                {
-                    var deleteResult = await DeleteCapabilityAsync(
-                        contentItemId,
-                        granteeId,
-                        item.GranteeType,
-                        capability,
-                        cancel)
-                        .ConfigureAwait(false);
-
-                    if (!deleteResult.Success)
-                    {
-                        resultBuilder.Add(deleteResult);
-                    }
-                }
-            }
-
-            var result = resultBuilder.Build();
-
-            if (!result.Success)
-            {
-                return Result.Failed(result.Errors);
-            }
-            return Result.Succeeded();
-        }
-
-        public async virtual Task<IResult<IPermissions>> UpdatePermissionsAsync(
-            Guid contentItemId,
-            IPermissions sourcePermissions,
-            CancellationToken cancel)
-        {
-            var destinationPermissionsResult = await GetPermissionsAsync(
-                 contentItemId,
-                 cancel)
-                 .ConfigureAwait(false);
-
-            if (!destinationPermissionsResult.Success)
-            {
-                return Result<IPermissions>.Failed(destinationPermissionsResult.Errors);
-            }
-
-            var deleteResult = await DeletePermissionsAsync(
-                contentItemId,
-                sourcePermissions,
-                destinationPermissionsResult.Value,
-                cancel)
-                .ConfigureAwait(false);
-
-            if (!deleteResult.Success)
-            {
-                return Result<IPermissions>.Failed(deleteResult.Errors);
-            }
-
-            return await CreatePermissionsAsync(
-                contentItemId,
-                sourcePermissions,
-                cancel)
+            return await _restRequestBuilderFactory
+                .CreatePermissionsUri(_uriBuilder, contentItemId)
+                .ForPostRequest()
+                .WithXmlContent(new PermissionsAddRequest(permissions))
+                .SendAsync(cancel)
+                .ToResultAsync(_serializer, _sharedResourcesLocalizer, cancel)
                 .ConfigureAwait(false);
         }
     }

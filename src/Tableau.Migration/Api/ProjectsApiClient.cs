@@ -265,7 +265,7 @@ namespace Tableau.Migration.Api
                 .ConfigureAwait(false);
         }
 
-        public async Task<IResult<IImmutableDictionary<string, IPermissions>>> UpdateAllDefaultPermissionsAsync(
+        public async Task<IResult> UpdateAllDefaultPermissionsAsync(
             Guid projectId,
             IReadOnlyDictionary<string, IPermissions> permissions,
             CancellationToken cancel)

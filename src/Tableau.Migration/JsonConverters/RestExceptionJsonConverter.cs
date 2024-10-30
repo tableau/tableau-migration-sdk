@@ -44,6 +44,7 @@ namespace Tableau.Migration.JsonConverters
             HttpMethod? httpMethod = null;
             Uri? requestUri = null;
             string? code = null;
+            string? correlationId = null;
             string? detail = null;
             string? summary = null;
             string? exceptionMessage = null;
@@ -77,6 +78,10 @@ namespace Tableau.Migration.JsonConverters
                             code = reader.GetString();
                             break;
 
+                        case nameof(RestException.CorrelationId):
+                            correlationId = reader.GetString();
+                            break;
+
                         case nameof(RestException.Detail):
                             detail = reader.GetString();
                             break;
@@ -99,7 +104,7 @@ namespace Tableau.Migration.JsonConverters
             Guard.AgainstNull(exceptionMessage, nameof(exceptionMessage));
 
             // Use the internal constructor for deserialization
-            return new RestException(httpMethod, requestUri, new Error { Code = code, Detail = detail, Summary = summary }, exceptionMessage);
+            return new RestException(httpMethod, requestUri, correlationId, new Error { Code = code, Detail = detail, Summary = summary }, exceptionMessage);
         }
 
         /// <summary>
@@ -125,6 +130,11 @@ namespace Tableau.Migration.JsonConverters
             if (value.Code != null)
             {
                 writer.WriteString(nameof(RestException.Code), value.Code);
+            }
+
+            if (value.CorrelationId != null)
+            {
+                writer.WriteString(nameof(RestException.CorrelationId), value.CorrelationId);
             }
 
             if (value.Detail != null)

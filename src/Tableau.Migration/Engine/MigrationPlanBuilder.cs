@@ -23,7 +23,6 @@ using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using Tableau.Migration.Api.Simulation;
 using Tableau.Migration.Content;
-using Tableau.Migration.Content.Schedules;
 using Tableau.Migration.Content.Schedules.Cloud;
 using Tableau.Migration.Engine.Endpoints;
 using Tableau.Migration.Engine.Hooks;
@@ -165,8 +164,6 @@ namespace Tableau.Migration.Engine
             Transformers.Add(typeof(OwnershipTransformer<>), GetPublishTypesByInterface<IWithOwner>());
             Transformers.Add<TableauServerConnectionUrlTransformer, IPublishableWorkbook>();
             Transformers.Add<MappedReferenceExtractRefreshTaskTransformer, ICloudExtractRefreshTask>();
-            Transformers.Add<CloudIncrementalRefreshTransformer, ICloudExtractRefreshTask>();
-            Transformers.Add(typeof(CloudScheduleCompatibilityTransformer<>), GetPublishTypesByInterface<IWithSchedule<ICloudSchedule>>());
             Transformers.Add(typeof(WorkbookReferenceTransformer<>), GetPublishTypesByInterface<IWithWorkbook>());
             Transformers.Add<CustomViewDefaultUserReferencesTransformer, IPublishableCustomView>();
             Transformers.Add(typeof(EncryptExtractTransformer<>), GetPublishTypesByInterface<IExtractContent>());

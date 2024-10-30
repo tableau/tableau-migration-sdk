@@ -26,6 +26,12 @@ namespace Tableau.Migration.Engine.Manifest
     public interface IMigrationManifestEntryEditor : IMigrationManifestEntry
     {
         /// <summary>
+        /// Resets the status to <see cref="MigrationManifestEntryStatus.Pending"/>.
+        /// </summary>
+        /// <returns>The current entry editor, for fluent API usage.</returns>
+        IMigrationManifestEntryEditor ResetStatus();
+
+        /// <summary>
         /// Sets the intended mapped destination location to the manifest entry.
         /// Clears the <see cref="IMigrationManifestEntry.Destination"/> information if the mapped location is different.
         /// </summary>

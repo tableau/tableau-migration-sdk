@@ -40,18 +40,14 @@ namespace Tableau.Migration.Api
         /// <param name="options">The new project's details.</param>
         /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>The newly created project.</returns>
-        Task<IResult<IProject>> CreateProjectAsync(
-            ICreateProjectOptions options,
-            CancellationToken cancel);
+        Task<IResult<IProject>> CreateProjectAsync(ICreateProjectOptions options, CancellationToken cancel);
 
         /// <summary>
         /// Gets the project's default permissions.
         /// </summary>
         /// <param name="projectId">The project ID.</param>
         /// <param name="cancel">The cancellation token to obey.</param>
-        Task<IResult<IImmutableDictionary<string, IPermissions>>> GetAllDefaultPermissionsAsync(
-            Guid projectId,
-            CancellationToken cancel);
+        Task<IResult<IImmutableDictionary<string, IPermissions>>> GetAllDefaultPermissionsAsync(Guid projectId, CancellationToken cancel);
 
         /// <summary>
         /// Updates the project's default permissions.
@@ -59,10 +55,7 @@ namespace Tableau.Migration.Api
         /// <param name="projectId">The project ID.</param>
         /// <param name="permissions">The new permissions.</param>
         /// <param name="cancel">The cancellation token to obey.</param>
-        Task<IResult<IImmutableDictionary<string, IPermissions>>> UpdateAllDefaultPermissionsAsync(
-            Guid projectId,
-            IReadOnlyDictionary<string, IPermissions> permissions,
-            CancellationToken cancel);
+        Task<IResult> UpdateAllDefaultPermissionsAsync(Guid projectId, IReadOnlyDictionary<string, IPermissions> permissions, CancellationToken cancel);
 
         /// <summary>
         /// Updates the project after publishing.

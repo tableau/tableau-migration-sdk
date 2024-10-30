@@ -18,14 +18,14 @@
 using System;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Tableau.Migration.Content;
-using Tableau.Migration.Content.Schedules.Cloud;
+using Tableau.Migration.Content.Schedules.Server;
 using Tableau.Migration.Engine.Manifest;
 using Tableau.Migration.Engine.Pipelines;
 using Tableau.Migration.TestApplication.Config;
@@ -44,6 +44,8 @@ namespace Tableau.Migration.TestApplication
         private readonly ILogger<TestApplication> _logger;
         private readonly MigrationManifestSerializer _manifestSerializer;
 
+        private readonly Assembly _tableauMigrationAssembly;
+
         public TestApplication(
             IHostApplicationLifetime appLifetime,
             IMigrationPlanBuilder planBuilder,
@@ -60,6 +62,12 @@ namespace Tableau.Migration.TestApplication
             _options = options.Value;
             _logger = logger;
             _manifestSerializer = manifestSerializer;
+
+            var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+
+            // Find the assembly by name
+            _tableauMigrationAssembly = assemblies.FirstOrDefault(a => a.GetName().Name == "Tableau.Migration") ?? throw new Exception("Could not find Tableau.Migration assembly");
+
         }
 
         public async Task StartAsync(CancellationToken cancel)
@@ -74,6 +82,28 @@ namespace Tableau.Migration.TestApplication
                 .ToDestinationTableauCloud(_options.Destination.ServerUrl, _options.Destination.SiteContentUrl, _options.Destination.AccessTokenName, Environment.GetEnvironmentVariable("TABLEAU_MIGRATION_DESTINATION_TOKEN") ?? _options.Destination.AccessToken)
                 .ForServerToCloud();
 
+            if (!_options.SkipTypes.Any())
+            {
+                _logger.LogInformation("No SkipFilter types provided. Skipping no content types.");
+            }
+
+            // Add SkipFilter for each type in the configuration
+            foreach (string skipTypeStr in _options.SkipTypes)
+            {
+                var contentType = _tableauMigrationAssembly.GetTypes().FirstOrDefault(t => t.Name == skipTypeStr);
+
+                if (contentType is null)
+                {
+                    _logger.LogCritical($"Could not find type Tableau.Migration.Content.{skipTypeStr} to skip.");
+                    Console.WriteLine("Press any key to exit");
+                    Console.ReadKey();
+                    _appLifetime.StopApplication();
+                    return;
+                }
+
+                _planBuilder.Filters.Add(typeof(SkipFilter<>), new[] { new[] { contentType! } });
+                _logger.LogInformation("Created SkipFilter for type {ContentType}", contentType.Name);
+            }
 
             if (_options.Destination.SiteContentUrl != "")
             { // Most likely means it's a Cloud site not a Server
@@ -90,19 +120,27 @@ namespace Tableau.Migration.TestApplication
 
             // A user has non-ASCII names in their username, which causes issues for now. 
             // Filtering to make it past the issue.
-            _planBuilder.Filters.Add<SpecialUserFilter, IUser>();
-            _planBuilder.Mappings.Add<SpecialUserMapping, IUser>();
+            if (_options.SpecialUsers.Emails.Any())
+            {
+                _planBuilder.Filters.Add<SpecialUserFilter, IUser>();
+                _planBuilder.Mappings.Add<SpecialUserMapping, IUser>();
+            }
 
             // Map unlicensed users to single admin
             _planBuilder.Mappings.Add<UnlicensedUserMapping, IUser>();
 
-            // Save manifest every every batch of every content type
-            _planBuilder.Hooks.Add<SaveManifestAfterBatchMigrationCompletedHook<IUser>>();
-            _planBuilder.Hooks.Add<SaveManifestAfterBatchMigrationCompletedHook<IGroup>>();
-            _planBuilder.Hooks.Add<SaveManifestAfterBatchMigrationCompletedHook<IProject>>();
-            _planBuilder.Hooks.Add<SaveManifestAfterBatchMigrationCompletedHook<IDataSource>>();
-            _planBuilder.Hooks.Add<SaveManifestAfterBatchMigrationCompletedHook<IWorkbook>>();
-            _planBuilder.Hooks.Add<SaveManifestAfterBatchMigrationCompletedHook<ICloudExtractRefreshTask>>();
+            // Save manifest every every batch of every content type.
+            var contentTypeArrays = ServerToCloudMigrationPipeline.ContentTypes.Select(t => new[] { t.ContentType });
+            _planBuilder.Hooks.Add(typeof(LogMigrationBatchSummaryHook<>), contentTypeArrays);
+            if (!string.IsNullOrEmpty(_options.Log.ManifestFolderPath))
+            {
+                _planBuilder.Hooks.Add(typeof(SaveManifestAfterBatchMigrationCompletedHook<>), contentTypeArrays);
+            }
+
+            // ViewOwnerTransformer
+            _planBuilder.Transformers.Add<ViewerOwnerTransformer<IProject>, IProject>();
+            _planBuilder.Transformers.Add<ViewerOwnerTransformer<IDataSource>, IDataSource>();
+            _planBuilder.Transformers.Add<ViewerOwnerTransformer<IWorkbook>, IWorkbook>();
 
             // Log when a content type is done
             _planBuilder.Hooks.Add<TimeLoggerAfterActionHook>();
@@ -114,14 +152,6 @@ namespace Tableau.Migration.TestApplication
             _planBuilder.Mappings.Add<ContentWithinSkippedLocationMapping<IProject>, IProject>();
             _planBuilder.Mappings.Add<ContentWithinSkippedLocationMapping<IDataSource>, IDataSource>();
             _planBuilder.Mappings.Add<ContentWithinSkippedLocationMapping<IWorkbook>, IWorkbook>();
-            // Skip content types we've already done. 
-            // Uncomment as needed
-            //_planBuilder.Filters.Add(new SkipFilter<IUser>());
-            //_planBuilder.Filters.Add(new SkipFilter<IGroup>());
-            //_planBuilder.Filters.Add(new SkipFilter<IProject>());
-            //_planBuilder.Filters.Add(new SkipFilter<IDataSource>());
-            //_planBuilder.Filters.Add(new SkipFilter<IWorkbook>());
-            //_planBuilder.Filters.Add(new SkipFilter<IServerExtractRefreshTask>());
 
             var prevManifest = await LoadManifest(_options.PreviousManifestPath, cancel);
 
@@ -137,12 +167,11 @@ namespace Tableau.Migration.TestApplication
 
             _timer.Stop();
 
-            await _manifestSerializer.SaveAsync(result.Manifest, manifestFilePath);
-            PrintResult(result);
+            var endTime = DateTime.UtcNow;
 
-            _logger.LogInformation($"Migration Started: {startTime}");
-            _logger.LogInformation($"Migration Finished: {DateTime.UtcNow}");
-            _logger.LogInformation($"Elapsed: {_timer.Elapsed}");
+            await _manifestSerializer.SaveAsync(result.Manifest, manifestFilePath);
+
+            _logger.LogInformation(MigrationSummaryBuilder.Build(result, startTime, endTime, _timer.Elapsed));
 
             Console.WriteLine("Press any key to exit");
             Console.ReadKey();
@@ -151,35 +180,6 @@ namespace Tableau.Migration.TestApplication
 
         public Task StopAsync(CancellationToken cancel) => Task.CompletedTask;
 
-        private void PrintResult(MigrationResult result)
-        {
-            _logger.LogInformation($"Result: {result.Status}");
-
-            // Print out total results
-            foreach (var type in ServerToCloudMigrationPipeline.ContentTypes)
-            {
-                var contentType = type.ContentType;
-
-                var typeResult = result.Manifest.Entries.ForContentType(contentType);
-
-                var countTotal = typeResult.Count;
-                var countMigrated = typeResult.Where(x => x.Status == MigrationManifestEntryStatus.Migrated).Count();
-                var countSkipped = typeResult.Where(x => x.Status == MigrationManifestEntryStatus.Skipped).Count();
-                var countErrored = typeResult.Where(x => x.Status == MigrationManifestEntryStatus.Error).Count();
-                var countCancelled = typeResult.Where(x => x.Status == MigrationManifestEntryStatus.Canceled).Count();
-                var countPending = typeResult.Where(x => x.Status == MigrationManifestEntryStatus.Pending).Count();
-
-                StringBuilder sb = new StringBuilder();
-                sb.AppendLine($"{contentType.Name}");
-                sb.AppendLine($"\t{countMigrated}/{countTotal} succeeded");
-                sb.AppendLine($"\t{countSkipped}/{countTotal} skipped");
-                sb.AppendLine($"\t{countErrored}/{countTotal} errored");
-                sb.AppendLine($"\t{countCancelled}/{countTotal} cancelled");
-                sb.AppendLine($"\t{countPending}/{countTotal} pending");
-
-                _logger.LogInformation(sb.ToString());
-            }
-        }
 
         private async Task<MigrationManifest?> LoadManifest(string manifestFilepath, CancellationToken cancel)
         {

@@ -76,10 +76,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests
                 void AssertWorkbookMigrated(WorkbookResponse.WorkbookType sourceWorkbook)
                 {
                     // Get destination workbook
-                    var destinationWorkbook = Assert.Single(
-                         CloudDestinationApi.Data.Workbooks.Where(ds =>
-                             ds.Name == sourceWorkbook.Name
-                         ));
+                    var destinationWorkbook = Assert.Single(CloudDestinationApi.Data.Workbooks, ds => ds.Name == sourceWorkbook.Name);
 
                     Assert.NotEqual(sourceWorkbook.Id, destinationWorkbook.Id);
                     Assert.Equal(sourceWorkbook.Name, destinationWorkbook.Name);
@@ -106,11 +103,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests
                     void AssertWorkbookViewMigrated(WorkbookResponse.WorkbookType.ViewReferenceType sourceView)
                     {
                         // Get destination view
-                        var destinationView = Assert.Single(
-                                destinationWorkbook!.Views.Where(v =>
-                                {
-                                    return IViewReferenceTypeComparer.Instance.Equals(sourceView, v);
-                                }));
+                        var destinationView = Assert.Single(destinationWorkbook!.Views, v => IViewReferenceTypeComparer.Instance.Equals(sourceView, v));
 
                         Assert.NotEqual(sourceView.Id, destinationView.Id);
 

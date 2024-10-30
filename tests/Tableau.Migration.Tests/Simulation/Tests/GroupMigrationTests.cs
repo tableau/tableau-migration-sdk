@@ -64,13 +64,11 @@ namespace Tableau.Migration.Tests.Simulation.Tests
 
                 Assert.Equal(groups.Count,
                     result.Manifest.Entries.ForContentType<IGroup>().Where(e => e.Status == MigrationManifestEntryStatus.Migrated).Count());
-                Assert.Single(result.Manifest.Entries.ForContentType<IGroup>().Where(e => e.Status == MigrationManifestEntryStatus.Skipped));
+                Assert.Single(result.Manifest.Entries.ForContentType<IGroup>(), e => e.Status == MigrationManifestEntryStatus.Skipped);
 
                 void AssertGroupMigrated(GroupsResponse.GroupType sourceGroup)
                 {
-                    var destinationGroup = Assert.Single(
-                        CloudDestinationApi.Data.Groups.Where(
-                            g => g.Name == sourceGroup.Name));
+                    var destinationGroup = Assert.Single(CloudDestinationApi.Data.Groups, g => g.Name == sourceGroup.Name);
 
                     Assert.NotEqual(sourceGroup.Id, destinationGroup.Id);
                     Assert.Equal(sourceGroup.Name, destinationGroup.Name);

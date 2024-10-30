@@ -136,8 +136,6 @@ namespace Tableau.Migration.Engine
             services.AddScoped<GroupUsersTransformer>();
             services.AddScoped(typeof(OwnershipTransformer<>));
             services.AddScoped<TableauServerConnectionUrlTransformer>();
-            services.AddScoped(typeof(CloudScheduleCompatibilityTransformer<>));
-            services.AddScoped<CloudIncrementalRefreshTransformer>();
             services.AddScoped<MappedReferenceExtractRefreshTaskTransformer>();
             services.AddScoped(typeof(EncryptExtractTransformer<>));
 
@@ -145,7 +143,7 @@ namespace Tableau.Migration.Engine
             services.AddScoped<IMappedUserTransformer, MappedUserTransformer>();
             services.AddScoped(typeof(WorkbookReferenceTransformer<>));
             services.AddScoped<CustomViewDefaultUserReferencesTransformer>();
-            
+
             services.AddScoped(typeof(OwnerItemPostPublishHook<,>));
             services.AddScoped(typeof(PermissionsItemPostPublishHook<,>));
             services.AddScoped(typeof(TagItemPostPublishHook<,>));

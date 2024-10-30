@@ -42,7 +42,7 @@ namespace Tableau.Migration.Engine.Manifest
         /// <summary>
         /// The latest manifest version number.
         /// </summary>
-        public const uint LatestManifestVersion = 3;
+        public const uint LatestManifestVersion = 4;
 
         /// <summary>
         /// Creates a new <see cref="MigrationManifest"/> object.

@@ -34,9 +34,9 @@ namespace Tableau.Migration.Tests
 
             var tableauMigrationAssembly = loadedAssemblies.Where(a => a.ManifestModule.Name == "Tableau.Migration.dll").First();
 
-            // Find all the exception types in the Tableau.Migration assembly
+            // Find all the exception types in the Tableau.Migration assembly that are not abstract
             var exceptionTypes = tableauMigrationAssembly.GetTypes()
-                .Where(t => t.BaseType == typeof(Exception))
+                .Where(t => t.BaseType == typeof(Exception) && !t.IsAbstract)
                 .Where(t => t != typeof(MismatchException))
                 .ToList();
 

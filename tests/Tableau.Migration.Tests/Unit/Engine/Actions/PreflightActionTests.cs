@@ -1,4 +1,4 @@
-﻿//
+//
 //  Copyright (c) 2024, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
@@ -16,6 +16,7 @@
 //
 
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -24,6 +25,7 @@ using Tableau.Migration.Config;
 using Tableau.Migration.Content;
 using Tableau.Migration.Engine.Actions;
 using Tableau.Migration.Engine.Endpoints;
+using Tableau.Migration.Engine.Hooks;
 using Xunit;
 
 namespace Tableau.Migration.Tests.Unit.Engine.Actions
@@ -49,6 +51,8 @@ namespace Tableau.Migration.Tests.Unit.Engine.Actions
             protected IResult<ISite> UpdateResult { get; set; }
 
             protected Mock<ILogger<PreflightAction>> MockLogger { get; }
+
+            protected Mock<IMigrationHookRunner> MockHookRunner { get; }
 
             public ExecuteAsync()
             {
@@ -76,6 +80,10 @@ namespace Tableau.Migration.Tests.Unit.Engine.Actions
                     .ReturnsAsync(() => UpdateResult);
 
                 MockLogger = Freeze<Mock<ILogger<PreflightAction>>>();
+
+                MockHookRunner = Freeze<Mock<IMigrationHookRunner>>();
+                MockHookRunner.Setup(x => x.ExecuteAsync<IInitializeMigrationHook, IInitializeMigrationHookResult>(It.IsAny<IInitializeMigrationHookResult>(), Cancel))
+                    .ReturnsAsync((IInitializeMigrationHookResult ctx, CancellationToken cancel) => ctx);
             }
 
             [Fact]
@@ -94,6 +102,8 @@ namespace Tableau.Migration.Tests.Unit.Engine.Actions
                 MockDestination.Verify(x => x.GetSessionAsync(Cancel), Times.Never);
 
                 MockLogger.VerifyWarnings(Times.Never);
+
+                MockHookRunner.Verify(x => x.ExecuteAsync<IInitializeMigrationHook, IInitializeMigrationHookResult>(It.IsAny<IInitializeMigrationHookResult>(), Cancel), Times.Once);
             }
 
             [Fact]
@@ -112,6 +122,8 @@ namespace Tableau.Migration.Tests.Unit.Engine.Actions
                 MockDestination.Verify(x => x.GetSessionAsync(Cancel), Times.Once);
 
                 MockLogger.VerifyWarnings(Times.Never);
+
+                MockHookRunner.Verify(x => x.ExecuteAsync<IInitializeMigrationHook, IInitializeMigrationHookResult>(It.IsAny<IInitializeMigrationHookResult>(), Cancel), Times.Never);
             }
 
             [Fact]
@@ -130,6 +142,8 @@ namespace Tableau.Migration.Tests.Unit.Engine.Actions
                 MockDestination.Verify(x => x.GetSessionAsync(Cancel), Times.Once);
 
                 MockLogger.VerifyWarnings(Times.Never);
+
+                MockHookRunner.Verify(x => x.ExecuteAsync<IInitializeMigrationHook, IInitializeMigrationHookResult>(It.IsAny<IInitializeMigrationHookResult>(), Cancel), Times.Never);
             }
 
             [Fact]
@@ -155,6 +169,8 @@ namespace Tableau.Migration.Tests.Unit.Engine.Actions
                 MockDestination.Verify(x => x.GetSessionAsync(Cancel), Times.Once);
 
                 MockLogger.VerifyWarnings(Times.Never);
+
+                MockHookRunner.Verify(x => x.ExecuteAsync<IInitializeMigrationHook, IInitializeMigrationHookResult>(It.IsAny<IInitializeMigrationHookResult>(), Cancel), Times.Never);
             }
 
             [Fact]
@@ -173,6 +189,8 @@ namespace Tableau.Migration.Tests.Unit.Engine.Actions
                 MockDestination.Verify(x => x.GetSessionAsync(Cancel), Times.Once);
 
                 MockLogger.VerifyWarnings(Times.Never);
+
+                MockHookRunner.Verify(x => x.ExecuteAsync<IInitializeMigrationHook, IInitializeMigrationHookResult>(It.IsAny<IInitializeMigrationHookResult>(), Cancel), Times.Once);
             }
 
             [Fact]
@@ -191,6 +209,8 @@ namespace Tableau.Migration.Tests.Unit.Engine.Actions
                 MockDestination.Verify(x => x.GetSessionAsync(Cancel), Times.Once);
 
                 MockLogger.VerifyWarnings(Times.Never);
+
+                MockHookRunner.Verify(x => x.ExecuteAsync<IInitializeMigrationHook, IInitializeMigrationHookResult>(It.IsAny<IInitializeMigrationHookResult>(), Cancel), Times.Once);
             }
 
             [Fact]
@@ -210,6 +230,8 @@ namespace Tableau.Migration.Tests.Unit.Engine.Actions
                 MockDestination.Verify(x => x.GetSessionAsync(Cancel), Times.Once);
 
                 MockLogger.VerifyWarnings(Times.Never);
+
+                MockHookRunner.Verify(x => x.ExecuteAsync<IInitializeMigrationHook, IInitializeMigrationHookResult>(It.IsAny<IInitializeMigrationHookResult>(), Cancel), Times.Once);
             }
 
             [Fact]
@@ -229,6 +251,8 @@ namespace Tableau.Migration.Tests.Unit.Engine.Actions
                 MockDestination.Verify(x => x.GetSessionAsync(Cancel), Times.Once);
 
                 MockLogger.VerifyWarnings(Times.Never);
+
+                MockHookRunner.Verify(x => x.ExecuteAsync<IInitializeMigrationHook, IInitializeMigrationHookResult>(It.IsAny<IInitializeMigrationHookResult>(), Cancel), Times.Once);
             }
 
             [Fact]
@@ -248,6 +272,29 @@ namespace Tableau.Migration.Tests.Unit.Engine.Actions
                 MockDestination.Verify(x => x.GetSessionAsync(Cancel), Times.Once);
 
                 MockLogger.VerifyWarnings(Times.Never);
+
+                MockHookRunner.Verify(x => x.ExecuteAsync<IInitializeMigrationHook, IInitializeMigrationHookResult>(It.IsAny<IInitializeMigrationHookResult>(), Cancel), Times.Once);
+            }
+
+            [Fact]
+            public async Task InitializeHookFailsAsync()
+            {
+                MockHookRunner.Setup(x => x.ExecuteAsync<IInitializeMigrationHook, IInitializeMigrationHookResult>(It.IsAny<IInitializeMigrationHookResult>(), Cancel))
+                    .ReturnsAsync((IInitializeMigrationHookResult ctx, CancellationToken cancel) => ctx.ToFailure(new Exception()));
+
+                var action = Create<PreflightAction>();
+
+                var result = await action.ExecuteAsync(Cancel);
+
+                result.AssertFailure();
+                Assert.False(result.PerformNextAction);
+
+                MockSource.Verify(x => x.GetSessionAsync(Cancel), Times.Once);
+                MockDestination.Verify(x => x.GetSessionAsync(Cancel), Times.Once);
+
+                MockLogger.VerifyWarnings(Times.Never);
+
+                MockHookRunner.Verify(x => x.ExecuteAsync<IInitializeMigrationHook, IInitializeMigrationHookResult>(It.IsAny<IInitializeMigrationHookResult>(), Cancel), Times.Once);
             }
         }
     }

@@ -1,15 +1,18 @@
-from tableau_migration.migration import PyMigrationResult
-from tableau_migration import IMigrationManifestEntry, MigrationManifestEntryStatus
-from Tableau.Migration.Engine.Pipelines import ServerToCloudMigrationPipeline
+from tableau_migration import (
+    IMigrationManifestEntry, 
+    MigrationManifestEntryStatus, 
+    MigrationResult,
+    ServerToCloudMigrationPipeline
+)
 
-def print_result(result: PyMigrationResult):
+def print_result(result: MigrationResult):
         """Prints the result of a migration."""
         print(f'Result: {result.status}')
     
-        for pipeline_content_type in ServerToCloudMigrationPipeline.ContentTypes:
-            content_type = pipeline_content_type.ContentType
+        for pipeline_content_type in ServerToCloudMigrationPipeline.content_types():
+            content_type = pipeline_content_type.content_type
             
-            type_entries = [IMigrationManifestEntry(x) for x in result.manifest.entries.ForContentType(content_type)]
+            type_entries = [IMigrationManifestEntry(x) for x in result.manifest.entries.for_content_type(content_type)]
         
             count_total = len(type_entries)
 

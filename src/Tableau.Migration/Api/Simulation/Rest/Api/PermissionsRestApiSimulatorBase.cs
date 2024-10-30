@@ -48,6 +48,11 @@ namespace Tableau.Migration.Api.Simulation.Rest.Api
         public MethodSimulator QueryPermissions { get; }
 
         /// <summary>
+        /// Gets the simulated replace permission API method.
+        /// </summary>
+        public MethodSimulator ReplacePermissions { get; }
+
+        /// <summary>
         /// Creates a new <see cref="PermissionsRestApiSimulatorBase{TContent}"/> object.
         /// </summary>
         /// <param name="simulator">A response simulator to setup with REST API methods.</param>
@@ -67,6 +72,10 @@ namespace Tableau.Migration.Api.Simulation.Rest.Api
             QueryPermissions = simulator.SetupRestGet(
                 SiteEntityUrl(ContentTypeUrlPrefix, "permissions"),
                 new RestPermissionsGetResponseBuilder<TContent>(simulator.Data, simulator.Serializer, ContentTypeUrlPrefix, getContent));
+
+            ReplacePermissions = simulator.SetupRestPost(
+                SiteEntityUrl(ContentTypeUrlPrefix, "permissions"),
+                new RestPermissionsCreateResponseBuilder<TContent>(simulator.Data, simulator.Serializer, ContentTypeUrlPrefix, getContent));
         }
     }
 }

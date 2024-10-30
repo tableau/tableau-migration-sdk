@@ -33,6 +33,7 @@ using Tableau.Migration.Engine.Hooks.PostPublish;
 using Tableau.Migration.Engine.Manifest;
 using Tableau.Migration.Engine.Migrators;
 using Tableau.Migration.Engine.Migrators.Batch;
+using Tableau.Migration.Engine.Pipelines;
 
 namespace Tableau.Migration.PythonGenerator
 {
@@ -95,12 +96,6 @@ namespace Tableau.Migration.PythonGenerator
 
         #endregion
 
-        #region - Tableau.Migration.Engine.Hooks.PostPublish  -
-
-            typeof(ContentItemPostPublishContext<,>),
-
-        #endregion
-
         #region - Tableau.Migration.Engine.Hooks.Mappings  -
 
             typeof(ContentMappingContext<>),
@@ -108,7 +103,9 @@ namespace Tableau.Migration.PythonGenerator
         #endregion
 
         #region - Tableau.Migration.Engine.Hooks.PostPublish  -
+            
             typeof(BulkPostPublishContext<>),
+            typeof(ContentItemPostPublishContext<,>),
 
         #endregion
 
@@ -126,6 +123,13 @@ namespace Tableau.Migration.PythonGenerator
         #region - Tableau.Migration.Engine.Actions -
 
             typeof(IMigrationActionResult),
+
+        #endregion
+
+        #region - Tableau.Migrations.Engine.Pipelines -
+
+            typeof(MigrationPipelineContentType),
+            typeof(ServerToCloudMigrationPipeline),
 
         #endregion
 

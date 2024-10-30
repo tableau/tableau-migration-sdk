@@ -19,7 +19,7 @@ using Microsoft.CodeAnalysis;
 
 namespace Tableau.Migration.PythonGenerator
 {
-    internal sealed record PythonProperty(string Name, PythonTypeReference Type, bool Getter, bool Setter, 
-        PythonDocstring? Documentation, IPropertySymbol DotNetProperty)
+    internal sealed record PythonProperty(string Name, PythonTypeReference Type, bool Getter, bool Setter,
+        bool IsStatic, PythonDocstring? Documentation, ISymbol DotNetProperty, ITypeSymbol DotNetPropertyType)
     { }
 }

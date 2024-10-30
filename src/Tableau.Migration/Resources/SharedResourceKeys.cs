@@ -129,6 +129,8 @@ namespace Tableau.Migration.Resources
 
         public const string IntervalsChangedWarning = "IntervalsChangedWarning";
 
+        public const string IntervalNotChangedDebugMessage = "IntervalNotChangedDebugMessage";
+
         public const string Found = "Found";
 
         public const string NotFound = "NotFound";
@@ -144,5 +146,75 @@ namespace Tableau.Migration.Resources
         public const string DuplicateContentTypeConfigurationMessage = "DuplicateContentTypeConfigurationMessage";
 
         public const string UnknownExtractRefreshContentTypeWarning = "UnknownExtractRefreshContentTypeWarning";
+
+        public const string FrequencyNotSetError = "FrequencyNotSetError";
+
+        public const string FrequencyNotSupportedError = "FrequencyNotSupportedError";
+
+        public const string InvalidScheduleError = "InvalidScheduleError";
+
+        public const string AtLeastOneIntervalError = "AtLeastOneIntervalError";
+
+        public const string AtLeastOneIntervalWithHourOrMinutesError = "AtLeastOneIntervalWithHourOrMinutesError";
+
+        public const string BothHoursAndMinutesIntervalError = "BothHoursAndMinutesIntervalError";
+
+        public const string InvalidHourlyIntervalForServerError = "InvalidHourlyIntervalForServerError";
+
+        public const string InvalidHourlyIntervalForCloudError = "InvalidHourlyIntervalForCloudError";
+
+        public const string InvalidMinuteIntervalError = "InvalidMinuteIntervalError";
+
+        public const string InvalidMinuteIntervalWarning = "InvalidMinuteIntervalWarning";
+
+        public const string IntervalsIgnoredWarning = "IntervalsIgnoredWarning";
+
+        public const string WeeklyScheduleIntervalError = "WeeklyScheduleIntervalError";
+
+        public const string InvalidWeekdayError = "InvalidWeekdayError";
+
+        public const string ScheduleMustHaveStartAtTimeError = "ScheduleMustHaveStartAtTimeError";
+
+        public const string ScheduleMustHaveEndAtTimeError = "ScheduleMustHaveEndAtTimeError";
+
+        public const string ScheduleMustNotHaveEndAtTimeError = "ScheduleMustNotHaveEndAtTimeError";
+
+        public const string InvalidMonthDayError = "InvalidMonthDayError";
+
+        public const string FrequencyNotExpectedError = "FrequencyNotExpectedError";
+
+        public const string AtLeastOneValidWeekdayError = "AtLeastOneValidWeekdayError";
+
+        public const string AtLeastOneValidMonthDayError = "AtLeastOneValidMonthDayError";
+
+        public const string ScheduleShouldOnlyHaveOneHoursIntervalWarning = "ScheduleShouldOnlyHaveOneHoursIntervalWarning";
+
+        public const string ScheduleMustHaveExactlyOneWeekdayIntervalError = "ScheduleMustHaveExactlyOneWeekdayIntervalError";
+
+        public const string ScheduleMustOnlyHaveOneIntervalWithLastDayError = "ScheduleMustOnlyHaveOneIntervalWithLastDayError";
+
+        public const string InvalidScheduleForMonthlyError = "InvalidScheduleForMonthlyError";
+
+        public const string ExactlyOneHourOrMinutesError = "ExactlyOneHourOrMinutesError";
+
+        public const string IntervalMustBe1HourOr60MinError = "IntervalMustBe1HourOr60MinError";
+
+        public const string StartEndTimeDifferenceError = "StartEndTimeDifferenceError";
+
+        public const string ReplacingHourlyIntervalMessage = "ReplacingHourlyIntevalMessage";
+
+        public const string ScheduleUpdateFailedError = "ScheduleUpdateFailedError";
+
+        public const string ScheduleUpdatedMessage = "ScheduleUpdatedMessage";
+
+        public const string ScheduleUpdatedFrequencyToDailyMessage = "ScheduleUpdatedFrequencyToDailyMessage";
+
+        public const string ScheduleUpdatedAddedWeekdayMessage = "ScheduleUpdatedAddedWeekdayMessage";
+
+        public const string ScheduleUpdatedAddedEndAtMessage = "ScheduleUpdatedAddedEndAtMessage";
+
+        public const string ScheduleUpdatedRemovedEndAtMessage = "ScheduleUpdatedRemovedEndAtMessage";
+
+        public const string ScheduleUpdatedHoursMessage = "ScheduleUpdatedHoursMessage";
     }
 }

@@ -46,6 +46,7 @@ namespace Tableau.Migration.Api
         private readonly IServerSessionProvider _sessionProvider;
         private readonly IContentCacheFactory _contentCacheFactory;
         private readonly IHttpContentSerializer _serializer;
+        private readonly IExtractRefreshTaskConverter<IServerExtractRefreshTask, IServerSchedule, ICloudExtractRefreshTask, ICloudSchedule> _extractRefreshTaskConverter;
 
         public TasksApiClient(
             IRestRequestBuilderFactory restRequestBuilderFactory,
@@ -54,7 +55,8 @@ namespace Tableau.Migration.Api
             IServerSessionProvider sessionProvider,
             ILoggerFactory loggerFactory,
             ISharedResourcesLocalizer sharedResourcesLocalizer,
-            IHttpContentSerializer serializer)
+            IHttpContentSerializer serializer,
+            IExtractRefreshTaskConverter<IServerExtractRefreshTask, IServerSchedule, ICloudExtractRefreshTask, ICloudSchedule> extractRefreshTaskConverter)
             : base(
                   restRequestBuilderFactory,
                   finderFactory,
@@ -65,6 +67,7 @@ namespace Tableau.Migration.Api
             _sessionProvider = sessionProvider;
             _contentCacheFactory = contentCacheFactory;
             _serializer = serializer;
+            _extractRefreshTaskConverter = extractRefreshTaskConverter;
         }
 
         #region - ITasksApiClient -
@@ -124,7 +127,7 @@ namespace Tableau.Migration.Api
                     // Since we published with a content reference, we expect the reference returned is valid/knowable.
                     Guard.AgainstNull(contentReference, () => contentReference);
 
-                    return CloudExtractRefreshTask.Create(task, r.Schedule, contentReference); 
+                    return CloudExtractRefreshTask.Create(task, r.Schedule, contentReference);
                 }, SharedResourcesLocalizer, cancel)
                 .ConfigureAwait(false);
 
@@ -163,12 +166,8 @@ namespace Tableau.Migration.Api
             IServerExtractRefreshTask contentItem,
             CancellationToken cancel)
         {
-            ICloudExtractRefreshTask cloudExtractRefreshTask = new CloudExtractRefreshTask(
-                contentItem.Id,
-                contentItem.Type,
-                contentItem.ContentType,
-                contentItem.Content,
-                new CloudSchedule(contentItem.Schedule.Frequency, contentItem.Schedule.FrequencyDetails));
+
+            var cloudExtractRefreshTask = _extractRefreshTaskConverter.Convert(contentItem);
 
             return Task.FromResult(new ResultBuilder()
                 .Build(cloudExtractRefreshTask));
@@ -229,7 +228,7 @@ namespace Tableau.Migration.Api
             Func<TResponse, CancellationToken, Task<IImmutableList<TExtractRefreshTask>>> responseItemFactory,
             CancellationToken cancel)
             where TResponse : TableauServerResponse
-            where TExtractRefreshTask: IExtractRefreshTask<TSchedule>
+            where TExtractRefreshTask : IExtractRefreshTask<TSchedule>
             where TSchedule : ISchedule
         {
             return await RestRequestBuilderFactory

@@ -36,5 +36,7 @@ namespace Tableau.Migration.TestApplication.Config
         public string SkippedProject { get; set; } = string.Empty;
 
         public string SkippedMissingParentDestination { get; set; } = "Missing Parent";
+
+        public string[] SkipTypes { get; set; } = Array.Empty<string>();
     }
 }

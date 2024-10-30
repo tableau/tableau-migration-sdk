@@ -47,6 +47,8 @@ namespace Tableau.Migration.Engine.Manifest
         private readonly ConcurrentDictionary<ContentLocation, IMigrationManifestEntryEditor> _entriesByMappedLocation = new();
         private readonly ConcurrentDictionary<Guid, IMigrationManifestEntryEditor> _entriesByDestinationId = new();
 
+        private readonly ConcurrentDictionary<MigrationManifestEntryStatus, int> _statusTotals = new();
+
         /// <summary>
         /// Creates a new <see cref="MigrationManifestContentTypePartition"/> object.
         /// </summary>
@@ -60,6 +62,16 @@ namespace Tableau.Migration.Engine.Manifest
 
             _localizer = localizer;
             _logger = logger;
+
+            foreach(var status in Enum.GetValues<MigrationManifestEntryStatus>())
+            {
+                _statusTotals[status] = 0;
+            }
+        }
+
+        private void IncrementStatus(MigrationManifestEntryStatus status)
+        {
+            _statusTotals.AddOrUpdate(status, 1, (k, v) => v + 1);
         }
 
         #region - IMigrationManifestContentTypePartitionEditor Implementation -
@@ -95,7 +107,11 @@ namespace Tableau.Migration.Engine.Manifest
                 {
                     _entriesBySourceContentUrl.Add(clonedEntry.Source.ContentUrl, clonedEntry);
                 }
+
+                IncrementStatus(clonedEntry.Status);
             }
+
+            ExpectedTotalCount = Count;
 
             return this;
         }
@@ -109,7 +125,7 @@ namespace Tableau.Migration.Engine.Manifest
 
         /// <inheritdoc />
         public ImmutableArray<TResultItem> CreateEntries<TItem, TResultItem>(IReadOnlyCollection<TItem> sourceContentItems,
-            Func<TItem, IMigrationManifestEntryEditor, TResultItem> resultFactory)
+            Func<TItem, IMigrationManifestEntryEditor, TResultItem> resultFactory, int expectedTotalCount)
             where TItem : IContentReference
         {
             var results = ImmutableArray.CreateBuilder<TResultItem>(sourceContentItems.Count);
@@ -126,6 +142,8 @@ namespace Tableau.Migration.Engine.Manifest
                     {
                         _entriesBySourceContentUrl.Add(sourceItem.ContentUrl, manifestEntry);
                     }
+
+                    IncrementStatus(manifestEntry.Status);
                 }
                 else
                 {
@@ -153,6 +171,9 @@ namespace Tableau.Migration.Engine.Manifest
                 var result = resultFactory(sourceItem, manifestEntry);
                 results.Add(result);
             }
+
+            //Set expected total count, but it should never be less than the actual count.
+            ExpectedTotalCount = Count > expectedTotalCount ? Count : expectedTotalCount;
 
             return results.ToImmutable();
         }
@@ -194,12 +215,19 @@ namespace Tableau.Migration.Engine.Manifest
             _entriesByMappedLocation[entry.MappedLocation] = entry;
         }
 
+        /// <inheritdoc />
+        public void StatusUpdated(IMigrationManifestEntryEditor entry, MigrationManifestEntryStatus oldStatus)
+        {
+            _statusTotals.AddOrUpdate(oldStatus, 0, (k, v) => v - 1);
+            IncrementStatus(entry.Status);
+        }
+
         /// <inhertidoc />
         public void MigrationFailed(IMigrationManifestEntryEditor entry)
         {
             foreach (var error in entry.Errors)
             {
-                _logger.LogError(_localizer[SharedResourceKeys.MigrationItemErrorLogMessage], ContentType, entry.Source.Location, error);
+                _logger.LogError(_localizer[SharedResourceKeys.MigrationItemErrorLogMessage], ContentType, entry.Source.Location, error, error.Data.GetContentsAsString());
             }
         }
 
@@ -209,6 +237,14 @@ namespace Tableau.Migration.Engine.Manifest
 
         /// <inheritdoc />
         public Type ContentType { get; }
+
+        /// <inheritdoc />
+        public int ExpectedTotalCount { get; private set; }
+
+        /// <inheritdoc />
+        public ImmutableDictionary<MigrationManifestEntryStatus, int> GetStatusTotals()
+            // ConcurrentDictionary<T,V.ToArray is atomic.
+            => _statusTotals.ToArray().ToImmutableDictionary();
 
         #region - IEquatable Implementation -
 

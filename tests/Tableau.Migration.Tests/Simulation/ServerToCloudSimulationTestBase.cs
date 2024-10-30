@@ -521,8 +521,6 @@ namespace Tableau.Migration.Tests.Simulation
                     End = "01:25:00",
                     Intervals = [
                         new Server.ScheduleResponse.ScheduleType.FrequencyDetailsType.IntervalType { Hours = "1" },
-                        new Server.ScheduleResponse.ScheduleType.FrequencyDetailsType.IntervalType { WeekDay = WeekDays.Sunday },
-                        new Server.ScheduleResponse.ScheduleType.FrequencyDetailsType.IntervalType { WeekDay = WeekDays.Saturday }
                     ]
                 }
             };
@@ -563,6 +561,7 @@ namespace Tableau.Migration.Tests.Simulation
             };
             var monthlyMultipleDaysSchedule = new Server.ScheduleResponse.ScheduleType
             {
+                // Note: This type of schedule on Server can only be created via the UI, not the RestAPI. It is still a valid schedule though. 
                 Id = Guid.NewGuid(),
                 Name = $"{ScheduleFrequencies.Monthly}_Multiple",
                 Type = ScheduleTypes.Extract,
@@ -580,7 +579,7 @@ namespace Tableau.Migration.Tests.Simulation
                     ]
                 }
             };
-            var monthlyLastSundaySchedule = new Server.ScheduleResponse.ScheduleType
+            var monthlyLastDaySchedule = new Server.ScheduleResponse.ScheduleType
             {
                 Id = Guid.NewGuid(),
                 Name = $"{ScheduleFrequencies.Monthly}_LastSunday",
@@ -592,7 +591,7 @@ namespace Tableau.Migration.Tests.Simulation
                 FrequencyDetails = new Server.ScheduleResponse.ScheduleType.FrequencyDetailsType
                 {
                     Start = "01:35:00",
-                    Intervals = [new Server.ScheduleResponse.ScheduleType.FrequencyDetailsType.IntervalType { WeekDay = WeekDays.Sunday, MonthDay = "LastDay" }]
+                    Intervals = [new Server.ScheduleResponse.ScheduleType.FrequencyDetailsType.IntervalType { MonthDay = "LastDay" }]
                 }
             };
             var schedules = new List<Server.ScheduleResponse.ScheduleType>
@@ -601,7 +600,7 @@ namespace Tableau.Migration.Tests.Simulation
                 dailySchedule,
                 weeklySchedule,
                 monthlyMultipleDaysSchedule,
-                monthlyLastSundaySchedule
+                monthlyLastDaySchedule
             };
 
             foreach (var schedule in schedules)

@@ -36,7 +36,7 @@ namespace Tableau.Migration.Tests.Unit
                 .AddTableauMigrationSdk();
 
             // Assert
-            Assert.NotEmpty(serviceCollection.Where(descriptor => descriptor.ServiceType == typeof(ILoggerFactory)));
+            Assert.Contains(serviceCollection, descriptor => descriptor.ServiceType == typeof(ILoggerFactory));
             Assert.Empty(serviceCollection.Where(descriptor => descriptor.ServiceType == typeof(ILoggerProvider)).ToList());
         }
 

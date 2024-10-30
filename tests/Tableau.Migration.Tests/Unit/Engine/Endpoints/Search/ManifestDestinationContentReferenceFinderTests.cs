@@ -63,7 +63,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints.Search
                 var mappedLoc = Create<ContentLocation>();
 
                 var entry = Manifest.Entries.GetOrCreatePartition<TestContentType>().GetEntryBuilder(1)
-                    .CreateEntries(new[] { sourceItem }, (i, e) => e);
+                    .CreateEntries(new[] { sourceItem }, (i, e) => e, 0);
 
                 entry.Single().MapToDestination(mappedLoc);
 
@@ -86,7 +86,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints.Search
                 sourceItem.Location = Create<ContentLocation>();
 
                 var entry = Manifest.Entries.GetOrCreatePartition<TestContentType>().GetEntryBuilder(1)
-                    .CreateEntries(new[] { sourceItem }, (i, e) => e);
+                    .CreateEntries(new[] { sourceItem }, (i, e) => e, 0);
 
                 var cacheItem = Create<IContentReference>();
 
@@ -127,7 +127,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints.Search
                 sourceItem.Location = Create<ContentLocation>();
 
                 var entry = Manifest.Entries.GetOrCreatePartition<TestContentType>().GetEntryBuilder(1)
-                    .CreateEntries(new[] { sourceItem }, (i, e) => e);
+                    .CreateEntries(new[] { sourceItem }, (i, e) => e, 0);
 
                 var cacheItem = Create<IContentReference>();
 
@@ -166,7 +166,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints.Search
 
                 var entryBuilder = Manifest.Entries.GetOrCreatePartition<TestContentType>().GetEntryBuilder(1);
                 var entries = entryBuilder
-                    .CreateEntries(new[] { sourceItem }, (i, e) => e);
+                    .CreateEntries(new[] { sourceItem }, (i, e) => e, 0);
 
                 var mockMapping = Freeze<Mock<IContentMappingRunner>>();
                 mockMapping.Setup(x => x.ExecuteAsync(It.IsAny<ContentMappingContext<TestContentType>>(), Cancel))
@@ -194,7 +194,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints.Search
 
                 var entryBuilder = Manifest.Entries.GetOrCreatePartition<TestContentType>().GetEntryBuilder(1);
                 var entries = entryBuilder
-                    .CreateEntries(new[] { sourceItem }, (i, e) => e);
+                    .CreateEntries(new[] { sourceItem }, (i, e) => e, 0);
 
                 var mockMapping = Freeze<Mock<IContentMappingRunner>>();
                 mockMapping.Setup(x => x.ExecuteAsync(It.IsAny<ContentMappingContext<TestContentType>>(), Cancel))
@@ -221,7 +221,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints.Search
                 var mappedLoc = Create<ContentLocation>();
 
                 var entries = Manifest.Entries.GetOrCreatePartition<TestContentType>().GetEntryBuilder(1)
-                    .CreateEntries(new[] { sourceItem }, (i, e) => e);
+                    .CreateEntries(new[] { sourceItem }, (i, e) => e, 0);
 
                 var entry = entries.Single().MapToDestination(mappedLoc);
 
@@ -251,7 +251,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints.Search
                 var destinationInfo = Create<IContentReference>();
 
                 var entry = Manifest.Entries.GetOrCreatePartition<TestContentType>().GetEntryBuilder(1)
-                    .CreateEntries(new[] { sourceItem }, (i, e) => e);
+                    .CreateEntries(new[] { sourceItem }, (i, e) => e, 0);
 
                 entry.Single().DestinationFound(destinationInfo);
 

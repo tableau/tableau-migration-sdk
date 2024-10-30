@@ -15,10 +15,42 @@
 //  limitations under the License.
 //
 
+using System;
+
 namespace Tableau.Migration.Content.Schedules
 {
-    internal class ScheduleComparers
+    internal class ScheduleComparers : ComparerBase<ISchedule>
     {
-        public static readonly IntervalComparer Intervals = new();
+        public static readonly IntervalComparer IntervalsComparer = new();
+
+        protected override int CompareItems(ISchedule? x, ISchedule? y)
+        {
+            if (x is null && y is null)
+                return 0;
+
+            if (x is null)
+                return -1;
+
+            if (y is null)
+                return 1;
+
+            var frequencyComparison = string.Compare(x.Frequency, y.Frequency, StringComparison.Ordinal);
+            if (frequencyComparison != 0)
+                return frequencyComparison;
+
+            var startAtComparison = Nullable.Compare(x.FrequencyDetails.StartAt, y.FrequencyDetails.StartAt);
+            if (startAtComparison != 0)
+                return startAtComparison;
+
+            var endAtComparison = Nullable.Compare(x.FrequencyDetails.EndAt, y.FrequencyDetails.EndAt);
+            if (endAtComparison != 0)
+                return endAtComparison;
+
+            var intervalsComparison = IntervalsComparer.Compare(x.FrequencyDetails.Intervals, y.FrequencyDetails.Intervals);
+            if (intervalsComparison != 0)
+                return intervalsComparison;
+
+            return string.Compare(x.NextRunAt, y.NextRunAt, StringComparison.Ordinal);
+        }
     }
 }

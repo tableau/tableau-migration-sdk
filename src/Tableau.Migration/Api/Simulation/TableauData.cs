@@ -508,9 +508,7 @@ namespace Tableau.Migration.Api.Simulation
         /// </summary>
         /// <param name="workbook">The <see cref="WorkbookResponse.WorkbookType"/> metadata</param>
         /// <param name="fileData">A byte array representing the workbook. If null, empty array is used</param>
-        internal void AddWorkbook(
-            WorkbookResponse.WorkbookType workbook,
-            byte[]? fileData)
+        internal void AddWorkbook(WorkbookResponse.WorkbookType workbook, byte[]? fileData)
         {
             Workbooks.Add(workbook);
             WorkbookFiles[workbook.Id] = fileData ?? Array.Empty<byte>();
@@ -520,8 +518,7 @@ namespace Tableau.Migration.Api.Simulation
         /// Adds a view to simulated dataset.
         /// </summary>
         /// <param name="view">The <see cref="WorkbookResponse.WorkbookType.ViewReferenceType"/> metadata</param>
-        internal void AddView(
-            WorkbookResponse.WorkbookType.ViewReferenceType view)
+        internal void AddView(WorkbookResponse.WorkbookType.ViewReferenceType view)
         {
             Views.Add(view);
         }
@@ -531,13 +528,12 @@ namespace Tableau.Migration.Api.Simulation
         /// </summary>
         /// <param name="customView">The <see cref="CustomViewResponse.CustomViewType"/> metadata</param>
         /// <param name="fileData">A byte array representing the custom view. If null, empty array is used</param>
-        internal void AddCustomView(
-            CustomViewResponse.CustomViewType customView,
-            byte[]? fileData)
+        internal void AddCustomView(CustomViewResponse.CustomViewType customView, byte[]? fileData)
         {
             CustomViews.Add(customView);
             CustomViewFiles[customView.Id] = fileData ?? [];
         }
+
         internal void AddDefaultProjectPermissions(Guid projectId, string contentTypeUrlSegment, PermissionsType permissions)
         {
             DefaultProjectPermissions.AddOrUpdate(

@@ -21,7 +21,6 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Tableau.Migration.Api.Rest.Models.Responses.Server;
 using Tableau.Migration.Api.Rest.Models.Types;
-using Tableau.Migration.Content.Schedules;
 using Tableau.Migration.Content.Schedules.Server;
 using Tableau.Migration.Engine.Manifest;
 using Xunit;
@@ -95,8 +94,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests
                         wb.Name == sourceWorkbook.Name);
 
                     // Get destination extract refresh task
-                    var destinationExtractRefreshTask = Assert.Single(
-                         CloudDestinationApi.Data.CloudExtractRefreshTasks.Where(cert =>
+                    var destinationExtractRefreshTask = Assert.Single(CloudDestinationApi.Data.CloudExtractRefreshTasks, cert =>
                             (
                                 cert.ExtractRefresh!.DataSource is not null &&
                                 destinationDataSource is not null &&
@@ -106,8 +104,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests
                                 cert.ExtractRefresh!.Workbook is not null &&
                                 destinationWorkbook is not null &&
                                 cert.ExtractRefresh.Workbook.Id == destinationWorkbook.Id
-                            )
-                         ));
+                            ));
                     var destinationExtractRefresh = destinationExtractRefreshTask.ExtractRefresh!;
 
                     Assert.NotEqual(sourceExtractRefresh.Id, destinationExtractRefresh.Id);
@@ -119,7 +116,12 @@ namespace Tableau.Migration.Tests.Simulation.Tests
                     {
                         Assert.Equal(extractRefreshType.Type, destinationExtractRefresh.Type);
                     }
+
                     // Assert schedule information
+                    // This can't be done completely without manually writting the source and destination schedules to compare against.
+                    // Server schedules requirements are different than Cloud schedule requirements. So we just check the frequence and start time.
+                    // We can check frequency because non of the source schedule we built will change frequency to cloud, even though that is a possibilty,
+                    // we just didn't include those.
                     Assert.Equal(sourceSchedule.Frequency, destinationExtractRefresh.Schedule.Frequency);
                     Assert.Equal(sourceSchedule.FrequencyDetails.Start, destinationExtractRefresh.Schedule.FrequencyDetails!.Start);
                     if (sourceSchedule.FrequencyDetails.End is null)
@@ -130,18 +132,6 @@ namespace Tableau.Migration.Tests.Simulation.Tests
                     {
                         Assert.Equal(sourceSchedule.FrequencyDetails.End, destinationExtractRefresh.Schedule.FrequencyDetails.End);
                     }
-                    Assert.Equal(sourceSchedule.FrequencyDetails.Intervals.Length, destinationExtractRefresh.Schedule.FrequencyDetails.Intervals.Length);
-                    Assert.All(
-                        destinationExtractRefresh.Schedule.FrequencyDetails.Intervals,
-                        destinationInterval =>
-                        {
-                            Assert.Single(sourceSchedule.FrequencyDetails.Intervals
-                                .Where(sourceInterval =>
-                                    (sourceInterval.Hours ?? string.Empty) == (destinationInterval.Hours ?? string.Empty) &&
-                                    (sourceInterval.Minutes ?? string.Empty) == (destinationInterval.Minutes ?? string.Empty) &&
-                                    (sourceInterval.WeekDay ?? string.Empty) == (destinationInterval.WeekDay ?? string.Empty) &&
-                                    (sourceInterval.MonthDay ?? string.Empty) == (destinationInterval.MonthDay ?? string.Empty)));
-                        });
                 }
             }
         }

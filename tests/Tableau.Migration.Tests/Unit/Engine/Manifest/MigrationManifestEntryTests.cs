@@ -26,9 +26,9 @@ using Xunit;
 
 namespace Tableau.Migration.Tests.Unit.Engine.Manifest
 {
-    public class MigrationManifestEntryTests
+    public sealed class MigrationManifestEntryTests
     {
-        public class MigrationManifestEntryTest : AutoFixtureTestBase
+        public abstract class MigrationManifestEntryTest : AutoFixtureTestBase
         {
             public MigrationManifestEntryTest()
             {
@@ -48,12 +48,14 @@ namespace Tableau.Migration.Tests.Unit.Engine.Manifest
 
         #region - Ctor -
 
-        public class Ctor : MigrationManifestEntryTest
+        public sealed class Ctor : MigrationManifestEntryTest
         {
             IMigrationManifestEntry CreateManifestEntry()
             {
-                var errors = new List<Exception>();
-                errors.Add(new Exception("Test Error"));
+                var errors = new List<Exception>
+                {
+                    new Exception("Test Error")
+                };
 
                 var ret = new Mock<IMigrationManifestEntry>();
                 ret.Setup(x => x.Source).Returns(Create<IContentReference>());
@@ -77,6 +79,8 @@ namespace Tableau.Migration.Tests.Unit.Engine.Manifest
                 Assert.Null(e.Destination);
                 Assert.Equal(MigrationManifestEntryStatus.Pending, e.Status);
                 Assert.Empty(e.Errors);
+
+                MockEntryBuilder.Verify(x => x.StatusUpdated(e, It.IsAny<MigrationManifestEntryStatus>()), Times.Never);
             }
 
             [Fact]
@@ -92,6 +96,8 @@ namespace Tableau.Migration.Tests.Unit.Engine.Manifest
                 Assert.Equal(previousEntry.HasMigrated, e.HasMigrated);
                 Assert.Equal(previousEntry.Destination, e.Destination);
                 Assert.Equal(previousEntry.Errors, e.Errors);
+
+                MockEntryBuilder.Verify(x => x.StatusUpdated(e, It.IsAny<MigrationManifestEntryStatus>()), Times.Never);
             }
 
             [Fact]
@@ -109,6 +115,8 @@ namespace Tableau.Migration.Tests.Unit.Engine.Manifest
                 Assert.Equal(previousEntry.HasMigrated, e.HasMigrated);
                 Assert.Equal(previousEntry.Destination, e.Destination);
                 Assert.Equal(previousEntry.Errors, e.Errors);
+
+                MockEntryBuilder.Verify(x => x.StatusUpdated(e, It.IsAny<MigrationManifestEntryStatus>()), Times.Never);
             }
         }
 
@@ -116,7 +124,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Manifest
 
         #region - MapToDestination -
 
-        public class MapToDestination : MigrationManifestEntryTest
+        public sealed class MapToDestination : MigrationManifestEntryTest
         {
             [Fact]
             public void MapsToDestination()
@@ -169,7 +177,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Manifest
 
         #region - DestinationFound -
 
-        public class DestinationFound : MigrationManifestEntryTest
+        public sealed class DestinationFound : MigrationManifestEntryTest
         {
             [Fact]
             public void SetsDestinationInfoAndMappedLocation()
@@ -210,7 +218,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Manifest
 
         #region - SetSkipped -
 
-        public class SetSkipped : MigrationManifestEntryTest
+        public sealed class SetSkipped : MigrationManifestEntryTest
         {
             [Fact]
             public void SetsStatus()
@@ -221,6 +229,8 @@ namespace Tableau.Migration.Tests.Unit.Engine.Manifest
 
                 Assert.Same(e, e2);
                 Assert.Equal(MigrationManifestEntryStatus.Skipped, e.Status);
+
+                MockEntryBuilder.Verify(x => x.StatusUpdated(e, MigrationManifestEntryStatus.Pending), Times.Once);
             }
         }
 
@@ -228,7 +238,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Manifest
 
         #region - SetMigrated -
 
-        public class SetMigrated : MigrationManifestEntryTest
+        public sealed class SetMigrated : MigrationManifestEntryTest
         {
             [Fact]
             public void SetsStatusAndHasMigratedFlag()
@@ -240,6 +250,8 @@ namespace Tableau.Migration.Tests.Unit.Engine.Manifest
                 Assert.Same(e, e2);
                 Assert.Equal(MigrationManifestEntryStatus.Migrated, e.Status);
                 Assert.True(e.HasMigrated);
+
+                MockEntryBuilder.Verify(x => x.StatusUpdated(e, MigrationManifestEntryStatus.Pending), Times.Once);
             }
         }
 
@@ -247,7 +259,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Manifest
 
         #region - SetCanceled -
 
-        public class SetCanceled : MigrationManifestEntryTest
+        public sealed class SetCanceled : MigrationManifestEntryTest
         {
             [Fact]
             public void SetsStatus()
@@ -258,6 +270,8 @@ namespace Tableau.Migration.Tests.Unit.Engine.Manifest
 
                 Assert.Same(e, e2);
                 Assert.Equal(MigrationManifestEntryStatus.Canceled, e.Status);
+
+                MockEntryBuilder.Verify(x => x.StatusUpdated(e, MigrationManifestEntryStatus.Pending), Times.Once);
             }
         }
 
@@ -265,7 +279,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Manifest
 
         #region - SetFailed -
 
-        public class SetFailed : MigrationManifestEntryTest
+        public sealed class SetFailed : MigrationManifestEntryTest
         {
             [Fact]
             public void SetsStatusAndErrors()
@@ -278,6 +292,8 @@ namespace Tableau.Migration.Tests.Unit.Engine.Manifest
                 Assert.Same(e, e2);
                 Assert.Equal(MigrationManifestEntryStatus.Error, e.Status);
                 Assert.Equal(errors, e.Errors);
+
+                MockEntryBuilder.Verify(x => x.StatusUpdated(e, MigrationManifestEntryStatus.Pending), Times.Once);
             }
 
             [Fact]
@@ -290,7 +306,9 @@ namespace Tableau.Migration.Tests.Unit.Engine.Manifest
 
                 Assert.Same(e, e2);
                 Assert.Equal(MigrationManifestEntryStatus.Error, e.Status);
-                Assert.Equal(new[] { error }, e.Errors);
+                Assert.Equal([error], e.Errors);
+
+                MockEntryBuilder.Verify(x => x.StatusUpdated(e, MigrationManifestEntryStatus.Pending), Times.Once);
             }
 
             [Fact]
@@ -302,6 +320,8 @@ namespace Tableau.Migration.Tests.Unit.Engine.Manifest
                 Assert.Same(e, e2);
                 Assert.Equal(MigrationManifestEntryStatus.Error, e.Status);
                 Assert.Empty(e.Errors);
+
+                MockEntryBuilder.Verify(x => x.StatusUpdated(e, MigrationManifestEntryStatus.Pending), Times.Once);
             }
         }
 
@@ -309,7 +329,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Manifest
 
         #region - Equality -
 
-        public class Equality : MigrationManifestEntryTest
+        public sealed class Equality : MigrationManifestEntryTest
         {
             private readonly ContentReferenceStub BaseSource;
 
@@ -458,6 +478,29 @@ namespace Tableau.Migration.Tests.Unit.Engine.Manifest
 
                 Assert.False(e1 == e2);
                 Assert.True(e1 != e2);
+            }
+        }
+
+        #endregion
+
+        #region - ResetStatus -
+
+        public sealed class ResetStatus : MigrationManifestEntryTest
+        {
+            [Fact]
+            public void ResetsStatus()
+            {
+                var sourceRef = Create<ContentReferenceStub>();
+                var e = new MigrationManifestEntry(MockEntryBuilder.Object, sourceRef);
+
+                e.SetSkipped();
+
+                var result = e.ResetStatus();
+
+                Assert.Same(e, result);
+                Assert.Equal(MigrationManifestEntryStatus.Pending, e.Status);
+
+                MockEntryBuilder.Verify(x => x.StatusUpdated(e, MigrationManifestEntryStatus.Skipped), Times.Once);
             }
         }
 

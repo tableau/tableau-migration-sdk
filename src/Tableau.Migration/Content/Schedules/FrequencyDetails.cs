@@ -17,8 +17,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
+using System.Text;
 using Tableau.Migration.Api.Rest;
 using Tableau.Migration.Api.Rest.Models.Responses;
 
@@ -39,11 +39,22 @@ namespace Tableau.Migration.Content.Schedules
         {
             StartAt = startAt;
             EndAt = endAt;
-            Intervals = intervals.ToImmutableArray();
+            Intervals = intervals.ToList();
         }
 
         public FrequencyDetails(TimeOnly? startAt, TimeOnly? endAt, params IInterval[] intervals)
             : this(startAt, endAt, (IEnumerable<IInterval>)intervals)
         { }
+
+        public override string ToString()
+        {
+            var sb = new StringBuilder();
+
+            sb.AppendLine($"StartAt: {StartAt}");
+            sb.AppendLine($"EndAt: {EndAt}");
+            sb.AppendLine($"Interval Count {Intervals.Count()}:");
+            sb.AppendLine(string.Join(Environment.NewLine, Intervals.Select(i => i.ToString())));
+            return sb.ToString();
+        }
     }
 }

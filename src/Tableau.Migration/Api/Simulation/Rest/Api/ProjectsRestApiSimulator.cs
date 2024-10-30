@@ -61,6 +61,11 @@ namespace Tableau.Migration.Api.Simulation.Rest.Api
         public MethodSimulator QueryDefaultProjectPermissions { get; }
 
         /// <summary>
+        /// Gets the simulated replace project default permission API method.
+        /// </summary>
+        public MethodSimulator ReplaceDefaultProjectPermissions { get; }
+
+        /// <summary>
         /// Gets the simulated update project API method.
         /// </summary>
         public MethodSimulator UpdateProject { get; }
@@ -142,6 +147,10 @@ namespace Tableau.Migration.Api.Simulation.Rest.Api
                         GranteeCapabilities = Array.Empty<GranteeCapabilityType>()
                     };
                 });
+
+            ReplaceDefaultProjectPermissions = simulator.SetupRestPost(
+                _defaultProjectPermissionsRegex,
+                new RestDefaultPermissionsCreateResponseBuilder(simulator.Data, simulator.Serializer));
 
             UpdateProject = simulator.SetupRestPut<UpdateProjectResponse, UpdateProjectResponse.ProjectType>(
                 SiteEntityUrl(ContentTypeUrlPrefix), UpdateProjectFromRequest);

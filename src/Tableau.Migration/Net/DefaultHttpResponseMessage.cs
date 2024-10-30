@@ -19,6 +19,7 @@ using System;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using Tableau.Migration.Net.Rest;
 
 namespace Tableau.Migration.Net
 {
@@ -54,7 +55,17 @@ namespace Tableau.Migration.Net
 
         public IHttpResponseMessage EnsureSuccessStatusCode()
         {
-            _response.EnsureSuccessStatusCode();
+            try
+            {
+                _response.EnsureSuccessStatusCode();
+            }
+            catch (HttpRequestException ex)
+            {
+                // Adds the request to the exception data.
+                ex.Data.Add("RequestMessage", RequestMessage?.ToSanitizedString());
+                throw;
+            }
+            
             return this;
         }
 

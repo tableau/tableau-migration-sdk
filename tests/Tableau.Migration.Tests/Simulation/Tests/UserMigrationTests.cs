@@ -69,10 +69,9 @@ namespace Tableau.Migration.Tests.Simulation.Tests
 
                 void AssertUserMigrated(UsersResponse.UserType sourceUser)
                 {
-                    var destinationUser = Assert.Single(
-                        CloudDestinationApi.Data.Users.Where(
-                            u => u.Domain?.Name == sourceUser.Domain?.Name
-                            && u.Name == sourceUser.Name));
+                    var destinationUser = Assert.Single(CloudDestinationApi.Data.Users, u => 
+                        u.Domain?.Name == sourceUser.Domain?.Name && 
+                        u.Name == sourceUser.Name);
 
                     Assert.NotEqual(sourceUser.Id, destinationUser.Id);
                     Assert.Equal(sourceUser.Domain?.Name, destinationUser.Domain?.Name);

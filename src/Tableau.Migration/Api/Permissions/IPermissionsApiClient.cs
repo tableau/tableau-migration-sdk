@@ -33,9 +33,7 @@ namespace Tableau.Migration.Api.Permissions
         /// <param name="contentItemId">The ID of the content item.</param>
         /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>The permissions result with <see cref="IPermissions"/>.</returns>
-        Task<IResult<IPermissions>> GetPermissionsAsync(
-            Guid contentItemId,
-            CancellationToken cancel);
+        Task<IResult<IPermissions>> GetPermissionsAsync(Guid contentItemId, CancellationToken cancel);
 
         /// <summary>
         /// Creates the permissions for the content item with the specified ID.
@@ -44,10 +42,7 @@ namespace Tableau.Migration.Api.Permissions
         /// <param name="permissions">The permissions of the content item.</param>
         /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>The permissions result with <see cref="IPermissions"/>.</returns>
-        Task<IResult<IPermissions>> CreatePermissionsAsync(
-            Guid contentItemId,
-            IPermissions permissions,
-            CancellationToken cancel);
+        Task<IResult<IPermissions>> CreatePermissionsAsync(Guid contentItemId, IPermissions permissions, CancellationToken cancel);
 
         /// <summary>
         /// Remove a <see cref="ICapability"/> for a user/group on a content item.
@@ -66,27 +61,12 @@ namespace Tableau.Migration.Api.Permissions
             CancellationToken cancel);
 
         /// <summary>
-        /// Remove all <paramref name="permissions"/> for a content item.
-        /// </summary>
-        /// <param name="contentItemId">Id of the content item.</param>        
-        /// <param name="permissions"></param>
-        /// <param name="cancel">The cancellation token to obey.</param>
-        /// <returns></returns>
-        Task<IResult> DeleteAllPermissionsAsync(
-            Guid contentItemId,
-            IPermissions permissions,
-            CancellationToken cancel);
-
-        /// <summary>
         /// Updates the permissions for the content item with the specified ID.
         /// </summary>
         /// <param name="contentItemId">Id of the content item.</param>
         /// <param name="permissions">The permissions of the content item.</param>
         /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>The permissions result with <see cref="IPermissions"/>.</returns>
-        Task<IResult<IPermissions>> UpdatePermissionsAsync(
-            Guid contentItemId,
-            IPermissions permissions,
-            CancellationToken cancel);
+        Task<IResult> UpdatePermissionsAsync(Guid contentItemId, IPermissions permissions, CancellationToken cancel);
     }
 }

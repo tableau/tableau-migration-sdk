@@ -42,15 +42,19 @@ namespace Tableau.Migration.Tests.Unit.Api.Rest
                     .Returns(new LocalizedString("Error", "Error"));
                 var error = Create<Error>();
 
+                var correlationId = Guid.NewGuid().ToString();
+
                 var exception = new RestException(
                     HttpMethod.Get,
                     new Uri("http://localhost"),
+                    correlationId,
                     error,
                     mockLocalizer.Object);
 
                 Assert.Equal(error.Code, exception.Code);
                 Assert.Equal(error.Detail, exception.Detail);
                 Assert.Equal(error.Summary, exception.Summary);
+                Assert.Equal(correlationId, exception.CorrelationId);
             }
         }
     }

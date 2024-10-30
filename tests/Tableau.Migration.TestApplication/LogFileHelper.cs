@@ -29,7 +29,7 @@ namespace Tableau.Migration.TestApplication
 
         private const string LOG_FILE_PREFIX = "Tableau.Migration.TestApplication";
 
-        internal const string LOG_LINE_TEMPLATE = "{Timestamp:yyyy-MM-dd HH:mm:ss.fff}|{Level}|{ThreadId}|{SourceContext} -\t{Message:lj}{NewLine}{Exception}";
+        internal const string LOG_LINE_TEMPLATE = "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz}|{Level}|{ThreadId}|{SourceContext} -\t{Message:lj} {ActivityTags}{NewLine}{Exception}";
 
         public static string GetFileNameTimeStamp()
             => Program.StartTime.ToString(FILENAME_TIMESTAMP_FORMAT);

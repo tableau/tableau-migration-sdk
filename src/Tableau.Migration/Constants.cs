@@ -115,6 +115,8 @@ namespace Tableau.Migration
         /// </summary>
         internal const string USER_AGENT_PREFIX = "TableauMigrationSDK";
 
+        internal const string REQUEST_CORRELATION_ID_HEADER = "X-Correlation-Id";
+
         #endregion
     }
 }

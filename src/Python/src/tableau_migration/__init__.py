@@ -50,10 +50,12 @@ cancellation_token_source = CancellationTokenSource()
 cancellation_token = cancellation_token_source.Token
 
 # Friendly renames for common top-level imports
+from tableau_migration.migration import PyMigrationResult as MigrationResult # noqa: E402, F401
 from tableau_migration.migration_engine import PyMigrationPlanBuilder as MigrationPlanBuilder # noqa: E402, F401
 from tableau_migration.migration_engine_hooks_filters_interop import PyContentFilterBase as ContentFilterBase # noqa: E402, F401
 from tableau_migration.migration_engine_hooks_interop import ( # noqa: E402, F401
     PyContentBatchMigrationCompletedHookBase as ContentBatchMigrationCompletedHookBase,
+    PyInitializeMigrationHookBase as InitializeMigrationHookBase,
     PyMigrationActionCompletedHookBase as MigrationActionCompletedHookBase
 )
 from tableau_migration.migration_engine_hooks_mappings_interop import ( # noqa: E402, F401
@@ -64,6 +66,7 @@ from tableau_migration.migration_engine_hooks_postpublish_interop import ( # noq
     PyBulkPostPublishHookBase as BulkPostPublishHookBase,
     PyContentItemPostPublishHookBase as ContentItemPostPublishHookBase
 )
+from tableau_migration.migration_engine_hooks_results import PyInitializeMigrationHookResult as IInitializeMigrationHookResult # noqa: E402, F401
 from tableau_migration.migration_engine_hooks_transformers_interop import ( # noqa: E402, F401
     PyContentTransformerBase as ContentTransformerBase,
     PyXmlContentTransformerBase as XmlContentTransformerBase
@@ -145,6 +148,8 @@ from tableau_migration.migration_engine_manifest import PyMigrationManifestEntry
 from tableau_migration.migration_engine_manifest import PyMigrationManifestEntryStatus as MigrationManifestEntryStatus # noqa: E402, F401
 from tableau_migration.migration_engine_migrators import PyContentItemMigrationResult as IContentItemMigrationResult # noqa: E402, F401
 from tableau_migration.migration_engine_migrators_batch import PyContentBatchMigrationResult as IContentBatchMigrationResult # noqa: E402, F401
+from tableau_migration.migration_engine_pipelines import PyMigrationPipelineContentType as MigrationPipelineContentType # noqa: E402, F401
+from tableau_migration.migration_engine_pipelines import PyServerToCloudMigrationPipeline as ServerToCloudMigrationPipeline # noqa: E402, F401
 
 # endregion
 

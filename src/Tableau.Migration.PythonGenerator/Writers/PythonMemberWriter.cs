@@ -135,6 +135,23 @@ namespace Tableau.Migration.PythonGenerator.Writers
             }
         }
 
+        protected static string DotNetTypeName(PythonType type) => DotNetTypeName(type.DotNetType);
+
+        protected static string DotNetTypeName(ITypeSymbol dotNetType)
+        {
+            return dotNetType switch
+            {
+                INamedTypeSymbol namedSymbol => DotNetTypeName(namedSymbol),
+                _ => throw new ArgumentException($"{dotNetType.GetType()} is not supported.")
+            };
+        }
+
+        protected static string DotNetTypeName(INamedTypeSymbol dotNetType)
+            => dotNetType.IsGenericType ? $"{dotNetType.OriginalDefinition.Name}[{BuildDotnetGenericTypeConstraintsString(dotNetType)}]" : dotNetType.Name;
+
+        protected static string PythonTypeName(PythonType type)
+            => type.DotNetType.IsGenericType ? $"{type.Name}[{BuildPythongGenericTypeConstraintsString(type.DotNetType)}]" : type.Name;
+
         protected static string BuildDotnetGenericTypeConstraintsString(INamedTypeSymbol dotnetType)
         {
             var typeConstraints = dotnetType.TypeParameters.First().ConstraintTypes;

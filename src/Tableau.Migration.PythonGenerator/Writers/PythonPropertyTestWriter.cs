@@ -23,17 +23,19 @@ namespace Tableau.Migration.PythonGenerator.Writers
 {
     internal sealed class PythonPropertyTestWriter : PythonMemberWriter, IPythonPropertyTestWriter
     {
+        private const string DOTNET_OBJ = "dotnet";
+        private const string PY_OBJ = "py";
+
         public void Write(IndentingStringBuilder builder, PythonType type, PythonProperty property)
         {
-            var dotnetObj = "dotnet";
-            var pyObj = "py";
+            var dotNetPropRef = property.IsStatic ? DotNetTypeName(type) : DOTNET_OBJ;
 
             if (property.Getter)
             {
                 using (var getterBuilder = builder.AppendLineAndIndent($"def test_{property.Name}_getter(self):"))
                 {
                     BuildTestBody(type, getterBuilder);
-                    AddGetterAsserts(getterBuilder, dotnetObj, pyObj, property);
+                    AddGetterAsserts(getterBuilder, property, dotNetPropRef);
                 }
 
                 builder.AppendLine();
@@ -44,7 +46,7 @@ namespace Tableau.Migration.PythonGenerator.Writers
                 using (var setterBuilder = builder.AppendLineAndIndent($"def test_{property.Name}_setter(self):"))
                 {
                     BuildTestBody(type, setterBuilder);
-                    AddSetterAsserts(setterBuilder, dotnetObj, pyObj, property);
+                    AddSetterAsserts(setterBuilder, property, dotNetPropRef);
                 }
 
                 builder.AppendLine();
@@ -53,28 +55,19 @@ namespace Tableau.Migration.PythonGenerator.Writers
 
         private static void BuildTestBody(PythonType type, IndentingStringBuilder builder)
         {
-            var dotnetObj = "dotnet";
-            var pyObj = "py";
-
-            if (!type.DotNetType.IsGenericType)
-            {
-                builder.AppendLine($"dotnet = self.create({type.DotNetType.Name})");
-                builder.AppendLine($"{pyObj} = {type.Name}({dotnetObj})");
-            }
-            else
-            {
-                builder.AppendLine(
-                    $"dotnet = self.create({type.DotNetType.OriginalDefinition.Name}[{BuildDotnetGenericTypeConstraintsString(type.DotNetType)}])");
-                builder.AppendLine(
-                    $"{pyObj} = {type.Name}[{BuildPythongGenericTypeConstraintsString(type.DotNetType)}]({dotnetObj})");
-            }
+            builder.AppendLine($"{DOTNET_OBJ} = self.create({DotNetTypeName(type)})");
+            builder.AppendLine($"{PY_OBJ} = {PythonTypeName(type)}({DOTNET_OBJ})");
         }
 
-        private static void AddSetterAsserts(IndentingStringBuilder builder, string dotnetObj, string pyObj,
-            PythonProperty property)
+        private static void AddSetterAsserts(IndentingStringBuilder builder, PythonProperty property, string dotNetPropRef)
         {
-            var dotnetPropValue = $"{dotnetObj}.{property.DotNetProperty.Name}";
-            var pythonPropValue = $"{pyObj}.{property.Name}";
+            var dotnetPropValue = $"{dotNetPropRef}.{property.DotNetProperty.Name}";
+            var pythonPropValue = $"{PY_OBJ}.{property.Name}";
+            
+            if (property.IsStatic)
+            {
+                pythonPropValue = $"{PY_OBJ}.get_{property.Name}()";
+            }
 
             var typeRef = property.Type;
 
@@ -90,7 +83,7 @@ namespace Tableau.Migration.PythonGenerator.Writers
 
                     builder.AppendLine("# create test data");
 
-                    var dotnetType = property.DotNetProperty.Type;
+                    var dotnetType = property.DotNetPropertyType;
 
                     var element = dotnetType switch
                     {
@@ -111,7 +104,15 @@ namespace Tableau.Migration.PythonGenerator.Writers
                     builder.AppendLine();
 
                     builder.AppendLine("# set property to new test value");
-                    builder.AppendLine($"{pythonPropValue} = testCollection");
+                    
+                    if (property.IsStatic)
+                    {
+                        builder.AppendLine($"{PY_OBJ}.set_{property.Name}(testCollection)");
+                    }
+                    else
+                    {
+                        builder.AppendLine($"{pythonPropValue} = testCollection");
+                    }
                     builder.AppendLine();
 
                     builder.AppendLine("# assert value");
@@ -125,7 +126,7 @@ namespace Tableau.Migration.PythonGenerator.Writers
 
                     builder.AppendLine("# create test data");
 
-                    var dotnetType = (INamedTypeSymbol)property.DotNetProperty.Type;
+                    var dotnetType = (INamedTypeSymbol)property.DotNetPropertyType;
 
                     if (!dotnetType.IsGenericType)
                     {
@@ -141,7 +142,14 @@ namespace Tableau.Migration.PythonGenerator.Writers
 
                     var wrapExp = ToPythonType(typeRef, "testValue");
                     builder.AppendLine("# set property to new test value");
-                    builder.AppendLine($"{pythonPropValue} = {wrapExp}");
+                    if(property.IsStatic)
+                    {
+                        builder.AppendLine($"{PY_OBJ}.set_{property.Name}({wrapExp})");
+                    }
+                    else
+                    {
+                        builder.AppendLine($"{pythonPropValue} = {wrapExp}");
+                    }
                     builder.AppendLine();
 
                     builder.AppendLine("# assert value");
@@ -151,11 +159,14 @@ namespace Tableau.Migration.PythonGenerator.Writers
             }
         }
 
-        private static void AddGetterAsserts(IndentingStringBuilder builder, string dotnetObj, string pyObj,
-            PythonProperty property)
+        private static void AddGetterAsserts(IndentingStringBuilder builder, PythonProperty property, string dotNetPropRef)
         {
-            var dotnetPropValue = $"{dotnetObj}.{property.DotNetProperty.Name}";
-            var pythonPropValue = $"{pyObj}.{property.Name}";
+            var dotnetPropValue = $"{dotNetPropRef}.{property.DotNetProperty.Name}";
+            var pythonPropValue = $"{PY_OBJ}.{property.Name}";
+            if (property.IsStatic)
+            {
+                pythonPropValue = $"{PY_OBJ}.get_{property.Name}()";
+            }
 
             var typeRef = property.Type;
 

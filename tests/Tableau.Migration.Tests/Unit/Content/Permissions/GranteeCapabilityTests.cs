@@ -106,11 +106,9 @@ namespace Tableau.Migration.Tests.Unit.Content.Permissions
                         Assert.False(cap.Mode == PermissionsCapabilityModes.Allow && cap.Name == repeatedCapabilityName);
                     });
 
-                    Assert.Single(
-                        result.Where(
-                            cap =>
-                            cap.Name == repeatedCapabilityName &&
-                            cap.Mode == PermissionsCapabilityModes.Deny));
+                    Assert.Single(result, cap =>
+                        cap.Name == repeatedCapabilityName &&
+                        cap.Mode == PermissionsCapabilityModes.Deny);
                 }
                 [Fact]
                 public void Does_not_delete_all_allow()
@@ -133,11 +131,9 @@ namespace Tableau.Migration.Tests.Unit.Content.Permissions
                     // There should not be a capability that has a conflict with another (has the same name but different mode)
                     Assert.Equal(uniqueNameCount + 1, result.Count);
 
-                    Assert.Single(
-                        result.Where(
-                            cap =>
-                            cap.Name == repeatedCapabilityName &&
-                            cap.Mode == PermissionsCapabilityModes.Allow));
+                    Assert.Single(result, cap =>
+                        cap.Name == repeatedCapabilityName &&
+                        cap.Mode == PermissionsCapabilityModes.Allow);
                 }
             }
         }

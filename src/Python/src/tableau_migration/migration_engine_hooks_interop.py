@@ -21,13 +21,15 @@ from typing import Callable, Generic, get_args, TypeVar, Union
 from uuid import uuid4
 
 from migration_engine_actions import PyMigrationActionResult
+from migration_engine_hooks_results import PyInitializeMigrationHookResult
 from migration_engine_migrators_batch import PyContentBatchMigrationResult
 
 from System import IServiceProvider
 from System.Threading.Tasks import Task
 from Tableau.Migration.Engine.Actions import IMigrationActionResult
 from Tableau.Migration.Engine.Migrators.Batch import IContentBatchMigrationResult
-from Tableau.Migration.Interop.Hooks import ISyncContentBatchMigrationCompletedHook, ISyncMigrationActionCompletedHook
+from Tableau.Migration.Engine.Hooks import IInitializeMigrationHookResult
+from Tableau.Migration.Interop.Hooks import ISyncContentBatchMigrationCompletedHook, ISyncInitializeMigrationHook, ISyncMigrationActionCompletedHook
 
 TContent = TypeVar("TContent")
 
@@ -246,6 +248,50 @@ class PyContentBatchMigrationCompletedHookBase(Generic[TContent]):
     _wrapper = _PyContentBatchMigrationCompletedHookWrapper
 
     def execute(self, ctx: PyContentBatchMigrationResult[TContent]) -> PyContentBatchMigrationResult[TContent]:
+        """Executes a hook callback.
+        
+        Args:
+            ctx: The input context from the migration engine or previous hook.
+            
+        Returns:
+            The context, potentially modified to pass on to the next hook or migration engine, or None to continue passing the input context.
+        """
+        return ctx
+
+class _PyInitializeMigrationHookWrapper(_PyHookWrapperBase):
+
+    @property
+    def _wrapper_method_name(self) -> str:
+        return "Execute"
+
+    @property
+    def _wrapper_async(self) -> bool:
+        return False
+
+    def _wrapper_base_type(self) -> type:
+        return ISyncInitializeMigrationHook
+
+    def _wrapper_context_type(self) -> type:
+        return IInitializeMigrationHookResult
+
+    def _wrap_execute_method(self) -> Callable:
+        def _wrap_execute(w):
+            return w._hook.execute
+        
+        return _wrap_execute
+    
+    def _wrap_context_callback(self) -> Callable:
+        def _wrap_context(ctx):
+            return PyInitializeMigrationHookResult(ctx)
+        
+        return _wrap_context
+
+class PyInitializeMigrationHookBase:
+    """Base class for initialize migration hooks."""
+
+    _wrapper = _PyInitializeMigrationHookWrapper
+
+    def execute(self, ctx: PyInitializeMigrationHookResult) -> PyInitializeMigrationHookResult:
         """Executes a hook callback.
         
         Args:

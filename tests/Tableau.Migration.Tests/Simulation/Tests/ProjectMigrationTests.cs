@@ -71,10 +71,9 @@ namespace Tableau.Migration.Tests.Simulation.Tests
 
                 void AssertProjectMigrated(ProjectsResponse.ProjectType sourceProject)
                 {
-                    var destinationProject = Assert.Single(
-                        CloudDestinationApi.Data.Projects.Where(p =>
+                    var destinationProject = Assert.Single(CloudDestinationApi.Data.Projects, p =>
                             p.Name == sourceProject.Name &&
-                            p.ParentProjectId is null == sourceProject.ParentProjectId is null));
+                            p.ParentProjectId is null == sourceProject.ParentProjectId is null);
 
                     Assert.NotEqual(sourceProject.Id, destinationProject.Id);
                     Assert.Equal(sourceProject.Name, destinationProject.Name);

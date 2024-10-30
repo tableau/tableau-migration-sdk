@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Csharp.ExampleApplication.Config;
 using Csharp.ExampleApplication.Hooks.BatchMigrationCompleted;
 using Csharp.ExampleApplication.Hooks.Filters;
+using Csharp.ExampleApplication.Hooks.InitializeMigration;
 using Csharp.ExampleApplication.Hooks.Mappings;
 using Csharp.ExampleApplication.Hooks.MigrationActionCompleted;
 using Csharp.ExampleApplication.Hooks.PostPublish;
@@ -145,6 +146,11 @@ namespace Csharp.ExampleApplication
             
             #region CustomViewDefaultUsersTransformer-Registration
             _planBuilder.Transformers.Add<CustomViewExcludeDefaultUserTransformer, IPublishableCustomView>();
+            #endregion
+
+            // Add initialize migration hooks
+            #region SetCustomContext-Registration
+            _planBuilder.Hooks.Add<SetMigrationContextHook>();
             #endregion
 
             // Add migration action completed hooks
