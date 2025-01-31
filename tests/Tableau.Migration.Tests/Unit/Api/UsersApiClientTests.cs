@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2024, Salesforce, Inc.
+//  Copyright (c) 2025, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -24,6 +24,7 @@ using System.Threading.Tasks;
 using AutoFixture;
 using Moq;
 using Tableau.Migration.Api;
+using Tableau.Migration.Api.Rest.Models;
 using Tableau.Migration.Api.Rest.Models.Responses;
 using Tableau.Migration.Api.Rest.Models.Types;
 using Tableau.Migration.Content;
@@ -260,6 +261,49 @@ namespace Tableau.Migration.Tests.Unit.Api
                 Assert.Single(result.Errors);
                 Assert.Null(result.Value);
             }
+
+            [Fact]
+            public async Task Succeeds_when_user_exists()
+            {
+                // Setup
+                var existingUserResponse = new UsersResponse
+                {
+                    Items = new[] { AutoFixture.Create<UsersResponse.UserType>() },
+                    Pagination = new Pagination { PageSize = 1, PageNumber = 1, TotalAvailable = 1 }
+                };
+
+                var existingUser = existingUserResponse.Items[0];
+
+                var addUserResponse = new AddUserResponse
+                {
+                    Error = new Error
+                    {
+                        Code = UsersApiClient.USER_NAME_CONFLICT_ERROR_CODE
+                    }
+                };
+
+                // Mock the AddUserAsync response to return a conflict error
+                var conflictResponse = new MockHttpResponseMessage<AddUserResponse>(HttpStatusCode.Conflict, addUserResponse);
+                MockHttpClient.SetupResponse(conflictResponse);
+
+                // Mock the GetAllUsersAsync response to return the existing user
+                var getAllUsersResponse = new MockHttpResponseMessage<UsersResponse>(existingUserResponse);
+                MockHttpClient.SetupResponse(getAllUsersResponse);
+
+                // Act
+                var result = await UsersApiClient.AddUserAsync(existingUser.Name!, existingUser.SiteRole!, existingUser.AuthSetting, Cancel);
+
+                // Test
+                Assert.True(result.Success);
+                Assert.Empty(result.Errors);
+                var addUserResult = result.Value;
+                Assert.NotNull(addUserResult);
+                Assert.Equal(existingUser.Id, addUserResult.Id);
+                Assert.Equal(existingUser.Name, addUserResult.Name);
+                Assert.Equal(existingUser.SiteRole, addUserResult.SiteRole);
+                Assert.Equal(existingUser.AuthSetting, addUserResult.AuthSetting);
+            }
+
         }
 
         public class UpdateUserAsync : UsersApiClientTest
