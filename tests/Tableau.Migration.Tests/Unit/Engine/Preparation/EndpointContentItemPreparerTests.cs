@@ -25,15 +25,15 @@ namespace Tableau.Migration.Tests.Unit.Engine.Preparation
 {
     public class EndpointContentItemPreparerTests
     {
-        public class PullAsync : ContentItemPreparerTestBase<TestPublishType>
+        public class PullAsync : ContentItemPreparerTestBase<TestContentType, TestPublishType>
         {
             private readonly Mock<ISourceEndpoint> _mockSourceEndpoint;
-            private readonly EndpointContentItemPreparer<TestContentType, TestPublishType> _preparer;
+            private readonly EndpointContentItemPreparer<TestContentType, TestPublishType, TestPublishType> _preparer;
 
             public PullAsync()
             {
                 _mockSourceEndpoint = Freeze<Mock<ISourceEndpoint>>();
-                _preparer = Create<EndpointContentItemPreparer<TestContentType, TestPublishType>>();
+                _preparer = Create<EndpointContentItemPreparer<TestContentType, TestPublishType, TestPublishType>>();
             }
 
             [Fact]

@@ -87,12 +87,12 @@ namespace Tableau.Migration.Content.Files
         #region - IContentFileStore Implementation -
 
         /// <inheritdoc />
-        public IContentFileHandle Create(string relativeStorePath, string originalFileName)
-            => new EncryptedFileHandle(this, _innerStore.Create(relativeStorePath, originalFileName));
+        public IContentFileHandle Create(string relativeStorePath, string originalFileName, bool? zipFormatOverride = null)
+            => new EncryptedFileHandle(this, _innerStore.Create(relativeStorePath, originalFileName, zipFormatOverride));
 
         /// <inheritdoc />
-        public IContentFileHandle Create<TContent>(TContent contentItem, string originalFileName)
-            => new EncryptedFileHandle(this, _innerStore.Create(contentItem, originalFileName));
+        public IContentFileHandle Create<TContent>(TContent contentItem, string originalFileName, bool? zipFormatOverride = null)
+            => new EncryptedFileHandle(this, _innerStore.Create(contentItem, originalFileName, zipFormatOverride));
 
         /// <inheritdoc />
         public async Task DeleteAsync(IContentFileHandle handle, CancellationToken cancel)
@@ -101,8 +101,8 @@ namespace Tableau.Migration.Content.Files
 
         /// <inheritdoc />
         public async Task<ITableauFileEditor> GetTableauFileEditorAsync(IContentFileHandle handle,
-            CancellationToken cancel, bool? zipFormatOverride = null)
-            => await _innerStore.GetTableauFileEditorAsync(handle, cancel, zipFormatOverride).ConfigureAwait(false);
+            CancellationToken cancel)
+            => await _innerStore.GetTableauFileEditorAsync(handle, cancel).ConfigureAwait(false);
 
         /// <inheritdoc />
         public async Task CloseTableauFileEditorAsync(IContentFileHandle handle, CancellationToken cancel)

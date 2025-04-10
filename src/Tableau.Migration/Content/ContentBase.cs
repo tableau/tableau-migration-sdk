@@ -74,7 +74,7 @@ namespace Tableau.Migration.Content
         /// <inheritdoc/>
         public bool Equals(IContentReference? other)
         {
-            if (other == null && GetType() != other!.GetType())
+            if (other is null || GetType() != other.GetType())
                 return false;
 
             return Id.Equals(other.Id) && (ContentUrlComparer.Compare(ContentUrl, other.ContentUrl) == 0) && Location.Equals(other.Location) && Name.Equals(other.Name);
@@ -83,14 +83,10 @@ namespace Tableau.Migration.Content
         /// <inheritdoc/>
         public override bool Equals(object? obj)
         {
-            if (obj == null)
+            if (obj is null || !(obj is ContentBase contentBaseObj))
                 return false;
 
-            ContentBase? contentBaseObj = obj as ContentBase;
-            if (contentBaseObj == null)
-                return false;
-            else
-                return Equals(contentBaseObj);
+            return Equals(contentBaseObj);
         }
 
         /// <inheritdoc/>
@@ -98,7 +94,6 @@ namespace Tableau.Migration.Content
         {
             return HashCode.Combine(Id, ContentUrl, Location, Name);
         }
-
 
         /// <inheritdoc/>
         public static bool operator ==(ContentBase? a, ContentBase? b)

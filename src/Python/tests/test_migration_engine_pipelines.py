@@ -1,5 +1,6 @@
 # region _generated
 
+from tableau_migration.migration import PyPipelineProfile # noqa: E402, F401
 from typing import Sequence # noqa: E402, F401
 from typing_extensions import Self # noqa: E402, F401
 
@@ -56,20 +57,50 @@ class TestPyMigrationPipelineContentTypeGenerated(AutoFixtureTestBase):
         py = PyMigrationPipelineContentType(dotnet)
         assert py.get_views() == None if MigrationPipelineContentType.Views is None else PyMigrationPipelineContentType(MigrationPipelineContentType.Views)
     
+    def test_server_to_server_extract_refresh_tasks_getter(self):
+        dotnet = self.create(MigrationPipelineContentType)
+        py = PyMigrationPipelineContentType(dotnet)
+        assert py.get_server_to_server_extract_refresh_tasks() == None if MigrationPipelineContentType.ServerToServerExtractRefreshTasks is None else PyMigrationPipelineContentType(MigrationPipelineContentType.ServerToServerExtractRefreshTasks)
+    
     def test_server_to_cloud_extract_refresh_tasks_getter(self):
         dotnet = self.create(MigrationPipelineContentType)
         py = PyMigrationPipelineContentType(dotnet)
         assert py.get_server_to_cloud_extract_refresh_tasks() == None if MigrationPipelineContentType.ServerToCloudExtractRefreshTasks is None else PyMigrationPipelineContentType(MigrationPipelineContentType.ServerToCloudExtractRefreshTasks)
+    
+    def test_cloud_to_cloud_extract_refresh_tasks_getter(self):
+        dotnet = self.create(MigrationPipelineContentType)
+        py = PyMigrationPipelineContentType(dotnet)
+        assert py.get_cloud_to_cloud_extract_refresh_tasks() == None if MigrationPipelineContentType.CloudToCloudExtractRefreshTasks is None else PyMigrationPipelineContentType(MigrationPipelineContentType.CloudToCloudExtractRefreshTasks)
     
     def test_custom_views_getter(self):
         dotnet = self.create(MigrationPipelineContentType)
         py = PyMigrationPipelineContentType(dotnet)
         assert py.get_custom_views() == None if MigrationPipelineContentType.CustomViews is None else PyMigrationPipelineContentType(MigrationPipelineContentType.CustomViews)
     
+    def test_server_to_server_subscriptions_getter(self):
+        dotnet = self.create(MigrationPipelineContentType)
+        py = PyMigrationPipelineContentType(dotnet)
+        assert py.get_server_to_server_subscriptions() == None if MigrationPipelineContentType.ServerToServerSubscriptions is None else PyMigrationPipelineContentType(MigrationPipelineContentType.ServerToServerSubscriptions)
+    
+    def test_server_to_cloud_subscriptions_getter(self):
+        dotnet = self.create(MigrationPipelineContentType)
+        py = PyMigrationPipelineContentType(dotnet)
+        assert py.get_server_to_cloud_subscriptions() == None if MigrationPipelineContentType.ServerToCloudSubscriptions is None else PyMigrationPipelineContentType(MigrationPipelineContentType.ServerToCloudSubscriptions)
+    
+    def test_cloud_to_cloud_subscriptions_getter(self):
+        dotnet = self.create(MigrationPipelineContentType)
+        py = PyMigrationPipelineContentType(dotnet)
+        assert py.get_cloud_to_cloud_subscriptions() == None if MigrationPipelineContentType.CloudToCloudSubscriptions is None else PyMigrationPipelineContentType(MigrationPipelineContentType.CloudToCloudSubscriptions)
+    
     def test_content_type_getter(self):
         dotnet = self.create(MigrationPipelineContentType)
         py = PyMigrationPipelineContentType(dotnet)
         assert py.content_type == dotnet.ContentType
+    
+    def test_prepare_type_getter(self):
+        dotnet = self.create(MigrationPipelineContentType)
+        py = PyMigrationPipelineContentType(dotnet)
+        assert py.prepare_type == dotnet.PrepareType
     
     def test_publish_type_getter(self):
         dotnet = self.create(MigrationPipelineContentType)

@@ -2,36 +2,58 @@
 name: .Net Test Workflow
 
 on:
-  workflow_call:
+    workflow_call:
 
 env:
-  MIGRATIONSDK_BUILD_DOCS: 'no'
-  MIGRATIONSDK_SKIP_GITHUB_RUNNER_TESTS: ${{ vars.MIGRATIONSDK_SKIP_GITHUB_RUNNER_TESTS }}
-  MIGRATIONSDK_SKIP_FLAKY_TESTS: ${{ vars.MIGRATIONSDK_SKIP_FLAKY_TESTS }}
-  MIGRATIONSDK_TEST_CANCELLATION_TIMEOUT_TIMESPAN: ${{ vars.MIGRATIONSDK_TEST_CANCELLATION_TIMEOUT_TIMESPAN }}
+    MIGRATIONSDK_BUILD_DOCS: 'no'
+    MIGRATIONSDK_SKIP_GITHUB_RUNNER_TESTS: ${{ vars.MIGRATIONSDK_SKIP_GITHUB_RUNNER_TESTS }}
+    MIGRATIONSDK_SKIP_FLAKY_TESTS: ${{ vars.MIGRATIONSDK_SKIP_FLAKY_TESTS }}
+    MIGRATIONSDK_TEST_CANCELLATION_TIMEOUT_TIMESPAN: ${{ vars.MIGRATIONSDK_TEST_CANCELLATION_TIMEOUT_TIMESPAN }}
 
 jobs:
-  test:
-    strategy:
-      fail-fast: false
-      matrix:
-        os: ${{ fromJSON(vars.BUILD_OS) }}
-        config: ${{ fromJSON(vars.BUILD_CONFIGURATIONS) }}
-    runs-on: ${{ matrix.os }}
-    name: .Net Test ${{ matrix.os }}, ${{ matrix.config }}
-    steps:
-    - uses: actions/checkout@v4
-    - uses: ./.github/actions/setup-dotnet
-    - name: Build solution with ${{ matrix.config }} configuration
-      run: dotnet build '${{ vars.BUILD_SOLUTION }}' -c ${{ matrix.config }}
-    - name: Test solution with ${{ matrix.config }} configuration
-      run: |
-        dotnet test '${{ vars.BUILD_SOLUTION }}' --no-build -c ${{ matrix.config }} --verbosity normal --logger junit --results-directory "TestResults-${{ matrix.os }}-${{ matrix.config }}" -- RunConfiguration.TestSessionTimeout=${{ vars.MIGRATIONSDK_TEST_CANCELLATION_TIMEOUT_MILLISECONDS }}
-    - name: Upload test results
-      # Use always() to always run this step to publish test results when there are test failures
-      if: ${{ always() }}
-      uses: actions/upload-artifact@v4
-      with:
-        name: dotnet-results-${{ matrix.os }}-${{ matrix.config }}
-        path: TestResults-${{ matrix.os }}-${{ matrix.config }}
-        if-no-files-found: error
+    test:
+        strategy:
+            fail-fast: false
+            matrix:
+                os: ${{ fromJSON(vars.BUILD_OS) }}
+                config: ${{ fromJSON(vars.BUILD_CONFIGURATIONS) }}
+        runs-on: ${{ matrix.os }}
+        name: .Net Test ${{ matrix.os }}, ${{ matrix.config }}
+        steps:
+            # Checkout the repository
+            - uses: actions/checkout@v4
+            
+            # Setup .NET environment
+            - uses: ./.github/actions/setup-dotnet
+  
+            # Restore Tools (i.e. report generator)
+            - name: Restore .NET Tools
+              run: dotnet tool restore
+            
+            # Build the solution
+            - name: Build Solution with ${{ matrix.config }} configuration
+              run: dotnet build '${{ vars.BUILD_SOLUTION }}' -c ${{ matrix.config }}
+            
+            # Test the solution
+            - name: Test Solution with ${{ matrix.config }} Configuration
+              run: |
+                  dotnet test '${{ vars.BUILD_SOLUTION }}' --no-build -c ${{ matrix.config }} --verbosity normal --collect:"XPlat Code Coverage" --logger junit --results-directory "TestResults-${{ matrix.os }}-${{ matrix.config }}" -- RunConfiguration.TestSessionTimeout=${{ vars.MIGRATIONSDK_TEST_CANCELLATION_TIMEOUT_MILLISECONDS }}
+            
+            # Build code coverage reports
+            - name: Build Coverage Summary
+              run: dotnet reportgenerator -reports:"TestResults-${{ matrix.os }}-${{ matrix.config }}/*/coverage.cobertura.xml" -targetdir:"TestResults-${{ matrix.os }}-${{ matrix.config }}/coverage-reports" -reporttypes:"Html;MarkdownSummaryGithub"
+
+            # Create job summary
+            - name: Set Job Summary
+              run: cat "TestResults-${{ matrix.os }}-${{ matrix.config }}/coverage-reports/SummaryGithub.md" >> $GITHUB_STEP_SUMMARY
+              shell: bash
+
+            # Upload test results
+            - name: Upload Test Results
+              # Use always() to always run this step to publish test results when there are test failures
+              if: ${{ always() }}
+              uses: actions/upload-artifact@v4
+              with:
+                  name: dotnet-results-${{ matrix.os }}-${{ matrix.config }}
+                  path: TestResults-${{ matrix.os }}-${{ matrix.config }}
+                  if-no-files-found: error

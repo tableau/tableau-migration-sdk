@@ -28,7 +28,7 @@ using Tableau.Migration.Net;
 
 namespace Tableau.Migration.Api.Simulation.Rest.Net.Responses
 {
-    internal class RestDefaultPermissionsCreateResponseBuilder : RestApiResponseBuilderBase<PermissionsResponse>
+    internal class RestDefaultPermissionsCreateResponseBuilder : RestResponseBuilderBase<PermissionsResponse>
     {
         private static readonly string UrlPrefix = RestUrlPrefixes.Projects;
 

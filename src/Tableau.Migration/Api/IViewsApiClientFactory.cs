@@ -23,7 +23,7 @@ namespace Tableau.Migration.Api
     public interface IViewsApiClientFactory
     {
         /// <summary>
-        /// 
+        /// Creates the <see cref="IViewsApiClient"/> object.
         /// </summary>
         /// <returns></returns>
         IViewsApiClient Create();

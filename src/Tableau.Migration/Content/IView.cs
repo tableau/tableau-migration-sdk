@@ -20,6 +20,13 @@ namespace Tableau.Migration.Content
     /// <summary>
     /// Interface for view associated with the content item.
     /// </summary>
-    public interface IView : IWithTags, IPermissionsContent
-    { }
+    public interface IView :
+        IWithTags,
+        IPermissionsContent
+    {
+        /// <summary>
+        /// Gets the parent workbook of the view.
+        /// </summary>
+        IContentReference ParentWorkbook { get; }
+    }
 }

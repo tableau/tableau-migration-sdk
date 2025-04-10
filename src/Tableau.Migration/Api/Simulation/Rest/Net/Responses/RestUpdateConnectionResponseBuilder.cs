@@ -30,7 +30,7 @@ using Tableau.Migration.Net;
 
 namespace Tableau.Migration.Api.Simulation.Rest.Net.Responses
 {
-    internal class RestUpdateConnectionResponseBuilder<TSimulatedData> : RestApiResponseBuilderBase<ConnectionResponse>
+    internal class RestUpdateConnectionResponseBuilder<TSimulatedData> : RestResponseBuilderBase<ConnectionResponse>
         where TSimulatedData : SimulatedDataWithConnections
     {
         private readonly string ContentTypeUrlPrefix = string.Empty;

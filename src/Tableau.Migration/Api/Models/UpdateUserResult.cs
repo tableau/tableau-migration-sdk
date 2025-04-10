@@ -15,7 +15,9 @@
 //  limitations under the License.
 //
 
+using Tableau.Migration.Api.Rest.Models;
 using Tableau.Migration.Api.Rest.Models.Responses;
+using Tableau.Migration.Content;
 
 namespace Tableau.Migration.Api.Models
 {
@@ -34,7 +36,7 @@ namespace Tableau.Migration.Api.Models
         public string SiteRole { get; }
 
         /// <inheritdoc/>
-        public string AuthSetting { get; }
+        public UserAuthenticationType Authentication { get; }
 
         public UpdateUserResult(UpdateUserResponse response)
         {
@@ -44,7 +46,8 @@ namespace Tableau.Migration.Api.Models
             FullName = user.FullName;
             Email = user.Email;
             SiteRole = Guard.AgainstNullEmptyOrWhiteSpace(user.SiteRole, () => response.Item.SiteRole);
-            AuthSetting = Guard.AgainstNullEmptyOrWhiteSpace(user.AuthSetting, () => response.Item.AuthSetting);
+
+            Authentication = response.Item.GetAuthenticationType();
         }
     }
 }

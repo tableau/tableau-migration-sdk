@@ -21,10 +21,12 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using AutoFixture;
+using Microsoft.Extensions.Logging;
 using Moq;
 using Tableau.Migration.Content;
 using Tableau.Migration.Engine.Hooks;
 using Tableau.Migration.Engine.Hooks.Mappings;
+using Tableau.Migration.Resources;
 using Xunit;
 
 namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Mappings
@@ -36,9 +38,9 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Mappings
         private class TestMapping : IContentMapping<IUser>
         {
             private readonly List<ContentMappingContext<IUser>> _contexts;
-            private readonly ContentMappingContext<IUser> _result;
+            private readonly ContentMappingContext<IUser>? _result;
 
-            public TestMapping(List<ContentMappingContext<IUser>> contexts, ContentMappingContext<IUser> result)
+            public TestMapping(List<ContentMappingContext<IUser>> contexts, ContentMappingContext<IUser>? result)
             {
                 _contexts = contexts;
                 _result = result;
@@ -63,6 +65,8 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Mappings
 
             private readonly IMigrationPlan _plan;
 
+            private readonly Mock<ILogger<ContentMappingRunner>> _mockLogger = new();
+
             private readonly ContentMappingRunner _runner;
 
             public ExecuteAsync()
@@ -86,10 +90,12 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Mappings
 
                 _runner = new(
                     _plan,
-                    new Mock<IServiceProvider>().Object);
+                    new Mock<IServiceProvider>().Object,
+                    new Mock<ISharedResourcesLocalizer>().Object,
+                    _mockLogger.Object);
             }
 
-            private void AddMappingWithResult(ContentMappingContext<IUser> result)
+            private void AddMappingWithResult(ContentMappingContext<IUser>? result)
             {
                 var mapping = new TestMapping(_mappingExecutionContexts, result);
 
@@ -116,6 +122,28 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Mappings
                 // Asserts
                 Assert.Equal(ctx3, result);
                 Assert.Equal(new[] { input, ctx1, ctx2 }, _mappingExecutionContexts);
+
+                _mockLogger.VerifyLogging(LogLevel.Debug, Times.AtLeastOnce());
+            }
+
+            [Fact]
+            public async Task NullResultReturnsInputAsync()
+            {
+                // Arrange
+                AddMappingWithResult(null);
+                AddMappingWithResult(null);
+                AddMappingWithResult(null);
+
+                var input = Create<ContentMappingContext<IUser>>();
+
+                // Act
+                var result = await _runner.ExecuteAsync<IUser>(input, default);
+
+                // Asserts
+                Assert.Same(input, result);
+
+                // Verify logging was never called as the test mapping doesn't do anything
+                _mockLogger.VerifyLogging(LogLevel.Debug, Times.Never());
             }
         }
 

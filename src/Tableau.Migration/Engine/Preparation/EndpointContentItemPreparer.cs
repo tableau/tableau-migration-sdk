@@ -20,6 +20,8 @@ using System.Threading.Tasks;
 using Tableau.Migration.Engine.Endpoints;
 using Tableau.Migration.Engine.Endpoints.Search;
 using Tableau.Migration.Engine.Hooks.Transformers;
+using Tableau.Migration.Engine.Pipelines;
+using Tableau.Migration.Resources;
 
 namespace Tableau.Migration.Engine.Preparation
 {
@@ -28,31 +30,37 @@ namespace Tableau.Migration.Engine.Preparation
     /// the publish item from the source endpoint.
     /// </summary>
     /// <typeparam name="TContent"><inheritdoc /></typeparam>
+    /// <typeparam name="TPrepare"><inheritdoc /></typeparam>
     /// <typeparam name="TPublish"><inheritdoc /></typeparam>
-    public class EndpointContentItemPreparer<TContent, TPublish> : ContentItemPreparerBase<TContent, TPublish>
+    public class EndpointContentItemPreparer<TContent, TPrepare, TPublish> : ContentItemPreparerBase<TContent, TPrepare, TPublish>
+        where TPrepare : class
         where TPublish : class
     {
         private readonly ISourceEndpoint _source;
 
         /// <summary>
-        /// Creates a new <see cref="EndpointContentItemPreparer{TContent, TPublish}"/> object.
+        /// Creates a new <see cref="EndpointContentItemPreparer{TContent, TPrepare, TPublish}"/> object.
         /// </summary>
         /// <param name="source">The source endpoint.</param>
+        /// <param name="pipeline"><inheritdoc /></param>
         /// <param name="transformerRunner"><inheritdoc /></param>
         /// <param name="destinationFinderFactory"><inheritdoc /></param>
+        /// <param name="localizer"><inheritdoc /></param>
         public EndpointContentItemPreparer(
             ISourceEndpoint source,
-            IContentTransformerRunner transformerRunner, 
-            IDestinationContentReferenceFinderFactory destinationFinderFactory)
-            : base(transformerRunner, destinationFinderFactory)
+            IMigrationPipeline pipeline,
+            IContentTransformerRunner transformerRunner,
+            IDestinationContentReferenceFinderFactory destinationFinderFactory,
+            ISharedResourcesLocalizer localizer)
+            : base(pipeline, transformerRunner, destinationFinderFactory, localizer)
         {
             _source = source;
         }
 
         /// <inheritdoc />
-        protected override async Task<IResult<TPublish>> PullAsync(ContentMigrationItem<TContent> item, CancellationToken cancel)
+        protected override async Task<IResult<TPrepare>> PullAsync(ContentMigrationItem<TContent> item, CancellationToken cancel)
         {
-            return await _source.PullAsync<TContent, TPublish>(item.SourceItem, cancel).ConfigureAwait(false);
+            return await _source.PullAsync<TContent, TPrepare>(item.SourceItem, cancel).ConfigureAwait(false);
         }
     }
 }

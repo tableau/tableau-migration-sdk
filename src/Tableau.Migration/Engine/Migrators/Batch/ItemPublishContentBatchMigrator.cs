@@ -27,11 +27,13 @@ namespace Tableau.Migration.Engine.Migrators.Batch
     /// <summary>
     /// <see cref="IContentBatchMigrator{TContent}"/> implementation that publishes items one-by-one.
     /// </summary>
-    /// <typeparam name="TContent">The content type.</typeparam>
-    /// <typeparam name="TPublish">The publish type.</typeparam>
+    /// <typeparam name="TContent"><inheritdoc /></typeparam>
+    /// <typeparam name="TPrepare"><inheritdoc /></typeparam>
+    /// <typeparam name="TPublish"><inheritdoc /></typeparam>
     /// <typeparam name="TResult">The post-publish result type.</typeparam>
-    public class ItemPublishContentBatchMigrator<TContent, TPublish, TResult> : ParallelContentBatchMigratorBatchBase<TContent, TPublish>
+    public class ItemPublishContentBatchMigrator<TContent, TPrepare, TPublish, TResult> : ParallelContentBatchMigratorBatchBase<TContent, TPrepare, TPublish>
         where TContent : class, IContentReference
+        where TPrepare : class
         where TPublish : class
         where TResult : class, IContentReference
     {
@@ -39,7 +41,7 @@ namespace Tableau.Migration.Engine.Migrators.Batch
         private readonly IMigrationHookRunner _hookRunner;
 
         /// <summary>
-        /// Creates a new <see cref="ItemPublishContentBatchMigrator{TContent, TPublish, TResult}"/> object.
+        /// Creates a new <see cref="ItemPublishContentBatchMigrator{TContent, TPrepare, TPublish, TResult}"/> object.
         /// </summary>
         /// <param name="migration">The current migration.</param>
         /// <param name="pipeline">The pipeline to use to get the item preparer.</param>
@@ -81,9 +83,11 @@ namespace Tableau.Migration.Engine.Migrators.Batch
     /// </summary>
     /// <typeparam name="TContent"><inheritdoc /></typeparam>
     /// <typeparam name="TPublish"><inheritdoc /></typeparam>
-    public class ItemPublishContentBatchMigrator<TContent, TPublish> : ItemPublishContentBatchMigrator<TContent, TPublish, TContent>
+    /// <typeparam name="TResult"><inheritdoc /></typeparam>
+    public class ItemPublishContentBatchMigrator<TContent, TPublish, TResult> : ItemPublishContentBatchMigrator<TContent, TPublish, TPublish, TResult>
         where TContent : class, IContentReference
         where TPublish : class
+        where TResult : class, IContentReference
     {
         /// <summary>
         /// Creates a new <see cref="ItemPublishContentBatchMigrator{TContent}"/> object.
@@ -100,8 +104,29 @@ namespace Tableau.Migration.Engine.Migrators.Batch
     /// <summary>
     /// <see cref="IContentBatchMigrator{TContent}"/> implementation that publishes items one-by-one.
     /// </summary>
-    /// <typeparam name="TContent">The content type.</typeparam>
-    public class ItemPublishContentBatchMigrator<TContent> : ItemPublishContentBatchMigrator<TContent, TContent, TContent>
+    /// <typeparam name="TContent"><inheritdoc /></typeparam>
+    /// <typeparam name="TPrepare"><inheritdoc /></typeparam>
+    public class ItemPublishContentBatchMigrator<TContent, TPrepare> : ItemPublishContentBatchMigrator<TContent, TPrepare, TPrepare, TContent>
+        where TContent : class, IContentReference
+        where TPrepare : class
+    {
+        /// <summary>
+        /// Creates a new <see cref="ItemPublishContentBatchMigrator{TContent}"/> object.
+        /// </summary>
+        /// <param name="migration">The current migration.</param>
+        /// <param name="pipeline">The pipeline to use to get the item preparer.</param>
+        /// <param name="configReader">The configuration reader.</param>
+        /// <param name="hookRunner">The hook runner.</param>
+        public ItemPublishContentBatchMigrator(IMigration migration, IMigrationPipeline pipeline, IConfigReader configReader, IMigrationHookRunner hookRunner)
+            : base(migration, pipeline, configReader, hookRunner)
+        { }
+    }
+
+    /// <summary>
+    /// <see cref="IContentBatchMigrator{TContent}"/> implementation that publishes items one-by-one.
+    /// </summary>
+    /// <typeparam name="TContent"><inheritdoc /></typeparam>
+    public class ItemPublishContentBatchMigrator<TContent> : ItemPublishContentBatchMigrator<TContent, TContent, TContent, TContent>
         where TContent : class, IContentReference
     {
         /// <summary>

@@ -28,7 +28,8 @@ namespace Tableau.Migration.Api.Models
     /// </summary>
     /// <param name="Filename">The server provided filename of the file to download.</param>
     /// <param name="Content">The stream with the file content to download from.</param>
-    public record FileDownload(string? Filename, Stream Content) : IAsyncDisposable
+    /// <param name="IsZipFile">Whether or not the file is in a ZIP format (e.g. tdsx/twbx), or null if the zip file status could not be determined.</param>
+    public record FileDownload(string? Filename, Stream Content, bool? IsZipFile) : IAsyncDisposable
     {
         /// <summary>
         /// Performs application-defined tasks associated with freeing, releasing, or resetting

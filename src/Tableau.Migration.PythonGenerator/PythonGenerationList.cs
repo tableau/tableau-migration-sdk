@@ -47,6 +47,7 @@ namespace Tableau.Migration.PythonGenerator
             typeof(IContentReference),
             typeof(IResult),
             typeof(MigrationCompletionStatus),
+            typeof(PipelineProfile),
 
         #endregion
 
@@ -87,6 +88,11 @@ namespace Tableau.Migration.PythonGenerator
             typeof(IWithWorkbook),
             typeof(ICustomView),
             typeof(IPublishableCustomView),
+            typeof(ISubscriptionContent),
+            typeof(IServerSubscription),
+            typeof(ICloudSubscription),
+            typeof(ISubscription<>),
+            typeof(UserAuthenticationType),
 
         #endregion
 
@@ -103,7 +109,7 @@ namespace Tableau.Migration.PythonGenerator
         #endregion
 
         #region - Tableau.Migration.Engine.Hooks.PostPublish  -
-            
+
             typeof(BulkPostPublishContext<>),
             typeof(ContentItemPostPublishContext<,>),
 

@@ -42,5 +42,25 @@ namespace Tableau.Migration
 
             return false;
         }
+
+        internal static bool? BaseExceptionEquals(this Exception a, Exception? b)
+        {
+            if (b is null)
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(a, b))
+            {
+                return true;
+            }
+
+            if (a.GetType() != b.GetType() || !string.Equals(a.Message, b.Message, StringComparison.Ordinal))
+            {
+                return false;
+            }
+
+            return null;
+        }
     }
 }

@@ -70,16 +70,15 @@ namespace Tableau.Migration.Tests.Unit.Content.Files
             public async Task OpensFromStoreAsync()
             {
                 var editorStream = Freeze<ITableauFileXmlStream>();
-                //var storeEditor = Freeze<ITableauFileEditor>();
 
                 var stream = await Handle.GetXmlStreamAsync(Cancel);
 
                 Assert.Same(editorStream, stream);
-                MockFileStore.Verify(x => x.GetTableauFileEditorAsync(Handle, Cancel, null), Times.Once);
+                MockFileStore.Verify(x => x.GetTableauFileEditorAsync(Handle, Cancel), Times.Once);
             }
         }
 
-        public class DisposAsync : ContentFileHandleTest
+        public class DisposeAsync : ContentFileHandleTest
         {
             [Fact]
             public async Task DeletesFromStoreAsync()
@@ -97,6 +96,22 @@ namespace Tableau.Migration.Tests.Unit.Content.Files
 
                 MockFileStore.Verify(x => x.DeleteAsync(Handle, default), Times.Once);
             }
+        }
+
+        public class HasZipFilePath : ContentFileHandleTest
+        {
+            [Theory]
+            [InlineData("test.twbx", "", true)]
+            [InlineData("test.twb", "", false)]
+            [InlineData("", "test.twbx", true)]
+            [InlineData("", "test.twb", false)]
+            [InlineData("testtest", "test", null)]
+            public void ZipOriginalFilename(string path, string originalFileName, bool? expectedResult)
+            {
+                IContentFileHandle h = new ContentFileHandle(MockFileStore.Object, path, originalFileName, null);
+                Assert.Equal(expectedResult, h.HasZipFilePath);
+            }
+            
         }
     }
 }

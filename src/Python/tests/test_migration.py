@@ -164,11 +164,13 @@ from tableau_migration.migration import (  # noqa: E402, F401
     PyContentLocation,
     PyContentReference,
     PyMigrationCompletionStatus,
+    PyPipelineProfile,
     PyResult
 )
 
 
 from Tableau.Migration import MigrationCompletionStatus
+from Tableau.Migration import PipelineProfile
 
 # Extra imports for tests.
 from tests.helpers.autofixture import AutoFixtureTestBase # noqa: E402, F401

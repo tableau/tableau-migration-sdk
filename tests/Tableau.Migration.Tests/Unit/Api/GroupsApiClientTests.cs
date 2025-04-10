@@ -25,6 +25,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Moq;
 using Tableau.Migration.Api;
+using Tableau.Migration.Api.Rest;
 using Tableau.Migration.Api.Rest.Models;
 using Tableau.Migration.Api.Rest.Models.Requests;
 using Tableau.Migration.Api.Rest.Models.Responses;
@@ -335,7 +336,7 @@ namespace Tableau.Migration.Tests.Unit.Api
                 {
                     Error = new Error
                     {
-                        Code = GroupsApiClient.GROUP_NAME_CONFLICT_ERROR_CODE
+                        Code = RestErrorCodes.GROUP_NAME_CONFLICT_ERROR_CODE
                     }
                 };
 
@@ -380,7 +381,7 @@ namespace Tableau.Migration.Tests.Unit.Api
                 {
                     Error = new Error
                     {
-                        Code = GroupsApiClient.GROUP_NAME_CONFLICT_ERROR_CODE
+                        Code = RestErrorCodes.GROUP_NAME_CONFLICT_ERROR_CODE
                     }
                 };
 

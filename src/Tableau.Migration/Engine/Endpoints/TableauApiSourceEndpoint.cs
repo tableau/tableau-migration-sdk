@@ -18,6 +18,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Tableau.Migration.Content.Files;
 using Tableau.Migration.Engine.Endpoints.Search;
 using Tableau.Migration.Resources;
@@ -36,20 +37,22 @@ namespace Tableau.Migration.Engine.Endpoints
         /// <param name="config">The configuration options for connecting to the source endpoint APIs.</param>
         /// <param name="finderFactory">A source manifest finder factory.</param>
         /// <param name="fileStore">The file store to use.</param>
+        /// <param name="loggerFactory">The logger factory to use.</param>
         /// <param name="localizer">A string localizer.</param>
         public TableauApiSourceEndpoint(IServiceScopeFactory serviceScopeFactory,
             ITableauApiEndpointConfiguration config,
             ISourceContentReferenceFinderFactory finderFactory,
             IContentFileStore fileStore,
+            ILoggerFactory loggerFactory,
             ISharedResourcesLocalizer localizer)
-            : base(serviceScopeFactory, config, finderFactory, fileStore, localizer)
+            : base(serviceScopeFactory, config, finderFactory, fileStore, loggerFactory, localizer)
         { }
 
         /// <inheritdoc />
-        public async Task<IResult<TPublish>> PullAsync<TContent, TPublish>(TContent contentItem, CancellationToken cancel)
-            where TPublish : class
+        public async Task<IResult<TPrepare>> PullAsync<TContent, TPrepare>(TContent contentItem, CancellationToken cancel)
+            where TPrepare : class
         {
-            var apiClient = SiteApi.GetPullApiClient<TContent, TPublish>();
+            var apiClient = SiteApi.GetPullApiClient<TContent, TPrepare>();
             return await apiClient.PullAsync(contentItem, cancel).ConfigureAwait(false);
         }
     }

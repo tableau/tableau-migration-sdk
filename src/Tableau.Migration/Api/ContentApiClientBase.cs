@@ -15,6 +15,7 @@
 //  limitations under the License.
 //
 
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
@@ -46,11 +47,13 @@ namespace Tableau.Migration.Api
             ContentFinderFactory = finderFactory;
         }
 
+        #region - Find Project Methods -
+
         protected async Task<IContentReference?> FindProjectAsync<T>(
-            [NotNull] T? response,
+            T response,
             [DoesNotReturnIf(true)] bool throwIfNotFound,
             CancellationToken cancel)
-            where T : IWithProjectType, IRestIdentifiable
+            where T : IWithProjectReferenceType, IRestIdentifiable
             => await ContentFinderFactory
                 .FindProjectAsync(
                     response,
@@ -60,8 +63,25 @@ namespace Tableau.Migration.Api
                     cancel)
                 .ConfigureAwait(false);
 
+        protected async Task<IContentReference?> FindProjectByIdAsync(
+            Guid id,
+            [DoesNotReturnIf(true)] bool throwIfNotFound,
+            CancellationToken cancel)
+            => await ContentFinderFactory
+                .FindProjectByIdAsync(
+                    id,
+                    Logger,
+                    SharedResourcesLocalizer,
+                    throwIfNotFound,
+                    cancel)
+                .ConfigureAwait(false);
+
+        #endregion - Find Project Methods -
+
+        #region - Find User Methods -
+
         protected async Task<IContentReference?> FindUserAsync<T>(
-            [NotNull] T? response,
+            T response,
             [DoesNotReturnIf(true)] bool throwIfNotFound,
             CancellationToken cancel)
             where T : IRestIdentifiable
@@ -74,8 +94,12 @@ namespace Tableau.Migration.Api
                     cancel)
                 .ConfigureAwait(false);
 
+        #endregion
+
+        #region - Find Owner Methods -
+
         protected async Task<IContentReference?> FindOwnerAsync<T>(
-            [NotNull] T? response,
+            T response,
             [DoesNotReturnIf(true)] bool throwIfNotFound,
             CancellationToken cancel)
             where T : IWithOwnerType, IRestIdentifiable
@@ -88,8 +112,12 @@ namespace Tableau.Migration.Api
                     cancel)
                 .ConfigureAwait(false);
 
+        #endregion - Find Owner Methods -
+
+        #region - Find Workbook Methods -
+
         protected async Task<IContentReference?> FindWorkbookAsync<T>(
-            [NotNull] T? response,
+            T response,
             [DoesNotReturnIf(true)] bool throwIfNotFound,
             CancellationToken cancel)
             where T : IWithWorkbookReferenceType, IRestIdentifiable
@@ -101,5 +129,20 @@ namespace Tableau.Migration.Api
                     throwIfNotFound,
                     cancel)
                 .ConfigureAwait(false);
+
+        protected async Task<IContentReference?> FindWorkbookByIdAsync(
+            Guid id,
+            [DoesNotReturnIf(true)] bool throwIfNotFound,
+            CancellationToken cancel)
+            => await ContentFinderFactory
+                .FindWorkbookByIdAsync(
+                    id,
+                    Logger,
+                    SharedResourcesLocalizer,
+                    throwIfNotFound,
+                    cancel)
+                .ConfigureAwait(false);
+
+        #endregion - Find Workbook Methods -
     }
 }

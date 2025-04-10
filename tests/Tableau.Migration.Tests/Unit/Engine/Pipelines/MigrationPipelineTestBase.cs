@@ -32,7 +32,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Pipelines
         protected readonly Mock<IDestinationApiEndpoint> MockDestinationEndpoint;
         protected readonly Mock<ISourceApiEndpoint> MockSourceEndpoint;
 
-        protected readonly TPipeline Pipeline;
+        public readonly TPipeline Pipeline;
 
         protected virtual TPipeline CreatePipeline()
             => Create<TPipeline>();

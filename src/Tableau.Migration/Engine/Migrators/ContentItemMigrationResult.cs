@@ -35,7 +35,7 @@ namespace Tableau.Migration.Engine.Migrators
         /// <inheritdoc />
         public IMigrationManifestEntry ManifestEntry { get; }
 
-        protected ContentItemMigrationResult(bool success, bool continueBatch, IMigrationManifestEntry manifestEntry, bool isCanceled, IEnumerable<Exception> errors)
+        protected ContentItemMigrationResult(bool success, bool continueBatch, IMigrationManifestEntry manifestEntry, bool isCanceled, params IEnumerable<Exception> errors)
             : base(success, errors)
         {
             ContinueBatch = continueBatch;
@@ -45,10 +45,6 @@ namespace Tableau.Migration.Engine.Migrators
 
         protected ContentItemMigrationResult(IResult baseResult, bool continueBatch, IMigrationManifestEntry manifestEntry, bool isCanceled)
             : this(baseResult.Success, continueBatch, manifestEntry, isCanceled, baseResult.Errors)
-        { }
-
-        protected ContentItemMigrationResult(bool success, bool continueBatch, IMigrationManifestEntry manifestEntry, bool isCanceled, params Exception[] errors)
-            : this(success, continueBatch, manifestEntry, isCanceled, (IEnumerable<Exception>)errors)
         { }
 
         /// <summary>

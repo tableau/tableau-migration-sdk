@@ -2,117 +2,128 @@
 name: Create Release Workflow
 
 on:
-  workflow_call:
-    inputs:
-      runs-on-config:
-        required: true
-        type: string
-      release-version:
-        required: true
-        type: string
-      is-pre-release:
-        required: true
-        type: boolean
+    workflow_call:
+        inputs:
+            runs-on-config:
+                required: true
+                type: string
+            release-version:
+                required: true
+                type: string
+            is-pre-release:
+                required: true
+                type: boolean
 
 jobs:
-  create-release:
-    runs-on: ${{ inputs.runs-on-config }}
-    name: Create a New Release
-    steps:
-    - name: Create Release
-      id: create-release
-      uses: actions/github-script@v7
-      env:
-        RELEASE_VERSION: ${{ inputs.release-version }}
-        IS_PRERELEASE: ${{ inputs.is-pre-release }}
-      with:
-        result-encoding: string
-        script: |
-          const { RELEASE_VERSION, IS_PRERELEASE } = process.env
+    create-release:
+        runs-on: ${{ inputs.runs-on-config }}
+        name: Create a New Release
+        steps:
+            - name: Create Release
+              id: create-release
+              uses: actions/github-script@v7
+              env:
+                  RELEASE_VERSION: ${{ inputs.release-version }}
+                  IS_PRERELEASE: ${{ inputs.is-pre-release }}
+              with:
+                  result-encoding: string
+                  script: |
+                      // Extract environment variables
+                      const { RELEASE_VERSION, IS_PRERELEASE } = process.env
 
-          const release_version = `release/${RELEASE_VERSION}`
-          const is_prerelease = IS_PRERELEASE === 'true'
+                      // Define release version and pre-release flag
+                      const release_version = `release/${RELEASE_VERSION}`
+                      const is_prerelease = IS_PRERELEASE === 'true'
 
-          const createReleaseResponse = await github.rest.repos.createRelease({
-            owner: context.repo.owner, // (Required) The account owner of the repository. The name is not case sensitive.
-            repo: context.repo.repo, // (Required) The name of the repository without the .git extension. The name is not case sensitive.
-            tag_name: release_version, // (Required) The name of the tag.
-            target_commitish: context.sha, // (Optional) Specifies the commitish value that determines where the Git tag is created from. Can be any branch or commit SHA. Unused if the Git tag already exists. Default: the repository's default branch.
-            name: release_version, // (Optional) The name of the release.
-            // body: '', // (Optional) Text describing the contents of the tag.
-            // draft: true, // (Optional) true to create a draft (unpublished) release, false to create a published one.
-            prerelease: is_prerelease, // (Optional) true to identify the release as a prerelease. false to identify the release as a full release.
-            // discussion_category_name: , // (Optional) If specified, a discussion of the specified category is created and linked to the release. The value must be a category that already exists in the repository. For more information, see "Managing categories for discussions in your repository."
-            // make_latest: false, // (Optional) Specifies whether this release should be set as the latest release for the repository. Drafts and prereleases cannot be set as latest. Defaults to true for newly published releases. legacy specifies that the latest release should be determined based on the release creation date and higher semantic version.
-            generate_release_notes: true // (Optional) Whether to automatically generate the name and body for this release. If name is specified, the specified name will be used; otherwise, a name will be automatically generated. If body is specified, the body will be pre-pended to the automatically generated notes.
-          })
+                      // Create a new release
+                      const createReleaseResponse = await github.rest.repos.createRelease({
+                          owner: context.repo.owner, // (Required) The account owner of the repository. The name is not case sensitive.
+                          repo: context.repo.repo, // (Required) The name of the repository without the .git extension. The name is not case sensitive.
+                          tag_name: release_version, // (Required) The name of the tag.
+                          target_commitish: context.sha, // (Optional) Specifies the commitish value that determines where the Git tag is created from. Can be any branch or commit SHA. Unused if the Git tag already exists. Default: the repository's default branch.
+                          name: release_version, // (Optional) The name of the release.
+                          // body: '', // (Optional) Text describing the contents of the tag.
+                          // draft: true, // (Optional) true to create a draft (unpublished) release, false to create a published one.
+                          prerelease: is_prerelease, // (Optional) true to identify the release as a prerelease. false to identify the release as a full release.
+                          // discussion_category_name: , // (Optional) If specified, a discussion of the specified category is created and linked to the release. The value must be a category that already exists in the repository. For more information, see "Managing categories for discussions in your repository."
+                          // make_latest: false, // (Optional) Specifies whether this release should be set as the latest release for the repository. Drafts and prereleases cannot be set as latest. Defaults to true for newly published releases. legacy specifies that the latest release should be determined based on the release creation date and higher semantic version.
+                          generate_release_notes: true // (Optional) Whether to automatically generate the name and body for this release. If name is specified, the specified name will be used; otherwise, a name will be automatically generated. If body is specified, the body will be pre-pended to the automatically generated notes.
+                      })
 
-          return createReleaseResponse.data.id
-    - uses: actions/download-artifact@v4
-      with:
-        name: docs
-    - uses: actions/download-artifact@v4
-      with:
-        name: nuget-package
-    - uses: actions/download-artifact@v4
-      with:
-        name: pypi-package
-    - name: Generate Bundle
-      run: |
-        zip -r bundle.zip ./Tableau.Migration.${{ inputs.release-version }}.nupkg docs.zip tableau_migration-pypi.zip
-    - name: Upload Release Assets
-      id: upload-docs
-      uses: actions/github-script@v7
-      env:
-        RELEASE_VERSION: ${{ inputs.release-version }}
-        RELEASE_ID: ${{ steps.create-release.outputs.result }}
-      with:
-        script: |
-          const fs = require('fs')
-        
-          const { RELEASE_VERSION, RELEASE_ID } = process.env
+                      // Return the release ID
+                      return createReleaseResponse.data.id
+            - uses: actions/download-artifact@v4
+              with:
+                  name: docs
+            - uses: actions/download-artifact@v4
+              with:
+                  name: nuget-package
+            - uses: actions/download-artifact@v4
+              with:
+                  name: pypi-package
+            - name: Generate Bundle
+              run: |
+                  zip -r bundle.zip ./Tableau.Migration.${{ inputs.release-version }}.nupkg docs.zip tableau_migration-pypi.zip
+            - name: Upload Release Assets
+              id: upload-docs
+              uses: actions/github-script@v7
+              env:
+                  RELEASE_VERSION: ${{ inputs.release-version }}
+                  RELEASE_ID: ${{ steps.create-release.outputs.result }}
+              with:
+                  script: |
+                      const fs = require('fs')
+                    
+                      // Extract environment variables
+                      const { RELEASE_VERSION, RELEASE_ID } = process.env
 
-          const nuget_package = `Tableau.Migration.${RELEASE_VERSION}.nupkg`
+                      // Define the NuGet package name
+                      const nuget_package = `Tableau.Migration.${RELEASE_VERSION}.nupkg`
 
-          const uploadDocsResponse = await await github.rest.repos.uploadReleaseAsset({
-            owner: context.repo.owner, // (Required) The account owner of the repository. The name is not case sensitive.
-            repo: context.repo.repo, // (Required) The name of the repository without the .git extension. The name is not case sensitive.
-            release_id: RELEASE_ID, // (Required) The unique identifier of the release.
-            name: 'docs.zip', // (Required)
-            label: 'Docs (zip)', // (Optional)
-            data: fs.readFileSync('./docs.zip') // (Optional) The raw file data.
-          })
+                      // Upload documentation zip file
+                      const uploadDocsResponse = await github.rest.repos.uploadReleaseAsset({
+                          owner: context.repo.owner, // (Required) The account owner of the repository. The name is not case sensitive.
+                          repo: context.repo.repo, // (Required) The name of the repository without the .git extension. The name is not case sensitive.
+                          release_id: RELEASE_ID, // (Required) The unique identifier of the release.
+                          name: 'docs.zip', // (Required)
+                          label: 'Docs (zip)', // (Optional)
+                          data: fs.readFileSync('./docs.zip') // (Optional) The raw file data.
+                      })
 
-          const uploadNugetResponse = await github.rest.repos.uploadReleaseAsset({
-            owner: context.repo.owner, // (Required) The account owner of the repository. The name is not case sensitive.
-            repo: context.repo.repo, // (Required) The name of the repository without the .git extension. The name is not case sensitive.
-            release_id: RELEASE_ID, // (Required) The unique identifier of the release.
-            name: 'Tableau.Migration.nupkg', // (Required)
-            label: 'Nuget Package (nupkg)', // (Optional)
-            data: fs.readFileSync(nuget_package) // (Optional) The raw file data.
-          })
+                      // Upload NuGet package
+                      const uploadNugetResponse = await github.rest.repos.uploadReleaseAsset({
+                          owner: context.repo.owner, // (Required) The account owner of the repository. The name is not case sensitive.
+                          repo: context.repo.repo, // (Required) The name of the repository without the .git extension. The name is not case sensitive.
+                          release_id: RELEASE_ID, // (Required) The unique identifier of the release.
+                          name: 'Tableau.Migration.nupkg', // (Required)
+                          label: 'Nuget Package (nupkg)', // (Optional)
+                          data: fs.readFileSync(nuget_package) // (Optional) The raw file data.
+                      })
 
-          const uploadPypiResponse = await github.rest.repos.uploadReleaseAsset({
-            owner: context.repo.owner, // (Required) The account owner of the repository. The name is not case sensitive.
-            repo: context.repo.repo, // (Required) The name of the repository without the .git extension. The name is not case sensitive.
-            release_id: RELEASE_ID, // (Required) The unique identifier of the release.
-            name: 'tableau_migration-pypi.zip', // (Required)
-            label: 'Pypi Package (zip)', // (Optional)
-            data: fs.readFileSync('./tableau_migration-pypi.zip') // (Optional) The raw file data.
-          })
+                      // Upload PyPI package
+                      const uploadPypiResponse = await github.rest.repos.uploadReleaseAsset({
+                          owner: context.repo.owner, // (Required) The account owner of the repository. The name is not case sensitive.
+                          repo: context.repo.repo, // (Required) The name of the repository without the .git extension. The name is not case sensitive.
+                          release_id: RELEASE_ID, // (Required) The unique identifier of the release.
+                          name: 'tableau_migration-pypi.zip', // (Required)
+                          label: 'Pypi Package (zip)', // (Optional)
+                          data: fs.readFileSync('./tableau_migration-pypi.zip') // (Optional) The raw file data.
+                      })
 
-          const uploadBundleResponse = await github.rest.repos.uploadReleaseAsset({
-            owner: context.repo.owner, // (Required) The account owner of the repository. The name is not case sensitive.
-            repo: context.repo.repo, // (Required) The name of the repository without the .git extension. The name is not case sensitive.
-            release_id: RELEASE_ID, // (Required) The unique identifier of the release.
-            name: 'bundle.zip', // (Required)
-            label: 'Bundle Package (zip)', // (Optional)
-            data: fs.readFileSync('./bundle.zip') // (Optional) The raw file data.
-          })
+                      // Upload bundle zip file
+                      const uploadBundleResponse = await github.rest.repos.uploadReleaseAsset({
+                          owner: context.repo.owner, // (Required) The account owner of the repository. The name is not case sensitive.
+                          repo: context.repo.repo, // (Required) The name of the repository without the .git extension. The name is not case sensitive.
+                          release_id: RELEASE_ID, // (Required) The unique identifier of the release.
+                          name: 'bundle.zip', // (Required)
+                          label: 'Bundle Package (zip)', // (Optional)
+                          data: fs.readFileSync('./bundle.zip') // (Optional) The raw file data.
+                      })
 
-          return {
-            docs: uploadDocsResponse.data,
-            nuget: uploadNugetResponse.data,
-            pypi: uploadPypiResponse.data,
-            bundle: uploadBundleResponse.data
-          }
+                      // Return the upload responses
+                      return {
+                          docs: uploadDocsResponse.data,
+                          nuget: uploadNugetResponse.data,
+                          pypi: uploadPypiResponse.data,
+                          bundle: uploadBundleResponse.data
+                      }

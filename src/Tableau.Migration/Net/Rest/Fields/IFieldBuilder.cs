@@ -15,6 +15,8 @@
 //  limitations under the License.
 //
 
+using System.Collections.Generic;
+
 namespace Tableau.Migration.Net.Rest.Fields
 {
     /// <summary>
@@ -44,7 +46,7 @@ namespace Tableau.Migration.Net.Rest.Fields
         /// </summary>
         /// <param name="fields">The fields to add.</param>
         /// <returns>The current <see cref="IFieldBuilder"/> instance.</returns>
-        IFieldBuilder AddFields(params Field[] fields);
+        IFieldBuilder AddFields(params IEnumerable<Field> fields);
 
         /// <summary>
         /// Builds the string value for the fields for use in query strings.

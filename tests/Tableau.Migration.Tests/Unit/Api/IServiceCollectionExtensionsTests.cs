@@ -19,6 +19,7 @@ using System.IO.Abstractions;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Tableau.Migration.Api;
+using Tableau.Migration.Api.EmbeddedCredentials;
 using Tableau.Migration.Api.Permissions;
 using Tableau.Migration.Api.Search;
 using Tableau.Migration.Api.Tags;
@@ -63,6 +64,7 @@ namespace Tableau.Migration.Tests.Unit.Api
                 await AssertServiceAsync<ITaskDelayer, TaskDelayer>(ServiceLifetime.Singleton);
                 await AssertServiceAsync<IPermissionsApiClientFactory, PermissionsApiClientFactory>(ServiceLifetime.Scoped);
                 await AssertServiceAsync<ITagsApiClientFactory, TagsApiClientFactory>(ServiceLifetime.Scoped);
+                await AssertServiceAsync<IEmbeddedCredentialsApiClientFactory, EmbeddedCredentialsApiClientFactory>(ServiceLifetime.Scoped);
             }
 
             [Fact]
@@ -105,6 +107,7 @@ namespace Tableau.Migration.Tests.Unit.Api
                 await using var scope = InitializeApiScope();
 
                 AssertService<IApiClient, ApiClient>(scope, ServiceLifetime.Scoped);
+                AssertService<IAuthenticationConfigurationsApiClient, AuthenticationConfigurationsApiClient>(scope, ServiceLifetime.Scoped);
                 AssertService<IDataSourcesApiClient, DataSourcesApiClient>(scope, ServiceLifetime.Scoped);
                 AssertService<IFlowsApiClient, FlowsApiClient>(scope, ServiceLifetime.Scoped);
                 AssertService<IGroupsApiClient, GroupsApiClient>(scope, ServiceLifetime.Scoped);

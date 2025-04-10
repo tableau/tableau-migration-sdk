@@ -50,7 +50,7 @@ namespace Tableau.Migration.Api.Tags
             _serializer = serializer;
         }
 
-        #region - ITagsApiClient<IDataSource> Implementation -
+        #region - ITagsApiClient Implementation -
 
         /// <inheritdoc />
         public async Task<IResult<IImmutableList<ITag>>> AddTagsAsync(Guid contentItemId, IEnumerable<ITag> tags, CancellationToken cancel)

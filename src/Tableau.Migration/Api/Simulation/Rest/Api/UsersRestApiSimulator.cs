@@ -17,6 +17,7 @@
 
 using System;
 using System.Linq;
+using Tableau.Migration.Api.Rest.Models.Requests;
 using Tableau.Migration.Api.Rest.Models.Responses;
 using Tableau.Migration.Api.Simulation.Rest.Net;
 using Tableau.Migration.Api.Simulation.Rest.Net.Requests;
@@ -58,6 +59,16 @@ namespace Tableau.Migration.Api.Simulation.Rest.Api
         public MethodSimulator UpdateUser { get; }
 
         /// <summary>
+        /// Gets the simulated retrieve saved credentials API method.
+        /// </summary>
+        public MethodSimulator RetrieveUserSavedCredentials { get; }
+
+        /// <summary>
+        /// Gets the simulated upload saved credentials API method.
+        /// </summary>
+        public MethodSimulator UploadUserSavedCredentials { get; }
+
+        /// <summary>
         /// Creates a new <see cref="UsersRestApiSimulator"/> object.
         /// </summary>
         /// <param name="simulator">A response simulator to setup with REST API methods.</param>
@@ -89,6 +100,36 @@ namespace Tableau.Migration.Api.Simulation.Rest.Api
             UpdateUser = simulator.SetupRestPut(
                 SiteEntityUrl("users"),
                 new RestUserUpdateResponseBuilder(simulator.Data, simulator.Serializer, (d, _) => d.Users));
+
+            RetrieveUserSavedCredentials = simulator.SetupRestPost(SiteEntityUrl("users", "retrieveSavedCreds"),
+                (data, request) =>
+                {
+                    var userId = request.GetRequestIdFromUri(hasSuffix: true);
+                    if (!data.UserSavedCredentials.TryGetValue(userId, out var response))
+                    {
+                        response = new();
+                    }
+
+                    return response;
+                });
+
+            UploadUserSavedCredentials = simulator.SetupRestPut(SiteEntityUrl("users", "uploadSavedCreds"),
+                new EmptyRestResponseBuilder(simulator.Data, simulator.Serializer,
+                (data, request) =>
+                {
+                    var userId = request.GetRequestIdFromUri(hasSuffix: true);
+
+                    var uploadRequest = request.GetTableauServerRequest<UploadUserSavedCredentialsRequest>();
+
+                    if (uploadRequest is null || uploadRequest.EncryptedKeychains.Length == 0)
+                    {
+                        return;
+                    }
+
+                    var keychains = new RetrieveKeychainResponse(uploadRequest.EncryptedKeychains, [userId]);
+                    data.UserSavedCredentials.AddOrUpdate(userId, keychains, (k, _) => keychains);
+                },
+                requiresAuthentication: true));
         }
     }
 }

@@ -37,7 +37,7 @@ namespace Tableau.Migration.Api.Rest.Models.Responses
         /// <summary>
         /// Class representing a user on the response.
         /// </summary>
-        public class UserType : IRestIdentifiable
+        public class UserType : IUserType
         {
             /// <summary>
             /// Gets or sets the ID for the response.
@@ -88,6 +88,12 @@ namespace Tableau.Migration.Api.Rest.Models.Responses
             public string? AuthSetting { get; set; }
 
             /// <summary>
+            /// Gets or sets the IdP configuration ID for the response.
+            /// </summary>
+            [XmlAttribute("idpConfigurationId")]
+            public string? IdpConfigurationId { get; set; }
+
+            /// <summary>
             /// Gets or sets the language for the response.
             /// </summary>
             [XmlAttribute("language")]
@@ -118,6 +124,7 @@ namespace Tableau.Migration.Api.Rest.Models.Responses
                 [XmlAttribute("name")]
                 public string? Name { get; set; }
             }
+
             #endregion
         }
     }

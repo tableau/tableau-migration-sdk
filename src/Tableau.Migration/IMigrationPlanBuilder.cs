@@ -44,30 +44,14 @@ namespace Tableau.Migration
         /// <param name="pipelineFactoryOverride">An initializer function to build the pipeline factory.</param>
         /// <param name="supportedContentTypes">The supported content types of the custom pipeline.</param>
         /// <returns>The same plan builder object for fluent API calls.</returns>
-        IMigrationPlanBuilder ForCustomPipelineFactory(Func<IServiceProvider, IMigrationPipelineFactory> pipelineFactoryOverride, params MigrationPipelineContentType[] supportedContentTypes);
-
-        /// <summary>
-        /// Initializes the plan to perform a custom migration pipeline using the given pipeline factory.
-        /// </summary>
-        /// <param name="pipelineFactoryOverride">An initializer function to build the pipeline factory.</param>
-        /// <param name="supportedContentTypes">The supported content types of the custom pipeline.</param>
-        /// <returns>The same plan builder object for fluent API calls.</returns>
-        IMigrationPlanBuilder ForCustomPipelineFactory(Func<IServiceProvider, IMigrationPipelineFactory> pipelineFactoryOverride, IEnumerable<MigrationPipelineContentType> supportedContentTypes);
+        IMigrationPlanBuilder ForCustomPipelineFactory(Func<IServiceProvider, IMigrationPipelineFactory> pipelineFactoryOverride, params IEnumerable<MigrationPipelineContentType> supportedContentTypes);
 
         /// <summary>
         /// Initializes the plan to perform a custom migration pipeline using the given pipeline factory.
         /// </summary>
         /// <param name="supportedContentTypes">The supported content types of the custom pipeline.</param>
         /// <returns>The same plan builder object for fluent API calls.</returns>
-        IMigrationPlanBuilder ForCustomPipelineFactory<T>(params MigrationPipelineContentType[] supportedContentTypes)
-            where T : IMigrationPipelineFactory;
-
-        /// <summary>
-        /// Initializes the plan to perform a custom migration pipeline using the given pipeline factory.
-        /// </summary>
-        /// <param name="supportedContentTypes">The supported content types of the custom pipeline.</param>
-        /// <returns>The same plan builder object for fluent API calls.</returns>
-        IMigrationPlanBuilder ForCustomPipelineFactory<T>(IEnumerable<MigrationPipelineContentType> supportedContentTypes)
+        IMigrationPlanBuilder ForCustomPipelineFactory<T>(params IEnumerable<MigrationPipelineContentType> supportedContentTypes)
             where T : IMigrationPipelineFactory;
 
         /// <summary>
@@ -75,15 +59,7 @@ namespace Tableau.Migration
         /// </summary>
         /// <param name="supportedContentTypes">The supported content types of the custom pipeline.</param>
         /// <returns>The same plan builder object for fluent API calls.</returns>
-        IMigrationPlanBuilder ForCustomPipeline<T>(params MigrationPipelineContentType[] supportedContentTypes)
-            where T : IMigrationPipeline;
-
-        /// <summary>
-        /// Initializes the plan to perform a custom migration pipeline.
-        /// </summary>
-        /// <param name="supportedContentTypes">The supported content types of the custom pipeline.</param>
-        /// <returns>The same plan builder object for fluent API calls.</returns>
-        IMigrationPlanBuilder ForCustomPipeline<T>(IEnumerable<MigrationPipelineContentType> supportedContentTypes)
+        IMigrationPlanBuilder ForCustomPipeline<T>(params IEnumerable<MigrationPipelineContentType> supportedContentTypes)
             where T : IMigrationPipeline;
 
         /// <summary>
@@ -164,6 +140,11 @@ namespace Tableau.Migration
         /// Gets the transformations to execute at various points during the migration.
         /// </summary>
         IContentTransformerBuilder Transformers { get; }
+
+        /// <summary>
+        /// Gets the pipeline profile to execute.
+        /// </summary>
+        PipelineProfile PipelineProfile { get; }
 
         /// <summary>
         /// Finalizes the <see cref="IMigrationPlan"/> based on the current state.

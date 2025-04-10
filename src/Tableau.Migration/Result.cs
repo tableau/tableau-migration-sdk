@@ -43,16 +43,7 @@ namespace Tableau.Migration
         /// </summary>
         /// <param name="success">True if the operation is successful, false otherwise.</param>
         /// <param name="errors">The errors encountered during the operation, if any.</param>
-        protected Result(bool success, params Exception[] errors)
-            : this(success, errors is null ? ImmutableArray<Exception>.Empty : errors)
-        { }
-
-        /// <summary>
-        /// Creates a new <see cref="Result"/> instance.
-        /// </summary>
-        /// <param name="success">True if the operation is successful, false otherwise.</param>
-        /// <param name="errors">The errors encountered during the operation, if any.</param>
-        protected Result(bool success, IEnumerable<Exception> errors)
+        protected Result(bool success, params IEnumerable<Exception> errors)
         {
             Success = success;
             Errors = errors.ToImmutableArray();
@@ -139,17 +130,7 @@ namespace Tableau.Migration
         /// <param name="success">True if the operation is successful, false otherwise.</param>
         /// <param name="value">The result of the operation.</param>
         /// <param name="errors">The errors encountered during the operation, if any.</param>
-        protected Result(bool success, T? value, params Exception[] errors)
-            : this(success, value, (IEnumerable<Exception>)errors)
-        { }
-
-        /// <summary>
-        /// Creates a new <see cref="Result{T}"/> instance.
-        /// </summary>
-        /// <param name="success">True if the operation is successful, false otherwise.</param>
-        /// <param name="value">The result of the operation.</param>
-        /// <param name="errors">The errors encountered during the operation, if any.</param>
-        protected Result(bool success, T? value, IEnumerable<Exception> errors)
+        protected Result(bool success, T? value, params IEnumerable<Exception> errors)
             : base(success, errors)
         {
             Value = value;

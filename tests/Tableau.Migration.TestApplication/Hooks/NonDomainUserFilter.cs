@@ -39,7 +39,7 @@ namespace Tableau.Migration.TestApplication.Hooks
         public NonDomainUserFilter(
             IOptions<TestApplicationOptions> options, 
             ISharedResourcesLocalizer localizer,
-            ILogger<IContentFilter<IUser>> logger) : base (localizer, logger)
+            ILogger<NonDomainUserFilter> logger) : base (localizer, logger)
         {
             _options = options.Value;
 

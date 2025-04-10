@@ -25,15 +25,41 @@ namespace Tableau.Migration.Content
         /// <inheritdoc />
         public IList<ITag> Tags { get; set; }
 
-        public View(IViewReferenceType view, IContentReference project, string? workbookName)
-        {
-            Guard.AgainstNullEmptyOrWhiteSpace(workbookName, () => workbookName);
+        public IContentReference ParentWorkbook { get; set; }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="View"/> class.
+        /// </summary>
+        /// <param name="view">The view reference to initialize from.</param>
+        /// <param name="project">The parent project of the parent workbook.</param>
+        /// <param name="workbook">The parent workbook this view belongs to.</param>
+        public View(IWorkbookViewReferenceType view, IContentReference project, IContentReference workbook)
+        {
             Id = view.Id;
             Name = Guard.AgainstNullEmptyOrWhiteSpace(view.Name, () => view.Name);
             ContentUrl = Guard.AgainstNull(view.ContentUrl, () => view.ContentUrl);
-            Location = project.Location.Append(workbookName).Append(Name);
+            Location = project.Location.Append(workbook.Name).Append(Name);
             Tags = view.Tags.ToTagList(t => new Tag(t));
+            ParentWorkbook = workbook;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="View"/> class.
+        /// </summary>
+        /// <param name="response">The view response to initialize from.</param>
+        /// <param name="project">The parent project of the parent workbook.</param>
+        /// <param name="workbook">The parent workbook this view belongs to.</param>
+        public View(
+            IViewType response,
+            IContentReference project,
+            IContentReference workbook)
+        {
+            Id = response.Id;
+            Name = Guard.AgainstNullEmptyOrWhiteSpace(response.Name, () => response.Name);
+            ContentUrl = Guard.AgainstNull(response.ContentUrl, () => response.ContentUrl);
+            Location = project.Location.Append(workbook.Name).Append(Name);
+            Tags = response.Tags.ToTagList(t => new Tag(t));
+            ParentWorkbook = workbook;
         }
     }
 }

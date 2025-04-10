@@ -73,6 +73,11 @@ namespace Tableau.Migration.Api.Simulation.Rest
         public SitesRestApiSimulator Sites { get; }
 
         /// <summary>
+        /// Gets the simulated subscription API methods.
+        /// </summary>
+        public SubscriptionsRestApiSimulator Subscriptions { get; }
+
+        /// <summary>
         /// Gets the simulated user API methods.
         /// </summary>
         public UsersRestApiSimulator Users { get; }
@@ -157,6 +162,7 @@ namespace Tableau.Migration.Api.Simulation.Rest
             Tasks = new(simulator);
             Projects = new(simulator);
             Sites = new(simulator);
+            Subscriptions = new(simulator);
             Users = new(simulator);
             Workbooks = new(simulator);
             Files = new(simulator);

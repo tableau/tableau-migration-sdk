@@ -18,6 +18,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Tableau.Migration.Api.EmbeddedCredentials;
 using Tableau.Migration.Api.Models;
 using Tableau.Migration.Api.Permissions;
 using Tableau.Migration.Api.Tags;
@@ -37,7 +38,8 @@ namespace Tableau.Migration.Api
         ITagsContentApiClient,
         IApiPageAccessor<IWorkbook>,
         IPermissionsContentApiClient,
-        IConnectionsApiClient
+        IConnectionsApiClient,
+        IEmbeddedCredentialsContentApiClient
     {
         /// <summary>
         /// Gets all workbooks in the current site except the ones in the Personal Space.

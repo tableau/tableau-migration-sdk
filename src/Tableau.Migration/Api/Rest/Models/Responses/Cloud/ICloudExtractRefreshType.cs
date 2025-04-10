@@ -27,8 +27,8 @@ namespace Tableau.Migration.Api.Rest.Models.Responses.Cloud
     /// <summary>
     /// Interface for a Cloud extract refresh response type.
     /// </summary>
-    public interface ICloudExtractRefreshType<TWorkbook, TDataSource> : ICloudExtractRefreshType, IExtractRefreshType<TWorkbook, TDataSource>
-        where TWorkbook : IRestIdentifiable
+    public interface ICloudExtractRefreshType<TWorkbook, TDataSource> : ICloudExtractRefreshType, IExtractRefreshType<TWorkbook, TDataSource>, IWithWorkbookReferenceType
+        where TWorkbook : IWorkbookReferenceType
         where TDataSource : IRestIdentifiable
     { }
 }

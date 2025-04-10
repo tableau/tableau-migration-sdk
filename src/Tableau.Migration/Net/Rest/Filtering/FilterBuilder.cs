@@ -38,11 +38,7 @@ namespace Tableau.Migration.Net.Rest.Filtering
         }
 
         /// <inheritdoc/>
-        public IFilterBuilder AddFilters(params Filter[] filters)
-            => AddFilters((IEnumerable<Filter>)filters);
-
-        /// <inheritdoc/>
-        public IFilterBuilder AddFilters(IEnumerable<Filter> filters)
+        public IFilterBuilder AddFilters(params IEnumerable<Filter> filters)
         {
             foreach (var filter in filters)
                 AddFilter(filter);

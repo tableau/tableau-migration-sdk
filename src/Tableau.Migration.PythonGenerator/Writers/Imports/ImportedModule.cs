@@ -16,6 +16,7 @@
 //
 
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Tableau.Migration.PythonGenerator.Writers.Imports
 {
@@ -26,11 +27,24 @@ namespace Tableau.Migration.PythonGenerator.Writers.Imports
             Name = name;
             Types = types;
         }
+        public ImportedModule(string name, HashSet<string> typeNames)
+        {
+            Name = name;
+            Types = typeNames.Select(tn=> new ImportedType(tn)).ToHashSet();
+        }
+
         public ImportedModule(string name, ImportedType type)
         {
             Name = name;
             Types = [type];
         }
+
+        public ImportedModule(string name, string typeName)
+        {
+            Name = name;
+            Types = [new ImportedType(typeName)];
+        }
+
         public string Name { get; set; }
 
         public HashSet<ImportedType> Types { get; set; }

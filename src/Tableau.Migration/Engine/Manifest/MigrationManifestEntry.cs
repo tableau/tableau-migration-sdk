@@ -57,6 +57,7 @@ namespace Tableau.Migration.Engine.Manifest
             Source = copy.Source;
             MappedLocation = copy.MappedLocation;
             _status = copy.Status;
+            _skippedReason = copy.SkippedReason;
             Destination = copy.Destination;
             HasMigrated = copy.HasMigrated;
             _errors = copy.Errors.ToImmutableArray();
@@ -106,13 +107,30 @@ namespace Tableau.Migration.Engine.Manifest
                 var oldStatus = _status;
                 _status = value;
 
-                if(oldStatus != _status)
+                if (oldStatus != _status)
                 {
                     _entryBuilder.StatusUpdated(this, oldStatus);
                 }
             }
         }
         private MigrationManifestEntryStatus _status;
+
+        /// <inheritdoc />
+        public virtual string SkippedReason
+        {
+            get => _skippedReason;
+            set
+            {
+                var oldStatus = _status;
+                _skippedReason = value;
+
+                if (oldStatus != _status)
+                {
+                    _entryBuilder.StatusUpdated(this, oldStatus);
+                }
+            }
+        }
+        private string _skippedReason = string.Empty;
 
         /// <inheritdoc />
         public virtual bool HasMigrated { get; private set; }
@@ -132,6 +150,7 @@ namespace Tableau.Migration.Engine.Manifest
             if (!entry.Source.Equals(other.Source) ||
                 !entry.MappedLocation.Equals(other.MappedLocation) ||
                 !entry.Status.Equals(other.Status) ||
+                !entry.SkippedReason.Equals(other.SkippedReason) ||
                 !entry.Errors.SequenceEqual(other.Errors, new ExceptionComparer()))
                 return false;
 
@@ -188,6 +207,7 @@ namespace Tableau.Migration.Engine.Manifest
 
             _errors = ImmutableArray<Exception>.Empty;
             Status = MigrationManifestEntryStatus.Pending;
+            SkippedReason = string.Empty;
 
             return this;
         }
@@ -213,17 +233,23 @@ namespace Tableau.Migration.Engine.Manifest
         }
 
         /// <inheritdoc />
-        public virtual IMigrationManifestEntryEditor SetSkipped()
+        public virtual IMigrationManifestEntryEditor SetSkipped(string? skippedReason)
         {
             Status = MigrationManifestEntryStatus.Skipped;
+            if (!string.IsNullOrWhiteSpace(skippedReason))
+            {
+                SkippedReason = skippedReason;
+            }
+
             return this;
         }
 
         /// <inheritdoc />
-        public virtual IMigrationManifestEntryEditor SetFailed(IEnumerable<Exception> errors)
+        public virtual IMigrationManifestEntryEditor SetFailed(params IEnumerable<Exception> errors)
         {
             _errors = errors.ToImmutableArray();
             Status = MigrationManifestEntryStatus.Error;
+            SkippedReason = string.Empty;
 
             _entryBuilder.MigrationFailed(this);
 
@@ -231,13 +257,11 @@ namespace Tableau.Migration.Engine.Manifest
         }
 
         /// <inheritdoc />
-        public virtual IMigrationManifestEntryEditor SetFailed(params Exception[] errors)
-            => SetFailed((IEnumerable<Exception>)errors);
-
-        /// <inheritdoc />
         public virtual IMigrationManifestEntryEditor SetCanceled()
         {
             Status = MigrationManifestEntryStatus.Canceled;
+            SkippedReason = string.Empty;
+
             return this;
         }
 
@@ -245,7 +269,9 @@ namespace Tableau.Migration.Engine.Manifest
         public virtual IMigrationManifestEntryEditor SetMigrated()
         {
             Status = MigrationManifestEntryStatus.Migrated;
+            SkippedReason = string.Empty;
             HasMigrated = true;
+
             return this;
         }
 

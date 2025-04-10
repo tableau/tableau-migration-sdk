@@ -16,14 +16,15 @@
 //
 
 using System;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Moq;
 using Tableau.Migration.Api;
 using Tableau.Migration.Api.Models;
 using Tableau.Migration.Api.Permissions;
+using Tableau.Migration.Api.Rest;
 using Tableau.Migration.Api.Rest.Models;
 using Tableau.Migration.Api.Rest.Models.Requests;
 using Tableau.Migration.Api.Rest.Models.Responses;
@@ -165,8 +166,45 @@ namespace Tableau.Migration.Tests.Unit.Api
                 return mockProject.Object;
             }
 
+            private async Task AssertCreateProjectRequestAsync(HttpRequestMessage r, IProject project)
+            {
+                r.AssertRelativeUri($"/api/{TableauServerVersion.RestApiVersion}/sites/{SiteId}/projects");
+
+                r.AssertHttpMethod(HttpMethod.Post);
+
+                var content = Assert.IsType<StringContent>(r.Content);
+
+                var model = await HttpContentSerializer.Instance.DeserializeAsync<CreateProjectRequest>(content, Cancel);
+
+                Assert.NotNull(project);
+
+                Assert.NotNull(model);
+                Assert.NotNull(model.Project);
+
+                Assert.Equal(project.ParentProject?.Id.ToString(), model.Project.ParentProjectId);
+                Assert.Equal(project.Name, model.Project.Name);
+                Assert.Equal(project.Description, model.Project.Description);
+                Assert.Equal(project.ContentPermissions, model.Project.ContentPermissions);
+            }
+
+            private void AssertGetProjectRequest(HttpRequestMessage r, string name, Guid? parentProjectId)
+            {
+                r.AssertRelativeUri($"/api/{TableauServerVersion.RestApiVersion}/sites/{SiteId}/projects");
+
+                var filter = $"name:eq:{name}";
+
+                if (parentProjectId is not null)
+                    filter = $"{filter},parentProjectId:eq:{parentProjectId}";
+                else
+                    filter = $"{filter},topLevelProject:eq:true";
+
+                r.AssertQuery("filter", filter);
+
+                r.AssertHttpMethod(HttpMethod.Get);
+            }
+
             [Fact]
-            public async Task Returns_success()
+            public async Task ReturnsSuccessAsync()
             {
                 var project = CreateProject();
 
@@ -188,7 +226,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async Task Succeeds_when_project_exists()
+            public async Task SucceedsWhenProjectExistsAsync()
             {
                 var existingProject = CreateProject();
 
@@ -196,7 +234,7 @@ namespace Tableau.Migration.Tests.Unit.Api
                 {
                     Error = new Error
                     {
-                        Code = ProjectsApiClient.PROJECT_NAME_CONFLICT_ERROR_CODE
+                        Code = RestErrorCodes.PROJECT_NAME_CONFLICT_ERROR_CODE
                     }
                 };
 
@@ -237,7 +275,56 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async Task Returns_failure()
+            public async Task SucceedsWhenSystemProjectCreationFailsAsync()
+            {
+                var existingProject = CreateProject(m => m.SetupGet(x => x.Name).Returns(Constants.SystemProjectNames.First()));
+
+                var createProjectResponse = new CreateProjectResponse
+                {
+                    Error = new Error
+                    {
+                        Code = RestErrorCodes.CREATE_PROJECT_FORBIDDEN
+                    }
+                };
+
+                var mockCreateProjectResponse = new MockHttpResponseMessage<CreateProjectResponse>(HttpStatusCode.Forbidden, createProjectResponse);
+
+                MockHttpClient.SetupResponse(mockCreateProjectResponse);
+
+                var owner = Create<IContentReference>();
+                MockUserFinder.Setup(x => x.FindByIdAsync(owner.Id, Cancel))
+                    .ReturnsAsync(owner);
+
+                var getProjectResponse = AutoFixture.CreateResponse<ProjectsResponse>();
+                getProjectResponse.Items = new[]
+                {
+                    new ProjectsResponse.ProjectType
+                    {
+                        Id = existingProject.Id,
+                        ParentProjectId = existingProject.ParentProject?.Id.ToString(),
+                        Name = existingProject.Name,
+                        Description = existingProject.Description,
+                        ContentPermissions = existingProject.ContentPermissions,
+                        Owner = new() { Id = owner.Id }
+                    }
+                };
+
+                var mockGetProjectResponse = new MockHttpResponseMessage<ProjectsResponse>(getProjectResponse);
+
+                MockHttpClient.SetupResponse(mockGetProjectResponse);
+
+                var result = await ProjectsApiClient.PublishAsync(existingProject, Cancel);
+
+                Assert.True(result.Success);
+
+                await AssertCreateProjectRequestAsync(MockHttpClient.SentRequests[0], existingProject);
+                AssertGetProjectRequest(MockHttpClient.SentRequests[1], existingProject.Name, existingProject.ParentProject?.Id);
+
+                MockUserFinder.Verify(x => x.FindByIdAsync(getProjectResponse.Items[0].Owner!.Id, Cancel), Times.Once);
+            }
+
+            [Fact]
+            public async Task ReturnsFailureAsync()
             {
                 var project = CreateProject();
 
@@ -259,43 +346,6 @@ namespace Tableau.Migration.Tests.Unit.Api
                 var request = MockHttpClient.AssertSingleRequest();
 
                 request.AssertRelativeUri($"/api/{TableauServerVersion.RestApiVersion}/sites/{SiteId}/projects");
-            }
-
-            private async Task AssertCreateProjectRequestAsync(HttpRequestMessage r, IProject project)
-            {
-                r.AssertRelativeUri($"/api/{TableauServerVersion.RestApiVersion}/sites/{SiteId}/projects");
-
-                r.AssertHttpMethod(HttpMethod.Post);
-
-                var content = Assert.IsType<StringContent>(r.Content);
-
-                var model = await HttpContentSerializer.Instance.DeserializeAsync<CreateProjectRequest>(content, Cancel);
-
-                Assert.NotNull(project);
-
-                Assert.NotNull(model);
-                Assert.NotNull(model.Project);
-
-                Assert.Equal(project.ParentProject?.Id.ToString(), model.Project.ParentProjectId);
-                Assert.Equal(project.Name, model.Project.Name);
-                Assert.Equal(project.Description, model.Project.Description);
-                Assert.Equal(project.ContentPermissions, model.Project.ContentPermissions);
-            }
-
-            private void AssertGetProjectRequest(HttpRequestMessage r, string name, Guid? parentProjectId)
-            {
-                r.AssertRelativeUri($"/api/{TableauServerVersion.RestApiVersion}/sites/{SiteId}/projects");
-
-                var filter = $"name:eq:{name}";
-
-                if (parentProjectId is not null)
-                    filter = $"{filter},parentProjectId:eq:{parentProjectId}";
-                else
-                    filter = $"{filter},topLevelProject:eq:true";
-
-                r.AssertQuery("filter", filter);
-
-                r.AssertHttpMethod(HttpMethod.Get);
             }
         }
 

@@ -29,7 +29,7 @@ using Tableau.Migration.Net;
 
 namespace Tableau.Migration.Api.Simulation.Rest.Net.Responses
 {
-    internal class RestCustomViewDefaultUsersAddResponseBuilder : RestApiResponseBuilderBase<CustomViewAsUsersDefaultViewResponse>
+    internal class RestCustomViewDefaultUsersAddResponseBuilder : RestResponseBuilderBase<CustomViewAsUsersDefaultViewResponse>
     {
         public RestCustomViewDefaultUsersAddResponseBuilder(TableauData data, IHttpContentSerializer serializer)
             : base(data, serializer, requiresAuthentication: true)

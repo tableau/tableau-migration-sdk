@@ -35,7 +35,7 @@ namespace Tableau.Migration.Api.Rest.Models.Responses
         /// <summary>
         /// Type for the User object.
         /// </summary>
-        public class UserType : IRestIdentifiable
+        public class UserType : IUserType
         {
             /// <summary>
             /// The uniquer identifier for the user.
@@ -56,10 +56,16 @@ namespace Tableau.Migration.Api.Rest.Models.Responses
             public string? SiteRole { get; set; }
 
             /// <summary>
-            /// The site role for the user.
+            /// The auth setting for the user.
             /// </summary>
             [XmlAttribute("authSetting")]
             public string? AuthSetting { get; set; }
+
+            /// <summary>
+            /// The IdP configuration ID for the user.
+            /// </summary>
+            [XmlAttribute("idpConfigurationId")]
+            public string? IdpConfigurationId { get; set; }
         }
     }
 }

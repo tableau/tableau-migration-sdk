@@ -16,6 +16,8 @@
 //
 
 using System;
+using Tableau.Migration.Api.Models;
+using Tableau.Migration.Api.Rest.Models;
 using Tableau.Migration.Api.Rest.Models.Responses;
 using Tableau.Migration.Content;
 using Xunit;
@@ -93,6 +95,16 @@ namespace Tableau.Migration.Tests.Unit.Content
                 Assert.Equal(ContentLocation.ForUsername(response.Domain?.Name!, response.Name!), user.Location);
             }
 
+            [Fact]
+            public void ExposeFullAuthInfo()
+            {
+                var response = CreateTestResponse();
+                response.IdpConfigurationId = Guid.NewGuid().ToString();
+                var user = new User(response);
+
+                Assert.Equal(response.GetAuthenticationType(), user.Authentication);
+            }
+
             [Theory]
             [NullEmptyWhiteSpaceData]
             public void AuthTypeOptional(string? authSetting)
@@ -102,7 +114,38 @@ namespace Tableau.Migration.Tests.Unit.Content
 
                 var user = new User(response);
 
-                Assert.Equal(authSetting, user.AuthenticationType);
+                Assert.Equal(authSetting, user.Authentication.AuthenticationType);
+            }
+
+            [Fact]
+            public void IdpConfigurationId()
+            {
+                var id = Guid.NewGuid();
+
+                var response = CreateTestResponse();
+                response.AuthSetting = null;
+                response.IdpConfigurationId = id.ToString();
+
+                var user = new User(response);
+
+                Assert.Null(user.Authentication.AuthenticationType);
+                Assert.Equal(id, user.Authentication.IdpConfigurationId);
+            }
+
+            [Fact]
+            public void UpdateUserResult()
+            {
+                var id = Guid.NewGuid();
+                var result = Create<IUpdateUserResult>();
+
+                var user = new User(id, result);
+
+                Assert.Equal(id, user.Id);
+                Assert.Empty(user.Domain);
+                Assert.Equal(result.Email, user.Email);
+                Assert.Equal(result.FullName, user.FullName);
+                Assert.Equal(result.SiteRole, user.SiteRole);
+                Assert.Equal(result.Authentication, user.Authentication);
             }
         }
     }

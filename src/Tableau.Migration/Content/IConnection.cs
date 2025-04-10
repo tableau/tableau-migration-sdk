@@ -54,5 +54,20 @@ namespace Tableau.Migration.Content
         /// This is returned only for administrator users.
         /// </summary>
         bool? QueryTaggingEnabled { get; }
+
+        /// <summary>
+        /// Gets the authentication type for the response.
+        /// </summary>
+        string? AuthenticationType { get; }
+
+        /// <summary>
+        /// Gets whether to use OAuth managed keychain.
+        /// </summary>
+        bool? UseOAuthManagedKeychain { get; }
+
+        /// <summary>
+        /// Gets whether to embed the password.
+        /// </summary>
+        bool? EmbedPassword { get; }
     }
 }

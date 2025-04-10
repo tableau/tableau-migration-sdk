@@ -15,6 +15,8 @@
 //  limitations under the License.
 //
 
+using System.Collections.Generic;
+
 namespace Tableau.Migration.Net.Rest.Sorting
 {
     /// <summary>
@@ -44,7 +46,7 @@ namespace Tableau.Migration.Net.Rest.Sorting
         /// </summary>
         /// <param name="sorts">The sorts to add.</param>
         /// <returns>The current <see cref="ISortBuilder"/> instance.</returns>
-        ISortBuilder AddSorts(params Sort[] sorts);
+        ISortBuilder AddSorts(params IEnumerable<Sort> sorts);
 
         /// <summary>
         /// Builds the string value for the sorts for use in query strings.

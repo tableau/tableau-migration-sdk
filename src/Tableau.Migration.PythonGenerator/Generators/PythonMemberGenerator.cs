@@ -62,7 +62,7 @@ namespace Tableau.Migration.PythonGenerator.Generators
             Dotnet.Namespaces.SYSTEM_EXCEPTION,
             Dotnet.Namespaces.SYSTEM,
             ConversionMode.Direct);
-        
+
         private static readonly PythonTypeReference TIME_ONLY = new(
             Py.Types.TIME,
             ImportModule: Py.Modules.DATETIME,
@@ -72,7 +72,7 @@ namespace Tableau.Migration.PythonGenerator.Generators
                 new PythonTypeReference(Dotnet.Types.TIME_ONLY, ImportModule: Dotnet.Namespaces.SYSTEM, ConversionMode.Direct)));
 
         private static readonly PythonTypeReference TYPE = new(Dotnet.Namespaces.SYSTEM_TYPE, Dotnet.Namespaces.SYSTEM, ConversionMode.Direct);
-        
+
         private readonly PythonGeneratorOptions _options;
 
         protected PythonMemberGenerator(IOptions<PythonGeneratorOptions> options)

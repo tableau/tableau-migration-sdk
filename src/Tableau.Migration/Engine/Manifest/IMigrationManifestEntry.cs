@@ -59,5 +59,10 @@ namespace Tableau.Migration.Engine.Manifest
         /// Gets errors that occurred while migrating the content item.
         /// </summary>
         IReadOnlyList<Exception> Errors { get; }
+
+        /// <summary>
+        /// Gets the reason why the content item was skipped, if applicable.
+        /// </summary>
+        string SkippedReason { get; }
     }
 }

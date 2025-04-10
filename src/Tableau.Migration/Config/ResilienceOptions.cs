@@ -259,7 +259,7 @@ namespace Tableau.Migration.Config
         /// <summary>
         /// Gets or sets whether to wait and retry on server throttle responses.
         /// The default value is enabled.
-        /// There is not limit to the number of retries from server throttle responses.
+        /// There is no limit to the number of retries from server throttle responses.
         /// <see cref="ServerThrottleRetryIntervals"/> is used to determine the length of time between retries.
         /// If no Retry-After header is supplied by the server, 
         /// with the last retry interval used if the retry count exceeds the retry interval count.

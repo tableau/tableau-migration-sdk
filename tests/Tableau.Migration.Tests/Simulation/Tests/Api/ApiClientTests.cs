@@ -223,7 +223,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
                 var error = Assert.Single(result.Errors);
                 var restException = Assert.IsType<RestException>(error);
 
-                Assert.Equal("401001", restException.Code);
+                Assert.Equal(RestErrorCodes.LOGIN_ERROR, restException.Code);
                 Assert.Equal(errorBuilder.Summary, restException.Summary);
                 Assert.Equal(errorBuilder.Detail, restException.Detail);
 

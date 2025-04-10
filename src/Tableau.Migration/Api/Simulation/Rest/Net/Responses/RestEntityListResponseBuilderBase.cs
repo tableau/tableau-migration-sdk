@@ -26,7 +26,7 @@ namespace Tableau.Migration.Api.Simulation.Rest.Net.Responses
     /// <summary>
     /// Abstract base calss for REST API style response builders that operate on a list of entities in some form.
     /// </summary>
-    internal abstract class RestEntityListResponseBuilderBase<TResponse, TItem> : RestApiResponseBuilderBase<TResponse>
+    internal abstract class RestEntityListResponseBuilderBase<TResponse, TItem> : RestResponseBuilderBase<TResponse>
         where TResponse : TableauServerResponse, new()
     {
         private readonly Func<TableauData, HttpRequestMessage, ICollection<TItem>> _getEntities;

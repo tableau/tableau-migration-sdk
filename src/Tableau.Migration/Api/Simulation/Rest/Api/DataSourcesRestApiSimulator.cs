@@ -37,7 +37,7 @@ namespace Tableau.Migration.Api.Simulation.Rest.Api
     /// <summary>
     /// Object that defines simulation of Tableau REST API data source methods.
     /// </summary>
-    public sealed class DataSourcesRestApiSimulator : TagsRestApiSimulatorBase<DataSourceResponse.DataSourceType, DataSourceResponse.DataSourceType.TagType>
+    public sealed class DataSourcesRestApiSimulator : EmbeddedCredentialsRestApiSimulatorBase<DataSourceResponse.DataSourceType, DataSourceResponse.DataSourceType.TagType>
     {
         /// <summary>
         /// Gets the simulated data source query API method.
@@ -64,12 +64,10 @@ namespace Tableau.Migration.Api.Simulation.Rest.Api
         /// </summary>
         public MethodSimulator UpdateDataSource { get; }
 
-
         /// <summary>
         /// Gets the simulated list connections API method.
         /// </summary>
         public MethodSimulator QueryDataSourceConnections { get; }
-
 
         /// <summary>
         /// Gets the simulated update connection API method.
@@ -81,10 +79,8 @@ namespace Tableau.Migration.Api.Simulation.Rest.Api
         /// </summary>
         /// <param name="simulator">A response simulator to setup with REST API methods.</param>
         public DataSourcesRestApiSimulator(TableauApiResponseSimulator simulator)
-            : base(
-                  simulator,
-                  RestUrlPrefixes.DataSources,
-                  (data) => data.DataSources)
+            : base(simulator, RestUrlPrefixes.DataSources,
+                  data => data.DataSources, data => data.DataSourceKeychains)
         {
             QueryDataSource = simulator.SetupRestGet<DataSourceResponse, DataSourceResponse.DataSourceType>(
                 SiteEntityUrl(ContentTypeUrlPrefix),

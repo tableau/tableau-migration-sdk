@@ -71,7 +71,7 @@ namespace Tableau.Migration.PythonGenerator.Writers
         private void AddHierarchyExcludedMemberHints(List<string> excludedMembers, PythonTypeCache typeCache, PythonType type)
         {
             var typeHints = _options.Hints.ForType(type.DotNetType);
-            if (typeHints is not null && typeHints.ExcludeMembers.Any())
+            if (typeHints is not null && typeHints.ExcludeMembers.Length != 0)
             {
                 excludedMembers.AddRange(typeHints.ExcludeMembers);
             }
@@ -108,10 +108,7 @@ namespace Tableau.Migration.PythonGenerator.Writers
                 return "None";
             }
 
-            var memberNames = excludedMembers
-                .Distinct()
-                .Order()
-                .Select(m => $"\"{m}\"");
+            var memberNames = excludedMembers.Distinct().Order().Select(m => $"\"{m}\"");
 
             return $"[ {string.Join(", ", memberNames)} ]";
         }
@@ -210,7 +207,7 @@ namespace Tableau.Migration.PythonGenerator.Writers
                 return;
             }
 
-            var namespaceGroups = typesToTest.GroupBy(x 
+            var namespaceGroups = typesToTest.GroupBy(x
                 => x.DotNetType?.ContainingNamespace.ToDisplayString() ?? string.Empty);
 
             foreach (var namespaceGroup in namespaceGroups)
@@ -242,10 +239,7 @@ namespace Tableau.Migration.PythonGenerator.Writers
             }
         }
 
-        private static void WriteExtraTestImports(
-            IndentingStringBuilder builder,
-            string nameSpace,
-            PythonTypeCache pyTypeCache)
+        private static void WriteExtraTestImports(IndentingStringBuilder builder, string nameSpace, PythonTypeCache pyTypeCache)
         {
             builder.AppendLine("# Extra imports for tests.");
 

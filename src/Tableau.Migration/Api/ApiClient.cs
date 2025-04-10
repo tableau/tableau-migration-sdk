@@ -36,7 +36,6 @@ namespace Tableau.Migration.Api
         private readonly TableauSiteConnectionConfiguration _siteConnectionConfiguration;
         private readonly IServerSessionProvider _sessionProvider;
         private readonly IHttpContentSerializer _contentSerializer;
-        internal const string SITES_QUERY_NOT_SUPPORTED = "403069";
         internal const string EXPERIMENTAL_API_VERSION = "exp";
 
         /// <summary>
@@ -139,7 +138,7 @@ namespace Tableau.Migration.Api
                 return TableauInstanceType.Server;
             }
 
-            if (sitesResult.Errors.OfType<RestException>().Any(e => e.Code == SITES_QUERY_NOT_SUPPORTED))
+            if (sitesResult.Errors.OfType<RestException>().Any(e => RestErrorCodes.Equals(e.Code, RestErrorCodes.SITES_QUERY_NOT_SUPPORTED)))
             {
                 return TableauInstanceType.Cloud;
             }

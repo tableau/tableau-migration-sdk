@@ -65,5 +65,15 @@ namespace Tableau.Migration.Api.Rest
 
                     return null;
                 });
+
+        public static bool? ToBoolOrNull(this string? value)
+            => value.To<bool>(
+                v =>
+                {
+                    if (bool.TryParse(v, out var result))
+                        return result;
+
+                    return null;
+                });
     }
 }

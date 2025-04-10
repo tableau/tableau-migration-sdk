@@ -20,7 +20,7 @@ namespace Tableau.Migration.Api.Rest.Models
     /// <summary>
     /// Interface for a data source REST response.
     /// </summary>
-    public interface IDataSourceType : IRestIdentifiable, INamedContent, IWithProjectType, IWithOwnerType, IWithTagTypes
+    public interface IDataSourceType : IRestIdentifiable, INamedContent, IWithProjectNamedReferenceType, IWithOwnerType, IWithTagTypes
     {
         /// <summary>
         /// Gets the description for the response.

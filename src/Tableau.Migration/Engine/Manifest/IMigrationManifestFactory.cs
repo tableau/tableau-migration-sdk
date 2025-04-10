@@ -37,7 +37,8 @@ namespace Tableau.Migration.Engine.Manifest
         /// </summary>
         /// <param name="planId">The unique ID of the <see cref="IMigrationPlan"/> that the migration is running.</param>
         /// <param name="migrationId">The unique ID of the <see cref="IMigration"/> to include in the manifest.</param>
+        /// <param name="pipelineProfile">The pipeline profile to use for the migration.</param>
         /// <returns>The created <see cref="IMigrationManifestEditor"/> object.</returns>
-        IMigrationManifestEditor Create(Guid planId, Guid migrationId);
+        IMigrationManifestEditor Create(Guid planId, Guid migrationId, PipelineProfile pipelineProfile);
     }
 }

@@ -70,9 +70,9 @@ namespace Tableau.Migration.Api.Rest.Models.Responses
 
             ///<inheritdoc/>
             [XmlElement("workbook")]
-            WorkbookReferenceType? Workbook { get; set; }
+            public WorkbookReferenceType? Workbook { get; set; }
 
-            IRestIdentifiable? IWithWorkbookReferenceType.Workbook => Workbook;
+            IWorkbookReferenceType? IWithWorkbookReferenceType.Workbook => Workbook;
 
             /// <summary>
             /// Gets or sets the tags for the response.
@@ -88,6 +88,13 @@ namespace Tableau.Migration.Api.Rest.Models.Responses
                 set => Tags = value.Select(t => new TagType(t)).ToArray();
             }
 
+            /// <summary>
+            /// Gets or sets the project for the response.
+            /// </summary>
+            [XmlElement("project")]
+            public ProjectReferenceType? Project { get; set; }
+
+            IProjectReferenceType? IWithProjectReferenceType.Project => Project;
 
             #region - Object Specific Types -
 
@@ -120,10 +127,20 @@ namespace Tableau.Migration.Api.Rest.Models.Responses
             /// Class representing a REST API workbook reference response.
             /// </summary>
 
-            public class WorkbookReferenceType : IRestIdentifiable
+            public class WorkbookReferenceType : IWorkbookReferenceType
             {
                 /// <inheritdoc/>
-				[XmlAttribute("label")]
+				[XmlAttribute("id")]
+                public Guid Id { get; set; }
+            }
+
+            /// <summary>
+            /// Class representing a REST API project response.
+            /// </summary>
+            public class ProjectReferenceType : IProjectReferenceType
+            {
+                /// <inheritdoc/>
+                [XmlAttribute("id")]
                 public Guid Id { get; set; }
             }
 

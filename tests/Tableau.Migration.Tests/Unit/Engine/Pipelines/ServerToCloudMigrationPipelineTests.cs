@@ -22,9 +22,12 @@ using System.Linq;
 using Moq;
 using Tableau.Migration.Config;
 using Tableau.Migration.Content;
-using Tableau.Migration.Content.Schedules;
+using Tableau.Migration.Content.Schedules.Cloud;
 using Tableau.Migration.Content.Schedules.Server;
 using Tableau.Migration.Engine.Actions;
+using Tableau.Migration.Engine.Conversion;
+using Tableau.Migration.Engine.Conversion.ExtractRefreshTasks;
+using Tableau.Migration.Engine.Conversion.Subscriptions;
 using Tableau.Migration.Engine.Migrators.Batch;
 using Tableau.Migration.Engine.Pipelines;
 using Xunit;
@@ -39,10 +42,15 @@ namespace Tableau.Migration.Tests.Unit.Engine.Pipelines
         private static Type GetPublishType(object o)
         {
             var t = o.GetType();
-            if (t.GenericTypeArguments.Length == 1)
-                return t.GenericTypeArguments[0];
-
-            return t.GenericTypeArguments[1];
+            switch(t.GenericTypeArguments.Length)
+            {
+                case 1:
+                    return t.GenericTypeArguments[0];
+                case 2:
+                    return t.GenericTypeArguments[^1];
+                default:
+                    return t.GenericTypeArguments[^2];
+            }
         }
 
         public class ContentTypes : MigrationPipelineTestBase<ServerToCloudMigrationPipeline>
@@ -92,7 +100,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Pipelines
             {
                 var actions = Pipeline.BuildActions();
 
-                Assert.Equal(8, actions.Length);
+                Assert.Equal(9, actions.Length);
                 Assert.IsType<PreflightAction>(actions[0]);
                 Assert.IsType<MigrateContentAction<IUser>>(actions[1]);
                 Assert.IsType<MigrateContentAction<IGroup>>(actions[2]);
@@ -101,6 +109,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Pipelines
                 Assert.IsType<MigrateContentAction<IWorkbook>>(actions[5]);
                 Assert.IsType<MigrateContentAction<IServerExtractRefreshTask>>(actions[6]);
                 Assert.IsType<MigrateContentAction<ICustomView>>(actions[7]);
+                Assert.IsType<MigrateContentAction<IServerSubscription>>(actions[8]);
             }
 
             [Fact]
@@ -167,6 +176,33 @@ namespace Tableau.Migration.Tests.Unit.Engine.Pipelines
 
                 Assert.IsType<BulkPublishContentBatchMigrator<IUser>>(migrator);
                 MockServices.Verify(x => x.GetService(typeof(BulkPublishContentBatchMigrator<IUser>)), Times.Once);
+            }
+        }
+
+        public class GetItemConverter : MigrationPipelineTestBase<ServerToCloudMigrationPipeline>
+        {
+            [Fact]
+            public void CreatesExtractRefreshTaskConverter()
+            {
+                var converter = Pipeline.GetItemConverter<IServerExtractRefreshTask, ICloudExtractRefreshTask>();
+
+                Assert.IsAssignableFrom<IExtractRefreshTaskConverter<IServerExtractRefreshTask, ICloudExtractRefreshTask>>(converter);
+            }
+
+            [Fact]
+            public void CreatesSubscriptionConverter()
+            {
+                var converter = Pipeline.GetItemConverter<IServerSubscription, ICloudSubscription>();
+
+                Assert.IsAssignableFrom<ISubscriptionConverter<IServerSubscription, ICloudSubscription>>(converter);
+            }
+
+            [Fact]
+            public void CreatesDirectConverter()
+            {
+                var converter = Pipeline.GetItemConverter<IPublishableWorkbook, IPublishableWorkbook>();
+
+                Assert.IsType<DirectContentItemConverter<IPublishableWorkbook, IPublishableWorkbook>>(converter);
             }
         }
     }

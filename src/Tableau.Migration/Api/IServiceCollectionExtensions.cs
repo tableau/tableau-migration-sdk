@@ -1,4 +1,4 @@
-﻿//
+//
 //  Copyright (c) 2025, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
@@ -18,6 +18,7 @@
 using System.IO.Abstractions;
 using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
+using Tableau.Migration.Api.EmbeddedCredentials;
 using Tableau.Migration.Api.Labels;
 using Tableau.Migration.Api.Permissions;
 using Tableau.Migration.Api.Publishing;
@@ -25,8 +26,6 @@ using Tableau.Migration.Api.Search;
 using Tableau.Migration.Api.Simulation;
 using Tableau.Migration.Api.Tags;
 using Tableau.Migration.Content.Files;
-using Tableau.Migration.Content.Schedules;
-using Tableau.Migration.Content.Schedules.Cloud;
 using Tableau.Migration.Content.Schedules.Server;
 using Tableau.Migration.Content.Search;
 using Tableau.Migration.Net;
@@ -63,9 +62,12 @@ namespace Tableau.Migration.Api
             services.AddScoped<ITagsApiClientFactory, TagsApiClientFactory>();
             services.AddScoped<IViewsApiClientFactory, ViewsApiClientFactory>();
             services.AddScoped<ILabelsApiClientFactory, LabelsApiClientFactory>();
+            services.AddScoped<IEmbeddedCredentialsApiClientFactory, EmbeddedCredentialsApiClientFactory>();
+            services.AddScoped<ISchedulesApiClientFactory, SchedulesApiClientFactory>();
 
             //Main API client.
             services.AddScoped<IApiClient, ApiClient>();
+            services.AddScoped<IAuthenticationConfigurationsApiClient, AuthenticationConfigurationsApiClient>();
             services.AddScoped<IDataSourcesApiClient, DataSourcesApiClient>();
             services.AddScoped<IFlowsApiClient, FlowsApiClient>();
             services.AddScoped<IGroupsApiClient, GroupsApiClient>();
@@ -79,6 +81,7 @@ namespace Tableau.Migration.Api
             services.AddScoped<IWorkbooksApiClient, WorkbooksApiClient>();
             services.AddScoped<ITasksApiClient, TasksApiClient>();
             services.AddScoped<ICustomViewsApiClient, CustomViewsApiClient>();
+            services.AddScoped<ISubscriptionsApiClient, SubscriptionsApiClient>();
 
             //API Simulator.
             services.AddSingleton<ITableauApiSimulatorFactory, TableauApiSimulatorFactory>();
@@ -112,11 +115,6 @@ namespace Tableau.Migration.Api
             services.AddScoped<TemporaryDirectoryContentFileStore>();
             services.AddScoped(p => new EncryptedFileStore(p, p.GetRequiredService<TemporaryDirectoryContentFileStore>()));
             services.AddScoped(p => p.GetRequiredService<ApiClientInput>().FileStore);
-
-            //Extract Refresh Task converters.
-            services.AddScoped<IExtractRefreshTaskConverter<IServerExtractRefreshTask, IServerSchedule, ICloudExtractRefreshTask, ICloudSchedule>, ServerToCloudExtractRefreshTaskConverter>();
-            services.AddScoped<IScheduleValidator<IServerSchedule>, ServerScheduleValidator>();
-            services.AddScoped<IScheduleValidator<ICloudSchedule>, CloudScheduleValidator>();
 
             return services;
         }

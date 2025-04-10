@@ -49,11 +49,22 @@ namespace Tableau.Migration.Api.Rest.Models.Requests
         /// <param name="minimumSiteRole">The minimum site role.</param>
         public CreateLocalGroupRequest(string name, string? minimumSiteRole)
         {
-            Group = new GroupType
+            // Unlicensed is a special case where the minimum site role can't be in the request
+            if (string.Compare(minimumSiteRole, "Unlicensed", true) == 0)
             {
-                Name = name,
-                MinimumSiteRole = minimumSiteRole
-            };
+                Group = new GroupType
+                {
+                    Name = name
+                };
+            }
+            else
+            {
+                Group = new GroupType
+                {
+                    Name = name,
+                    MinimumSiteRole = minimumSiteRole
+                };
+            }
         }
 
         /// <summary>

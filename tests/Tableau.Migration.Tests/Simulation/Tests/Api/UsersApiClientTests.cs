@@ -19,7 +19,9 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Tableau.Migration.Api.Models;
+using Tableau.Migration.Api.Rest.Models;
 using Tableau.Migration.Api.Rest.Models.Responses;
+using Tableau.Migration.Content;
 using Xunit;
 
 namespace Tableau.Migration.Tests.Simulation.Tests.Api
@@ -35,7 +37,8 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
                 Assert.NotEqual(Guid.Empty, result.Value.Id);
                 Assert.Equal(user.Name, result.Value.Name);
                 Assert.Equal("Unlicensed", result.Value.SiteRole);
-                Assert.Equal(user.AuthSetting, result.Value.AuthSetting);
+                Assert.Equal(user.AuthSetting, result.Value.Authentication.AuthenticationType);
+                Assert.Equal(user.GetIdpConfigurationId(), result.Value.Authentication.IdpConfigurationId);
             }
         }
 
@@ -156,9 +159,10 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
                 Assert.NotNull(user);
                 Assert.NotNull(user.Name);
                 Assert.NotNull(user.SiteRole);
+                Assert.NotNull(user.AuthSetting);
 
                 // Act
-                var result = await sitesClient.Users.AddUserAsync(user.Name, user.SiteRole, user.AuthSetting, Cancel);
+                var result = await sitesClient.Users.AddUserAsync(user.Name, user.SiteRole, UserAuthenticationType.ForAuthenticationType(user.AuthSetting), Cancel);
 
                 // Assert
                 AddUserAssert(user, result);
@@ -177,9 +181,10 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
                 Assert.NotNull(user);
                 Assert.NotNull(user.Name);
                 Assert.NotNull(user.SiteRole);
+                Assert.NotNull(user.AuthSetting);
 
                 // Add a user to update later
-                var addResult = await sitesClient.Users.AddUserAsync(user.Name, user.SiteRole, user.AuthSetting, Cancel);
+                var addResult = await sitesClient.Users.AddUserAsync(user.Name, user.SiteRole, UserAuthenticationType.ForAuthenticationType(user.AuthSetting), Cancel);
 
                 // Check accuracy before proceeding with the real test
                 AddUserAssert(user, addResult);
@@ -195,12 +200,12 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
                                                                            newSiteRole: newSiteRole,
                                                                            cancel: Cancel,
                                                                            newfullName: newFullName,
-                                                                           newAuthSetting: newAuthSetting);
+                                                                           newAuthentication: UserAuthenticationType.ForAuthenticationType(newAuthSetting));
                 // Check the update result
                 Assert.True(updateResult.Success);
                 Assert.Equal(newFullName, updateResult.Value?.FullName);
                 Assert.Equal(newSiteRole, updateResult.Value?.SiteRole);
-                Assert.Equal(newAuthSetting, updateResult.Value?.AuthSetting);
+                Assert.Equal(newAuthSetting, updateResult.Value?.Authentication.AuthenticationType);
 
                 // Query the user and then check if the simulation tests really updated the user.
                 var getResult = await sitesClient.Users.GetAllUsersAsync(1, 100, Cancel);
@@ -227,7 +232,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
                                                                            newSiteRole: newSiteRole,
                                                                            cancel: Cancel,
                                                                            newfullName: newFullName,
-                                                                           newAuthSetting: newAuthSetting);
+                                                                           newAuthentication: UserAuthenticationType.ForAuthenticationType(newAuthSetting));
                 // Check the update result
                 Assert.False(updateResult.Success);
                 Assert.NotEmpty(updateResult.Errors);

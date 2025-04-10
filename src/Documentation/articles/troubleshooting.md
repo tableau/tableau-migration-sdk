@@ -65,7 +65,7 @@ Python
 
 Environment variables must be set in the system the Python application runs in. This can be done through the OS itself, or by 3rd party libraries. The SDK will load the environment configuration on its **\_\_init\_\_** process.
 
-For the case of the library [dotenv](https://pypi.org/project/python-dotenv/), it is required to execute the command **load_dotenv()** before referring to any **tableau_migration** code. 
+For the case of the library [dotenv](https://pypi.org/project/python-dotenv/), it is required to execute the command **load_dotenv()** before referring to any **tableau_migration** code.
 
 ```
 # Used to load environment variables
@@ -93,3 +93,20 @@ This warning message indicates that the `GroupUsersTransformer` was unable to ad
 This situation can occur if a user was excluded by a custom filter, but was not mapped to another user. If a custom filter was implemented based on the `ContentFilterBase<IUser>` class, then debug logging is already available.
 
 To resolve this issue, enable debug logging to identify which filter is excluding the user. Then, add a mapping to an existing user using the `ContentMappingBase<IUser>` class.
+
+### Error (manifest) migrating `Guest` users
+
+`Guest` users are not supported on Tableau Cloud. They are only on Servers with the legacy Core based licensing. So, the Migration SDK cannot migrate them. To mitigate the problem, you can do one of these things
+
+1. If the users have no associated permissions on content items, you can write a User [filter](~/articles/hooks/custom_hooks.md) based on their SiteRole ([PySiteRoles](~/api-python/reference/tableau_migration.migration_api_rest_models.PySiteRoles.md)/[SiteRoles](xref:Tableau.Migration.Api.Rest.Models.SiteRoles)).
+2. If the users do have associate permissions on content items, you can write a [mapping](~/articles/hooks/custom_hooks.md) for each of them to a different user.
+
+### Warning: `Embedded Managed OAuth Credentials migration is not supported. They will be converted to saved credentials for[workbook/data source] [name] at [location]. The connection IDs are [list of connection IDs].`
+
+This warning message indicates that the Migration SDK did not migrate a workbook/data source's [Managed OAuth Embedded Credentials](https://help.tableau.com/current/server/en-us/protected_auth.htm#defaultmanaged-keychain-connectors).
+They will be automatically converted to saved credentials at the destination. Users will need to re-enter credentials the first time they use the workbook/ data source.
+All other types of embedded credentials are migrated as they are.
+
+### Error `Content migration data could not be found for site '[Site ID]'.`
+
+This error message indicates that you need to authorize credential migration before migrating content with embedded credentials. See the [Pre-Migration Checklist](https://help.tableau.com/current/api/migration_sdk/en-us/docs/how_to_migrate.html) for more details.

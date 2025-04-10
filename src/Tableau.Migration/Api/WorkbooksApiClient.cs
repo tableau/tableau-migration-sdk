@@ -20,6 +20,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Tableau.Migration.Api.EmbeddedCredentials;
 using Tableau.Migration.Api.Models;
 using Tableau.Migration.Api.Permissions;
 using Tableau.Migration.Api.Publishing;
@@ -56,6 +57,7 @@ namespace Tableau.Migration.Api
             IWorkbookPublisher workbookPublisher,
             ITagsApiClientFactory tagsClientFactory,
             IViewsApiClientFactory viewsClientFactory,
+            IEmbeddedCredentialsApiClientFactory embeddedCredentialsApiClientFactory,
             IConnectionManager connectionManager,
             IConfigReader configReader)
             : base(restRequestBuilderFactory, finderFactory, loggerFactory, sharedResourcesLocalizer)
@@ -65,6 +67,7 @@ namespace Tableau.Migration.Api
             Permissions = permissionsClientFactory.Create(this);
             Tags = tagsClientFactory.Create(this);
             Views = viewsClientFactory.Create();
+            EmbeddedCredentials = embeddedCredentialsApiClientFactory.Create(this);
             _connectionManager = connectionManager;
             _configReader = configReader;
         }
@@ -90,6 +93,12 @@ namespace Tableau.Migration.Api
 
         #endregion
 
+        #region - IEmbeddedCredentialsContentApiClient Implementation
+
+        /// <inheritdoc />
+        public IEmbeddedCredentialsApiClient EmbeddedCredentials { get; }
+
+        #endregion
         /// <inheritdoc />
         public async Task<IPagedResult<IWorkbook>> GetAllWorkbooksAsync(
             int pageNumber,

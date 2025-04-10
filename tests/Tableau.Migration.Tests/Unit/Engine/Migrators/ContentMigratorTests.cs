@@ -33,6 +33,7 @@ using Tableau.Migration.Engine.Manifest;
 using Tableau.Migration.Engine.Migrators;
 using Tableau.Migration.Engine.Migrators.Batch;
 using Tableau.Migration.Engine.Pipelines;
+using Tableau.Migration.Paging;
 using Xunit;
 
 namespace Tableau.Migration.Tests.Unit.Engine.Migrators
@@ -227,36 +228,6 @@ namespace Tableau.Migration.Tests.Unit.Engine.Migrators
                 MockManifestEntryBuilder.Verify(x => x.CreateEntries(It.IsAny<IReadOnlyCollection<TestContentType>>(),
                     It.IsAny<Func<TestContentType, IMigrationManifestEntryEditor, ContentMigrationItem<TestContentType>>>(),
                     SourceContent.Count), Times.Exactly(NumSourcePages));
-            }
-
-            [Fact]
-            public async Task FilteredOutItemsMarkedAsSkipped()
-            {
-                MockFilterRunner.Setup(x => x.ExecuteAsync<TestContentType>(It.IsAny<IEnumerable<ContentMigrationItem<TestContentType>>>(), Cancel))
-                    .ReturnsAsync((IEnumerable<ContentMigrationItem<TestContentType>> items, CancellationToken c) =>
-                    {
-                        return items.Skip(1);
-                    });
-
-                var result = await Migrator.MigrateAsync(Cancel);
-
-                result.AssertSuccess();
-
-                MockSourceEndpoint.Verify(x => x.GetPager<TestContentType>(BatchSize), Times.Once);
-                MockManifestPartition.Verify(x => x.GetEntryBuilder(SourceContent.Count), Times.Once);
-
-                Assert.Equal(2, NumSourcePages);
-
-                MockBatchMigrator.Verify(x => x.MigrateAsync(It.Is<ImmutableArray<ContentMigrationItem<TestContentType>>>(i => i.Length == 1), Cancel), Times.Exactly(NumSourcePages));
-
-                MockManifestEntryBuilder.Verify(x => x.CreateEntries(It.IsAny<IReadOnlyCollection<TestContentType>>(),
-                    It.IsAny<Func<TestContentType, IMigrationManifestEntryEditor, ContentMigrationItem<TestContentType>>>(),
-                    SourceContent.Count), Times.Exactly(NumSourcePages));
-
-                Assert.Equal(MigrationManifestEntryStatus.Skipped, MigrationItems[0].ManifestEntry.Status);
-                Assert.NotEqual(MigrationManifestEntryStatus.Skipped, MigrationItems[1].ManifestEntry.Status);
-                Assert.Equal(MigrationManifestEntryStatus.Skipped, MigrationItems[2].ManifestEntry.Status);
-                Assert.NotEqual(MigrationManifestEntryStatus.Skipped, MigrationItems[3].ManifestEntry.Status);
             }
 
             [Fact]

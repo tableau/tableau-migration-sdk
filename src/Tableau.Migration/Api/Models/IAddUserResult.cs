@@ -16,6 +16,7 @@
 //
 
 using Tableau.Migration.Api.Rest;
+using Tableau.Migration.Content;
 
 namespace Tableau.Migration.Api.Models
 {
@@ -35,8 +36,8 @@ namespace Tableau.Migration.Api.Models
         string SiteRole { get; }
 
         /// <summary>
-        /// The AuthSetting for the user.
+        /// The authentication type for the user.
         /// </summary>
-        string AuthSetting { get; }
+        UserAuthenticationType Authentication { get; }
     }
 }

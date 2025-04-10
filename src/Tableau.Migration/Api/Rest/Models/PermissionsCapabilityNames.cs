@@ -18,122 +18,127 @@
 namespace Tableau.Migration.Api.Rest.Models
 {
     /// <summary>
-    /// The Capability names used in the test API.
+    /// Enumeration class for the various capability names used in REST API permissions.
     /// </summary>
     public class PermissionsCapabilityNames : StringEnum<PermissionsCapabilityNames>
     {
         /// <summary>
-        /// Gets the name of capability name for no capabilities.
+        /// Gets the name of the None capability.
         /// </summary>
         public const string None = "None";
 
         /// <summary>
-        /// Gets the name of capability name for AddComment.
+        /// Gets the name of the "Add Comment" capability.
         /// </summary>
         public const string AddComment = "AddComment";
 
         /// <summary>
-        /// Gets the name of capability name for ChangeHierarchy.
+        /// Gets the name of the "Change Hierarchy" capability.
         /// </summary>        
         public const string ChangeHierarchy = "ChangeHierarchy";
 
         /// <summary>
-        /// Gets the name of capability name for ChangePermissions.
+        /// Gets the name of the "Change Permissions" capability.
         /// </summary> 
         public const string ChangePermissions = "ChangePermissions";
 
         /// <summary>
-        /// Gets the name of capability name for Connect.
+        /// Gets the name of the "Connect" capability.
         /// </summary> 
         public const string Connect = "Connect";
 
         /// <summary>
-        /// Gets the name of capability name for CreateRefreshMetrics.
+        /// Gets the name of the "Create Refresh Metrics" capability.
         /// </summary>       
         public const string CreateRefreshMetrics = "CreateRefreshMetrics";
 
         /// <summary>
-        /// Gets the name of capability name for Delete.
+        /// Gets the name of the "Delete" capability.
         /// </summary> 
         public const string Delete = "Delete";
 
         /// <summary>
-        /// Gets the name of capability name for Execute.
+        /// Gets the name of the "Execute" capability.
         /// </summary>        
         public const string Execute = "Execute";
 
         /// <summary>
-        /// Gets the name of capability name for ExportData.
+        /// Gets the name of the "Export Data" capability.
         /// </summary> 
         public const string ExportData = "ExportData";
 
         /// <summary>
-        /// Gets the name of capability name for ExportImage.
+        /// Gets the name of the "Export Image" capability.
         /// </summary> 
         public const string ExportImage = "ExportImage";
 
         /// <summary>
-        /// Gets the name of capability name for ExportXml.
+        /// Gets the name of the "Export XML" capability.
         /// </summary>       
         public const string ExportXml = "ExportXml";
 
         /// <summary>
-        /// Gets the name of capability name for Filter.
+        /// Gets the name of the "Extract Refresh" capability.
+        /// </summary>
+        public const string ExtractRefresh = "ExtractRefresh";
+
+        /// <summary>
+        /// Gets the name of the "Filter" capability.
         /// </summary> 
         public const string Filter = "Filter";
 
         /// <summary>
-        /// Gets the name of capability name for InheritedProjectLeader.
+        /// Gets the name of the "Inherited Project Leader" capability.
         /// </summary> 
         public const string InheritedProjectLeader = "InheritedProjectLeader";
 
         /// <summary>
-        /// Gets the name of capability name for ProjectLeader.
+        /// Gets the name of the "Project Leader" capability.
         /// </summary> 
         public const string ProjectLeader = "ProjectLeader";
 
         /// <summary>
-        /// Gets the name of capability name for Read.
+        /// Gets the name of the "Read" capability.
         /// </summary> 
         public const string Read = "Read";
 
         /// <summary>
-        /// Gets the name of capability name for RunExplainData.
+        /// Gets the name of the "Run Explain Data" capability.
         /// </summary> 
         public const string RunExplainData = "RunExplainData";
 
         /// <summary>
-        /// Gets the name of capability name for SaveAs.
+        /// Gets the name of the "Save As" capability.
         /// </summary> 
         public const string SaveAs = "SaveAs";
 
         /// <summary>
-        /// Gets the name of capability name for ShareView.
+        /// Gets the name of the "Share View" capability.
         /// </summary> 
         public const string ShareView = "ShareView";
 
         /// <summary>
-        /// Gets the name of capability name for ViewComments.
+        /// Gets the name of the "View Comments" capability.
         /// </summary> 
         public const string ViewComments = "ViewComments";
 
         /// <summary>
-        /// Gets the name of capability name for ViewUnderlyingData.
+        /// Gets the name of the "View Underlying Data" capability.
         /// </summary> 
         public const string ViewUnderlyingData = "ViewUnderlyingData";
 
         /// <summary>
-        /// Gets the name of capability name for WebAuthoring.
+        /// Gets the name of the "Web Authoring" capability.
         /// </summary> 
         public const string WebAuthoring = "WebAuthoring";
 
         /// <summary>
-        /// Gets the name of capability name for WebAuthoringForFlows.
+        /// Gets the name of the "Web Authoring" capability for flows.
         /// </summary> 
         public const string WebAuthoringForFlows = "WebAuthoringForFlows";
 
         /// <summary>
-        /// Gets the name of capability name for Write.
+        /// Gets the name of the "Write" capability.
         /// </summary> 
         public const string Write = "Write";
     }

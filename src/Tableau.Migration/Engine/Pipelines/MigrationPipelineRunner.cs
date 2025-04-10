@@ -29,15 +29,13 @@ namespace Tableau.Migration.Engine.Pipelines
     {
         private readonly IMigrationHookRunner _hooks;
 
-        /// <summary>
-        /// The current action being executed. Null if no action is current being performed.
-        /// </summary>
+        /// <inheritdoc/>
         public IMigrationAction? CurrentAction { get; private set; }
 
         /// <summary>
         /// Creates a new <see cref="MigrationPipelineRunner"/> object.
         /// </summary>
-        /// <param name="hooks">The hook runner.</param>
+        /// <param name="hooks">The hook runner.</param>        
         public MigrationPipelineRunner(IMigrationHookRunner hooks)
         {
             _hooks = hooks;
@@ -51,6 +49,7 @@ namespace Tableau.Migration.Engine.Pipelines
             foreach (var action in pipeline.BuildActions())
             {
                 CurrentAction = action;
+
                 var actionResult = await action.ExecuteAsync(cancel).ConfigureAwait(false);
 
                 actionResult = await _hooks.ExecuteAsync<IMigrationActionCompletedHook, IMigrationActionResult>(actionResult, cancel).ConfigureAwait(false);

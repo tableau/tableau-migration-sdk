@@ -34,7 +34,7 @@ namespace Tableau.Migration.TestApplication.Hooks
         public SpecialUserFilter(
             IOptions<TestApplicationOptions> options,
             ISharedResourcesLocalizer localizer, 
-            ILogger<IContentFilter<IUser>> logger) : base(localizer, logger) 
+            ILogger<SpecialUserFilter> logger) : base(localizer, logger) 
         { 
             _options = options.Value;
         }

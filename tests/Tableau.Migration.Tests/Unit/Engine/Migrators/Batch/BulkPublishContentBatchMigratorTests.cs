@@ -30,11 +30,11 @@ namespace Tableau.Migration.Tests.Unit.Engine.Migrators.Batch
 {
     public class BulkPublishContentBatchMigratorTests
     {
-        public class MigrateBatchAsync : ParallelContentBatchMigratorBatchTestBase<TestContentType, TestPublishType>
+        public class MigrateBatchAsync : ParallelContentBatchMigratorBatchTestBase<TestContentType, TestPublishType, TestPublishType>
         {
             private readonly Mock<IDestinationEndpoint> _mockDestination;
             private readonly Mock<IMigrationHookRunner> _mockHookRunner;
-            private readonly BulkPublishContentBatchMigrator<TestContentType, TestPublishType> _migrator;
+            private readonly BulkPublishContentBatchMigrator<TestContentType, TestPublishType, TestPublishType> _migrator;
 
             public MigrateBatchAsync()
             {
@@ -47,7 +47,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Migrators.Batch
                     It.IsAny<BulkPostPublishContext<TestPublishType>>(), It.IsAny<CancellationToken>()))
                     .ReturnsAsync((BulkPostPublishContext<TestPublishType> ctx, CancellationToken c) => ctx);
 
-                _migrator = Create<BulkPublishContentBatchMigrator<TestContentType, TestPublishType>>();
+                _migrator = Create<BulkPublishContentBatchMigrator<TestContentType, TestPublishType, TestPublishType>>();
             }
 
             [Fact]

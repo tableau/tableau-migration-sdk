@@ -20,6 +20,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using AutoFixture;
+using Microsoft.Extensions.Logging;
 using Moq;
 using Tableau.Migration.Api.Simulation;
 using Tableau.Migration.Content;
@@ -27,6 +28,7 @@ using Tableau.Migration.Content.Schedules.Cloud;
 using Tableau.Migration.Engine;
 using Tableau.Migration.Engine.Endpoints;
 using Tableau.Migration.Engine.Hooks;
+using Tableau.Migration.Engine.Hooks.ActionCompleted;
 using Tableau.Migration.Engine.Hooks.Filters;
 using Tableau.Migration.Engine.Hooks.Filters.Default;
 using Tableau.Migration.Engine.Hooks.Mappings;
@@ -44,6 +46,7 @@ namespace Tableau.Migration.Tests.Unit.Engine
         public class MigrationPlanBuilderTest : AutoFixtureTestBase
         {
             protected readonly Mock<IMigrationPlanOptionsBuilder> MockOptionsBuilder;
+            protected readonly Mock<ILoggerFactory> MockLoggerFactory;
             protected readonly Mock<IMigrationHookBuilder> MockHookBuilder;
             protected readonly Mock<ContentMappingBuilder> MockMappingBuilder;
             protected readonly Mock<ContentFilterBuilder> MockFilterBuilder;
@@ -52,6 +55,7 @@ namespace Tableau.Migration.Tests.Unit.Engine
 
             public MigrationPlanBuilderTest()
             {
+                MockLoggerFactory = new();
                 MockOptionsBuilder = Create<Mock<IMigrationPlanOptionsBuilder>>();
                 MockHookBuilder = new() { CallBase = true };
                 MockMappingBuilder = new() { CallBase = true };
@@ -60,6 +64,7 @@ namespace Tableau.Migration.Tests.Unit.Engine
 
                 Builder = new(
                     new TestSharedResourcesLocalizer(),
+                    MockLoggerFactory.Object,
                     Create<Mock<ITableauApiSimulatorFactory>>().Object,
                     MockOptionsBuilder.Object,
                     MockHookBuilder.Object,
@@ -90,6 +95,8 @@ namespace Tableau.Migration.Tests.Unit.Engine
                 MockTransformerBuilder.Verify(x => x.Add<MappedReferenceExtractRefreshTaskTransformer, ICloudExtractRefreshTask>(It.IsAny<Func<IServiceProvider, MappedReferenceExtractRefreshTaskTransformer>>()), Times.Once);
                 MockTransformerBuilder.Verify(x => x.Add(typeof(WorkbookReferenceTransformer<>), It.IsAny<IEnumerable<Type[]>>()), Times.Once);
                 MockTransformerBuilder.Verify(x => x.Add<CustomViewDefaultUserReferencesTransformer, IPublishableCustomView>(It.IsAny<Func<IServiceProvider, CustomViewDefaultUserReferencesTransformer>>()), Times.Once);
+                MockTransformerBuilder.Verify(x => x.Add(typeof(EncryptExtractTransformer<>), It.IsAny<IEnumerable<Type[]>>()), Times.Once);
+                MockTransformerBuilder.Verify(x => x.Add<SubscriptionTransformer, ICloudSubscription>(It.IsAny<Func<IServiceProvider, SubscriptionTransformer>>()), Times.Once);
 
                 MockHookBuilder.Verify(x => x.Add(typeof(OwnerItemPostPublishHook<,>), It.IsAny<IEnumerable<Type[]>>()), Times.Once);
                 MockHookBuilder.Verify(x => x.Add(typeof(PermissionsItemPostPublishHook<,>), It.IsAny<IEnumerable<Type[]>>()), Times.Once);
@@ -97,6 +104,8 @@ namespace Tableau.Migration.Tests.Unit.Engine
                 MockHookBuilder.Verify(x => x.Add(typeof(TagItemPostPublishHook<,>), It.IsAny<IEnumerable<Type[]>>()), Times.Once);
                 MockHookBuilder.Verify(x => x.Add(It.IsAny<Func<IServiceProvider, ProjectPostPublishHook>>()), Times.Once);
                 MockHookBuilder.Verify(x => x.Add(It.IsAny<Func<IServiceProvider, CustomViewDefaultUsersPostPublishHook>>()), Times.Once);
+                MockHookBuilder.Verify(x => x.Add(typeof(EmbeddedCredentialsItemPostPublishHook<,>), It.IsAny<IEnumerable<Type[]>>()), Times.Once);
+                MockHookBuilder.Verify(x => x.Add(It.IsAny<Func<IServiceProvider, SubscriptionsEnabledActionCompletedHook>>()), Times.Once);
             }
 
             protected void AssertDefaultServerToCloudExtensions()

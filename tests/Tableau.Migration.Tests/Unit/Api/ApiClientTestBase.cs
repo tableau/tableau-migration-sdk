@@ -15,7 +15,6 @@
 //  limitations under the License.
 //
 
-using System;
 using Tableau.Migration.Api;
 using Tableau.Migration.Api.Rest;
 

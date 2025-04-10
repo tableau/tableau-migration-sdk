@@ -35,6 +35,7 @@ namespace Tableau.Migration.Tests.Unit.Content.Files
                 var handle = new EncryptedFileHandle(mockStore.Object, mockInner.Object);
                 Assert.Equal(mockInner.Object.Path, handle.Path);
                 Assert.Equal(mockInner.Object.OriginalFileName, handle.OriginalFileName);
+                Assert.Equal(mockInner.Object.IsZipFile, handle.IsZipFile);
             }
         }
 

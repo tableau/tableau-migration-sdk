@@ -73,7 +73,7 @@ namespace Tableau.Migration.Config
             set => _batchPublishingEnabled = value;
         }
         private bool? _batchPublishingEnabled;
-        
+
         /// <summary>
         /// Gets or sets the include extract flag for supported types. Default: enabled.<br/>
         /// <b>Important:</b> This option is only available to <see cref="Content.IWorkbook"/> and <see cref="Content.IDataSource"/>.
@@ -90,9 +90,8 @@ namespace Tableau.Migration.Config
         /// Checks if the content type in <see cref="Type"/> is valid.
         /// </summary>
         /// <returns></returns>
-        public bool IsContentTypeValid() 
-            => ServerToCloudMigrationPipeline
-                .ContentTypes
+        public bool IsContentTypeValid()
+            => MigrationPipelineContentType.GetAllMigrationPipelineContentTypes()
                 .Any(c => string.Equals(c.GetConfigKey(), Type, StringComparison.OrdinalIgnoreCase));
     }
 }

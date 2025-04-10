@@ -19,9 +19,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.Extensions.Logging;
+using System.Reflection;
 using Tableau.Migration.Engine.Manifest;
-using Tableau.Migration.Resources;
 
 namespace Tableau.Migration.JsonConverters.SerializableObjects
 {
@@ -39,6 +38,12 @@ namespace Tableau.Migration.JsonConverters.SerializableObjects
         /// Gets or sets the unique identifier for the migration.
         /// </summary>
         public Guid? MigrationId { get; set; }
+
+        /// <summary>
+        /// Gets or sets the profile of the pipeline that will be built and
+        /// </summary>
+        /// <remarks>Defaults to ServerToCloud for backward compatiblity.</remarks>
+        public PipelineProfile? PipelineProfile { get; set; } = Migration.PipelineProfile.ServerToCloud;
 
         /// <summary>
         /// Gets or sets the list of errors encountered during the migration process.
@@ -68,6 +73,7 @@ namespace Tableau.Migration.JsonConverters.SerializableObjects
         {
             PlanId = manifest.PlanId;
             MigrationId = manifest.MigrationId;
+            PipelineProfile = manifest.PipelineProfile;
             ManifestVersion = manifest.ManifestVersion;
 
             Errors = manifest.Errors.Select(e => new SerializableException(e)).ToList();
@@ -84,25 +90,33 @@ namespace Tableau.Migration.JsonConverters.SerializableObjects
         /// <summary>
         /// Converts the serializable migration manifest back into an <see cref="IMigrationManifest"/> instance.
         /// </summary>
-        /// <param name="localizer">The shared resources localizer.</param>
-        /// <param name="loggerFactory">The logger factory.</param>
         /// <returns>An instance of <see cref="IMigrationManifest"/>.</returns>
-        public IMigrationManifest ToMigrationManifest(ISharedResourcesLocalizer localizer, ILoggerFactory loggerFactory)
+        public IMigrationManifest ToMigrationManifest()
         {
             VerifyDeserialization();
 
             // Create the manifest to return
-            var manifest = new MigrationManifest(localizer, loggerFactory, PlanId!.Value, MigrationId!.Value);
+            var manifest = new MigrationManifest(PlanId!.Value, MigrationId!.Value, PipelineProfile!.Value);
 
             // Get the Tableau.Migration assembly to get the type from later
-            var loadedAssemblies = AppDomain.CurrentDomain.GetAssemblies();
-            var tableauMigrationAssembly = loadedAssemblies.Where(a => a.ManifestModule.Name == "Tableau.Migration.dll").First();
+            var tableauMigrationAssembly = Assembly.GetExecutingAssembly();
 
             // Copy the entries to the manifest
             foreach (var partitionTypeStr in Entries!.Keys)
             {
                 var partitionType = tableauMigrationAssembly.GetType(partitionTypeStr);
-                Guard.AgainstNull(partitionType, nameof(partitionType));
+
+                if (partitionType is null)
+                {
+                    // This means the manifest has a partition type that is unknown.
+                    // This usually happens when the manifest is newer then the current version of the application.
+                    // 
+                    // This should not happen during normal migration-sdk usage, but may happen if tools like
+                    // Manifest Analyzer or Manifest Explorer have not been updated.
+                    //
+                    // In these cases, we'll just skip the partition.
+                    continue;
+                }
 
                 var partition = manifest.Entries.GetOrCreatePartition(partitionType);
 
@@ -121,6 +135,7 @@ namespace Tableau.Migration.JsonConverters.SerializableObjects
         {
             Guard.AgainstNull(PlanId, nameof(PlanId));
             Guard.AgainstNull(MigrationId, nameof(MigrationId));
+            Guard.AgainstNull(PipelineProfile, nameof(PipelineProfile));
             Guard.AgainstNull(Errors, nameof(Errors));
             Guard.AgainstNull(Entries, nameof(Entries));
             Guard.AgainstNull(ManifestVersion, nameof(ManifestVersion));

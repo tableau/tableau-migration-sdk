@@ -17,8 +17,10 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Tableau.Migration.Content;
 using Tableau.Migration.Engine.Options;
+using Tableau.Migration.Resources;
 
 namespace Tableau.Migration.Engine.Hooks.Mappings.Default
 {
@@ -29,31 +31,59 @@ namespace Tableau.Migration.Engine.Hooks.Mappings.Default
     {
         private readonly string _mailDomain;
         private readonly bool _useExistingEmail;
+        private readonly ISharedResourcesLocalizer _localizer;
+        private readonly ILogger<TableauCloudUsernameMapping>? _logger;
 
         /// <summary>
         /// Creates a new <see cref="TableauCloudUsernameMapping"/> object.
         /// </summary>
         /// <param name="optionsProvider">The options provider.</param>
-        public TableauCloudUsernameMapping(IMigrationPlanOptionsProvider<TableauCloudUsernameMappingOptions> optionsProvider)
+        /// <param name="localizer">A string localizer.</param>
+        /// <param name="logger">Default logger.</param>
+        public TableauCloudUsernameMapping(
+            IMigrationPlanOptionsProvider<TableauCloudUsernameMappingOptions> optionsProvider,
+            ISharedResourcesLocalizer localizer,
+            ILogger<TableauCloudUsernameMapping>? logger)
         {
             var opts = optionsProvider.Get();
 
             _mailDomain = opts.MailDomain;
             _useExistingEmail = opts.UseExistingEmail;
+
+            _localizer = localizer;
+            _logger = logger;
         }
 
         /// <inheritdoc />
         public Task<ContentMappingContext<IUser>?> ExecuteAsync(ContentMappingContext<IUser> ctx, CancellationToken cancel)
         {
+            ContentMappingContext<IUser> ret;
+
             if (_useExistingEmail && !string.IsNullOrWhiteSpace(ctx.ContentItem.Email))
             {
                 var emailLocation = ctx.MappedLocation.Parent().Append(ctx.ContentItem.Email);
-                return ctx.MapTo(emailLocation).ToTask();
+                ret = ctx.MapTo(emailLocation);
+            }
+            else
+            {
+                var generatedUsername = $"{ctx.MappedLocation.Name}@{_mailDomain}";
+                var generatedLocation = ctx.MappedLocation.Parent().Append(generatedUsername);
+                ret = ctx.MapTo(generatedLocation);
             }
 
-            var generatedUsername = $"{ctx.MappedLocation.Name}@{_mailDomain}";
-            var generatedLocation = ctx.MappedLocation.Parent().Append(generatedUsername);
-            return ctx.MapTo(generatedLocation).ToTask();
+            if (_logger is not null && _localizer is not null && ret is not null)
+            {
+                if (ctx.MappedLocation != ret.MappedLocation)
+                {
+                    _logger.LogDebug(
+                        _localizer[SharedResourceKeys.ContentMappingBaseDebugMessage],
+                        GetType().Name,
+                        ret.ContentItem.ToStringForLog(),
+                        ret.MappedLocation);
+                }
+            }
+
+            return ret?.ToTask() ?? Task.FromResult<ContentMappingContext<IUser>?>(null);
         }
     }
 }

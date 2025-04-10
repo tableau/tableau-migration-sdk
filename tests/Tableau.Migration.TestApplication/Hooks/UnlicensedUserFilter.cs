@@ -35,7 +35,7 @@ namespace Tableau.Migration.TestApplication.Hooks
     {
         public UnlicensedUserFilter(
             ISharedResourcesLocalizer localizer,
-            ILogger<IContentFilter<IUser>> logger) 
+            ILogger<UnlicensedUserFilter> logger) 
                 : base(localizer, logger) { }
 
         public override bool ShouldMigrate(ContentMigrationItem<IUser> item)

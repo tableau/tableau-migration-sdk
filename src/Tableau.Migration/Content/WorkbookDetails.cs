@@ -30,7 +30,7 @@ namespace Tableau.Migration.Content
         public WorkbookDetails(IWorkbookDetailsType response, IContentReference project, IContentReference owner)
             : base(response, project, owner)
         {
-            Views = response.Views.Select(v => new View(v, project, Name)).ToImmutableArray<IView>();
+            Views = response.Views.Select(v => new View(v, project, this)).ToImmutableArray<IView>();
         }
 
         public WorkbookDetails(IWorkbookDetails workbook)

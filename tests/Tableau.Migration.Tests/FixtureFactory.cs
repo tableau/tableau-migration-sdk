@@ -25,11 +25,11 @@ using System.Net.Http;
 using AutoFixture;
 using AutoFixture.AutoMoq;
 using AutoFixture.Kernel;
-using Microsoft.Extensions.Logging;
 using Moq;
 using Tableau.Migration.Api.Models;
 using Tableau.Migration.Api.Rest.Models.Requests;
 using Tableau.Migration.Api.Rest.Models.Responses;
+using Tableau.Migration.Api.Simulation;
 using Tableau.Migration.Content;
 using Tableau.Migration.Content.Schedules;
 using Tableau.Migration.Engine.Manifest;
@@ -215,7 +215,9 @@ namespace Tableau.Migration.Tests
 
             // These properties should return nullable bool strings instead of the default Guid-like ones.
             fixture.Customize<ConnectionsResponse.ConnectionType>(composer => composer
-                .With(j => j.QueryTaggingEnabled, () => fixture.Create<bool?>().ToString()));
+                .With(j => j.QueryTaggingEnabled, () => fixture.Create<bool?>().ToString())
+                .With(j => j.UseOAuthManagedKeychain, () => fixture.Create<bool?>().ToString())
+                .With(j => j.EmbedPassword, () => fixture.Create<bool?>().ToString()));
 
             #endregion
 
@@ -223,7 +225,9 @@ namespace Tableau.Migration.Tests
 
             // These properties should return nullable bool strings instead of the default Guid-like ones.
             fixture.Customize<ConnectionResponse.ConnectionType>(composer => composer
-                .With(j => j.QueryTaggingEnabled, () => fixture.Create<bool?>().ToString()));
+                .With(j => j.QueryTaggingEnabled, () => fixture.Create<bool?>().ToString())
+                .With(j => j.UseOAuthManagedKeychain, () => fixture.Create<bool?>().ToString())
+                .With(j => j.EmbedPassword, () => fixture.Create<bool?>().ToString()));
 
             #endregion
 
@@ -315,6 +319,14 @@ namespace Tableau.Migration.Tests
 
             #endregion
 
+            #region - SimulatedConnectionCredentials -
+
+            // These properties should return nullable bool strings instead of the default Guid-like ones.
+            fixture.Customize<SimulatedConnectionCredentials>(composer => composer
+                .With(j => j.Embed, () => fixture.Create<bool?>().ToString()));
+
+            #endregion
+
             return fixture;
         }
 
@@ -355,9 +367,9 @@ namespace Tableau.Migration.Tests
 
         internal static MigrationManifest CreateMigrationManifest(IFixture fixture)
         {
-            var ret = new MigrationManifest(fixture.Create<ISharedResourcesLocalizer>(), fixture.Create<ILoggerFactory>(), Guid.NewGuid(), Guid.NewGuid());
+            var ret = new MigrationManifest(Guid.NewGuid(), Guid.NewGuid(), PipelineProfile.ServerToCloud);
 
-            foreach (var type in ServerToCloudMigrationPipeline.ContentTypes)
+            foreach (var type in MigrationPipelineContentType.GetMigrationPipelineContentTypes(ret.PipelineProfile))
             {
                 var p = ret.Entries.GetOrCreatePartition(type.ContentType);
                 p.CreateEntries(fixture.CreateMany<MigrationManifestEntry>().ToList());
@@ -409,7 +421,7 @@ namespace Tableau.Migration.Tests
             var tableauMigrationAssembly = loadedAssemblies.Where(a => a.ManifestModule.Name == "Tableau.Migration.dll").First();
 
             var exceptionTypes = tableauMigrationAssembly.GetTypes()
-                .Where(t => t.BaseType == typeof(Exception) && !t.IsAbstract)
+                .Where(t => t.IsAssignableTo(typeof(Exception)) && !t.IsAbstract)
                 .Where(t => t != typeof(MismatchException)) // MismatchException will never be in a manifest
                 .ToList();
 

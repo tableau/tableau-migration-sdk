@@ -81,6 +81,7 @@ namespace Tableau.Migration
 
         /// <summary>
         /// Gets the formatted name of the specified <see cref="Type"/>.
+        /// If the type is a generic type, the formatted name will include the generic type arguments.
         /// </summary>
         /// <param name="type">The <see cref="Type"/> to get the formatted name for.</param>
         /// <returns>The formatted name of the <see cref="Type"/>.</returns>

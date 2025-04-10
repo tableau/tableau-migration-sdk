@@ -18,26 +18,56 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using Tableau.Migration.Resources;
 
 namespace Tableau.Migration.Engine.Hooks.Filters
 {
     internal class ContentFilterRunner : MigrationHookRunnerBase, IContentFilterRunner
     {
+        private readonly ISharedResourcesLocalizer _localizer;
+        private readonly ILogger<ContentFilterRunner> _logger;
+
         /// <summary>
         /// Default constructor for this class.
         /// </summary>
         /// <param name="plan">Migration plan used to run the filters.</param>
         /// <param name="services">Service provider context to resolve the filters used by the runner.</param>
-        public ContentFilterRunner(IMigrationPlan plan, IServiceProvider services) : base(plan, services)
-        { }
+        /// <param name="localizer">String localizer.</param>
+        /// <param name="logger">Default logger.</param>
+        public ContentFilterRunner(
+            IMigrationPlan plan,
+            IServiceProvider services,
+            ISharedResourcesLocalizer localizer,
+            ILogger<ContentFilterRunner> logger) : base(plan, services)
+        {
+            _localizer = localizer;
+            _logger = logger;
+        }
 
         public async Task<IEnumerable<ContentMigrationItem<TContent>>> ExecuteAsync<TContent>(IEnumerable<ContentMigrationItem<TContent>> context, CancellationToken cancel)
             where TContent : IContentReference
-            => await ExecuteAsync<IContentFilter<TContent>, IEnumerable<ContentMigrationItem<TContent>>>(context, cancel).ConfigureAwait(false);
+            => await ExecuteAsync<IContentFilter<TContent>, IEnumerable<ContentMigrationItem<TContent>>>(context, AfterHookAction, cancel).ConfigureAwait(false);
 
         protected sealed override ImmutableArray<IMigrationHookFactory> GetFactoryCollection<THook, TContext>()
             => Plan.Filters.GetHooks<THook>();
+
+        protected void AfterHookAction<TContent>(string hookName, IEnumerable<ContentMigrationItem<TContent>> inContext, IEnumerable<ContentMigrationItem<TContent>> outContext)
+            where TContent : IContentReference
+        {
+            var filteredItems = inContext.Except(outContext).ToList();
+            foreach (var filteredItem in filteredItems)
+            {
+                filteredItem.ManifestEntry.SetSkipped(hookName);
+
+                _logger.LogDebug(
+                    _localizer[SharedResourceKeys.ContentFilterBaseDebugMessage],
+                    hookName,
+                    filteredItem.SourceItem.ToStringForLog());
+            }
+        }
     }
 }

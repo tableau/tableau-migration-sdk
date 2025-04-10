@@ -23,10 +23,8 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 using Tableau.Migration.Content;
 using Tableau.Migration.Engine.Hooks.Mappings;
-using Tableau.Migration.Resources;
 
 namespace Tableau.Migration.Engine.Manifest
 {
@@ -35,9 +33,6 @@ namespace Tableau.Migration.Engine.Manifest
     /// </summary>
     public class MigrationManifestContentTypePartition : IMigrationManifestContentTypePartitionEditor, IMigrationManifestEntryBuilder
     {
-        private readonly ISharedResourcesLocalizer _localizer;
-        private readonly ILogger<MigrationManifestContentTypePartition> _logger;
-
         private readonly Dictionary<ContentLocation, IMigrationManifestEntryEditor> _entriesBySourceLocation = new();
         private readonly Dictionary<Guid, IMigrationManifestEntryEditor> _entriesBySourceId = new();
         private readonly Dictionary<string, IMigrationManifestEntryEditor> _entriesBySourceContentUrl = new();
@@ -53,15 +48,9 @@ namespace Tableau.Migration.Engine.Manifest
         /// Creates a new <see cref="MigrationManifestContentTypePartition"/> object.
         /// </summary>
         /// <param name="type">The content type the partition holds manifest entries for.</param>
-        /// <param name="localizer">A localizer.</param>
-        /// <param name="logger">A logger.</param>
-        public MigrationManifestContentTypePartition(Type type,
-            ISharedResourcesLocalizer localizer, ILogger<MigrationManifestContentTypePartition> logger)
+        public MigrationManifestContentTypePartition(Type type)
         {
             ContentType = type;
-
-            _localizer = localizer;
-            _logger = logger;
 
             foreach(var status in Enum.GetValues<MigrationManifestEntryStatus>())
             {
@@ -223,13 +212,7 @@ namespace Tableau.Migration.Engine.Manifest
         }
 
         /// <inhertidoc />
-        public void MigrationFailed(IMigrationManifestEntryEditor entry)
-        {
-            foreach (var error in entry.Errors)
-            {
-                _logger.LogError(_localizer[SharedResourceKeys.MigrationItemErrorLogMessage], ContentType, entry.Source.Location, error, error.Data.GetContentsAsString());
-            }
-        }
+        public virtual void MigrationFailed(IMigrationManifestEntryEditor entry) { }
 
         #endregion
 

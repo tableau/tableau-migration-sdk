@@ -27,7 +27,8 @@ namespace Tableau.Migration.Content.Files
     /// <param name="Store">The file store the handle is for.</param>
     /// <param name="Path">The path to the file.</param>
     /// <param name="OriginalFileName">The original filename of the file, used for the upload filename when publishing the content item.</param>
-    public record ContentFileHandle(IContentFileStore Store, string Path, string OriginalFileName)
+    /// <param name="IsZipFile"><inheritdoc /></param>
+    public record ContentFileHandle(IContentFileStore Store, string Path, string OriginalFileName, bool? IsZipFile)
         : IContentFileHandle
     {
         private bool _disposed = false;

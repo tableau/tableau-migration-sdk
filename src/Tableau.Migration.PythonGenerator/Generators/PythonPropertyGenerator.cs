@@ -41,7 +41,7 @@ namespace Tableau.Migration.PythonGenerator.Generators
         public ImmutableArray<PythonProperty> GenerateProperties(INamedTypeSymbol dotNetType)
         {
             // Enums don't generate any properties, but "enum values" through IPythonEnumValueGenerator.
-            if(dotNetType.IsAnyEnum())
+            if (dotNetType.IsAnyEnum())
             {
                 return ImmutableArray<PythonProperty>.Empty;
             }
@@ -51,7 +51,7 @@ namespace Tableau.Migration.PythonGenerator.Generators
             // Generate both C# fields and properties as Python properties.
             foreach (var dotNetMember in dotNetType.GetMembers())
             {
-                if(IgnoreMember(dotNetType, dotNetMember) || IGNORED_PROPERTIES.Contains(dotNetMember.Name))
+                if (IgnoreMember(dotNetType, dotNetMember) || IGNORED_PROPERTIES.Contains(dotNetMember.Name))
                 {
                     continue;
                 }
@@ -65,7 +65,7 @@ namespace Tableau.Migration.PythonGenerator.Generators
                     hasSetter = !(dotNetProperty.IsReadOnly || (dotNetProperty.SetMethod is not null && dotNetProperty.SetMethod.IsInitOnly));
                     isStatic = dotNetProperty.IsStatic;
                 }
-                else if(dotNetMember is IFieldSymbol dotNetField)
+                else if (dotNetMember is IFieldSymbol dotNetField)
                 {
                     dotNetMemberType = dotNetField.Type;
                     hasGetter = true;

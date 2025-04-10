@@ -17,6 +17,7 @@
 
 using System;
 using System.Linq;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -75,7 +76,7 @@ namespace Tableau.Migration.Api
 
                 // Check job waiting timeout
                 var timeSinceStart = _timeProvider.GetUtcNow() - startTime;
-                if(timeSinceStart > _configReader.Get().Jobs.JobTimeout)
+                if (timeSinceStart > _configReader.Get().Jobs.JobTimeout)
                 {
                     return Result.Failed(new TimeoutJobException(job, SharedResourcesLocalizer));
                 }
@@ -95,8 +96,8 @@ namespace Tableau.Migration.Api
                     {
                         if (jobResult.Errors[0] is RestException restError)
                         {
-                            if (string.Equals(restError.Code, "400031", StringComparison.Ordinal) ||
-                                restError.Code?.StartsWith("404") == true)
+                            if (RestErrorCodes.Equals(restError.Code, RestErrorCodes.GENERIC_QUERY_JOB_ERROR) ||
+                                restError.Code?.StartsWith(HttpStatusCode.NotFound.GetHashCode().ToString()) == true)
                             {
                                 return Result.Succeeded();
                             }

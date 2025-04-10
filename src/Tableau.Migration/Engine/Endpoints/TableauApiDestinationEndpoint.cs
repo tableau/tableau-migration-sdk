@@ -1,4 +1,4 @@
-﻿//
+//
 //  Copyright (c) 2025, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
@@ -21,7 +21,9 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Tableau.Migration.Api.Models;
+using Tableau.Migration.Api.Rest;
 using Tableau.Migration.Content;
 using Tableau.Migration.Content.Files;
 using Tableau.Migration.Content.Permissions;
@@ -35,6 +37,8 @@ namespace Tableau.Migration.Engine.Endpoints
     /// </summary>
     public class TableauApiDestinationEndpoint : TableauApiEndpointBase, IDestinationApiEndpoint
     {
+        private readonly ISharedResourcesLocalizer _localizer;
+
         /// <summary>
         /// Creates a new <see cref="TableauApiDestinationEndpoint"/> object.
         /// </summary>
@@ -42,14 +46,18 @@ namespace Tableau.Migration.Engine.Endpoints
         /// <param name="config">The configuration options for connecting to the destination endpoint APIs.</param>
         /// <param name="finderFactory">A destination finder factory.</param>
         /// <param name="fileStore">The file store to use.</param>
+        /// <param name="loggerFactory">The logger factory to use.</param>
         /// <param name="localizer">A string localizer.</param>
         public TableauApiDestinationEndpoint(IServiceScopeFactory serviceScopeFactory,
             ITableauApiEndpointConfiguration config,
             IDestinationContentReferenceFinderFactory finderFactory,
             IContentFileStore fileStore,
+            ILoggerFactory loggerFactory,
             ISharedResourcesLocalizer localizer)
-            : base(serviceScopeFactory, config, finderFactory, fileStore, localizer)
-        { }
+            : base(serviceScopeFactory, config, finderFactory, fileStore, loggerFactory, localizer)
+        {
+            _localizer = localizer;
+        }
 
         /// <inheritdoc />
         public async Task<IResult<TPublishResult>> PublishAsync<TPublish, TPublishResult>(TPublish publishItem, CancellationToken cancel)
@@ -122,6 +130,28 @@ namespace Tableau.Migration.Engine.Endpoints
             return await SiteApi.CustomViews
                 .SetCustomViewDefaultUsersAsync(id, users, cancel)
                 .ConfigureAwait(false);
+        }
+
+        /// <inheritdoc />
+        public async Task<IResult> ApplyKeychainsAsync<TContent>(Guid contentItemId, IApplyKeychainOptions options, CancellationToken cancel)
+            where TContent : IWithEmbeddedCredentials
+        {
+            var apiClient = SiteApi.GetEmbeddedCredentialsApiClient<TContent>();
+            return await apiClient.EmbeddedCredentials.ApplyKeychainAsync(contentItemId, options, cancel).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc />
+        public async Task<IResult> UploadUserSavedCredentialsAsync(Guid userId, IEnumerable<string> encryptedKeychains, CancellationToken cancel)
+        {
+            return await SiteApi.Users.UploadUserSavedCredentialsAsync(userId, encryptedKeychains, cancel).ConfigureAwait(false); ;
+        }
+
+        /// <inheritdoc />
+        public async Task<IResult> DeleteAsync<TContent>(Guid id, CancellationToken cancel)
+            where TContent : IDelible, IRestIdentifiable
+        {
+            var deleteApiClient = SiteApi.GetDeleteApiClient<TContent>();
+            return await deleteApiClient.DeleteAsync(id, cancel).ConfigureAwait(false);
         }
     }
 }

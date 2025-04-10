@@ -26,7 +26,7 @@ namespace Tableau.Migration.Api
     /// Interface for a content typed API client that can list all of the content items the user has access to.
     /// </summary>
     /// <typeparam name="TContent">The content type.</typeparam>
-    public interface IPagedListApiClient<TContent> : IContentApiClient
+    public interface IPagedListApiClient<TContent>
     {
         /// <summary>
         /// Gets a pager to list all the content the user has access to.

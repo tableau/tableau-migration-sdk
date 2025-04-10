@@ -15,6 +15,7 @@
 //  limitations under the License.
 //
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -117,13 +118,17 @@ namespace Tableau.Migration.PythonGenerator
         #endregion
         );
 
-        private static readonly ImportedModule IContentReferenceImport = new(
-            Dotnet.Namespaces.TABLEAU_MIGRATION,
-            new ImportedType(nameof(IContentReference)));
+        private static readonly ImportedModule IContentReferenceImport = new(Dotnet.Namespaces.TABLEAU_MIGRATION, nameof(IContentReference));
 
         private static readonly ImportedModule DotnetListImport = new(
             Dotnet.Namespaces.SYSTEM_COLLECTIONS_GENERIC,
             new ImportedType(Dotnet.Types.LIST, Dotnet.TypeAliases.LIST));
+
+        private static ImportedModule GetPythonImportedModule(Type dotnetType)
+          => new(ITypeSymbolExtensions.ToPythonModuleName(dotnetType), PythonTypeReference.ToPythonTypeName(dotnetType));
+
+        private static ImportedModule GetDotnetImportedModule(Type dotnetType)
+            => new(dotnetType.Namespace ?? string.Empty, new ImportedType(dotnetType.Name));
 
         private static readonly Dictionary<string, List<ImportedModule>> NAMESPACE_IMPORTS = new()
         {
@@ -132,7 +137,9 @@ namespace Tableau.Migration.PythonGenerator
                 new List<ImportedModule>()
                 {
                     IContentReferenceImport,
-                    new(Dotnet.Namespaces.SYSTEM, [new ImportedType(Dotnet.Types.BOOLEAN), new ImportedType(Dotnet.Types.NULLABLE)])
+                    new(Dotnet.Namespaces.SYSTEM, [Dotnet.Types.BOOLEAN, Dotnet.Types.NULLABLE]),
+                    GetDotnetImportedModule(typeof(ISchedule)),
+                    GetPythonImportedModule(typeof(ISchedule))
                 }
             },
             {
@@ -140,7 +147,7 @@ namespace Tableau.Migration.PythonGenerator
                 new List<ImportedModule>()
                 {
                     IContentReferenceImport,
-                    new(Dotnet.Namespaces.SYSTEM,new ImportedType(Dotnet.Types.NULLABLE)),
+                    new(Dotnet.Namespaces.SYSTEM,Dotnet.Types.NULLABLE),
                     DotnetListImport
                 }
             },
@@ -149,9 +156,9 @@ namespace Tableau.Migration.PythonGenerator
                 new List<ImportedModule>()
                 {
                     IContentReferenceImport,
-                    new(Dotnet.Namespaces.SYSTEM, [new ImportedType(Dotnet.Types.NULLABLE), new ImportedType(Dotnet.Types.TIME_ONLY), new ImportedType(Dotnet.Types.STRING)]),
+                    new(Dotnet.Namespaces.SYSTEM, [Dotnet.Types.NULLABLE, Dotnet.Types.TIME_ONLY, Dotnet.Types.STRING]),
                     DotnetListImport,
-                    new($"{typeof(ExtractRefreshContentType).Namespace}",new ImportedType(nameof(ExtractRefreshContentType)))
+                    GetDotnetImportedModule(typeof(ExtractRefreshContentType))
                 }
             }
         };

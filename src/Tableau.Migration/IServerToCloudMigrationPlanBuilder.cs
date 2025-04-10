@@ -45,22 +45,38 @@ namespace Tableau.Migration
         /// on the SAML authentication type.
         /// </summary>
         /// <param name="domain">The domain to map users and groups to.</param>
+        /// <param name="idpConfigurationName">
+        /// The IdP configuration name for the authentication type to assign to users.
+        /// Should be null when the destination site is Tableau Server or has a single authentication configuration. 
+        /// Should be non-null when the destination site is Tableau Cloud and has multiple authentication configurations.
+        /// </param>
         /// <returns>The same plan builder object for fluent API calls.</returns>
-        IServerToCloudMigrationPlanBuilder WithSamlAuthenticationType(string domain);
+        IServerToCloudMigrationPlanBuilder WithSamlAuthenticationType(string domain, string? idpConfigurationName = null);
 
         /// <summary>
         /// Adds an object to map user and group domains based
         /// on the Tableau ID authentication type.
         /// </summary>
         /// <param name="mfa">Whether or not MFA is used, defaults to true.</param>
+        /// <param name="idpConfigurationName">
+        /// The IdP configuration name for the authentication type to assign to users.
+        /// Should be null when the destination site is Tableau Server or has a single authentication configuration. 
+        /// Should be non-null when the destination site is Tableau Cloud and has multiple authentication configurations.
+        /// </param>
         /// <returns>The same plan builder object for fluent API calls.</returns>
-        IServerToCloudMigrationPlanBuilder WithTableauIdAuthenticationType(bool mfa = true);
+        IServerToCloudMigrationPlanBuilder WithTableauIdAuthenticationType(bool mfa = true, string? idpConfigurationName = null);
 
         /// <summary>
         /// Adds an object to map user and group domains based
         /// on the destination authentication type.
+        /// Use when the destination site is Tableau Server or has a single authentication configuration.
         /// </summary>
-        /// <param name="authenticationType">The authentication type to assign to users.</param>
+        /// <param name="authenticationType">
+        /// The authentication type to assign to users.
+        /// For sites without multiple authentication types an authSetting value from the 
+        /// <see href="https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_users_and_groups.htm#add_user_to_site">Tableau API</see> should be used.
+        /// If the site has multiple authentication types the IdP configuration name shown in the authentication configuration list should be used.
+        /// </param>
         /// <param name="userDomain">The domain to map users to.</param>
         /// <param name="groupDomain">The domain to map groups to.</param>
         /// <returns>The same plan builder object for fluent API calls.</returns>
@@ -69,8 +85,14 @@ namespace Tableau.Migration
         /// <summary>
         /// Adds an object to map user and group domains based
         /// on the destination authentication type.
+        /// Use when the destination site is Tableau Server or has a single authentication configuration.
         /// </summary>
-        /// <param name="authenticationType">An authentication type to assign to users.</param>
+        /// <param name="authenticationType">
+        /// The authentication type to assign to users.
+        /// For sites without multiple authentication types an authSetting value from the 
+        /// <see href="https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_users_and_groups.htm#add_user_to_site">Tableau API</see> should be used.
+        /// If the site has multiple authentication types the IdP configuration name shown in the authentication configuration list should be used.
+        /// </param>
         /// <param name="authenticationTypeMapping">The mapping to execute.</param>
         /// <returns>The same plan builder object for fluent API calls.</returns>
         IServerToCloudMigrationPlanBuilder WithAuthenticationType(string authenticationType, IAuthenticationTypeDomainMapping authenticationTypeMapping);
@@ -78,9 +100,15 @@ namespace Tableau.Migration
         /// <summary>
         /// Adds an object to map user and group domains based
         /// on the destination authentication type.
+        /// Use when the destination site is Tableau Server or has a single authentication configuration.
         /// </summary>
         /// <typeparam name="TMapping">The mapping type.</typeparam>
-        /// <param name="authenticationType">An authentication type to assign to users.</param>
+        /// <param name="authenticationType">
+        /// The authentication type to assign to users.
+        /// For sites without multiple authentication types an authSetting value from the 
+        /// <see href="https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_users_and_groups.htm#add_user_to_site">Tableau API</see> should be used.
+        /// If the site has multiple authentication types the IdP configuration name shown in the authentication configuration list should be used.
+        /// </param>
         /// <param name="authenticationTypeMappingFactory">An initializer function to create the object from, potentially from the migration-scoped dependency injection container.</param>
         /// <returns>The same plan builder object for fluent API calls.</returns>
         IServerToCloudMigrationPlanBuilder WithAuthenticationType<TMapping>(string authenticationType, Func<IServiceProvider, TMapping>? authenticationTypeMappingFactory = null)
@@ -89,12 +117,17 @@ namespace Tableau.Migration
         /// <summary>
         /// Adds an object to map user and group domains based
         /// on the destination authentication type.
+        /// Use when the destination site is Tableau Server or has a single authentication configuration.
         /// </summary>
-        /// <param name="authenticationType">An authentication type to assign to users.</param>
+        /// <param name="authenticationType">
+        /// The authentication type to assign to users.
+        /// For sites without multiple authentication types an authSetting value from the 
+        /// <see href="https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_users_and_groups.htm#add_user_to_site">Tableau API</see> should be used.
+        /// If the site has multiple authentication types the IdP configuration name shown in the authentication configuration list should be used.
+        /// </param>
         /// <param name="callback">A callback to call for the mapping.</param>
         /// <returns>The same plan builder object for fluent API calls.</returns>
-        IServerToCloudMigrationPlanBuilder WithAuthenticationType(string authenticationType,
-            Func<ContentMappingContext<IUsernameContent>, CancellationToken, Task<string?>> callback);
+        IServerToCloudMigrationPlanBuilder WithAuthenticationType(string authenticationType, Func<ContentMappingContext<IUsernameContent>, CancellationToken, Task<string?>> callback);
 
         #endregion
 

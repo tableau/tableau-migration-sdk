@@ -16,9 +16,9 @@
 //
 
 using System;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Moq;
 using Tableau.Migration.Api.Rest.Models.Types;
 using Tableau.Migration.Content;
@@ -39,10 +39,13 @@ namespace Tableau.Migration.Tests.Unit.Engine
             protected readonly Mock<IMigrationPlanBuilder> MockInnerBuilder;
             protected readonly ServerToCloudMigrationPlanBuilder Builder;
 
+            private readonly Mock<LoggerFactory> _mockLoggerFactory = new();
+
+
             public ServerToCloudMigrationPlanBuilderTest()
             {
                 MockInnerBuilder = Create<Mock<IMigrationPlanBuilder>>();
-                Builder = new(new TestSharedResourcesLocalizer(), MockInnerBuilder.Object);
+                Builder = new(new TestSharedResourcesLocalizer(), _mockLoggerFactory.Object, MockInnerBuilder.Object);
             }
 
             protected void AssertRequiredAuthTypeExtensions(string authType, string userDomain, string groupDomain)
@@ -151,17 +154,12 @@ namespace Tableau.Migration.Tests.Unit.Engine
             public void ForCustomPipelineFactory()
             {
                 var contentTypes = CreateMany<MigrationPipelineContentType>();
-                var contentTypesArray = contentTypes.ToArray();
 
-                var b = ((IMigrationPlanBuilder)Builder).ForCustomPipelineFactory<MigrationPipelineFactory>(contentTypesArray);
-                b = ((IMigrationPlanBuilder)Builder).ForCustomPipelineFactory<MigrationPipelineFactory>(contentTypes);
+                var b = ((IMigrationPlanBuilder)Builder).ForCustomPipelineFactory<MigrationPipelineFactory>(contentTypes);
 
-                b = ((IMigrationPlanBuilder)Builder).ForCustomPipelineFactory(CreateFactory, contentTypesArray);
                 b = ((IMigrationPlanBuilder)Builder).ForCustomPipelineFactory(CreateFactory, contentTypes);
 
-                MockInnerBuilder.Verify(x => x.ForCustomPipelineFactory<MigrationPipelineFactory>(contentTypesArray), Times.Once);
                 MockInnerBuilder.Verify(x => x.ForCustomPipelineFactory<MigrationPipelineFactory>(contentTypes), Times.Once);
-                MockInnerBuilder.Verify(x => x.ForCustomPipelineFactory(CreateFactory, contentTypesArray), Times.Once);
                 MockInnerBuilder.Verify(x => x.ForCustomPipelineFactory(CreateFactory, contentTypes), Times.Once);
             }
 
@@ -169,12 +167,9 @@ namespace Tableau.Migration.Tests.Unit.Engine
             public void ForCustomPipeline()
             {
                 var contentTypes = CreateMany<MigrationPipelineContentType>();
-                var contentTypesArray = contentTypes.ToArray();
 
-                var b = ((IMigrationPlanBuilder)Builder).ForCustomPipeline<ServerToCloudMigrationPipeline>(contentTypesArray);
-                b = ((IMigrationPlanBuilder)Builder).ForCustomPipeline<ServerToCloudMigrationPipeline>(contentTypes);
+                var b = ((IMigrationPlanBuilder)Builder).ForCustomPipeline<ServerToCloudMigrationPipeline>(contentTypes);
 
-                MockInnerBuilder.Verify(x => x.ForCustomPipeline<ServerToCloudMigrationPipeline>(contentTypesArray), Times.Once);
                 MockInnerBuilder.Verify(x => x.ForCustomPipeline<ServerToCloudMigrationPipeline>(contentTypes), Times.Once);
             }
 
@@ -218,6 +213,15 @@ namespace Tableau.Migration.Tests.Unit.Engine
 
                 AssertRequiredAuthTypeExtensions(AuthenticationTypes.Saml, "myDomain", Constants.LocalDomain);
             }
+
+            [Fact]
+            public void RegistersSamlWithIdpConfigurationName()
+            {
+                var name = Create<string>();
+                Builder.WithSamlAuthenticationType("myDomain", name);
+
+                AssertRequiredAuthTypeExtensions(name, "myDomain", Constants.LocalDomain);
+            }
         }
 
         public class WithTableauIdAuthenticationType : ServerToCloudMigrationPlanBuilderTest
@@ -231,11 +235,29 @@ namespace Tableau.Migration.Tests.Unit.Engine
             }
 
             [Fact]
+            public void WithMfaIdpConfigurationName()
+            {
+                var name = Create<string>();
+                Builder.WithTableauIdAuthenticationType(idpConfigurationName: name);
+
+                AssertRequiredAuthTypeExtensions(name, Constants.TableauIdWithMfaDomain, Constants.LocalDomain);
+            }
+
+            [Fact]
             public void WithoutMfa()
             {
                 Builder.WithTableauIdAuthenticationType(false);
 
                 AssertRequiredAuthTypeExtensions(AuthenticationTypes.OpenId, Constants.ExternalDomain, Constants.LocalDomain);
+            }
+
+            [Fact]
+            public void WithoutMfaIdpConfigurationName()
+            {
+                var name = Create<string>();
+                Builder.WithTableauIdAuthenticationType(false, name);
+
+                AssertRequiredAuthTypeExtensions(name, Constants.ExternalDomain, Constants.LocalDomain);
             }
         }
 
@@ -258,7 +280,6 @@ namespace Tableau.Migration.Tests.Unit.Engine
 
                 MockInnerBuilder.Verify(x => x.Mappings.Add<IUser>(myMapping), Times.Once);
                 MockInnerBuilder.Verify(x => x.Mappings.Add<IGroup>(myMapping), Times.Once);
-
 
                 MockInnerBuilder.Verify(x =>
                     x.Options.Configure(It.Is<UserAuthenticationTypeTransformerOptions>(o => o.AuthenticationType == "myAuthType")),
@@ -284,7 +305,6 @@ namespace Tableau.Migration.Tests.Unit.Engine
                 MockInnerBuilder.Verify(x => x.Mappings.Add<TestAuthTypeDomainMapping, IUser>(fact), Times.Once);
                 MockInnerBuilder.Verify(x => x.Mappings.Add<TestAuthTypeDomainMapping, IGroup>(fact), Times.Once);
 
-
                 MockInnerBuilder.Verify(x =>
                     x.Options.Configure(It.Is<UserAuthenticationTypeTransformerOptions>(o => o.AuthenticationType == "myAuthType")),
                     Times.Once);
@@ -300,7 +320,6 @@ namespace Tableau.Migration.Tests.Unit.Engine
 
                 MockInnerBuilder.Verify(x => x.Mappings.Add<IUser>(It.IsAny<IAuthenticationTypeDomainMapping>()), Times.Once);
                 MockInnerBuilder.Verify(x => x.Mappings.Add<IGroup>(It.IsAny<IAuthenticationTypeDomainMapping>()), Times.Once);
-
 
                 MockInnerBuilder.Verify(x =>
                     x.Options.Configure(It.Is<UserAuthenticationTypeTransformerOptions>(o => o.AuthenticationType == "myAuthType")),
@@ -362,6 +381,8 @@ namespace Tableau.Migration.Tests.Unit.Engine
 
         #endregion
 
+        #region - Validate -
+
         public class Validate : ServerToCloudMigrationPlanBuilderTest
         {
             [Fact]
@@ -399,5 +420,7 @@ namespace Tableau.Migration.Tests.Unit.Engine
                 result.AssertSuccess();
             }
         }
+
+        #endregion
     }
 }

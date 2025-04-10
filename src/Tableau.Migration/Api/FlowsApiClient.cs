@@ -39,12 +39,12 @@ namespace Tableau.Migration.Api
         private readonly IFlowPublisher _flowPublisher;
 
         public FlowsApiClient(
-            IRestRequestBuilderFactory restRequestBuilderFactory, 
-            IContentReferenceFinderFactory finderFactory, 
-            ILoggerFactory loggerFactory, 
+            IRestRequestBuilderFactory restRequestBuilderFactory,
+            IContentReferenceFinderFactory finderFactory,
+            ILoggerFactory loggerFactory,
             ISharedResourcesLocalizer sharedResourcesLocalizer,
             IContentFileStore fileStore,
-            IFlowPublisher flowPublisher) 
+            IFlowPublisher flowPublisher)
             : base(restRequestBuilderFactory, finderFactory, loggerFactory, sharedResourcesLocalizer)
         {
             _fileStore = fileStore;

@@ -18,7 +18,9 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Tableau.Migration.Content;
+using Tableau.Migration.Resources;
 
 namespace Tableau.Migration.Engine.Hooks.Mappings.Default
 {
@@ -29,14 +31,24 @@ namespace Tableau.Migration.Engine.Hooks.Mappings.Default
         : AuthenticationTypeDomainMappingBase
     {
         private readonly Func<ContentMappingContext<IUsernameContent>, CancellationToken, Task<string?>> _callback;
+        private readonly ISharedResourcesLocalizer _localizer;
+        ILogger<CallbackAuthenticationTypeDomainMapping>? _logger;
 
         /// <summary>
         /// Creates a new <see cref="CallbackAuthenticationTypeDomainMapping"/> object.
         /// </summary>
         /// <param name="callback">The callback to invoke.</param>
-        public CallbackAuthenticationTypeDomainMapping(Func<ContentMappingContext<IUsernameContent>, CancellationToken, Task<string?>> callback)
+        /// <param name="localizer">A string localizer.</param>
+        /// <param name="logger">Default logger.</param>
+        public CallbackAuthenticationTypeDomainMapping(
+            Func<ContentMappingContext<IUsernameContent>, CancellationToken, Task<string?>> callback,
+            ISharedResourcesLocalizer localizer,
+            ILogger<CallbackAuthenticationTypeDomainMapping>? logger
+            )
         {
             _callback = callback;
+            _localizer = localizer;
+            _logger = logger;
         }
 
         /// <summary>
@@ -56,7 +68,23 @@ namespace Tableau.Migration.Engine.Hooks.Mappings.Default
             }
             else
             {
-                return context.MapTo(ContentLocation.ForUsername(newDomain, context.MappedLocation.Name));
+                //return context.MapTo(ContentLocation.ForUsername(newDomain, context.MappedLocation.Name));
+
+                ContentMappingContext<T> ret = context.MapTo(ContentLocation.ForUsername(newDomain, context.MappedLocation.Name));
+
+                if (_logger is not null && _localizer is not null && ret is not null)
+                {
+                    if (context.MappedLocation != ret.MappedLocation)
+                    {
+                        _logger.LogDebug(
+                            _localizer[SharedResourceKeys.ContentMappingBaseDebugMessage],
+                            GetType().Name,
+                            ret.ContentItem.ToStringForLog(),
+                            ret.MappedLocation);
+                    }
+                }
+
+                return ret;
             }
         }
     }

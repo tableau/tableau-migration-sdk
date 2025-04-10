@@ -33,7 +33,7 @@ namespace Tableau.Migration.Engine.Migrators.Batch
         /// <inheritdoc />
         public IImmutableList<IContentItemMigrationResult<TContent>> ItemResults { get; }
 
-        protected ContentBatchMigrationResult(bool success, bool performNextBatch, IImmutableList<IContentItemMigrationResult<TContent>> itemResults, IEnumerable<Exception> errors)
+        protected ContentBatchMigrationResult(bool success, bool performNextBatch, IImmutableList<IContentItemMigrationResult<TContent>> itemResults, params IEnumerable<Exception> errors)
             : base(success, errors)
         {
             PerformNextBatch = performNextBatch;
@@ -42,10 +42,6 @@ namespace Tableau.Migration.Engine.Migrators.Batch
 
         protected ContentBatchMigrationResult(IResult baseResult, bool performNextBatch, IImmutableList<IContentItemMigrationResult<TContent>> itemResults)
             : this(baseResult.Success, performNextBatch, itemResults, baseResult.Errors)
-        { }
-
-        protected ContentBatchMigrationResult(bool success, bool performNextBatch, IImmutableList<IContentItemMigrationResult<TContent>> itemResults, params Exception[] errors)
-            : this(success, performNextBatch, itemResults, (IEnumerable<Exception>)errors)
         { }
 
         /// <summary>

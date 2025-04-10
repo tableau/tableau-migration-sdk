@@ -30,7 +30,7 @@ using Tableau.Migration.Net;
 
 namespace Tableau.Migration.Api.Simulation.Rest.Net.Responses
 {
-    internal class RestUserImportResponseBuilder : RestApiResponseBuilderBase<ImportJobResponse>
+    internal class RestUserImportResponseBuilder : RestResponseBuilderBase<ImportJobResponse>
     {
         public RestUserImportResponseBuilder(TableauData data, IHttpContentSerializer serializer)
             : base(data, serializer, requiresAuthentication: true)
@@ -67,9 +67,11 @@ namespace Tableau.Migration.Api.Simulation.Rest.Net.Responses
         private static UsersResponse.UserType ParseUser(TableauData data, string[] columnData)
         {
             var username = columnData[0];
-            string licenseLevel = columnData[3];
-            string adminLevel = columnData[4];
-            string publishingCapability = columnData[5];
+            var fullName = columnData[2];
+            var licenseLevel = columnData[3];
+            var adminLevel = columnData[4];
+            var publishingCapability = columnData[5];
+            var email = columnData[6];
             
             if (!bool.TryParse(publishingCapability, out bool canPublish))
             {
@@ -82,6 +84,8 @@ namespace Tableau.Migration.Api.Simulation.Rest.Net.Responses
             {
                 Id = Guid.NewGuid(),
                 Name = username,
+                Email = data.IsTableauServer ? email : null,
+                FullName = data.IsTableauServer ? fullName : null,
                 SiteRole = SiteRoleMapping.GetSiteRole(adminLevel, licenseLevel, canPublish),
                 Domain = TableauData.GetUserDomain(username) ?? new() { Name = data.DefaultDomain }
             };

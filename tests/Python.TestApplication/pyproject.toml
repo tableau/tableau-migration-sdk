@@ -15,10 +15,10 @@ classifiers = [
 
 dependencies = [
     "typing_extensions==4.12.2",
-    "cffi==1.16.0",
+    "cffi==1.17.1",
     "pycparser==2.22",
-    "pythonnet==3.0.3",
-    "configparser==7.0.0"
+    "pythonnet==3.0.4",
+    "configparser==7.1.0"
 ]
 
 [tool.ruff]
@@ -29,7 +29,7 @@ ignore = ["D401", "D407", "E501", "D203", "D212"]
 [tool.hatch.envs.test]
 dev-mode = false
 dependencies = [
-  "pytest>=8.2.2"
+  "pytest>=8.3.3"
 ]
 
 [tool.hatch.envs.test.scripts]

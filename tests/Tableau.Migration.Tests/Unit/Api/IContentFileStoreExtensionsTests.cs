@@ -36,11 +36,12 @@ namespace Tableau.Migration.Tests.Unit.Api
                 var fs = new MemoryContentFileStore();
 
                 var fileText = "text";
-                await using (var fileDownload = new FileDownload("fileName", new MemoryStream(Constants.DefaultEncoding.GetBytes(fileText))))
+                await using (var fileDownload = new FileDownload("fileName", new MemoryStream(Constants.DefaultEncoding.GetBytes(fileText)), true))
                 {
                     var file = await fs.CreateAsync(new object(), fileDownload, cancel);
 
                     Assert.Equal(fileDownload.Filename, file.OriginalFileName);
+                    Assert.Equal(fileDownload.IsZipFile, file.IsZipFile);
 
                     await using (var readStream = await file.OpenReadAsync(cancel))
                     using (var reader = new StreamReader(readStream.Content, Constants.DefaultEncoding))

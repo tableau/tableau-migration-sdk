@@ -17,13 +17,11 @@
 
 using System;
 using System.Collections;
-using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AutoFixture;
-using Microsoft.Extensions.Logging;
 using Moq;
 using Tableau.Migration.Content;
 using Tableau.Migration.Engine;
@@ -39,21 +37,15 @@ namespace Tableau.Migration.Tests.Unit.Engine.Manifest
 
         public class MigrationManifestContentTypePartitionTest : AutoFixtureTestBase
         {
-            protected readonly MockSharedResourcesLocalizer MockLocalizer;
-            protected readonly Mock<ILogger<MigrationManifestContentTypePartition>> MockLogger;
-
             protected readonly MigrationManifestContentTypePartition Partition;
 
             public MigrationManifestContentTypePartitionTest()
             {
-                MockLocalizer = new();
-                MockLogger = Freeze<Mock<ILogger<MigrationManifestContentTypePartition>>>();
-
                 Partition = CreateEmpty<TestContentType>();
             }
 
             protected MigrationManifestContentTypePartition CreateEmpty<T>()
-                => new(typeof(T), MockLocalizer.Object, MockLogger.Object);
+                => new(typeof(T));
 
             protected void AssertCorrectTotals()
             {
@@ -79,7 +71,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Manifest
             public void Initializes()
             {
                 var t = typeof(TestContentType);
-                var partition = new MigrationManifestContentTypePartition(t, MockLocalizer.Object, MockLogger.Object);
+                var partition = new MigrationManifestContentTypePartition(t);
 
                 Assert.Same(t, partition.ContentType);
             }
@@ -151,7 +143,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Manifest
                 var sourceItems = CreateMany<TestContentType>().ToImmutableArray();
                 var expectedTotalCount = 2 * sourceItems.Length;
 
-                var results = Partition.CreateEntries<TestContentType, (TestContentType SourceItem, IMigrationManifestEntryEditor Entry)>(sourceItems, 
+                var results = Partition.CreateEntries<TestContentType, (TestContentType SourceItem, IMigrationManifestEntryEditor Entry)>(sourceItems,
                     (item, entry) => (item, entry), expectedTotalCount);
 
                 Assert.Equal(sourceItems.Length, Partition.Count);
@@ -180,7 +172,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Manifest
                 var sourceItems = CreateMany<TestContentType>().ToImmutableArray();
                 var expectedTotalCount = 2 * sourceItems.Length;
 
-                var results = Partition.CreateEntries<TestContentType, (TestContentType SourceItem, IMigrationManifestEntryEditor Entry)>(sourceItems, 
+                var results = Partition.CreateEntries<TestContentType, (TestContentType SourceItem, IMigrationManifestEntryEditor Entry)>(sourceItems,
                     (item, entry) => (item, entry), expectedTotalCount);
 
                 Assert.Equal(sourceItems.Length, Partition.Count);
@@ -188,7 +180,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Manifest
                 Assert.Equal(expectedTotalCount, Partition.ExpectedTotalCount);
 
                 Assert.Empty(Partition.BySourceContentUrl);
-                
+
                 AssertCorrectTotals();
             }
 
@@ -208,7 +200,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Manifest
                         return newSourceItem;
                     }).ToImmutableArray();
 
-                var results = Partition.CreateEntries<TestContentType, (TestContentType SourceItem, IMigrationManifestEntryEditor Entry)>(sourceItems, 
+                var results = Partition.CreateEntries<TestContentType, (TestContentType SourceItem, IMigrationManifestEntryEditor Entry)>(sourceItems,
                     (item, entry) => (item, entry), previous.Length);
 
                 Assert.All(sourceItems, i =>
@@ -250,7 +242,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Manifest
                     return newSourceItem;
                 }).ToImmutableArray();
 
-                var results = Partition.CreateEntries<TestContentType, (TestContentType SourceItem, IMigrationManifestEntryEditor Entry)>(sourceItems, 
+                var results = Partition.CreateEntries<TestContentType, (TestContentType SourceItem, IMigrationManifestEntryEditor Entry)>(sourceItems,
                     (item, entry) => (item, entry), previous.Length);
 
                 Assert.Empty(Partition.BySourceContentUrl);
@@ -447,12 +439,14 @@ namespace Tableau.Migration.Tests.Unit.Engine.Manifest
                 var results = Partition.CreateEntries<TestContentType, (TestContentType SourceItem, IMigrationManifestEntryEditor Entry)>(sourceItems,
                     (item, entry) => (item, entry), 0);
 
-                results[0].Entry.SetSkipped();
+                string reason = "Test Skip";
+                results[0].Entry.SetSkipped(reason);
 
                 var statusTotals = Partition.GetStatusTotals();
 
                 Assert.Equal(sourceItems.Length - 1, statusTotals[MigrationManifestEntryStatus.Pending]);
                 Assert.Equal(1, statusTotals[MigrationManifestEntryStatus.Skipped]);
+                Assert.Same(reason, results[0].Entry.SkippedReason);
             }
 
             [Fact]

@@ -28,7 +28,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Migrators.Batch
 {
     public class ItemPublishContentBatchMigratorTests
     {
-        public class MigratePreparedItemAsync : ParallelContentBatchMigratorBatchTestBase<TestContentType, TestPublishType>
+        public class MigratePreparedItemAsync : ParallelContentBatchMigratorBatchTestBase<TestContentType, TestPublishType, TestPublishType>
         {
             private readonly Mock<IDestinationEndpoint> _mockDestination;
             private readonly ItemPublishContentBatchMigrator<TestContentType, TestPublishType> _migrator;

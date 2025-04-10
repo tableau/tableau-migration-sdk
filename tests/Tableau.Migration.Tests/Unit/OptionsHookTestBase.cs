@@ -15,7 +15,6 @@
 //  limitations under the License.
 //
 
-using Microsoft.Extensions.Logging;
 using Moq;
 using Tableau.Migration.Engine.Options;
 
@@ -32,7 +31,7 @@ namespace Tableau.Migration.Tests.Unit
         {
             Options = new();
 
-            MockOptionsProvider = new();
+            MockOptionsProvider = Freeze<Mock<IMigrationPlanOptionsProvider<TOptions>>>();
             MockOptionsProvider.Setup(x => x.Get()).Returns(() => Options);
         }
     }

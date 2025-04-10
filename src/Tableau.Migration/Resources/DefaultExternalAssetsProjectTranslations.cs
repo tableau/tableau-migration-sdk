@@ -21,7 +21,7 @@ using System.Linq;
 
 namespace Tableau.Migration.Resources
 {
-    internal class DefaultExternalAssetsProjectTranslations
+    internal static class DefaultExternalAssetsProjectTranslations
     {
         internal const string English = "External Assets Default Project";
 

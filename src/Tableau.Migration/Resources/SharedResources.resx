@@ -430,4 +430,43 @@ Owner with ID {OwnerID}: {owner}</value>
   <data name="ScheduleUpdatedHoursMessage" xml:space="preserve">
     <value>Updated schedule hours from {0} to {1}</value>
   </data>
+  <data name="ContainerParentNotFound" xml:space="preserve">
+    <value>Destination project {0} could not be found for mapped path {1}.</value>
+  </data>
+  <data name="MappedContainerNotFound" xml:space="preserve">
+    <value>Destination project not found when mapping path {0}.</value>
+  </data>
+  <data name="InitializeMigrationBaseDebugMessage" xml:space="preserve">
+    <value>{TypeName} changed {PropertyName} from '{OriginalValue}' to '{NewValue}'</value>
+  </data>
+  <data name="InitializeMigrationBaseNoChangesMessage" xml:space="preserve">
+    <value>{TypeName} executed, but made no changes to MigrationCapabilities.</value>
+  </data>
+  <data name="MigrationDisabledWarning" xml:space="preserve">
+    <value>{0} migration was disabled. Reason: {1} </value>
+  </data>	
+  <data name="DummySubscriptionMessage" xml:space="preserve">
+    <value>This is a dummy subscription created by the Migration SDK. You can safely delete it.</value>
+  </data>
+  <data name="DummySubscriptionName" xml:space="preserve">
+    <value>Migration SDK Dummy Subscription</value>
+  </data>
+  <data name="ContentTypeDisabledWarning" xml:space="preserve">
+    <value>Skipping migration of {ContentType} since it is disabled.</value>
+  </data>
+  <data name="SubscriptionsDisabledReason" xml:space="preserve">
+    <value>Subscriptions are disabled at the destination.</value>
+  </data>
+  <data name="HasManagedOAuthCredentialsWarning" xml:space="preserve">
+    <value>Embedded Managed OAuth Credentials migration is not supported. They will be converted to saved credentials for {0} {1} at {2}. The connection IDs are {3}.</value>
+  </data>
+  <data name="OAuthCredentialMigrationUsersNotAtDestination" xml:space="preserve">
+    <value>Some associated user IDs were not found at the destination for workbook/data source {0} at {1} were not migrated. The user IDs are {2}.</value>
+  </data>
+  <data name="DestinationEndpointNotAnApiMsg" xml:space="preserve">
+    <value>The destination enpoint is not an API.</value>
+  </data>
+  <data name="EmbeddedCredsDisabledReason" xml:space="preserve">
+    <value>Embedded Credential migration is disabled. Follow the pre-migration steps from documentation to set them up first.</value>
+  </data>
 </root>

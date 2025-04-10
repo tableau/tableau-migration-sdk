@@ -32,7 +32,7 @@ namespace Tableau.Migration.Tests.Unit.Api.Models
             {
                 var mockStream = new Mock<Stream>();
 
-                var d = new FileDownload(null, mockStream.Object);
+                var d = new FileDownload(null, mockStream.Object, null);
 
                 await using (d)
                 { }

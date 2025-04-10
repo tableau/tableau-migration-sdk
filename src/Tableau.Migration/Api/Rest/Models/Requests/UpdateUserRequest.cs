@@ -16,6 +16,7 @@
 //
 
 using System.Xml.Serialization;
+using Tableau.Migration.Content;
 
 namespace Tableau.Migration.Api.Rest.Models.Requests
 {
@@ -38,30 +39,40 @@ namespace Tableau.Migration.Api.Rest.Models.Requests
         /// <summary>
         /// Builds the Update request for a user.
         /// </summary>
-        /// <param name="newSiteRole">The new Site Role for the user.</param>
-        /// <param name="newfullName">(Optional) The new Full Name for the user.</param>
+        /// <param name="newSiteRole">The new site role for the user.</param>
+        /// <param name="newFullName">(Optional) The new full name for the user.</param>
         /// <param name="newEmail">(Optional) The new email address for the user.</param>
         /// <param name="newPassword">(Optional) The new password for the user.</param>
-        /// <param name="newAuthSetting">(Optional) The new email Auth Setting for the user.</param>
+        /// <param name="newAuthentication">(Optional) The new authentication for the user.</param>
         public UpdateUserRequest(string newSiteRole,
-                                 string? newfullName = null,
+                                 string? newFullName = null,
                                  string? newEmail = null,
                                  string? newPassword = null,
-                                 string? newAuthSetting = null)
+                                 UserAuthenticationType? newAuthentication = null)
         {
             User = new UserType { SiteRole = newSiteRole };
 
-            if (newfullName != null)
-                User.FullName = newfullName;
+            if (newFullName is not null)
+                User.FullName = newFullName;
 
-            if (newEmail != null)
+            if (newEmail is not null)
                 User.Email = newEmail;
 
-            if (newPassword != null)
+            if (newPassword is not null)
                 User.Password = newPassword;
 
-            if (newAuthSetting != null)
-                User.AuthSetting = newAuthSetting;
+            if (newAuthentication is not null)
+            {
+                // IdP configuration ID and auth setting are mutually exclusive, set the ID if available.
+                if (newAuthentication.Value.IdpConfigurationId is not null)
+                {
+                    User.IdpConfigurationId = newAuthentication.Value.IdpConfigurationId.ToString();
+                }
+                else
+                {
+                    User.AuthSetting = newAuthentication.Value.AuthenticationType;
+                }
+            }
         }
 
         /// <summary>
@@ -76,7 +87,7 @@ namespace Tableau.Migration.Api.Rest.Models.Requests
         public class UserType
         {
             /// <summary>
-            /// Gets or sets the fullName for the request.
+            /// Gets or sets the full name for the request.
             /// </summary>
             [XmlAttribute("fullName")]
             public string? FullName { get; set; }
@@ -94,17 +105,22 @@ namespace Tableau.Migration.Api.Rest.Models.Requests
             public string? Password { get; set; }
 
             /// <summary>
-            /// Gets or sets the SiteRole for the request.
+            /// Gets or sets the site role for the request.
             /// </summary>
             [XmlAttribute("siteRole")]
             public string? SiteRole { get; set; }
 
             /// <summary>
-            /// Gets or sets the authSetting for the request.
+            /// Gets or sets the auth setting for the request.
             /// </summary>
             [XmlAttribute("authSetting")]
             public string? AuthSetting { get; set; }
 
+            /// <summary>
+            /// Gets or sets the IdP configuration ID for the request.
+            /// </summary>
+            [XmlAttribute("idpConfigurationId")]
+            public string? IdpConfigurationId { get; set; }
         }
     }
 }

@@ -21,13 +21,16 @@ using System.Collections.Immutable;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Tableau.Migration.Api.Simulation;
 using Tableau.Migration.Content;
 using Tableau.Migration.Content.Schedules.Cloud;
 using Tableau.Migration.Engine.Endpoints;
 using Tableau.Migration.Engine.Hooks;
+using Tableau.Migration.Engine.Hooks.ActionCompleted;
 using Tableau.Migration.Engine.Hooks.Filters;
 using Tableau.Migration.Engine.Hooks.Filters.Default;
+using Tableau.Migration.Engine.Hooks.InitializeMigration.Default;
 using Tableau.Migration.Engine.Hooks.Mappings;
 using Tableau.Migration.Engine.Hooks.PostPublish.Default;
 using Tableau.Migration.Engine.Hooks.Transformers;
@@ -44,6 +47,7 @@ namespace Tableau.Migration.Engine
     public class MigrationPlanBuilder : IMigrationPlanBuilder
     {
         private readonly ISharedResourcesLocalizer _localizer;
+        private readonly ILoggerFactory _loggerFactory;
         private readonly ITableauApiSimulatorFactory _simulatorFactory;
 
         private Func<IServiceProvider, IMigrationPipelineFactory>? _pipelineFactoryOverride;
@@ -58,6 +62,7 @@ namespace Tableau.Migration.Engine
         /// Creates a new <see cref="MigrationPlanBuilder"/> object.
         /// </summary>
         /// <param name="localizer">The string localizer.</param>
+        /// <param name="loggerFactory">The logger factory.</param>
         /// <param name="simulatorFactory">A simulator factory.</param>
         /// <param name="options">A new/fresh options builder.</param>
         /// <param name="hooks">A new/fresh hook builder.</param>
@@ -66,6 +71,7 @@ namespace Tableau.Migration.Engine
         /// <param name="transformers">A new/fresh transformer builder.</param>
         public MigrationPlanBuilder(
             ISharedResourcesLocalizer localizer,
+            ILoggerFactory loggerFactory,
             ITableauApiSimulatorFactory simulatorFactory,
             IMigrationPlanOptionsBuilder options,
             IMigrationHookBuilder hooks,
@@ -74,6 +80,7 @@ namespace Tableau.Migration.Engine
             IContentTransformerBuilder transformers)
         {
             _localizer = localizer;
+            _loggerFactory = loggerFactory;
             _simulatorFactory = simulatorFactory;
 
             _source = TableauApiEndpointConfiguration.Empty;
@@ -102,7 +109,7 @@ namespace Tableau.Migration.Engine
             SetPipelineProfile(PipelineProfile.ServerToCloud, ServerToCloudMigrationPipeline.ContentTypes);
 
             _pipelineFactoryOverride = null;
-            _serverToCloudBuilder ??= new(_localizer, this);
+            _serverToCloudBuilder ??= new(_localizer, _loggerFactory, this);
 
             ClearExtensions();
 
@@ -111,11 +118,7 @@ namespace Tableau.Migration.Engine
         }
 
         /// <inheritdoc />
-        public IMigrationPlanBuilder ForCustomPipelineFactory(Func<IServiceProvider, IMigrationPipelineFactory> pipelineFactoryOverride, params MigrationPipelineContentType[] supportedContentTypes)
-            => ForCustomPipelineFactory(pipelineFactoryOverride, (IEnumerable<MigrationPipelineContentType>)supportedContentTypes);
-
-        /// <inheritdoc />
-        public IMigrationPlanBuilder ForCustomPipelineFactory(Func<IServiceProvider, IMigrationPipelineFactory> pipelineFactoryOverride, IEnumerable<MigrationPipelineContentType> supportedContentTypes)
+        public IMigrationPlanBuilder ForCustomPipelineFactory(Func<IServiceProvider, IMigrationPipelineFactory> pipelineFactoryOverride, params IEnumerable<MigrationPipelineContentType> supportedContentTypes)
         {
             SetPipelineProfile(PipelineProfile.Custom, supportedContentTypes);
 
@@ -129,54 +132,68 @@ namespace Tableau.Migration.Engine
         }
 
         /// <inheritdoc />
-        public IMigrationPlanBuilder ForCustomPipelineFactory<T>(params MigrationPipelineContentType[] supportedContentTypes)
-            where T : IMigrationPipelineFactory
-            => ForCustomPipelineFactory<T>((IEnumerable<MigrationPipelineContentType>)supportedContentTypes);
-
-        /// <inheritdoc />
-        public IMigrationPlanBuilder ForCustomPipelineFactory<T>(IEnumerable<MigrationPipelineContentType> supportedContentTypes)
+        public IMigrationPlanBuilder ForCustomPipelineFactory<T>(params IEnumerable<MigrationPipelineContentType> supportedContentTypes)
             where T : IMigrationPipelineFactory
             => ForCustomPipelineFactory(s => s.GetRequiredService<T>(), supportedContentTypes);
 
         /// <inheritdoc />
-        public IMigrationPlanBuilder ForCustomPipeline<T>(params MigrationPipelineContentType[] supportedContentTypes)
-            where T : IMigrationPipeline
-            => ForCustomPipeline<T>((IEnumerable<MigrationPipelineContentType>)supportedContentTypes);
-
-        /// <inheritdoc />
-        public IMigrationPlanBuilder ForCustomPipeline<T>(IEnumerable<MigrationPipelineContentType> supportedContentTypes)
+        public IMigrationPlanBuilder ForCustomPipeline<T>(params IEnumerable<MigrationPipelineContentType> supportedContentTypes)
             where T : IMigrationPipeline
             => ForCustomPipelineFactory<CustomMigrationPipelineFactory<T>>(supportedContentTypes);
 
         /// <inheritdoc />
         public IMigrationPlanBuilder AppendDefaultExtensions()
         {
-            //Add standard hooks, filters, etc. for all migrations here.
-
-            //Standard migration filters.
-            Filters.Add(typeof(PreviouslyMigratedFilter<>), GetAllContentTypes());
-            Filters.Add<GroupAllUsersFilter, IGroup>();
-            Filters.Add(typeof(SystemOwnershipFilter<>), GetContentTypesByInterface<IWithOwner>());
-
-            //Standard migration transformers.
-            Transformers.Add<UserAuthenticationTypeTransformer, IUser>();
-            Transformers.Add<GroupUsersTransformer, IPublishableGroup>();
-            Transformers.Add(typeof(OwnershipTransformer<>), GetPublishTypesByInterface<IWithOwner>());
-            Transformers.Add<TableauServerConnectionUrlTransformer, IPublishableWorkbook>();
-            Transformers.Add<MappedReferenceExtractRefreshTaskTransformer, ICloudExtractRefreshTask>();
-            Transformers.Add(typeof(WorkbookReferenceTransformer<>), GetPublishTypesByInterface<IWithWorkbook>());
-            Transformers.Add<CustomViewDefaultUserReferencesTransformer, IPublishableCustomView>();
-            Transformers.Add(typeof(EncryptExtractTransformer<>), GetPublishTypesByInterface<IExtractContent>());
-
-            // Post-publish hooks.
-            Hooks.Add(typeof(OwnerItemPostPublishHook<,>), GetPostPublishTypesByInterface<IRequiresOwnerUpdate>());
-            Hooks.Add(typeof(PermissionsItemPostPublishHook<,>), GetPostPublishTypesByInterface<IPermissionsContent>());
-            Hooks.Add(typeof(ChildItemsPermissionsPostPublishHook<,>), GetPostPublishTypesByInterface<IChildPermissionsContent>());
-            Hooks.Add(typeof(TagItemPostPublishHook<,>), GetPostPublishTypesByInterface<IWithTags>());
-            Hooks.Add<ProjectPostPublishHook>();
-            Hooks.Add<CustomViewDefaultUsersPostPublishHook>();
+            // Add standard hooks, filters, etc. for all migrations here.
+            AppendDefaultPreflightHooks();
+            AppendDefaultFilters();
+            AppendDefaultTransformers();
+            AppendDefaultPostPublishHooks();
+            AppendDefaultActionCompletedHooks();
 
             return this;
+
+            void AppendDefaultPreflightHooks()
+            {
+                Hooks.Add<PreflightCheck>();
+                Hooks.Add<EmbeddedCredentialsPreflightCheck>();
+            }
+
+            void AppendDefaultFilters()
+            {
+                Filters.Add(typeof(PreviouslyMigratedFilter<>), GetAllContentTypes());
+                Filters.Add<GroupAllUsersFilter, IGroup>();
+                Filters.Add(typeof(SystemOwnershipFilter<>), GetContentTypesByInterface<IWithOwner>());
+            }
+
+            void AppendDefaultPostPublishHooks()
+            {
+                Hooks.Add(typeof(OwnerItemPostPublishHook<,>), GetPostPublishTypesByInterface<IRequiresOwnerUpdate>());
+                Hooks.Add(typeof(PermissionsItemPostPublishHook<,>), GetPostPublishTypesByInterface<IPermissionsContent>());
+                Hooks.Add(typeof(ChildItemsPermissionsPostPublishHook<,>), GetPostPublishTypesByInterface<IChildPermissionsContent>());
+                Hooks.Add(typeof(TagItemPostPublishHook<,>), GetPostPublishTypesByInterface<IWithTags>());
+                Hooks.Add<ProjectPostPublishHook>();
+                Hooks.Add<CustomViewDefaultUsersPostPublishHook>();
+                Hooks.Add(typeof(EmbeddedCredentialsItemPostPublishHook<,>), GetPostPublishTypesByInterface<IRequiresEmbeddedCredentialMigration>());
+            }
+
+            void AppendDefaultTransformers()
+            {
+                Transformers.Add<UserAuthenticationTypeTransformer, IUser>();
+                Transformers.Add<GroupUsersTransformer, IPublishableGroup>();
+                Transformers.Add(typeof(OwnershipTransformer<>), GetPublishTypesByInterface<IWithOwner>());
+                Transformers.Add<TableauServerConnectionUrlTransformer, IPublishableWorkbook>();
+                Transformers.Add<MappedReferenceExtractRefreshTaskTransformer, ICloudExtractRefreshTask>();
+                Transformers.Add(typeof(WorkbookReferenceTransformer<>), GetPublishTypesByInterface<IWithWorkbook>());
+                Transformers.Add<CustomViewDefaultUserReferencesTransformer, IPublishableCustomView>();
+                Transformers.Add(typeof(EncryptExtractTransformer<>), GetPublishTypesByInterface<IExtractContent>());
+                Transformers.Add<SubscriptionTransformer, ICloudSubscription>();
+            }
+
+            void AppendDefaultActionCompletedHooks()
+            {
+                Hooks.Add<SubscriptionsEnabledActionCompletedHook>();
+            }
         }
 
         /// <inheritdoc />
@@ -229,6 +246,9 @@ namespace Tableau.Migration.Engine
 
         /// <inheritdoc />
         public IContentTransformerBuilder Transformers { get; }
+
+        /// <inheritdoc />
+        public PipelineProfile PipelineProfile => _pipelineProfile;
 
         private void SetPipelineProfile(PipelineProfile pipelineProfile, IEnumerable<MigrationPipelineContentType> supportedContentTypes)
         {

@@ -73,7 +73,16 @@ namespace Tableau.Migration.Tests.Simulation.Tests
                     Assert.NotEqual(sourceGroup.Id, destinationGroup.Id);
                     Assert.Equal(sourceGroup.Name, destinationGroup.Name);
                     Assert.Equal(sourceGroup.Domain?.Name, destinationGroup.Domain?.Name);
-                    Assert.Equal(sourceGroup.Import?.SiteRole, destinationGroup.Import?.SiteRole);
+
+                    // If SiteRole is unlicensed, then the destination site role must be null, it's a Tableau quirk
+                    if (sourceGroup.Import?.SiteRole == "Unlicensed")
+                    {
+                        Assert.Null(destinationGroup.Import?.SiteRole);
+                    }
+                    else
+                    {
+                        Assert.Equal(sourceGroup.Import?.SiteRole, destinationGroup.Import?.SiteRole);
+                    }
                 }
 
                 Assert.All(SourceApi.Data.Groups.Where(g => g.Name != "All Users"), AssertGroupMigrated);
