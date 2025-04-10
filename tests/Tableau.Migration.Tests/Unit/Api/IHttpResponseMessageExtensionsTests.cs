@@ -435,6 +435,55 @@ namespace Tableau.Migration.Tests.Unit.Api
                 var resultContent = await new StreamReader(result.Value.Content).ReadToEndAsync();
                 Assert.Equal("test content", resultContent);
             }
+
+            [Fact]
+            public async Task DetectsUtf8FilenameAsync()
+            {
+                var content = new ByteArrayContent(Constants.DefaultEncoding.GetBytes("test content"));
+                MockResponse.Setup(x => x.Content).Returns(content);
+
+                content.Headers.TryAddWithoutValidation(RestHeaders.ContentDisposition, @"FileName*=UTF-8''""test""");
+
+                var result = await Task.FromResult(MockResponse.Object)
+                    .DownloadResultAsync(Cancel);
+
+                result.AssertSuccess();
+
+                Assert.Equal("test", result.Value!.Filename);
+            }
+
+            [Fact]
+            public async Task DetectsXmlFormatFromContentTypeAsync()
+            {
+                var content = new StringContent("test content", MediaTypes.Xml);
+                MockResponse.Setup(x => x.Content).Returns(content);
+
+                content.Headers.TryAddWithoutValidation(RestHeaders.ContentDisposition, @"FileName*=UTF-8''""test""");
+
+                var result = await Task.FromResult(MockResponse.Object)
+                    .DownloadResultAsync(Cancel);
+
+                result.AssertSuccess();
+
+                Assert.Equal(false, result.Value!.IsZipFile);
+            }
+
+            [Fact]
+            public async Task DetectsZipFormatFromContentTypeAsync()
+            {
+                var content = new ByteArrayContent(Constants.DefaultEncoding.GetBytes("test content"));
+                content.Headers.ContentType = MediaTypes.OctetStream;
+                MockResponse.Setup(x => x.Content).Returns(content);
+
+                content.Headers.TryAddWithoutValidation(RestHeaders.ContentDisposition, @"FileName*=UTF-8''""test""");
+
+                var result = await Task.FromResult(MockResponse.Object)
+                    .DownloadResultAsync(Cancel);
+
+                result.AssertSuccess();
+
+                Assert.Equal(true, result.Value!.IsZipFile);
+            }
         }
 
         #endregion

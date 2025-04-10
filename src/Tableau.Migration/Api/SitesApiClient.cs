@@ -1,4 +1,4 @@
-﻿//
+//
 //  Copyright (c) 2025, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
@@ -21,6 +21,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Tableau.Migration.Api.EmbeddedCredentials;
 using Tableau.Migration.Api.Permissions;
 using Tableau.Migration.Api.Rest.Models.Requests;
 using Tableau.Migration.Api.Rest.Models.Responses;
@@ -44,6 +45,7 @@ namespace Tableau.Migration.Api
         private readonly IHttpContentSerializer _serializer;
 
         private readonly ITasksApiClient _tasksApiClient;
+        private readonly ISubscriptionsApiClient _subscriptionsApiClient;
 
         public SitesApiClient(
             IRestRequestBuilderFactory restRequestBuilderFactory,
@@ -51,6 +53,7 @@ namespace Tableau.Migration.Api
             IServerSessionProvider sessionProvider,
             IHttpContentSerializer serializer,
             ILoggerFactory loggerFactory,
+            IAuthenticationConfigurationsApiClient authenticationConfigurationsApiClient,
             IGroupsApiClient groupsApiClient,
             IJobsApiClient jobsApiClient,
             ISchedulesApiClient schedulesApiClient,
@@ -62,12 +65,14 @@ namespace Tableau.Migration.Api
             IFlowsApiClient flowsApiClient,
             ITasksApiClient tasksApiClient,
             ICustomViewsApiClient customViewsApiClient,
+            ISubscriptionsApiClient subscriptionsApiClient,
             ISharedResourcesLocalizer sharedResourcesLocalizer)
             : base(restRequestBuilderFactory, finderFactory, loggerFactory, sharedResourcesLocalizer)
         {
             _sessionProvider = sessionProvider;
             _serializer = serializer;
 
+            AuthenticationConfigurations = authenticationConfigurationsApiClient;
             Groups = groupsApiClient;
             Jobs = jobsApiClient;
             Schedules = schedulesApiClient;
@@ -80,6 +85,7 @@ namespace Tableau.Migration.Api
             CustomViews = customViewsApiClient;
 
             _tasksApiClient = tasksApiClient;
+            _subscriptionsApiClient = subscriptionsApiClient;
         }
 
         private static readonly ImmutableDictionary<Type, Func<ISitesApiClient, object>> _contentTypeAccessors = new Dictionary<Type, Func<ISitesApiClient, object>>(InheritedTypeComparer.Instance)
@@ -95,6 +101,8 @@ namespace Tableau.Migration.Api
             { typeof(IServerExtractRefreshTask), client => client.ServerTasks },
             { typeof(ICloudExtractRefreshTask), client => client.CloudTasks },
             { typeof(ICustomView), client => client.CustomViews },
+            { typeof(IServerSubscription), client => client.ServerSubscriptions },
+            { typeof(ICloudSubscription), client => client.CloudSubscriptions },
         }
         .ToImmutableDictionary(InheritedTypeComparer.Instance);
 
@@ -106,6 +114,9 @@ namespace Tableau.Migration.Api
         }
 
         #region - ISitesApiClient Implementation -
+
+        /// <inheritdoc />
+        public IAuthenticationConfigurationsApiClient AuthenticationConfigurations { get; }
 
         /// <inheritdoc />
         public IGroupsApiClient Groups { get; }
@@ -146,6 +157,14 @@ namespace Tableau.Migration.Api
             => ReturnForInstanceType(TableauInstanceType.Cloud, _sessionProvider.InstanceType, _tasksApiClient);
 
         /// <inheritdoc />
+        public IServerSubscriptionsApiClient ServerSubscriptions
+            => ReturnForInstanceType(TableauInstanceType.Server, _sessionProvider.InstanceType, _subscriptionsApiClient);
+
+        /// <inheritdoc />
+        public ICloudSubscriptionsApiClient CloudSubscriptions
+            => ReturnForInstanceType(TableauInstanceType.Cloud, _sessionProvider.InstanceType, _subscriptionsApiClient);
+
+        /// <inheritdoc />
         public IReadApiClient<TContent>? GetReadApiClient<TContent>()
             where TContent : class
             => GetApiClientFromContentType<IReadApiClient<TContent>>(typeof(TContent));
@@ -155,9 +174,9 @@ namespace Tableau.Migration.Api
             => GetApiClientFromContentType<IPagedListApiClient<TContent>>(typeof(TContent))!;
 
         /// <inheritdoc />
-        public IPullApiClient<TContent, TPublish> GetPullApiClient<TContent, TPublish>()
-            where TPublish : class
-            => GetApiClientFromContentType<IPullApiClient<TContent, TPublish>>(typeof(TContent))!;
+        public IPullApiClient<TContent, TPrepare> GetPullApiClient<TContent, TPrepare>()
+            where TPrepare : class
+            => GetApiClientFromContentType<IPullApiClient<TContent, TPrepare>>(typeof(TContent))!;
 
         /// <inheritdoc />
         public IPublishApiClient<TPublish, TPublishResult> GetPublishApiClient<TPublish, TPublishResult>()
@@ -190,6 +209,15 @@ namespace Tableau.Migration.Api
         public IConnectionsApiClient GetConnectionsApiClient<TContent>()
             where TContent : IWithConnections
             => GetApiClientFromContentType<IConnectionsApiClient>(typeof(TContent))!; //TODO: Better resolution logic based on content/publish types
+
+        public IEmbeddedCredentialsContentApiClient GetEmbeddedCredentialsApiClient<TContent>()
+            where TContent : IWithEmbeddedCredentials
+            => GetApiClientFromContentType<IEmbeddedCredentialsContentApiClient>(typeof(TContent))!; //TODO: Better resolution logic based on content/publish types
+
+        /// <inheritdoc />
+        public IDeleteApiClient GetDeleteApiClient<TContent>()
+            where TContent : IDelible
+            => GetApiClientFromContentType<IDeleteApiClient>(typeof(TContent))!; //TODO: Better resolution logic based on content/publish types
 
         private async Task<IResult<ISite>> GetSiteAsync(Func<IRestRequestBuilder, IRestRequestBuilder> setKey, CancellationToken cancel)
         {

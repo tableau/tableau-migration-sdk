@@ -45,7 +45,7 @@ namespace Tableau.Migration.Api.Rest.Models.Responses
             public CustomViewResponseType() { }
 
             /// <summary>
-            /// 
+            /// Constructor to build from <see cref="ICustomViewType"/>.
             /// </summary>
             /// <param name="customView"></param>
             public CustomViewResponseType(ICustomViewType customView)
@@ -130,7 +130,8 @@ namespace Tableau.Migration.Api.Rest.Models.Responses
             [XmlElement("workbook")]
             public WorkbookType? Workbook { get; set; }
 
-            IRestIdentifiable? IWithWorkbookReferenceType.Workbook => Workbook;
+            IWorkbookNamedReferenceType? IWithWorkbookNamedReferenceType.Workbook => Workbook;
+            IWorkbookReferenceType? IWithWorkbookReferenceType.Workbook => Workbook;
 
             /// <summary>
             /// Gets or sets the owner for the response.
@@ -161,7 +162,7 @@ namespace Tableau.Migration.Api.Rest.Models.Responses
             /// <summary>
             /// Class representing a REST API workbook on the response.
             /// </summary>
-            public class WorkbookType : IRestIdentifiable
+            public class WorkbookType : IWorkbookNamedReferenceType
             {
                 /// <summary>
                 /// Gets or sets the ID for the response.

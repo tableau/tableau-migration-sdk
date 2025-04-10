@@ -70,6 +70,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{
 		.github\workflows\dotnet-test.yml = .github\workflows\dotnet-test.yml
 		.github\workflows\publishdocs-dryrun.yml = .github\workflows\publishdocs-dryrun.yml
 		.github\workflows\publishdocs.yml = .github\workflows\publishdocs.yml
+		.github\workflows\python-example-test.yml = .github\workflows\python-example-test.yml
 		.github\workflows\python-package.yml = .github\workflows\python-package.yml
 		.github\workflows\python-test.yml = .github\workflows\python-test.yml
 		.github\workflows\README.md = .github\workflows\README.md
@@ -84,6 +85,16 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tableau.Migration.PythonGenerator", "src\Tableau.Migration.PythonGenerator\Tableau.Migration.PythonGenerator.csproj", "{F20029C7-4514-4668-8941-B2C3BC245CCB}"
 EndProject
 Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "Python.ExampleApplication.Tests", "tests\Python.ExampleApplication.Tests\Python.ExampleApplication.Tests.pyproj", "{B1884017-8E25-4A26-8C89-D9D880CFA392}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{52787DA5-4208-4B9D-8092-31F6C84ECC34}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tableau.Migration.ManifestAnalyzer", "tools\Tableau.Migration.ManifestAnalyzer\Tableau.Migration.ManifestAnalyzer.csproj", "{10EB18EB-3302-4883-9C3B-083D65134ED6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tableau.Migration.CleanSite", "tools\Tableau.Migration.CleanServer\Tableau.Migration.CleanSite.csproj", "{1CC08475-C472-424D-BEEE-E686FAE9F490}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tableau.Migration.ManifestExplorer", "tools\Tableau.Migration.ManifestExplorer\Tableau.Migration.ManifestExplorer.csproj", "{D5207985-6E7C-4BD0-B7DF-B3720F605C86}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tableau.Migration.ManifestExplorer.Desktop", "tools\Tableau.Migration.ManifestExplorer.Desktop\Tableau.Migration.ManifestExplorer.Desktop.csproj", "{7104A6BF-44E1-4ED9-9233-C3DC29132A91}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -125,6 +136,22 @@ Global
 		{F20029C7-4514-4668-8941-B2C3BC245CCB}.Release|Any CPU.Build.0 = Release|Any CPU
 		{B1884017-8E25-4A26-8C89-D9D880CFA392}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{B1884017-8E25-4A26-8C89-D9D880CFA392}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{10EB18EB-3302-4883-9C3B-083D65134ED6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{10EB18EB-3302-4883-9C3B-083D65134ED6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{10EB18EB-3302-4883-9C3B-083D65134ED6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{10EB18EB-3302-4883-9C3B-083D65134ED6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1CC08475-C472-424D-BEEE-E686FAE9F490}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1CC08475-C472-424D-BEEE-E686FAE9F490}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1CC08475-C472-424D-BEEE-E686FAE9F490}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1CC08475-C472-424D-BEEE-E686FAE9F490}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D5207985-6E7C-4BD0-B7DF-B3720F605C86}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D5207985-6E7C-4BD0-B7DF-B3720F605C86}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D5207985-6E7C-4BD0-B7DF-B3720F605C86}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D5207985-6E7C-4BD0-B7DF-B3720F605C86}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7104A6BF-44E1-4ED9-9233-C3DC29132A91}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7104A6BF-44E1-4ED9-9233-C3DC29132A91}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7104A6BF-44E1-4ED9-9233-C3DC29132A91}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7104A6BF-44E1-4ED9-9233-C3DC29132A91}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -143,6 +170,10 @@ Global
 		{EDD52CC0-7289-4167-A01E-E88B015FC67F} = {90102C4B-EC3B-4279-A6C6-A6CFDFCD4DB4}
 		{454EF272-D967-4668-A20D-AD6B3EE96C1A} = {6B735E6E-1FFB-4C37-8CF6-BD979B4F8D9B}
 		{B1884017-8E25-4A26-8C89-D9D880CFA392} = {9BF466A2-E00F-4F2C-AD23-591E9159AD11}
+		{10EB18EB-3302-4883-9C3B-083D65134ED6} = {52787DA5-4208-4B9D-8092-31F6C84ECC34}
+		{1CC08475-C472-424D-BEEE-E686FAE9F490} = {52787DA5-4208-4B9D-8092-31F6C84ECC34}
+		{D5207985-6E7C-4BD0-B7DF-B3720F605C86} = {52787DA5-4208-4B9D-8092-31F6C84ECC34}
+		{7104A6BF-44E1-4ED9-9233-C3DC29132A91} = {52787DA5-4208-4B9D-8092-31F6C84ECC34}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {2C9E9FF4-E825-47A4-90BE-5499D5EDF3CC}

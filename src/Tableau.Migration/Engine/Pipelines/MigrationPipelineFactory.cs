@@ -46,6 +46,13 @@ namespace Tableau.Migration.Engine.Pipelines
             {
                 case PipelineProfile.ServerToCloud:
                     return Services.GetRequiredService<ServerToCloudMigrationPipeline>();
+
+                case PipelineProfile.ServerToServer:
+                    return Services.GetRequiredService<ServerToServerMigrationPipeline>();
+
+                case PipelineProfile.CloudToCloud:
+                    return Services.GetRequiredService<CloudToCloudMigrationPipeline>();
+
                 default:
                     throw new ArgumentException($"Cannot create a migration pipeline for profile {plan.PipelineProfile}");
             }

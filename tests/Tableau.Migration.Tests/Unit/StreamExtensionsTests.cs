@@ -134,6 +134,7 @@ namespace Tableau.Migration.Tests.Unit
                 var stream = CreateStream(firstBytes: StreamExtensions.ZIP_LEAD_BYTES);
 
                 Assert.True(stream.IsZip());
+                Assert.Equal(0, stream.Position);
             }
 
             [Fact]
@@ -144,6 +145,7 @@ namespace Tableau.Migration.Tests.Unit
                 var stream = CreateStream(0, bytes);
 
                 Assert.False(stream.IsZip());
+                Assert.Equal(0, stream.Position);
             }
 
             [Fact]
@@ -152,6 +154,7 @@ namespace Tableau.Migration.Tests.Unit
                 var stream = CreateStream();
 
                 Assert.False(stream.IsZip());
+                Assert.Equal(0, stream.Position);
             }
 
             [Fact]
@@ -160,6 +163,7 @@ namespace Tableau.Migration.Tests.Unit
                 var stream = CreateStream(firstBytes: new[] { Create<byte>() }.Concat(StreamExtensions.ZIP_LEAD_BYTES));
 
                 Assert.False(stream.IsZip());
+                Assert.Equal(0, stream.Position);
             }
 
             [Theory]
@@ -185,6 +189,7 @@ namespace Tableau.Migration.Tests.Unit
                 stream.Seek(position, SeekOrigin.Begin);
 
                 Assert.True(stream.IsZip());
+                Assert.Equal(position, stream.Position);
             }
 
             [Fact]

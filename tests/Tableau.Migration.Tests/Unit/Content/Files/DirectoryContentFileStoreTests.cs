@@ -49,11 +49,12 @@ namespace Tableau.Migration.Tests.Unit.Content.Files
                 var relPath = Create<string>();
                 var originalFileName = Create<string>();
 
-                await using var file = FileStore.Create(relPath, originalFileName);
+                await using var file = FileStore.Create(relPath, originalFileName, true);
 
                 Assert.Same(FileStore, file.Store);
                 Assert.Equal(Path.Combine(ExpectedBasePath, relPath), file.Path);
                 Assert.Equal(originalFileName, file.OriginalFileName);
+                Assert.True(file.IsZipFile);
 
                 Assert.Contains(file.Path, TrackedFilePaths);
             }
@@ -68,11 +69,12 @@ namespace Tableau.Migration.Tests.Unit.Content.Files
                 MockPathResolver.Setup(x => x.ResolveRelativePath(contentItem, originalFileName))
                     .Returns(generatedPath);
 
-                await using var file = FileStore.Create(contentItem, originalFileName);
+                await using var file = FileStore.Create(contentItem, originalFileName, true);
 
                 Assert.Same(FileStore, file.Store);
                 Assert.Equal(Path.Combine(ExpectedBasePath, generatedPath), file.Path);
                 Assert.Equal(originalFileName, file.OriginalFileName);
+                Assert.True(file.IsZipFile);
 
                 Assert.Contains(file.Path, TrackedFilePaths);
 

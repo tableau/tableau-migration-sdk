@@ -32,7 +32,7 @@ using Tableau.Migration.Net;
 
 namespace Tableau.Migration.Api.Simulation.Rest.Net.Responses
 {
-    internal class RestPermissionsCreateResponseBuilder<TContent> : RestApiResponseBuilderBase<PermissionsResponse>
+    internal class RestPermissionsCreateResponseBuilder<TContent> : RestResponseBuilderBase<PermissionsResponse>
         where TContent : IRestIdentifiable, INamedContent
     {
         private readonly string _contentTypeUrlPrefix;

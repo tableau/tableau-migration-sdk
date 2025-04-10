@@ -34,7 +34,7 @@ namespace Tableau.Migration.Api.Rest.Models.Responses
         /// <summary>
         /// Type for the User object.
         /// </summary>
-        public class UserType
+        public class UserType : IUserType
         {
             /// <summary>
             /// The new Username of the user.
@@ -65,6 +65,12 @@ namespace Tableau.Migration.Api.Rest.Models.Responses
             /// </summary>
             [XmlAttribute("authSetting")]
             public string? AuthSetting { get; set; }
+
+            /// <summary>
+            /// The new IdP configuration ID for the user.
+            /// </summary>
+            [XmlAttribute("idpConfigurationId")]
+            public string? IdpConfigurationId { get; set; }
         }
     }
 }

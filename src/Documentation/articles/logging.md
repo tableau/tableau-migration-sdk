@@ -21,7 +21,35 @@ As part of the included tracings, it is possible to [configure](configuration.md
 - [Network.BinaryContentLoggingEnabled](xref:Tableau.Migration.Config.NetworkOptions#Tableau_Migration_Config_NetworkOptions_BinaryContentLoggingEnabled): Indicates whether the SDK logs request/response binary (not textual) content. The default value is disabled.
 - [Network.ExceptionsLoggingEnabled](xref:Tableau.Migration.Config.NetworkOptions#Tableau_Migration_Config_NetworkOptions_ExceptionsLoggingEnabled): Indicates whether the SDK logs network exceptions. The default value is disabled.
 
-## C# Support
+## [Python Support](#tab/Python)
+
+The Migration SDK supports logging with built-in providers like the one described in [Python Logging docs](https://docs.python.org/3/howto/logging.html).
+
+### SDK default handler
+
+The SDK adds a StreamHandler to the root logger by executing the following command:
+
+```Python
+logging.basicConfig(
+    format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s', 
+    level = logging.INFO)
+```
+
+### Overriding default handler configuration
+
+To override the default configuration, set the `force` parameter to `True`.
+
+```Python
+logging.basicConfig(
+    force = True,
+    format = '%(asctime)s|%(levelname)s|%(name)s -\t%(message)s',
+    level = logging.WARNING)
+```
+
+> [!Note]
+> See [Logging Configuration](https://docs.python.org/3/library/logging.config.html) for advanced configuration guidance.
+
+## [C# Support](#tab/CSharp)
 
 The Migration SDK supports logging with built-in or third-party providers such as the ones described in [.NET Logging Providers](https://learn.microsoft.com/en-us/dotnet/core/extensions/logging-providers). Refer to that article for guidance in your use case. Some basic examples are below.
 
@@ -53,30 +81,4 @@ services
 > [!Note]
 > See [LoggingServiceCollectionExtensions.AddLogging Method](https://learn.microsoft.com/en-us/dotnet/api/microsoft.extensions.dependencyinjection.loggingservicecollectionextensions.addlogging) for guidance on how to configure your logging provider.
 
-## Python Support
-
-The Migration SDK supports logging with built-in providers like the one described in [Python Logging docs](https://docs.python.org/3/howto/logging.html).
-
-### SDK default handler
-
-The SDK adds a StreamHandler to the root logger by executing the following command:
-
-```Python
-logging.basicConfig(
-    format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s', 
-    level = logging.INFO)
-```
-
-### Overriding default handler configuration
-
-To override the default configuration, the parameter `force` must be set to `True`.
-
-```Python
-logging.basicConfig(
-    force = True,
-    format = '%(asctime)s|%(levelname)s|%(name)s -\t%(message)s',
-    level = logging.WARNING)
-```
-
-> [!Note]
-> See [Logging Configuration](https://docs.python.org/3/library/logging.config.html) for advanced configuration guidance.
+---

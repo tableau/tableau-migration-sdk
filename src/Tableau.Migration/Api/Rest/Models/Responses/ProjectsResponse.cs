@@ -98,7 +98,6 @@ namespace Tableau.Migration.Api.Rest.Models.Responses
             public string? ContentPermissions { get; set; }
 
             /// <summary>
-            /// Gets or sets the contentPermissions for the response.
             /// Gets or sets the parentProjectId for the response.
             /// </summary>
             /// <remarks>

@@ -159,7 +159,8 @@ namespace Tableau.Migration.Api.Rest.Models.Responses
             [XmlElement("project")]
             public ProjectType? Project { get; set; }
 
-            IProjectReferenceType? IWithProjectType.Project => Project;
+            IProjectNamedReferenceType? IWithProjectNamedReferenceType.Project => Project;
+            IProjectReferenceType? IWithProjectReferenceType.Project => Project;
 
             /// <summary>
             /// Gets or sets the data source owner for the response.
@@ -188,7 +189,7 @@ namespace Tableau.Migration.Api.Rest.Models.Responses
             /// <summary>
             /// Class representing a project on the response.
             /// </summary>
-            public class ProjectType : IProjectReferenceType
+            public class ProjectType : IProjectNamedReferenceType
             {
                 /// <summary>
                 /// Gets or sets the ID for the response.
@@ -209,10 +210,10 @@ namespace Tableau.Migration.Api.Rest.Models.Responses
                 { }
 
                 /// <summary>
-                /// Constructor to build from <see cref="IProjectReferenceType"/>.
+                /// Constructor to build from <see cref="IProjectNamedReferenceType"/>.
                 /// </summary>
-                /// <param name="project">The <see cref="IProjectReferenceType"/> object.</param>
-                public ProjectType(IProjectReferenceType project)
+                /// <param name="project">The <see cref="IProjectNamedReferenceType"/> object.</param>
+                public ProjectType(IProjectNamedReferenceType project)
                 {
                     Id = project.Id;
                     Name = project.Name;

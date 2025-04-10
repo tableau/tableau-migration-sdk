@@ -67,7 +67,7 @@ namespace Tableau.Migration.PythonGenerator.Writers
         {
             if (cycleReferences.Contains(type))
             {
-                throw new Exception("Type dependency cycle detected. Consider implementing ordering or stubbing.");
+                throw new Exception($"Type dependency cycle detected for {type.Name}. Consider implementing ordering or stubbing. Cycle references: {string.Join(',', cycleReferences)}");
             }
 
             if (writtenTypes.Contains(type))

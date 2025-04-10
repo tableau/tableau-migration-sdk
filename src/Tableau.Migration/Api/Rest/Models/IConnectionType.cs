@@ -47,5 +47,20 @@ namespace Tableau.Migration.Api.Rest.Models
         /// This is returned only for administrator users.
         /// </summary>
         public string? QueryTaggingEnabled { get; }
+
+        /// <summary>
+        /// The embed password value for the response.
+        /// </summary>
+        public string? EmbedPassword { get; set; }
+
+        /// <summary>
+        /// The authentication type for the response.
+        /// </summary>
+        public string? AuthenticationType { get; }
+
+        /// <summary>
+        /// Whether OAuth managed keychanins are used for the response.
+        /// </summary>
+        public string? UseOAuthManagedKeychain { get; }
     }
 }

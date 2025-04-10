@@ -45,14 +45,14 @@ namespace Tableau.Migration.Tests.Unit.Content.Files
 
         public byte[] GetFileData(string path) => _fileData[path];
 
-        public virtual IContentFileHandle Create(string relativePath, string originalFileName)
+        public virtual IContentFileHandle Create(string relativePath, string originalFileName, bool? zipFormatOverride = null)
         {
             _fileData.GetOrAdd(relativePath, Array.Empty<byte>());
-            return new ContentFileHandle(this, relativePath, originalFileName);
+            return new ContentFileHandle(this, relativePath, originalFileName, zipFormatOverride);
         }
 
-        public virtual IContentFileHandle Create<TContent>(TContent contentItem, string originalFileName)
-            => Create(Guid.NewGuid().ToString(), originalFileName);
+        public virtual IContentFileHandle Create<TContent>(TContent contentItem, string originalFileName, bool? zipFormatOverride = null)
+            => Create(Guid.NewGuid().ToString(), originalFileName, zipFormatOverride);
 
         public virtual Task DeleteAsync(IContentFileHandle handle, CancellationToken cancel)
         {
@@ -82,9 +82,9 @@ namespace Tableau.Migration.Tests.Unit.Content.Files
         }
 
         public virtual async Task<ITableauFileEditor> GetTableauFileEditorAsync(IContentFileHandle handle,
-            CancellationToken cancel, bool? zipFormatOverride = null)
+            CancellationToken cancel)
             => await _editors.GetOrAddAsync<string, ITableauFileEditor>(handle.Path, async (path) => 
-                await TableauFileEditor.OpenAsync(handle, _memoryStreamManager, cancel, zipFormatOverride).ConfigureAwait(false)).ConfigureAwait(false);
+                await TableauFileEditor.OpenAsync(handle, _memoryStreamManager, cancel).ConfigureAwait(false)).ConfigureAwait(false);
 
         public virtual async Task CloseTableauFileEditorAsync(IContentFileHandle handle, CancellationToken cancel)
         {

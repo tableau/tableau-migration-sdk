@@ -68,23 +68,6 @@ namespace Tableau.Migration.Engine.Hooks.Filters
             if (!Disabled)
             {
                 result = unfilteredItems.Where(ShouldMigrate);
-
-                // Log the filtered items if requested
-                if (Logger is not null && Localizer is not null) 
-                {
-                    // Don't do the work if the logger is not enabled for this level
-                    var filteredItems = unfilteredItems.Except(result).ToList();
-                    if (filteredItems.Count() > 0)
-                    {
-                        foreach (var filteredItem in filteredItems)
-                        {
-                            Logger.LogDebug(
-                                Localizer[SharedResourceKeys.ContentFilterBaseDebugMessage], 
-                                _typeName, 
-                                filteredItem.SourceItem.ToStringForLog());
-                        }
-                    }
-                }
             }
 
             return Task.FromResult((IEnumerable<ContentMigrationItem<TContent>>?)result);

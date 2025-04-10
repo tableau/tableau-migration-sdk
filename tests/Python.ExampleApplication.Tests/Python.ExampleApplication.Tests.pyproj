@@ -25,6 +25,7 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="tests\helpers\autofixture.py" />
     <Compile Include="tests\test_default_project_filter.py" />
     <Compile Include="tests\test_log_migration_batches_hook.py" />
     <Compile Include="tests\__init__.py" />
@@ -37,6 +38,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="tests\" />
+    <Folder Include="tests\helpers\" />
   </ItemGroup>
   <ItemGroup>
     <Interpreter Include="env\">

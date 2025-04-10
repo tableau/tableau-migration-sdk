@@ -84,6 +84,12 @@ namespace Tableau.Migration.Tests.Simulation.Tests
                             SourceApi.Data.DataSourcePermissions[sourceDataSource.Id],
                             CloudDestinationApi.Data.DataSourcePermissions[destinationDataSource.Id]);
 
+                    AssertEmbeddedCredentialsMigrated(result.Manifest,
+                        SourceApi.Data.DataSourceKeychains[sourceDataSource.Id],
+                        CloudDestinationApi.Data.DataSourceKeychains[destinationDataSource.Id],
+                        SourceApi.Data.UserSavedCredentials,
+                        CloudDestinationApi.Data.UserSavedCredentials);
+
                     //Ownership was mapped so should equal the transformed ID.
                     Assert.NotNull(destinationDataSource.Owner);
                     Assert.NotEqual(destinationDataSource.Owner.Id, Guid.Empty);

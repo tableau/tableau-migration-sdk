@@ -21,7 +21,6 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Tableau.Migration.Config;
-using Tableau.Migration.Content;
 using Tableau.Migration.Engine.Hooks;
 using Tableau.Migration.Resources;
 
@@ -48,9 +47,13 @@ namespace Tableau.Migration.Engine.Actions
         /// <param name="hooks">The hook runner</param>
         /// <param name="logger">A logger.</param>
         /// <param name="localizer">A localizer.</param>
-        public PreflightAction(IServiceProvider services, IOptions<PreflightOptions> options,
-           IMigration migration, IMigrationHookRunner hooks,
-           ILogger<PreflightAction> logger, ISharedResourcesLocalizer localizer)
+        public PreflightAction(
+            IServiceProvider services,
+            IOptions<PreflightOptions> options,
+            IMigration migration,
+            IMigrationHookRunner hooks,
+            ILogger<PreflightAction> logger,
+            ISharedResourcesLocalizer localizer)
         {
             _services = services;
             _options = options.Value;

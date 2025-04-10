@@ -28,7 +28,7 @@ using Tableau.Migration.Net;
 
 namespace Tableau.Migration.Api.Simulation.Rest.Net.Responses
 {
-    internal class RestProjectCreateResponseBuilder : RestApiResponseBuilderBase<CreateProjectResponse>
+    internal class RestProjectCreateResponseBuilder : RestResponseBuilderBase<CreateProjectResponse>
     {
         public RestProjectCreateResponseBuilder(TableauData data, IHttpContentSerializer serializer)
             : base(data, serializer, requiresAuthentication: true)

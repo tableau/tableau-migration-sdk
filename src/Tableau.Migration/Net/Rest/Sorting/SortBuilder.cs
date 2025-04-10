@@ -38,7 +38,7 @@ namespace Tableau.Migration.Net.Rest.Sorting
         }
 
         /// <inheritdoc/>
-        public ISortBuilder AddSorts(params Sort[] sorts)
+        public ISortBuilder AddSorts(params IEnumerable<Sort> sorts)
         {
             Guard.AgainstNull(sorts, nameof(sorts));
 

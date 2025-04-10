@@ -20,6 +20,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Tableau.Migration.Api.Rest.Models.Types;
 using Tableau.Migration.Content;
 using Tableau.Migration.Engine.Endpoints;
@@ -42,6 +43,7 @@ namespace Tableau.Migration.Engine
     public class ServerToCloudMigrationPlanBuilder : IServerToCloudMigrationPlanBuilder
     {
         private readonly ISharedResourcesLocalizer _localizer;
+        private readonly ILoggerFactory _loggerFactory;
         private readonly IMigrationPlanBuilder _innerBuilder;
 
         private bool _authTypeMappingAdded;
@@ -51,10 +53,15 @@ namespace Tableau.Migration.Engine
         /// Creates a new <see cref="ServerToCloudMigrationPlanBuilder"/> object.
         /// </summary>
         /// <param name="localizer">The string localizer.</param>
+        /// <param name="loggerFactory">The logger factory to create new logger types.</param>
         /// <param name="innerBuilder">A general plan builder to wrap.</param>
-        public ServerToCloudMigrationPlanBuilder(ISharedResourcesLocalizer localizer, IMigrationPlanBuilder innerBuilder)
+        public ServerToCloudMigrationPlanBuilder(
+            ISharedResourcesLocalizer localizer,
+            ILoggerFactory loggerFactory,
+            IMigrationPlanBuilder innerBuilder)
         {
             _localizer = localizer;
+            _loggerFactory = loggerFactory;
             _innerBuilder = innerBuilder;
         }
 
@@ -70,6 +77,8 @@ namespace Tableau.Migration.Engine
 
         IContentTransformerBuilder IMigrationPlanBuilder.Transformers => _innerBuilder.Transformers;
 
+        PipelineProfile IMigrationPlanBuilder.PipelineProfile => _innerBuilder.PipelineProfile;
+
         IMigrationPlan IMigrationPlanBuilder.Build()
             => _innerBuilder.Build();
 
@@ -82,22 +91,13 @@ namespace Tableau.Migration.Engine
         IServerToCloudMigrationPlanBuilder IMigrationPlanBuilder.ForServerToCloud()
             => _innerBuilder.ForServerToCloud();
 
-        IMigrationPlanBuilder IMigrationPlanBuilder.ForCustomPipelineFactory(Func<IServiceProvider, IMigrationPipelineFactory> pipelineFactoryOverride, params MigrationPipelineContentType[] supportedContentTypes)
+        IMigrationPlanBuilder IMigrationPlanBuilder.ForCustomPipelineFactory(Func<IServiceProvider, IMigrationPipelineFactory> pipelineFactoryOverride, params IEnumerable<MigrationPipelineContentType> supportedContentTypes)
             => _innerBuilder.ForCustomPipelineFactory(pipelineFactoryOverride, supportedContentTypes);
 
-        IMigrationPlanBuilder IMigrationPlanBuilder.ForCustomPipelineFactory(Func<IServiceProvider, IMigrationPipelineFactory> pipelineFactoryOverride, IEnumerable<MigrationPipelineContentType> supportedContentTypes)
-            => _innerBuilder.ForCustomPipelineFactory(pipelineFactoryOverride, supportedContentTypes);
-
-        IMigrationPlanBuilder IMigrationPlanBuilder.ForCustomPipelineFactory<T>(params MigrationPipelineContentType[] supportedContentTypes)
+        IMigrationPlanBuilder IMigrationPlanBuilder.ForCustomPipelineFactory<T>(params IEnumerable<MigrationPipelineContentType> supportedContentTypes)
             => _innerBuilder.ForCustomPipelineFactory<T>(supportedContentTypes);
 
-        IMigrationPlanBuilder IMigrationPlanBuilder.ForCustomPipelineFactory<T>(IEnumerable<MigrationPipelineContentType> supportedContentTypes)
-            => _innerBuilder.ForCustomPipelineFactory<T>(supportedContentTypes);
-
-        IMigrationPlanBuilder IMigrationPlanBuilder.ForCustomPipeline<T>(params MigrationPipelineContentType[] supportedContentTypes)
-            => _innerBuilder.ForCustomPipeline<T>(supportedContentTypes);
-
-        IMigrationPlanBuilder IMigrationPlanBuilder.ForCustomPipeline<T>(IEnumerable<MigrationPipelineContentType> supportedContentTypes)
+        IMigrationPlanBuilder IMigrationPlanBuilder.ForCustomPipeline<T>(params IEnumerable<MigrationPipelineContentType> supportedContentTypes)
             => _innerBuilder.ForCustomPipeline<T>(supportedContentTypes);
 
         IMigrationPlanBuilder IMigrationPlanBuilder.FromSource(IMigrationPlanEndpointConfiguration config)
@@ -137,66 +137,60 @@ namespace Tableau.Migration.Engine
         #region - WithAuthenticationType -
 
         /// <inheritdoc />
-        public IServerToCloudMigrationPlanBuilder WithSamlAuthenticationType(string domain)
-            => WithAuthenticationType(AuthenticationTypes.Saml, domain, Constants.LocalDomain);
+        public IServerToCloudMigrationPlanBuilder WithSamlAuthenticationType(string domain, string? idpConfigurationName = null)
+            => WithAuthenticationType(idpConfigurationName ?? AuthenticationTypes.Saml, domain, Constants.LocalDomain);
 
         /// <inheritdoc />
-        public IServerToCloudMigrationPlanBuilder WithTableauIdAuthenticationType(bool mfa = true)
+        public IServerToCloudMigrationPlanBuilder WithTableauIdAuthenticationType(bool mfa = true, string? idpConfigurationName = null)
         {
             if (mfa)
             {
-                return WithAuthenticationType(AuthenticationTypes.TableauIdWithMfa, Constants.TableauIdWithMfaDomain, Constants.LocalDomain);
+                return WithAuthenticationType(idpConfigurationName ?? AuthenticationTypes.TableauIdWithMfa, Constants.TableauIdWithMfaDomain, Constants.LocalDomain);
             }
             else
             {
-                return WithAuthenticationType(AuthenticationTypes.OpenId, Constants.ExternalDomain, Constants.LocalDomain);
+                return WithAuthenticationType(idpConfigurationName ?? AuthenticationTypes.OpenId, Constants.ExternalDomain, Constants.LocalDomain);
             }
         }
 
         /// <inheritdoc />
-        public IServerToCloudMigrationPlanBuilder WithAuthenticationType(string authType, string userDomain, string groupDomain)
-        {
-            //Register a default mapper for user/group domains based on the authentication type.
-            _innerBuilder.Mappings.Add<AuthenticationTypeDomainMapping, IUser>();
-            _innerBuilder.Mappings.Add<AuthenticationTypeDomainMapping, IGroup>();
-            _innerBuilder.Options.Configure(new AuthenticationTypeDomainMappingOptions
+        public IServerToCloudMigrationPlanBuilder WithAuthenticationType(string authenticationType, string userDomain, string groupDomain)
+            => WithAuthenticationType(authenticationType, () =>
             {
-                UserDomain = userDomain,
-                GroupDomain = groupDomain
+                _innerBuilder.Mappings.Add<AuthenticationTypeDomainMapping, IUser>();
+                _innerBuilder.Mappings.Add<AuthenticationTypeDomainMapping, IGroup>();
+                _innerBuilder.Options.Configure(new AuthenticationTypeDomainMappingOptions
+                {
+                    UserDomain = userDomain,
+                    GroupDomain = groupDomain
+                });
             });
-
-            //Configure the default registered auth type transformer to match the user-supplied auth type.
-            _innerBuilder.Options.Configure(new UserAuthenticationTypeTransformerOptions
-            {
-                AuthenticationType = authType
-            });
-
-            _authTypeMappingAdded = true;
-            return this;
-        }
 
         /// <inheritdoc />
         public IServerToCloudMigrationPlanBuilder WithAuthenticationType(string authenticationType, IAuthenticationTypeDomainMapping authenticationTypeMapping)
-        {
-            _innerBuilder.Mappings.Add<IUser>(authenticationTypeMapping);
-            _innerBuilder.Mappings.Add<IGroup>(authenticationTypeMapping);
-
-            //Configure the default registered auth type transformer to match the user-supplied auth type.
-            _innerBuilder.Options.Configure(new UserAuthenticationTypeTransformerOptions
+            => WithAuthenticationType(authenticationType, () =>
             {
-                AuthenticationType = authenticationType
+                _innerBuilder.Mappings.Add<IUser>(authenticationTypeMapping);
+                _innerBuilder.Mappings.Add<IGroup>(authenticationTypeMapping);
             });
-
-            _authTypeMappingAdded = true;
-            return this;
-        }
 
         /// <inheritdoc />
         public IServerToCloudMigrationPlanBuilder WithAuthenticationType<TMapping>(string authenticationType, Func<IServiceProvider, TMapping>? authenticationTypeMappingFactory = null)
             where TMapping : IAuthenticationTypeDomainMapping
+            => WithAuthenticationType(authenticationType, () =>
+            {
+                _innerBuilder.Mappings.Add<TMapping, IUser>(authenticationTypeMappingFactory);
+                _innerBuilder.Mappings.Add<TMapping, IGroup>(authenticationTypeMappingFactory);
+            });
+
+        /// <inheritdoc />
+        public IServerToCloudMigrationPlanBuilder WithAuthenticationType(string authenticationType, Func<ContentMappingContext<IUsernameContent>, CancellationToken, Task<string?>> callback)
+            => WithAuthenticationType(authenticationType, new CallbackAuthenticationTypeDomainMapping(callback, _localizer, _loggerFactory.CreateLogger<CallbackAuthenticationTypeDomainMapping>()));
+
+        private ServerToCloudMigrationPlanBuilder WithAuthenticationType(string authenticationType, Action registerMappings)
         {
-            _innerBuilder.Mappings.Add<TMapping, IUser>(authenticationTypeMappingFactory);
-            _innerBuilder.Mappings.Add<TMapping, IGroup>(authenticationTypeMappingFactory);
+            //Register a default mapper for user/group domains based on the authentication type.
+            registerMappings();
 
             //Configure the default registered auth type transformer to match the user-supplied auth type.
             _innerBuilder.Options.Configure(new UserAuthenticationTypeTransformerOptions
@@ -207,10 +201,6 @@ namespace Tableau.Migration.Engine
             _authTypeMappingAdded = true;
             return this;
         }
-
-        /// <inheritdoc />
-        public IServerToCloudMigrationPlanBuilder WithAuthenticationType(string authenticationType, Func<ContentMappingContext<IUsernameContent>, CancellationToken, Task<string?>> callback)
-            => WithAuthenticationType(authenticationType, new CallbackAuthenticationTypeDomainMapping(callback));
 
         #endregion
 

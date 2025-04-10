@@ -42,7 +42,7 @@ namespace Tableau.Migration.Engine.Hooks.Mappings
         {
             Localizer = localizer;
             Logger = logger;
-            _typeName = GetType().Name;
+            _typeName = GetType().GetFormattedName();
         }
 
         /// <summary>
@@ -57,20 +57,7 @@ namespace Tableau.Migration.Engine.Hooks.Mappings
 
         /// <inheritdoc />
         public async Task<ContentMappingContext<TContent>?> ExecuteAsync(ContentMappingContext<TContent> ctx, CancellationToken cancel)
-        {
-            var ret = await MapAsync(ctx, cancel).ConfigureAwait(false);
-
-            if (Logger is not null && Localizer is not null)
-            {
-                Logger.LogDebug(
-                    Localizer[SharedResourceKeys.ContentMappingBaseDebugMessage],
-                    _typeName,
-                    ctx.ContentItem.ToStringForLog(),
-                    ctx.MappedLocation);
-            }
-
-            return ret;
-        }
+            => await MapAsync(ctx, cancel).ConfigureAwait(false);
 
         /// <summary>
         /// Executes the mapping.

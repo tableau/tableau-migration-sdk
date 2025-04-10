@@ -1,0 +1,53 @@
+<table>
+    <thead>
+        <tr>
+            <th>Key</th>
+            <th>Description</th>
+            <th>Default</th>
+            <th>Python Environment Variable</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><code>Network.FileChunkSizeKB</code></td>
+            <td>The chunk size (KB) for publishing large files. This applies to file-based content types like Workbooks
+                and Data Sources. See the <a
+                    href="https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_concepts_publish.htm">Tableau
+                    REST API Publishing Resources documentation</a> for more details.</td>
+            <td><code>65536</code></td>
+            <td><code>MigrationSDK__Network__FileChunkSizeKB</code></td>
+        </tr>
+        <tr>
+            <td><code>Network.HeadersLoggingEnabled</code></td>
+            <td>Enables logging of HTTP request headers.</td>
+            <td><code>false</code></td>
+            <td><code>MigrationSDK__Network__HeadersLoggingEnabled</code></td>
+        </tr>
+        <tr>
+            <td><code>Network.ContentLoggingEnabled</code></td>
+            <td>Enables logging of HTTP request content.</code></td>
+            <td><code>false</code></td>
+            <td><code>MigrationSDK__Network__ContentLoggingEnabled</code></td>
+        </tr>
+        <tr>
+            <td><code>Network.BinaryContentLoggingEnabled</code></td>
+            <td>Enables logging of binary content in HTTP requests.</code></td>
+            <td><code>false</code></td>
+            <td><code>MigrationSDK__Network__BinaryContentLoggingEnabled</code></td>
+        </tr>
+        <tr>
+            <td><code>Network.ExceptionsLoggingEnabled</code></td>
+            <td>Enables logging of HTTP request exceptions.</code></td>
+            <td><code>false</code></td>
+            <td><code>MigrationSDK__Network__ExceptionsLoggingEnabled</code></td>
+        </tr>        
+        <tr>
+            <td><code>Network.UserAgentComment</code></td>
+            <td>Defines a comment to append to the User-Agent header in all HTTP requests. This property is only used to
+                assist in server-side debugging and it not typically set.
+            </td>
+            <td></td>
+            <td><code>MigrationSDK__Network__UserAgentComment</code></td>
+        </tr>
+    </tbody>
+</table>

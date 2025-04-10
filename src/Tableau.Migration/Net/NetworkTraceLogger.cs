@@ -30,8 +30,7 @@ using static Tableau.Migration.Net.NetworkTraceRedactor;
 
 namespace Tableau.Migration.Net
 {
-    internal class NetworkTraceLogger
-        : INetworkTraceLogger
+    internal class NetworkTraceLogger : INetworkTraceLogger
     {
         /// <summary>
         /// List of headers to log.
@@ -70,24 +69,13 @@ namespace Tableau.Migration.Net
             _traceRedactor = traceRedactor;
         }
 
-        public async Task WriteNetworkLogsAsync(
-            HttpRequestMessage request,
-            HttpResponseMessage response,
-            CancellationToken cancel)
+        public async Task WriteNetworkLogsAsync(HttpRequestMessage request, HttpResponseMessage response, CancellationToken cancel)
         {
             var detailsBuilder = new StringBuilder();
 
-            AddHttpHeaderDetails(
-                detailsBuilder,
-                request,
-                response);
+            AddHttpHeaderDetails(detailsBuilder, request, response);
 
-            await AddHttpContentDetailsAsync(
-                detailsBuilder,
-                request,
-                response,
-                cancel)
-                .ConfigureAwait(false);
+            await AddHttpContentDetailsAsync(detailsBuilder, request, response, cancel).ConfigureAwait(false);
 
             var correlationId = response.Headers.GetCorrelationId();
 
@@ -97,25 +85,16 @@ namespace Tableau.Migration.Net
                 request.RequestUri,
                 response.StatusCode,
                 correlationId,
-                detailsBuilder.ToString()
-                );
+                detailsBuilder.ToString());
         }
 
-        public async Task WriteNetworkExceptionLogsAsync(
-            HttpRequestMessage request,
-            Exception exception,
-            CancellationToken cancel)
+        public async Task WriteNetworkExceptionLogsAsync(HttpRequestMessage request, Exception exception, CancellationToken cancel)
         {
             var detailsBuilder = new StringBuilder();
 
             AddHttpHeaderDetails(detailsBuilder, request);
 
-            await AddHttpContentDetailsAsync(
-                detailsBuilder,
-                request,
-                null,
-                cancel)
-                .ConfigureAwait(false);
+            await AddHttpContentDetailsAsync(detailsBuilder, request, null, cancel).ConfigureAwait(false);
 
             AddHttpExceptionDetails(detailsBuilder, exception);
 
@@ -130,10 +109,7 @@ namespace Tableau.Migration.Net
                 detailsBuilder.ToString());
         }
 
-        private void AddHttpHeaderDetails(
-            StringBuilder detailsBuilder,
-            HttpRequestMessage request,
-            HttpResponseMessage? response = null)
+        private void AddHttpHeaderDetails(StringBuilder detailsBuilder, HttpRequestMessage request, HttpResponseMessage? response = null)
         {
             var headersLogging = _configReader.Get().Network.HeadersLoggingEnabled;
 
@@ -142,57 +118,37 @@ namespace Tableau.Migration.Net
                 return;
             }
 
-            var requestSectionWritten = AppendHttpHeader(
-                detailsBuilder,
-                request.Headers,
-                SharedResourceKeys.SectionRequestHeaders);
-            AppendHttpHeader(
-                detailsBuilder,
-                request.Content?.Headers,
-                SharedResourceKeys.SectionRequestHeaders,
-                requestSectionWritten);
+            var requestSectionWritten = AppendHttpHeader(detailsBuilder, request.Headers, SharedResourceKeys.SectionRequestHeaders);
 
-            var responseSectionWritten = AppendHttpHeader(
-                detailsBuilder,
-                response?.Headers,
-                SharedResourceKeys.SectionResponseHeaders);
-            AppendHttpHeader(
-                detailsBuilder,
-                response?.Content?.Headers,
-                SharedResourceKeys.SectionResponseHeaders,
-                responseSectionWritten);
+            AppendHttpHeader(detailsBuilder, request.Content?.Headers, SharedResourceKeys.SectionRequestHeaders, requestSectionWritten);
+
+            var responseSectionWritten = AppendHttpHeader(detailsBuilder, response?.Headers, SharedResourceKeys.SectionResponseHeaders);
+            AppendHttpHeader(detailsBuilder, response?.Content?.Headers, SharedResourceKeys.SectionResponseHeaders, responseSectionWritten);
         }
 
-        private async Task AddHttpContentDetailsAsync(
-            StringBuilder detailsBuilder,
-            HttpRequestMessage request,
-            HttpResponseMessage? response,
-            CancellationToken cancellation)
+        private async Task AddHttpContentDetailsAsync(StringBuilder detailsBuilder, HttpRequestMessage request, HttpResponseMessage? response, CancellationToken cancellation)
         {
             var contentLogging = _configReader.Get().Network.ContentLoggingEnabled;
+            var workbookContentLogging = _configReader.Get().Network.WorkbookContentLoggingEnabled;
 
             if (!contentLogging)
             {
                 return;
             }
 
-            await AppendHttpContentAsync(
-                detailsBuilder,
-                request.Content,
-                SharedResourceKeys.SectionRequestContent,
-                cancellation)
+            // Don't log the content of the request if it is a workbook download request and it's disabled.
+            if (IsWorkbookDownloadRequest(request) && !workbookContentLogging)
+            {
+                return;
+            }
+
+            await AppendHttpContentAsync(detailsBuilder, request.Content, SharedResourceKeys.SectionRequestContent, cancellation)
                 .ConfigureAwait(false);
-            await AppendHttpContentAsync(
-                detailsBuilder,
-                response?.Content,
-                SharedResourceKeys.SectionResponseContent,
-                cancellation)
+            await AppendHttpContentAsync(detailsBuilder, response?.Content, SharedResourceKeys.SectionResponseContent, cancellation)
                 .ConfigureAwait(false);
         }
 
-        private void AddHttpExceptionDetails(
-            StringBuilder detailsBuilder,
-            Exception exception)
+        private void AddHttpExceptionDetails(StringBuilder detailsBuilder, Exception exception)
         {
             var exceptionLogging = _configReader.Get().Network.ExceptionsLoggingEnabled;
 
@@ -201,31 +157,23 @@ namespace Tableau.Migration.Net
                 return;
             }
 
-            detailsBuilder.AppendLine(
-                _localizer[SharedResourceKeys.SectionException]);
+            detailsBuilder.AppendLine(_localizer[SharedResourceKeys.SectionException]);
 
             detailsBuilder.AppendLine(exception.StackTrace);
         }
 
-        private bool AppendHttpHeader(
-            StringBuilder detailsBuilder,
-            HttpHeaders? headers,
-            string? localizedSectionName = null,
-            bool sectionWritten = false)
+        private bool AppendHttpHeader(StringBuilder detailsBuilder, HttpHeaders? headers, string? localizedSectionName = null, bool sectionWritten = false)
         {
             if (headers is null)
             {
                 return sectionWritten;
             }
 
-            foreach (var headerValue in headers.Where(header =>
-                _logAllowedHeaders.Contains(header.Key)))
+            foreach (var headerValue in headers.Where(header => _logAllowedHeaders.Contains(header.Key)))
             {
-                if (!string.IsNullOrWhiteSpace(localizedSectionName) &&
-                    !sectionWritten)
+                if (!string.IsNullOrWhiteSpace(localizedSectionName) && !sectionWritten)
                 {
-                    detailsBuilder.AppendLine(
-                        _localizer[localizedSectionName]);
+                    detailsBuilder.AppendLine(_localizer[localizedSectionName]);
                     sectionWritten = true;
                 }
 
@@ -238,11 +186,7 @@ namespace Tableau.Migration.Net
             return sectionWritten;
         }
 
-        private async Task AppendHttpContentAsync(
-            StringBuilder detailsBuilder,
-            HttpContent? content,
-            string localizedSectionName,
-            CancellationToken cancellation)
+        private async Task AppendHttpContentAsync(StringBuilder detailsBuilder, HttpContent? content, string localizedSectionName, CancellationToken cancellation)
         {
             if (content is null)
             {
@@ -254,50 +198,74 @@ namespace Tableau.Migration.Net
             detailsBuilder.AppendLine();
             detailsBuilder.AppendLine(_localizer[localizedSectionName]);
 
-            async Task WriteContentAsync(HttpContent contentToWrite)
-            {
-                if (logBinaryContent || contentToWrite.LogsAsTextContent())
-                {
-                    if (_traceRedactor.IsSensitiveMultipartContent(contentToWrite.Headers.ContentDisposition?.Name))
-                    {
-                        detailsBuilder.AppendLine(SENSITIVE_DATA_PLACEHOLDER);
-                    }
-                    else
-                    {
-                        if (contentToWrite.Headers.ContentLength > int.MaxValue)
-                        {
-                            detailsBuilder.AppendLine(_localizer[SharedResourceKeys.NetworkTraceTooLargeDetails]);
-                        }
-                        else
-                        {
-                            var text = await contentToWrite.ReadAsEncodedStringAsync(cancellation)
-                            .ConfigureAwait(false);
-
-                            detailsBuilder.AppendLine(_traceRedactor.ReplaceSensitiveData(text));
-                        }
-                    }
-                }
-                else
-                {
-                    detailsBuilder.AppendLine(_localizer[SharedResourceKeys.NetworkTraceNotDisplayedDetails]);
-                }
-            }
-
-            if (content is MultipartFormDataContent multipartContent)
-            {
-                foreach (var item in multipartContent)
-                {
-                    AppendHttpHeader(detailsBuilder, item.Headers);
-
-                    await WriteContentAsync(item).ConfigureAwait(false);
-
-                    detailsBuilder.AppendLine();
-                }
-            }
-            else
+            if (content is not MultipartFormDataContent multipartContent)
             {
                 await WriteContentAsync(content).ConfigureAwait(false);
+                return;
             }
+
+            foreach (var item in multipartContent)
+            {
+                AppendHttpHeader(detailsBuilder, item.Headers);
+
+                await WriteContentAsync(item).ConfigureAwait(false);
+
+                detailsBuilder.AppendLine();
+            }
+
+            async Task WriteContentAsync(HttpContent contentToWrite)
+            {
+                // If the content is binary (i.e. it is not text) and we are not logging binary content, then we should not log the content.
+                if (!logBinaryContent && !contentToWrite.LogsAsTextContent())
+                {
+                    detailsBuilder.AppendLine(_localizer[SharedResourceKeys.NetworkTraceNotDisplayedDetails]);
+                    return;
+                }
+
+                if (_traceRedactor.IsSensitiveMultipartContent(contentToWrite.Headers.ContentDisposition?.Name))
+                {
+                    detailsBuilder.AppendLine(SENSITIVE_DATA_PLACEHOLDER);
+                    return;
+                }
+
+                if (contentToWrite.Headers.ContentLength > int.MaxValue)
+                {
+                    detailsBuilder.AppendLine(_localizer[SharedResourceKeys.NetworkTraceTooLargeDetails]);
+                    return;
+                }
+
+                var text = await contentToWrite.ReadAsEncodedStringAsync(cancellation).ConfigureAwait(false);
+
+                detailsBuilder.AppendLine(_traceRedactor.ReplaceSensitiveData(text));
+
+                return;
+
+            }
+        }
+
+        private bool IsWorkbookDownloadRequest(HttpRequestMessage request)
+        {
+            if (request?.RequestUri == null)
+            {
+                return false;
+            }
+
+            var segments = request.RequestUri.Segments.Select(segment => segment.Trim('/')).ToArray();
+
+            for (int i = 0; i < segments.Length; i++)
+            {
+                // Check if this is a workbooks RestAPI
+                if (string.Equals(segments[i], "workbooks", StringComparison.OrdinalIgnoreCase))
+                {
+                    // Check if this is a workbook download request. "contents" will always show up 2 after the "workbooks" in the URI.
+                    if (i + 2 < segments.Length && string.Equals(segments[i + 2], "content", StringComparison.OrdinalIgnoreCase))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
     }
 }

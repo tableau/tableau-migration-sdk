@@ -1,4 +1,4 @@
-﻿//
+//
 //  Copyright (c) 2025, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
@@ -27,6 +27,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Tableau.Migration.Api.Models;
 using Tableau.Migration.Api.Rest;
+using Tableau.Migration.Api.Rest.Models;
 using Tableau.Migration.Api.Rest.Models.Requests;
 using Tableau.Migration.Api.Rest.Models.Responses;
 using Tableau.Migration.Content;
@@ -42,8 +43,10 @@ namespace Tableau.Migration.Api
     internal sealed class UsersApiClient : ContentApiClientBase, IUsersApiClient
     {
         internal const string USER_NAME_CONFLICT_ERROR_CODE = "409017";
+
         private readonly IJobsApiClient _jobs;
         private readonly IHttpContentSerializer _serializer;
+        private readonly IServerSessionProvider _sessionProvider;
 
         public UsersApiClient(
             IJobsApiClient jobs,
@@ -51,12 +54,16 @@ namespace Tableau.Migration.Api
             IContentReferenceFinderFactory finderFactory,
             ILoggerFactory loggerFactory,
             IHttpContentSerializer serializer,
-            ISharedResourcesLocalizer sharedResourcesLocalizer)
+            ISharedResourcesLocalizer sharedResourcesLocalizer,
+            IServerSessionProvider sessionProvider)
             : base(restRequestBuilderFactory, finderFactory, loggerFactory, sharedResourcesLocalizer)
         {
             _jobs = jobs;
             _serializer = serializer;
+            _sessionProvider = sessionProvider;
         }
+
+        #region - IUsersApiClient Implementation -
 
         /// <inheritdoc />
         public async Task<IPagedResult<IGroup>> GetUserGroupsAsync(Guid userId, int pageNumber, int pageSize, CancellationToken cancel)
@@ -110,15 +117,15 @@ namespace Tableau.Migration.Api
                 ImportUsersFromCsvRequest xmlRequest;
 
                 var authTypes = users
-                    .Select(u => u.AuthenticationType)
+                    .Select(u => u.Authentication)
                     .Distinct()
-                    .Where(a => !string.IsNullOrWhiteSpace(a))
+                    .Where(a => a != UserAuthenticationType.Default)
                     .ToImmutableArray();
 
                 if (authTypes.Length < 2)
                 {
                     var authType = authTypes.FirstOrDefault();
-                    if (string.IsNullOrWhiteSpace(authType))
+                    if (authType == UserAuthenticationType.Default)
                     {
                         xmlRequest = new ImportUsersFromCsvRequest();
                     }
@@ -130,13 +137,9 @@ namespace Tableau.Migration.Api
                 else
                 {
                     var requestUsers = users
-                        .Where(u => !string.IsNullOrWhiteSpace(u.AuthenticationType))
-                        .Select(u =>
-                        new ImportUsersFromCsvRequest.UserType
-                        {
-                            Name = u.Name,
-                            AuthSetting = u.AuthenticationType
-                        });
+                        .Where(u => u.Authentication != UserAuthenticationType.Default)
+                        .Select(u => new ImportUsersFromCsvRequest.UserType(u.Name, u.Authentication));
+
                     xmlRequest = new ImportUsersFromCsvRequest(requestUsers);
                 }
 
@@ -169,12 +172,12 @@ namespace Tableau.Migration.Api
         }
 
         /// <inheritdoc />
-        public async Task<IResult<IAddUserResult>> AddUserAsync(string userName, string siteRole, string? authenticationType, CancellationToken cancel)
+        public async Task<IResult<IAddUserResult>> AddUserAsync(string userName, string siteRole, UserAuthenticationType authentication, CancellationToken cancel)
         {
             var userResult = await RestRequestBuilderFactory
                 .CreateUri("/users")
                 .ForPostRequest()
-                .WithXmlContent(new AddUserToSiteRequest(userName, siteRole, authenticationType))
+                .WithXmlContent(new AddUserToSiteRequest(userName, siteRole, authentication))
                 .SendAsync<AddUserResponse>(cancel)
                 .ToResultAsync<AddUserResponse, IAddUserResult>(r => new AddUserResult(r), SharedResourcesLocalizer)
                 .ConfigureAwait(false);
@@ -209,7 +212,8 @@ namespace Tableau.Migration.Api
                         Id = existingUser.Id,
                         Name = existingUser.Name,
                         SiteRole = existingUser.SiteRole,
-                        AuthSetting = existingUser.AuthSetting
+                        AuthSetting = existingUser.AuthSetting,
+                        IdpConfigurationId = existingUser.IdpConfigurationId
                     }
                 };
 
@@ -225,11 +229,11 @@ namespace Tableau.Migration.Api
             }
             else if (existingUserResult.Value.Count == 0)
             {
-                conflictResultBuilder.Add(new Exception($"Could not find a user \"{authenticationType ?? string.Empty} \\ {userName}\"."));
+                conflictResultBuilder.Add(new Exception($"Could not find a user with username \"{userName}\"."));
             }
             else if (existingUserResult.Value.Count > 1)
             {
-                conflictResultBuilder.Add(new Exception($"Found multiple users  \"{authenticationType ?? string.Empty} \\ {userName}\"."));
+                conflictResultBuilder.Add(new Exception($"Found multiple users with username \"{userName}\"."));
             }
 
             return conflictResultBuilder.Build().CastFailure<IAddUserResult>();
@@ -242,12 +246,12 @@ namespace Tableau.Migration.Api
                                                           string? newfullName = null,
                                                           string? newEmail = null,
                                                           string? newPassword = null,
-                                                          string? newAuthSetting = null)
+                                                          UserAuthenticationType? newAuthentication = null)
         {
             var userResult = await RestRequestBuilderFactory
                 .CreateUri($"/users/{id}")
                 .ForPutRequest()
-                .WithXmlContent(new UpdateUserRequest(newSiteRole, newfullName, newEmail, newPassword, newAuthSetting))
+                .WithXmlContent(new UpdateUserRequest(newSiteRole, newfullName, newEmail, newPassword, newAuthentication))
                 .SendAsync<UpdateUserResponse>(cancel)
                 .ToResultAsync<UpdateUserResponse, IUpdateUserResult>(r => new UpdateUserResult(r), SharedResourcesLocalizer)
                 .ConfigureAwait(false);
@@ -268,6 +272,37 @@ namespace Tableau.Migration.Api
             return result;
         }
 
+        public async Task<IResult<IEmbeddedCredentialKeychainResult>> RetrieveUserSavedCredentialsAsync(
+            Guid userId,
+            IDestinationSiteInfo destinationSiteInfo,
+            CancellationToken cancel)
+        {
+            var retrieveUserSavedCredsResult = await RestRequestBuilderFactory
+                .CreateUri($"/users/{userId}/retrieveSavedCreds")
+                .ForPostRequest()
+                .WithXmlContent(new RetrieveUserSavedCredentialsRequest(destinationSiteInfo))
+                .SendAsync<RetrieveKeychainResponse>(cancel)
+                .ToResultAsync<RetrieveKeychainResponse, IEmbeddedCredentialKeychainResult>(r => new EmbeddedCredentialKeychainResult(r), SharedResourcesLocalizer)
+                .ConfigureAwait(false);
+
+            return retrieveUserSavedCredsResult;
+        }
+
+        public async Task<IResult> UploadUserSavedCredentialsAsync(Guid userId, IEnumerable<string> encryptedKeychains, CancellationToken cancel)
+        {
+            var uploadSavedCredsResult = await RestRequestBuilderFactory
+                .CreateUri($"/users/{userId}/uploadSavedCreds")
+                .ForPutRequest()
+                .WithXmlContent(new UploadUserSavedCredentialsRequest(encryptedKeychains))
+                .SendAsync(cancel)
+                .ToResultAsync(_serializer, SharedResourcesLocalizer, cancel)
+                .ConfigureAwait(false);
+
+            return uploadSavedCredsResult;
+        }
+
+        #endregion
+
         #region - IPagedListApiClient<IUser> Implementation -
 
         /// <inheritdoc />
@@ -281,7 +316,7 @@ namespace Tableau.Migration.Api
         public async Task<IResult> PublishBatchAsync(IEnumerable<IUser> items, CancellationToken cancel)
         {
             // Create user CSV
-            using var csvStream = UsersApiClient.GenerateUserCsvStream(items);
+            using var csvStream = GenerateUserCsvStream(items);
 
             cancel.ThrowIfCancellationRequested();
 
@@ -344,27 +379,46 @@ namespace Tableau.Migration.Api
 
         public async Task<IResult<IUser>> PublishAsync(IUser item, CancellationToken cancel)
         {
-            var result = await AddUserAsync(
-                item.Name,
-                item.SiteRole,
-                item.AuthenticationType,
-                cancel)
-                .ConfigureAwait(false);
-
-            if (!result.Success)
+            var addResult = await AddUserAsync(item.Name, item.SiteRole, item.Authentication, cancel).ConfigureAwait(false);
+            if (!addResult.Success)
             {
-                return Result<IUser>.Failed(result.Errors);
+                return addResult.CastFailure<IUser>();
             }
 
-            return Result<IUser>.Succeeded(
-                new User(
-                    result.Value.Id,
-                    null,
-                    null,
-                    result.Value.Name,
-                    null,
-                    result.Value.SiteRole,
-                    result.Value.AuthSetting));
+            /*
+             * We need to call update to set the full name/email.
+             * The add user API will not overwrite existing users so we update those fields as well.
+             */
+            IResult<IUpdateUserResult> updateResult;
+            if(_sessionProvider.InstanceType is TableauInstanceType.Cloud)
+            {
+                // Tableau Cloud only allows updating site role and authentication.
+                updateResult = await UpdateUserAsync(addResult.Value.Id, item.SiteRole, cancel,
+                    null, null, null, item.Authentication).ConfigureAwait(false);
+            }
+            else
+            {
+                // Tableau Server allows updating full name and email.
+                updateResult = await UpdateUserAsync(addResult.Value.Id, item.SiteRole, cancel,
+                    item.FullName, item.Email, null, item.Authentication).ConfigureAwait(false);
+            }
+
+            if(!updateResult.Success)
+            {
+                return updateResult.CastFailure<IUser>();
+            }
+
+            /*
+             * The Add/update user APIs will succeed if there are insufficient licenses for the intended site role.
+             * We want to call the attention of the caller to this difference between intended and actual site role,
+             * so we consider the publish failed, which will be logged in the manifest.
+             */
+            if(!SiteRoles.IsAMatch(item.SiteRole, SiteRoles.Unlicensed) && SiteRoles.IsAMatch(updateResult.Value.SiteRole, SiteRoles.Unlicensed))
+            {
+                return Result<IUser>.Failed(new Exception($"User {item.Location} could not be published with site role {item.SiteRole} due to insufficient licenses. User was published as unlicensed."));
+            }
+
+            return Result<IUser>.Succeeded(new User(addResult.Value.Id, updateResult.Value));
         }
 
         #endregion

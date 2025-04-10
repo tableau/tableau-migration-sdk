@@ -1,6 +1,12 @@
-### [Startup Script](#tab/startup)
+### [Startup Scripts](#tab/startup)
+
+Main module:
 
 [!code-python[](../../../examples/Python.ExampleApplication/Python.ExampleApplication.py)]
+
+`print_result` helper module:
+
+[!code-python[](../../../examples/Python.ExampleApplication/print_result.py)]
 
 ### [config.ini](#tab/config)
 

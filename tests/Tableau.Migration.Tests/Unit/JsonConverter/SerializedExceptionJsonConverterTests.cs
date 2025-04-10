@@ -23,6 +23,7 @@ using System.Text;
 using System.Text.Json;
 using Tableau.Migration.Engine.Manifest;
 using Tableau.Migration.JsonConverters;
+using Tableau.Migration.JsonConverters.Exceptions;
 using Tableau.Migration.JsonConverters.SerializableObjects;
 using Xunit;
 
@@ -85,6 +86,11 @@ namespace Tableau.Migration.Tests.Unit.JsonConverter
                 Assert.NotNull(result);
                 Assert.NotNull(result.Error);
                 Assert.Equal(ex.Error!.Message, result.Error.Message);
+
+                if(ex.Error is not UnknownException)
+                {
+                    Assert.IsNotType<UnknownException>(result.Error); // Migration SDK Exception types should not rely on fall-back deserialization.
+                }
 
                 if (!exceptionNamespace.StartsWith("System")) // Built in Exception is not equatable
                 {

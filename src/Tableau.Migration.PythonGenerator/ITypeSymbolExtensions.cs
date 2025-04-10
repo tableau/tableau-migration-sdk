@@ -15,6 +15,7 @@
 //  limitations under the License.
 //
 
+using System;
 using Microsoft.CodeAnalysis;
 
 namespace Tableau.Migration.PythonGenerator
@@ -29,7 +30,23 @@ namespace Tableau.Migration.PythonGenerator
                 return ts.Name;
             }
 
-            return "tableau_migration." + containingNs.ToDisplayString()
+            return GetPythonModuleName(containingNs.ToDisplayString());
+        }
+
+        public static string ToPythonModuleName(Type ts)
+        {
+            var containingNs = ts.Namespace;
+            if (containingNs == null)
+            {
+                return ts.Name;
+            }
+
+            return GetPythonModuleName(containingNs);
+        }
+
+        private static string GetPythonModuleName(string dotNetNamespace)
+        {
+            return "tableau_migration." + dotNetNamespace
                 .Replace("Tableau.", "")
                 .Replace(".", "_")
                 .ToLower();

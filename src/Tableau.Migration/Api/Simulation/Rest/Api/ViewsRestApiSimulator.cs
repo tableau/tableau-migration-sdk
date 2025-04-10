@@ -23,7 +23,7 @@ namespace Tableau.Migration.Api.Simulation.Rest.Api
     /// <summary>
     /// Object that defines simulation of Tableau REST API view permissions methods.
     /// </summary>
-    public sealed class ViewsRestApiSimulator : PermissionsRestApiSimulatorBase<WorkbookResponse.WorkbookType.ViewReferenceType>
+    public sealed class ViewsRestApiSimulator : PermissionsRestApiSimulatorBase<WorkbookResponse.WorkbookType.WorkbookViewReferenceType>
     {
         /// <summary>
         /// 

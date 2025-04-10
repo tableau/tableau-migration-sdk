@@ -42,7 +42,7 @@ namespace Tableau.Migration.Engine.Hooks.Transformers
         {
             Localizer = localizer;
             Logger = logger;
-            _typeName = GetType().Name;
+            _typeName = GetType().GetFormattedName();
         }
 
         /// <summary>
@@ -54,22 +54,10 @@ namespace Tableau.Migration.Engine.Hooks.Transformers
         /// Default logger.
         /// </summary>
         protected ILogger<IContentTransformer<TPublish>> Logger { get; }
-        
+
         /// <inheritdoc />
         public async Task<TPublish?> ExecuteAsync(TPublish itemToTransform, CancellationToken cancel)
-        {
-            var ret = await TransformAsync(itemToTransform, cancel).ConfigureAwait(false);
-
-            if (Logger is not null && Localizer is not null)
-            {
-                Logger.LogDebug(
-                    Localizer[SharedResourceKeys.ContentTransformerBaseDebugMessage],
-                    _typeName,
-                    itemToTransform.ToStringForLog());
-            }
-
-            return ret;
-        }
+            => await TransformAsync(itemToTransform, cancel).ConfigureAwait(false);
 
         /// <summary>
         /// Executes the transformation.

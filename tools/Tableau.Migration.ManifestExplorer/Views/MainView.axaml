@@ -1,0 +1,40 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:Tableau.Migration.ManifestExplorer.ViewModels"
+             xmlns:views="clr-namespace:Tableau.Migration.ManifestExplorer.Views"
+             xmlns:converters="clr-namespace:Tableau.Migration.ManifestExplorer.Converters"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="Tableau.Migration.ManifestExplorer.Views.MainView"
+             x:DataType="vm:MainViewModel">
+    <Design.DataContext>
+        <!-- This only sets the DataContext for the previewer in an IDE,
+                to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
+        <vm:DesignMainViewModel />
+    </Design.DataContext>
+	<UserControl.Resources>
+		<converters:InverseBooleanConverter x:Key="InverseBooleanConverter"/>
+	</UserControl.Resources>
+    <DockPanel>
+        <Grid>
+            <Panel IsVisible="{Binding IsManifestViewVisible}" ZIndex="0">
+                <views:ManifestView DataContext="{Binding ManifestViewModel}" />
+            </Panel>
+            <Panel Name="Start" IsVisible="{Binding IsOverlayVisible}" ZIndex="1" Background="Transparent" VerticalAlignment="Center">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="200"/> 
+                        <RowDefinition Height="100"/>
+                        <RowDefinition Height="100"/>
+                    </Grid.RowDefinitions>
+                    <Image Source="/Assets/StartImage.png" Height="200" Grid.Row="0" HorizontalAlignment="Center"/>
+					<Button Content="Load Manifest" Command="{Binding LoadManifestCommand}"
+                            IsEnabled="{Binding IsLoading, Converter={StaticResource InverseBooleanConverter}}"
+                            HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,50,0,0" Grid.Row="1"/>
+					<ProgressBar IsVisible="{Binding IsLoading}" IsIndeterminate="True" Width="200" Height="20" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,20,0,0" Grid.Row="2"/>
+                </Grid>
+            </Panel>
+        </Grid>
+    </DockPanel>
+</UserControl>

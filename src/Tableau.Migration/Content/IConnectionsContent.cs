@@ -15,7 +15,9 @@
 //  limitations under the License.
 //
 
+using System;
 using System.Collections.Immutable;
+using System.Linq;
 
 namespace Tableau.Migration.Content
 {
@@ -32,5 +34,23 @@ namespace Tableau.Migration.Content
         /// 2) updating connection metadata in a post-publish hook.
         /// </summary>
         IImmutableList<IConnection> Connections { get; }
+
+        /// <summary>
+        /// Gets whether any <see cref="Connections" /> have an embedded password.
+        /// </summary>
+        public bool HasEmbeddedPassword =>
+            Connections.Any(c => c.EmbedPassword is true);
+
+        /// <summary>
+        /// Gets whether any <see cref="Connections" /> have an embedded password and uses OAuth managed keychain.
+        /// </summary>
+        public bool HasEmbeddedOAuthManagedKeychain =>
+            Connections.Any(c => c.EmbedPassword is true && c.UseOAuthManagedKeychain is true);
+
+        /// <summary>
+        /// Gets whether any <see cref="Connections" /> have an embedded password and an OAuth authentication type.
+        /// </summary>
+        public bool HasEmbeddedOAuthCredentials =>
+            Connections.Any(c => c.EmbedPassword is true && StringComparer.OrdinalIgnoreCase.Equals(c.AuthenticationType, "oauth"));
     }
 }

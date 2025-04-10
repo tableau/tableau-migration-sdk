@@ -34,9 +34,10 @@ namespace Tableau.Migration.Tests.Unit.Engine.Pipelines
 
             protected MigrationPipelineContentType CreateContentType(Type? contentType = null) => new(contentType ?? CreateType());
 
-            protected static void AssertTypes(MigrationPipelineContentType result, Type contentType, Type publishType, Type resultType)
+            protected static void AssertTypes(MigrationPipelineContentType result, Type contentType, Type prepareType, Type publishType, Type resultType)
             {
                 Assert.Same(contentType, result.ContentType);
+                Assert.Same(prepareType, result.PrepareType);
                 Assert.Same(publishType, result.PublishType);
                 Assert.Same(resultType, result.ResultType);
             }
@@ -51,7 +52,31 @@ namespace Tableau.Migration.Tests.Unit.Engine.Pipelines
 
                 var t = new MigrationPipelineContentType(type);
 
-                AssertTypes(t, type, type, type);
+                AssertTypes(t, type, type, type, type);
+            }
+        }
+
+        public class WithPrepareType : MigrationPipelineContentTypeTest
+        {
+            [Fact]
+            public void Different_types()
+            {
+                var contentType = CreateType();
+                var prepareType = CreateType();
+
+                var t = CreateContentType(contentType).WithPrepareType(prepareType);
+
+                AssertTypes(t, contentType, prepareType, contentType, contentType);
+            }
+
+            [Fact]
+            public void Same_types()
+            {
+                var type = CreateType();
+
+                var t = CreateContentType(type).WithPrepareType(type);
+
+                AssertTypes(t, type, type, type, type);
             }
         }
 
@@ -65,7 +90,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Pipelines
 
                 var t = CreateContentType(contentType).WithPublishType(publishType);
 
-                AssertTypes(t, contentType, publishType, contentType);
+                AssertTypes(t, contentType, contentType, publishType, contentType);
             }
 
             [Fact]
@@ -75,7 +100,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Pipelines
 
                 var t = CreateContentType(type).WithPublishType(type);
 
-                AssertTypes(t, type, type, type);
+                AssertTypes(t, type, type, type, type);
             }
         }
 
@@ -89,7 +114,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Pipelines
 
                 var t = CreateContentType(contentType).WithResultType(resultType);
 
-                AssertTypes(t, contentType, contentType, resultType);
+                AssertTypes(t, contentType, contentType, contentType, resultType);
             }
 
             [Fact]
@@ -99,7 +124,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Pipelines
 
                 var t = CreateContentType(type).WithResultType(type);
 
-                AssertTypes(t, type, type, type);
+                AssertTypes(t, type, type, type, type);
             }
         }
 
@@ -190,7 +215,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Pipelines
             [Fact]
             public void ReturnsConfigKey()
             {
-                var pipelineContentTypes = ServerToCloudMigrationPipeline.ContentTypes;
+                var pipelineContentTypes = MigrationPipelineContentType.GetAllMigrationPipelineContentTypes();
 
                 foreach (var pipelineContentType in pipelineContentTypes)
                 {
@@ -204,7 +229,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Pipelines
             [Fact]
             public void StaticType()
             {
-                var pipelineContentTypes = ServerToCloudMigrationPipeline.ContentTypes;
+                var pipelineContentTypes = MigrationPipelineContentType.GetAllMigrationPipelineContentTypes();
 
                 foreach (var pipelineContentType in pipelineContentTypes)
                 {
@@ -212,6 +237,31 @@ namespace Tableau.Migration.Tests.Unit.Engine.Pipelines
                     var actualConfigKey = MigrationPipelineContentType.GetConfigKeyForType(pipelineContentType.ContentType);
 
                     AssertConfigKey(pipelineContentType, actualConfigKey);
+                }
+            }
+        }
+
+        public class GetMigrationPipelineContentTypes
+        {
+            public static TheoryData<PipelineProfile, ImmutableArray<MigrationPipelineContentType>> GetPipelineProfiles()
+            {
+                return new TheoryData<PipelineProfile, ImmutableArray<MigrationPipelineContentType>>
+                {
+                    { PipelineProfile.ServerToCloud, ServerToCloudMigrationPipeline.ContentTypes },
+                    { PipelineProfile.ServerToServer, ServerToServerMigrationPipeline.ContentTypes },
+                    { PipelineProfile.CloudToCloud, CloudToCloudMigrationPipeline.ContentTypes }
+                };
+            }
+
+            [Theory]
+            [MemberData(nameof(GetPipelineProfiles))]
+            public void ReturnsContentTypes(PipelineProfile profile, ImmutableArray<MigrationPipelineContentType> contentTypes)
+            {
+                var pipelineContentTypes = MigrationPipelineContentType.GetMigrationPipelineContentTypes(profile);
+                Assert.Equal(contentTypes.Length, pipelineContentTypes.Length);
+                for (var i = 0; i < contentTypes.Length; i++)
+                {
+                    Assert.Same(contentTypes[i], pipelineContentTypes[i]);
                 }
             }
         }

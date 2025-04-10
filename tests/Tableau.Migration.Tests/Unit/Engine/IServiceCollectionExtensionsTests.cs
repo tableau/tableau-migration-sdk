@@ -23,8 +23,16 @@ using Moq;
 using Tableau.Migration.Api;
 using Tableau.Migration.Content;
 using Tableau.Migration.Content.Files;
+using Tableau.Migration.Content.Schedules;
+using Tableau.Migration.Content.Schedules.Cloud;
+using Tableau.Migration.Content.Schedules.Server;
 using Tableau.Migration.Content.Search;
+using Tableau.Migration.ContentConverters.Schedules;
 using Tableau.Migration.Engine;
+using Tableau.Migration.Engine.Conversion;
+using Tableau.Migration.Engine.Conversion.ExtractRefreshTasks;
+using Tableau.Migration.Engine.Conversion.Schedules;
+using Tableau.Migration.Engine.Conversion.Subscriptions;
 using Tableau.Migration.Engine.Endpoints;
 using Tableau.Migration.Engine.Endpoints.Search;
 using Tableau.Migration.Engine.Hooks;
@@ -61,6 +69,14 @@ namespace Tableau.Migration.Tests.Unit.Engine
                 mockScopedClientFactory.Setup(x => x.Initialize(It.IsAny<TableauSiteConnectionConfiguration>(), It.IsAny<IContentReferenceFinderFactory?>(), It.IsAny<IContentFileStore?>()))
                     .Returns(mockApiClient.Object);
 
+                var mockMigrationPlan = Freeze<Mock<IMigrationPlan>>();
+                mockMigrationPlan.SetupGet(x => x.PipelineProfile).Returns(PipelineProfile.ServerToCloud);
+                AutoFixture.Register<IMigrationPlan>(() => mockMigrationPlan.Object);
+
+                var mockMigrationManifest = Freeze<Mock<IMigrationManifest>>();
+                mockMigrationManifest.SetupGet(x => x.PipelineProfile).Returns(PipelineProfile.ServerToCloud);
+                AutoFixture.Register<IMigrationManifest>(() => mockMigrationManifest.Object);
+
                 services.AddLogging()
                     .AddLocalization()
                     .AddSharedResourcesLocalization()
@@ -87,7 +103,7 @@ namespace Tableau.Migration.Tests.Unit.Engine
                     migration.Source.InitializeAsync(Cancel),
                     migration.Destination.InitializeAsync(Cancel)
                 };
-                
+
                 await Task.WhenAll(endpointInitTasks).ConfigureAwait(false);
 
                 return scope;
@@ -232,6 +248,26 @@ namespace Tableau.Migration.Tests.Unit.Engine
             }
 
             [Fact]
+            public async Task RegistersSingletonScheduleValidatorsAsync()
+            {
+                await using var scope = await InitializeMigrationScopeAsync();
+
+                AssertService<IScheduleValidator<IServerSchedule>, ServerScheduleValidator>(scope, ServiceLifetime.Singleton);
+                AssertService<IScheduleValidator<ICloudSchedule>, CloudScheduleValidator>(scope, ServiceLifetime.Singleton);
+            }
+
+            [Fact]
+            public async Task RegistersSingletonConvertersAsync()
+            {
+                await using var scope = await InitializeMigrationScopeAsync();
+
+                AssertService<DirectContentItemConverter<TestContentType, TestContentType>>(scope, ServiceLifetime.Singleton);
+                AssertService<IScheduleConverter<IServerSchedule, ICloudSchedule>, ServerToCloudScheduleConverter>(scope, ServiceLifetime.Singleton);
+                AssertService<IExtractRefreshTaskConverter<IServerExtractRefreshTask, ICloudExtractRefreshTask>, ServerToCloudExtractRefreshTaskConverter>(scope, ServiceLifetime.Singleton);
+                AssertService<ISubscriptionConverter<IServerSubscription, ICloudSubscription>, ServerToCloudSubscriptionConverter>(scope, ServiceLifetime.Singleton);
+            }
+
+            [Fact]
             public async Task RegistersScopedSourcePreparerAsync()
             {
                 await using var scope = await InitializeMigrationScopeAsync();
@@ -244,7 +280,7 @@ namespace Tableau.Migration.Tests.Unit.Engine
             {
                 await using var scope = await InitializeMigrationScopeAsync();
 
-                AssertService<EndpointContentItemPreparer<TestContentType, TestPublishType>>(scope, ServiceLifetime.Scoped);
+                AssertService<EndpointContentItemPreparer<TestContentType, TestPublishType, TestPublishType>>(scope, ServiceLifetime.Scoped);
             }
 
             [Fact]
@@ -270,7 +306,7 @@ namespace Tableau.Migration.Tests.Unit.Engine
                 await using var scope = await InitializeMigrationScopeAsync();
 
                 AssertService<BulkPublishContentBatchMigrator<TestContentType>>(scope, ServiceLifetime.Scoped);
-                AssertService<BulkPublishContentBatchMigrator<TestContentType, TestPublishType>>(scope, ServiceLifetime.Scoped);
+                AssertService<BulkPublishContentBatchMigrator<TestContentType, TestPublishType, TestPublishType>>(scope, ServiceLifetime.Scoped);
             }
 
             [Fact]
@@ -359,6 +395,14 @@ namespace Tableau.Migration.Tests.Unit.Engine
                 await using var scope = await InitializeMigrationScopeAsync();
 
                 AssertService<PreviouslyMigratedFilter<TestContentType>>(scope, ServiceLifetime.Scoped);
+            }
+
+            [Fact]
+            public async Task RegistersScopedDestinationAuthenticationConfigurationCacheAsync()
+            {
+                await using var scope = await InitializeMigrationScopeAsync();
+
+                AssertService<IDestinationAuthenticationConfigurationsCache, BulkApiAuthenticationConfigurationsCache>(scope, ServiceLifetime.Scoped);
             }
         }
     }

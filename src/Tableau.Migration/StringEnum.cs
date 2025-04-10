@@ -53,14 +53,7 @@ namespace Tableau.Migration
         /// Gets a collection of all values.
         /// </summary>
         /// <param name="exclude">The values to exclude.</param>
-        public static IImmutableList<string> GetAll(params string[] exclude)
-            => GetAll((IEnumerable<string>)exclude);
-
-        /// <summary>
-        /// Gets a collection of all values.
-        /// </summary>
-        /// <param name="exclude">The values to exclude.</param>
-        public static IImmutableList<string> GetAll(IEnumerable<string> exclude)
+        public static IImmutableList<string> GetAll(params IEnumerable<string> exclude)
             => exclude.IsNullOrEmpty()
                 ? _all.Value
                 : _all.Value.SkipWhile(v => exclude.Any(e => IsAMatch(v, e))).ToImmutableArray();

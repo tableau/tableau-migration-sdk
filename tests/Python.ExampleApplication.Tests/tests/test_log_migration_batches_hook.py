@@ -20,5 +20,5 @@ class TestLogMigrationBatchesHookForUsers():
         LogMigrationBatchesHookForUsers()
         
     def test_execute(self):
-        hook = LogMigrationBatchesHookForUsers();
+        hook = LogMigrationBatchesHookForUsers()
         assert hook._content_type == "User"

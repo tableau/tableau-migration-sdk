@@ -31,7 +31,8 @@ namespace Tableau.Migration.Content
         IPermissionsContent,
         IRequiresOwnerUpdate,
         IWithConnections,
-        IRequiresLabelUpdate
+        IRequiresLabelUpdate,
+        IRequiresEmbeddedCredentialMigration
     {
         /// <summary>
         /// Gets whether or not the data source has extracts.

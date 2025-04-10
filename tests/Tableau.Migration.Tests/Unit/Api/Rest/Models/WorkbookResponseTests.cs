@@ -70,8 +70,8 @@ namespace Tableau.Migration.Tests.Unit.Api.Rest.Models
             }
 
             private static void AssertViews(
-                List<WorkbookResponse.WorkbookType.ViewReferenceType> expected,
-                List<WorkbookResponse.WorkbookType.ViewReferenceType> actual)
+                List<WorkbookResponse.WorkbookType.WorkbookViewReferenceType> expected,
+                List<WorkbookResponse.WorkbookType.WorkbookViewReferenceType> actual)
             {
                 Assert.Equal(expected.Count, actual.Count);
                 Assert.All(actual, view => Assert.NotEqual(Guid.Empty, view.Id));
@@ -110,9 +110,9 @@ namespace Tableau.Migration.Tests.Unit.Api.Rest.Models
 
             private (string TestXML, WorkbookResponse.WorkbookType ExpectedResult) GetTestData()
             {
-                var viewTags = CreateMany<WorkbookResponse.WorkbookType.ViewReferenceType.ViewTagType>(2).ToArray();
+                var viewTags = CreateMany<WorkbookResponse.WorkbookType.WorkbookViewReferenceType.ViewTagType>(2).ToArray();
                 var views = AutoFixture
-                    .Build<WorkbookResponse.WorkbookType.ViewReferenceType>()
+                    .Build<WorkbookResponse.WorkbookType.WorkbookViewReferenceType>()
                     .With(wb => wb.Tags, viewTags)
                     .CreateMany(2)
                     .ToArray();

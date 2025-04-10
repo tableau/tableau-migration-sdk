@@ -26,6 +26,7 @@ using AutoFixture;
 using Moq;
 using Tableau.Migration.Api;
 using Tableau.Migration.Api.Models.Cloud;
+using Tableau.Migration.Api.Rest;
 using Tableau.Migration.Api.Rest.Models.Types;
 using Tableau.Migration.Content.Schedules;
 using Tableau.Migration.Content.Schedules.Cloud;
@@ -348,7 +349,7 @@ namespace Tableau.Migration.Tests.Unit.Api
                         contentReference.Id,
                         cloudSchedule);
 
-                    SetupErrorResponse<CloudResponses.CreateExtractRefreshTaskResponse>(error => error.Code = "400000");
+                    SetupErrorResponse<CloudResponses.CreateExtractRefreshTaskResponse>(error => error.Code = RestErrorCodes.BAD_REQUEST);
 
                     // Act
                     var result = await CloudTasksApiClient.CreateExtractRefreshTaskAsync(

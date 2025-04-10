@@ -48,6 +48,7 @@ namespace Tableau.Migration.JsonConverters
             string? detail = null;
             string? summary = null;
             string? exceptionMessage = null;
+            string? fullStackTrace = null;
 
             while (reader.Read())
             {
@@ -93,6 +94,10 @@ namespace Tableau.Migration.JsonConverters
                         case nameof(RestException.Message):
                             exceptionMessage = reader.GetString();
                             break;
+
+                        case nameof(RestException.FullStackTrace):
+                            fullStackTrace = reader.GetString();
+                            break;
                     }
                 }
                 else if (reader.TokenType == JsonTokenType.EndObject)
@@ -104,7 +109,7 @@ namespace Tableau.Migration.JsonConverters
             Guard.AgainstNull(exceptionMessage, nameof(exceptionMessage));
 
             // Use the internal constructor for deserialization
-            return new RestException(httpMethod, requestUri, correlationId, new Error { Code = code, Detail = detail, Summary = summary }, exceptionMessage);
+            return new RestException(httpMethod, requestUri, correlationId, new Error { Code = code, Detail = detail, Summary = summary }, fullStackTrace, exceptionMessage);
         }
 
         /// <summary>
@@ -145,6 +150,11 @@ namespace Tableau.Migration.JsonConverters
             if (value.Summary != null)
             {
                 writer.WriteString(nameof(RestException.Summary), value.Summary);
+            }
+
+            if (value.FullStackTrace != null)
+            {
+                writer.WriteString(nameof(RestException.FullStackTrace), value.FullStackTrace.ToString());
             }
 
             JsonWriterUtils.WriteExceptionProperties(ref writer, value);

@@ -24,6 +24,9 @@ using Tableau.Migration.Content;
 using Tableau.Migration.Content.Schedules.Cloud;
 using Tableau.Migration.Content.Schedules.Server;
 using Tableau.Migration.Engine.Actions;
+using Tableau.Migration.Engine.Conversion;
+using Tableau.Migration.Engine.Conversion.ExtractRefreshTasks;
+using Tableau.Migration.Engine.Conversion.Subscriptions;
 using Tableau.Migration.Engine.Migrators.Batch;
 
 namespace Tableau.Migration.Engine.Pipelines
@@ -44,10 +47,11 @@ namespace Tableau.Migration.Engine.Pipelines
             MigrationPipelineContentType.DataSources,
             MigrationPipelineContentType.Workbooks,
             MigrationPipelineContentType.ServerToCloudExtractRefreshTasks,
-            MigrationPipelineContentType.CustomViews
+            MigrationPipelineContentType.CustomViews,
+            MigrationPipelineContentType.ServerToCloudSubscriptions
         ];
 
-        private readonly IConfigReader _configReader;
+
 
         /// <summary>
         /// Creates a new <see cref="ServerToCloudMigrationPipeline"/> object.
@@ -56,10 +60,8 @@ namespace Tableau.Migration.Engine.Pipelines
         /// <param name="configReader">A config reader to get the REST API configuration.</param>
         public ServerToCloudMigrationPipeline(IServiceProvider services,
             IConfigReader configReader)
-            : base(services)
-        {
-            _configReader = configReader;
-        }
+            : base(services, configReader)
+        { }
 
 
         /// <inheritdoc />
@@ -78,6 +80,7 @@ namespace Tableau.Migration.Engine.Pipelines
             yield return CreateMigrateContentAction<IWorkbook>();
             yield return CreateMigrateContentAction<IServerExtractRefreshTask>();
             yield return CreateMigrateContentAction<ICustomView>();
+            yield return CreateMigrateContentAction<IServerSubscription>();
         }
 
         /// <inheritdoc />
@@ -85,26 +88,30 @@ namespace Tableau.Migration.Engine.Pipelines
         {
             switch (typeof(TContent))
             {
-                case Type user when user == typeof(IUser):
-                    if (_configReader.Get<IUser>().BatchPublishingEnabled)
-                    {
-                        return Services.GetRequiredService<BulkPublishContentBatchMigrator<TContent>>();
-                    }
-                    return Services.GetRequiredService<ItemPublishContentBatchMigrator<TContent>>();
-                case Type group when group == typeof(IGroup):
-                    return Services.GetRequiredService<ItemPublishContentBatchMigrator<TContent, IPublishableGroup>>();
-                case Type project when project == typeof(IProject):
-                    return Services.GetRequiredService<ItemPublishContentBatchMigrator<TContent>>();
-                case Type dataSource when dataSource == typeof(IDataSource):
-                    return Services.GetRequiredService<ItemPublishContentBatchMigrator<TContent, IPublishableDataSource, IDataSourceDetails>>();
-                case Type workbook when workbook == typeof(IWorkbook):
-                    return Services.GetRequiredService<ItemPublishContentBatchMigrator<TContent, IPublishableWorkbook, IWorkbookDetails>>();
                 case Type extractRefreshTask when extractRefreshTask == typeof(IServerExtractRefreshTask):
-                    return Services.GetRequiredService<ItemPublishContentBatchMigrator<TContent, ICloudExtractRefreshTask, ICloudExtractRefreshTask>>();
-                case Type customView when customView == typeof(ICustomView):
-                    return Services.GetRequiredService<ItemPublishContentBatchMigrator<TContent, IPublishableCustomView, ICustomView>>();
+                    return Services.GetRequiredService<ItemPublishContentBatchMigrator<TContent, IServerExtractRefreshTask, ICloudExtractRefreshTask, ICloudExtractRefreshTask>>();
+
+                case Type subscription when subscription == typeof(IServerSubscription):
+                    return Services.GetRequiredService<ItemPublishContentBatchMigrator<TContent, IServerSubscription, ICloudSubscription, ICloudSubscription>>();
+
                 default:
                     return base.GetBatchMigrator<TContent>();
+            }
+        }
+
+        /// <inheritdoc />
+        public override IContentItemConverter<TPrepare, TPublish> GetItemConverter<TPrepare, TPublish>()
+        {
+            switch (typeof(TPrepare))
+            {
+                case Type serverExtractRefreshTask when serverExtractRefreshTask == typeof(IServerExtractRefreshTask):
+                    return Services.GetRequiredService<IExtractRefreshTaskConverter<TPrepare, TPublish>>();
+
+                case Type serverSubscription when serverSubscription == typeof(IServerSubscription):
+                    return Services.GetRequiredService<ISubscriptionConverter<TPrepare, TPublish>>();
+
+                default:
+                    return base.GetItemConverter<TPrepare, TPublish>();
             }
         }
     }

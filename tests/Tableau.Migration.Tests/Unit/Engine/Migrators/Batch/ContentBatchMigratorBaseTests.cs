@@ -32,7 +32,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Migrators.Batch
     {
         #region - Test Classes -
 
-        public class TestContentBatchMigrator : ContentBatchMigratorBase<TestContentType, TestPublishType>
+        public class TestContentBatchMigrator : ContentBatchMigratorBase<TestContentType, TestPublishType, TestPublishType>
         {
             public Dictionary<ContentMigrationItem<TestContentType>, IResult> PublishResultOverrides { get; }
 
@@ -71,7 +71,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Migrators.Batch
 
         #region - MigrateAsync -
 
-        public class MigrateAsync : ContentBatchMigratorTestBase<TestContentType, TestPublishType>
+        public class MigrateAsync : ContentBatchMigratorTestBase<TestContentType, TestPublishType, TestPublishType>
         {
             private readonly TestContentBatchMigrator _batchMigrator;
 

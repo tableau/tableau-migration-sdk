@@ -1,4 +1,4 @@
-﻿//
+//
 //  Copyright (c) 2025, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
@@ -17,13 +17,24 @@
 
 using Microsoft.Extensions.DependencyInjection;
 using Tableau.Migration.Api;
+using Tableau.Migration.Content;
 using Tableau.Migration.Content.Files;
+using Tableau.Migration.Content.Schedules;
+using Tableau.Migration.Content.Schedules.Cloud;
+using Tableau.Migration.Content.Schedules.Server;
+using Tableau.Migration.ContentConverters.Schedules;
 using Tableau.Migration.Engine.Actions;
+using Tableau.Migration.Engine.Conversion;
+using Tableau.Migration.Engine.Conversion.ExtractRefreshTasks;
+using Tableau.Migration.Engine.Conversion.Schedules;
+using Tableau.Migration.Engine.Conversion.Subscriptions;
 using Tableau.Migration.Engine.Endpoints;
 using Tableau.Migration.Engine.Endpoints.Search;
 using Tableau.Migration.Engine.Hooks;
+using Tableau.Migration.Engine.Hooks.ActionCompleted;
 using Tableau.Migration.Engine.Hooks.Filters;
 using Tableau.Migration.Engine.Hooks.Filters.Default;
+using Tableau.Migration.Engine.Hooks.InitializeMigration.Default;
 using Tableau.Migration.Engine.Hooks.Mappings;
 using Tableau.Migration.Engine.Hooks.Mappings.Default;
 using Tableau.Migration.Engine.Hooks.PostPublish.Default;
@@ -44,122 +55,166 @@ namespace Tableau.Migration.Engine
     internal static class IServiceCollectionExtensions
     {
         /// <summary>
-        /// Registers migration engine services.
+        /// Registers migration engine.
         /// </summary>
         /// <param name="services">The service collection to register services with.</param>
         /// <returns>The same service collection for fluent API calls.</returns>
-        internal static IServiceCollection AddMigrationEngine(this IServiceCollection services)
-        {
-            services.AddSingleton<IMigrationManifestFactory, MigrationManifestFactory>();
+        internal static IServiceCollection AddMigrationEngine(this IServiceCollection services) => services
+            .AddSingleton<IMigrationManifestFactory, MigrationManifestFactory>()
+            .AddBoostrapServices()
+            .AddStateTrackingServices()
+            .AddScoped(typeof(IMigrationPlanOptionsProvider<>), typeof(MigrationPlanOptionsProvider<>))
+            .AddHooksInfraServices()
+            .AddPlanBuildingServices()
+            .AddMigratorServices()
+            .AddConversionServices()
+            .AddSingleton<MigrationManifestSerializer>() // Serializer
+            .AddCacheServices()
+            .AddContentFinderServices()
+            .AddPipelineServices()
+            .AddMigrationActionServices()
+            .AddSingleton<IMigrator, Migrator>() //Top-level interface .
+            .AddMigrationCapabilityServices()
+            .AddDefaultPreflightHookServices()
+            .AddDefaultFilterServices()
+            .AddDefaultMappingServices()
+            .AddDefaultTransformerServices()
+            .AddDefaultActionCompletedHookServices()
+            .AddDefaultPostPublishHookServices()
+            .AddFileStoreServices(); //Migration engine file store.
 
-            //Bootstrap and scope state tracking services.
-            services.AddScoped<MigrationInput>();
-            services.AddScoped<IMigrationInput>(p => p.GetRequiredService<MigrationInput>());
-            services.AddScoped<IMigrationInputInitializer>(p => p.GetRequiredService<MigrationInput>());
+        private static IServiceCollection AddBoostrapServices(this IServiceCollection services) => services
+            .AddScoped<MigrationInput>()
+            .AddScoped<IMigrationInput>(p => p.GetRequiredService<MigrationInput>())
+            .AddScoped<IMigrationInputInitializer>(p => p.GetRequiredService<MigrationInput>())
+            .AddScoped<IMigrationEndpointFactory, MigrationEndpointFactory>();
 
-            services.AddScoped<IMigrationEndpointFactory, MigrationEndpointFactory>();
+        private static IServiceCollection AddStateTrackingServices(this IServiceCollection services) => services
+            .AddScoped<IMigration, Migration>()
+            .AddScoped(p => p.GetRequiredService<IMigration>().Source)
+            .AddScoped(p => p.GetRequiredService<IMigration>().Destination)
+            .AddScoped(p => p.GetRequiredService<IMigration>().Plan)
+            .AddScoped(p => p.GetRequiredService<IMigration>().Manifest)
+            .AddScoped(p => p.GetRequiredService<IMigration>().Pipeline)
+            .AddScoped<IMigrationManifest>(p => p.GetRequiredService<IMigrationManifestEditor>());
 
-            services.AddScoped<IMigration, Migration>();
-            services.AddScoped(p => p.GetRequiredService<IMigration>().Source);
-            services.AddScoped(p => p.GetRequiredService<IMigration>().Destination);
-            services.AddScoped(p => p.GetRequiredService<IMigration>().Plan);
-            services.AddScoped(p => p.GetRequiredService<IMigration>().Manifest);
-            services.AddScoped(p => p.GetRequiredService<IMigration>().Pipeline);
-            services.AddScoped<IMigrationManifest>(p => p.GetRequiredService<IMigrationManifestEditor>());
+        private static IServiceCollection AddHooksInfraServices(this IServiceCollection services) => services
+            .AddScoped<IMigrationHookRunner, MigrationHookRunner>()
+            .AddScoped<IContentMappingRunner, ContentMappingRunner>()
+            .AddScoped<IContentFilterRunner, ContentFilterRunner>()
+            .AddScoped<IContentTransformerRunner, ContentTransformerRunner>();
 
-            services.AddScoped(typeof(IMigrationPlanOptionsProvider<>), typeof(MigrationPlanOptionsProvider<>));
+        private static IServiceCollection AddPlanBuildingServices(this IServiceCollection services) => services
+            .AddSingleton<IMigrationPlanBuilderFactory, MigrationPlanBuilderFactory>()
+            .AddTransient<IMigrationPlanBuilder, MigrationPlanBuilder>()
+            .AddTransient<IMigrationPlanOptionsBuilder, MigrationPlanOptionsBuilder>()
+            .AddTransient<IMigrationHookBuilder, MigrationHookBuilder>()
+            .AddTransient<IContentMappingBuilder, ContentMappingBuilder>()
+            .AddTransient<IContentFilterBuilder, ContentFilterBuilder>()
+            .AddTransient<IContentTransformerBuilder, ContentTransformerBuilder>();
 
-            //Hooks infrastructure.
-            services.AddScoped<IMigrationHookRunner, MigrationHookRunner>();
-            services.AddScoped<IContentMappingRunner, ContentMappingRunner>();
-            services.AddScoped<IContentFilterRunner, ContentFilterRunner>();
-            services.AddScoped<IContentTransformerRunner, ContentTransformerRunner>();
-
-            //Plan building.
-            services.AddSingleton<IMigrationPlanBuilderFactory, MigrationPlanBuilderFactory>();
-            services.AddTransient<IMigrationPlanBuilder, MigrationPlanBuilder>();
-            services.AddTransient<IMigrationPlanOptionsBuilder, MigrationPlanOptionsBuilder>();
-            services.AddTransient<IMigrationHookBuilder, MigrationHookBuilder>();
-            services.AddTransient<IContentMappingBuilder, ContentMappingBuilder>();
-            services.AddTransient<IContentFilterBuilder, ContentFilterBuilder>();
-            services.AddTransient<IContentTransformerBuilder, ContentTransformerBuilder>();
-
-            //Migrators
+        private static IServiceCollection AddMigratorServices(this IServiceCollection services) => services
             //Register concrete types so that the easy way to get interface types is through IMigrationPipeline.
-            services.AddScoped(typeof(EndpointContentItemPreparer<,>));
-            services.AddScoped(typeof(ExtractRefreshTaskServerToCloudPreparer));
-            services.AddScoped(typeof(SourceContentItemPreparer<>));
-            services.AddScoped(typeof(BulkPublishContentBatchMigrator<>));
-            services.AddScoped(typeof(BulkPublishContentBatchMigrator<,>));
-            services.AddScoped(typeof(ItemPublishContentBatchMigrator<>));
-            services.AddScoped(typeof(ItemPublishContentBatchMigrator<,>));
-            services.AddScoped(typeof(ItemPublishContentBatchMigrator<,,>));
-            services.AddScoped(typeof(ContentMigrator<>));
+            .AddScoped(typeof(EndpointContentItemPreparer<,,>))
+            .AddScoped(typeof(ExtractRefreshTaskServerToCloudPreparer))
+            .AddScoped(typeof(SourceContentItemPreparer<>))
+            .AddScoped(typeof(SourceContentItemPreparer<,>))
+            .AddScoped(typeof(BulkPublishContentBatchMigrator<>))
+            .AddScoped(typeof(BulkPublishContentBatchMigrator<,,>))
+            .AddScoped(typeof(ItemPublishContentBatchMigrator<>))
+            .AddScoped(typeof(ItemPublishContentBatchMigrator<,>))
+            .AddScoped(typeof(ItemPublishContentBatchMigrator<,,>))
+            .AddScoped(typeof(ItemPublishContentBatchMigrator<,,,>))
+            .AddScoped(typeof(ContentMigrator<>));
 
-            //Serializer
-            services.AddSingleton<MigrationManifestSerializer>();
-
-            //Caches/Content Finders
+        private static IServiceCollection AddConversionServices(this IServiceCollection services) => services
             //Register concrete types so that the easy way to get interface types is through IMigrationPipeline.
-            services.AddScoped(typeof(BulkSourceCache<>));
-            services.AddScoped(typeof(ISourceContentReferenceFinder<>), typeof(ManifestSourceContentReferenceFinder<>));
-            services.AddScoped<ISourceContentReferenceFinderFactory, ManifestSourceContentReferenceFinderFactory>();
+            .AddSingleton(typeof(DirectContentItemConverter<,>))
+            // Schedule validators and converters
+            .AddSingleton<IScheduleValidator<IServerSchedule>, ServerScheduleValidator>()
+            .AddSingleton<IScheduleValidator<ICloudSchedule>, CloudScheduleValidator>()
+            .AddSingleton<IScheduleConverter<IServerSchedule, ICloudSchedule>, ServerToCloudScheduleConverter>()
+            .AddSingleton<IExtractRefreshTaskConverter<IServerExtractRefreshTask, ICloudExtractRefreshTask>, ServerToCloudExtractRefreshTaskConverter>()
+            .AddSingleton<ISubscriptionConverter<IServerSubscription, ICloudSubscription>, ServerToCloudSubscriptionConverter>();
 
-            services.AddScoped(typeof(BulkDestinationCache<>));
-            services.AddScoped<BulkDestinationProjectCache>();
-            services.AddScoped(typeof(IDestinationContentReferenceFinder<>), typeof(ManifestDestinationContentReferenceFinder<>));
-            services.AddScoped<IDestinationContentReferenceFinderFactory, ManifestDestinationContentReferenceFinderFactory>();
+        private static IServiceCollection AddCacheServices(this IServiceCollection services) => services
+            //Register concrete types so that the easy way to get interface types is through IMigrationPipeline.
+            .AddScoped(typeof(BulkSourceCache<>))
+            .AddScoped(typeof(BulkDestinationCache<>))
+            .AddScoped<BulkDestinationProjectCache>()
+            .AddScoped<IUserSavedCredentialsCache, UserSavedCredentialsCache>()
+            .AddScoped<IDestinationAuthenticationConfigurationsCache, BulkApiAuthenticationConfigurationsCache>();
 
-            //Pipelines.
-            services.AddScoped<ServerToCloudMigrationPipeline>();
-            services.AddScoped<IMigrationPipelineFactory, MigrationPipelineFactory>();
-            services.AddScoped<IMigrationPipelineRunner, MigrationPipelineRunner>();
+        private static IServiceCollection AddContentFinderServices(this IServiceCollection services) => services
+            .AddScoped(typeof(ISourceContentReferenceFinder<>), typeof(ManifestSourceContentReferenceFinder<>))
+            .AddScoped<ISourceContentReferenceFinderFactory, ManifestSourceContentReferenceFinderFactory>()
+            .AddScoped(typeof(IDestinationContentReferenceFinder<>), typeof(ManifestDestinationContentReferenceFinder<>))
+            .AddScoped<IDestinationContentReferenceFinderFactory, ManifestDestinationContentReferenceFinderFactory>();
 
-            //Migration actions.
-            services.AddScoped<PreflightAction>();
-            services.AddScoped(typeof(MigrateContentAction<>));
+        private static IServiceCollection AddPipelineServices(this IServiceCollection services) => services
+            .AddScoped<ServerToCloudMigrationPipeline>()
+            .AddScoped<IMigrationPipelineFactory, MigrationPipelineFactory>()
+            .AddScoped<IMigrationPipelineRunner, MigrationPipelineRunner>();
 
-            //Top-level interface services.
-            services.AddSingleton<IMigrator, Migrator>();
+        private static IServiceCollection AddMigrationActionServices(this IServiceCollection services) => services
+            .AddScoped<PreflightAction>()
+            .AddScoped(typeof(MigrateContentAction<>));
 
-            //Standard/default hooks.
-            services.AddScoped(typeof(PreviouslyMigratedFilter<>));
-            services.AddScoped<GroupAllUsersFilter>();
-            services.AddScoped<UserSiteRoleSupportUserFilter>();
-            services.AddScoped(typeof(SystemOwnershipFilter<>));
+        private static IServiceCollection AddMigrationCapabilityServices(this IServiceCollection services) => services
+            .AddSingleton<IMigrationCapabilitiesEditor, MigrationCapabilities>()
+            .AddSingleton<IMigrationCapabilities>(p => p.GetRequiredService<IMigrationCapabilitiesEditor>())
+            .AddScoped<IEmbeddedCredentialsCapabilityManager, EmbeddedCredentialsCapabilityManager>()
+            .AddScoped<ISubscriptionsCapabilityManager, SubscriptionsCapabilityManager>();
 
-            services.AddScoped<AuthenticationTypeDomainMapping>();
-            services.AddScoped<TableauCloudUsernameMapping>();
+        private static IServiceCollection AddDefaultPreflightHookServices(this IServiceCollection services) => services
+            .AddScoped<PreflightCheck>()
+            .AddScoped<EmbeddedCredentialsPreflightCheck>();
 
-            services.AddScoped<UserAuthenticationTypeTransformer>();
-            services.AddScoped<UserTableauCloudSiteRoleTransformer>();
-            services.AddScoped<GroupUsersTransformer>();
-            services.AddScoped(typeof(OwnershipTransformer<>));
-            services.AddScoped<TableauServerConnectionUrlTransformer>();
-            services.AddScoped<MappedReferenceExtractRefreshTaskTransformer>();
-            services.AddScoped(typeof(EncryptExtractTransformer<>));
+        private static IServiceCollection AddDefaultFilterServices(this IServiceCollection services) => services
+            .AddScoped(typeof(PreviouslyMigratedFilter<>))
+            .AddScoped<GroupAllUsersFilter>()
+            .AddScoped<UserSiteRoleSupportUserFilter>()
+            .AddScoped(typeof(SystemOwnershipFilter<>));
 
-            services.AddScoped<IPermissionsTransformer, PermissionsTransformer>();
-            services.AddScoped<IMappedUserTransformer, MappedUserTransformer>();
-            services.AddScoped(typeof(WorkbookReferenceTransformer<>));
-            services.AddScoped<CustomViewDefaultUserReferencesTransformer>();
+        private static IServiceCollection AddDefaultMappingServices(this IServiceCollection services) => services
+            .AddScoped<AuthenticationTypeDomainMapping>()
+            .AddScoped<TableauCloudUsernameMapping>();
 
-            services.AddScoped(typeof(OwnerItemPostPublishHook<,>));
-            services.AddScoped(typeof(PermissionsItemPostPublishHook<,>));
-            services.AddScoped(typeof(TagItemPostPublishHook<,>));
-            services.AddScoped<ProjectPostPublishHook>();
-            services.AddScoped(typeof(ChildItemsPermissionsPostPublishHook<,>));
-            services.AddScoped<CustomViewDefaultUsersPostPublishHook>();
+        private static IServiceCollection AddDefaultTransformerServices(this IServiceCollection services) => services
+            .AddScoped<UserAuthenticationTypeTransformer>()
+            .AddScoped<UserTableauCloudSiteRoleTransformer>()
+            .AddScoped<GroupUsersTransformer>()
+            .AddScoped(typeof(OwnershipTransformer<>))
+            .AddScoped<TableauServerConnectionUrlTransformer>()
+            .AddScoped<MappedReferenceExtractRefreshTaskTransformer>()
+            .AddScoped(typeof(EncryptExtractTransformer<>))
+            .AddScoped<IPermissionsTransformer, PermissionsTransformer>()
+            .AddScoped<IMappedUserTransformer, MappedUserTransformer>()
+            .AddScoped(typeof(WorkbookReferenceTransformer<>))
+            .AddScoped<CustomViewDefaultUserReferencesTransformer>()
+            .AddScoped<SubscriptionTransformer>();
 
-            //Migration engine file store.
-            services.AddScoped<MigrationDirectoryContentFileStore>();
-            services.AddScoped(s =>
+        private static IServiceCollection AddDefaultActionCompletedHookServices(this IServiceCollection services) => services
+            .AddScoped<SubscriptionsEnabledActionCompletedHook>();
+
+        private static IServiceCollection AddDefaultPostPublishHookServices(this IServiceCollection services) => services
+            .AddScoped(typeof(OwnerItemPostPublishHook<,>))
+            .AddScoped(typeof(PermissionsItemPostPublishHook<,>))
+            .AddScoped(typeof(TagItemPostPublishHook<,>))
+            .AddScoped<ProjectPostPublishHook>()
+            .AddScoped(typeof(ChildItemsPermissionsPostPublishHook<,>))
+            .AddScoped<CustomViewDefaultUsersPostPublishHook>()
+            .AddScoped(typeof(EmbeddedCredentialsItemPostPublishHook<,>));
+
+        private static IServiceCollection AddFileStoreServices(this IServiceCollection services) => services
+            .AddScoped<MigrationDirectoryContentFileStore>()
+            .AddScoped(s =>
             {
-                /* Since this IContentFileStore factory is registerd after AddMigrationApiClient,
+                /* Since this IContentFileStore factory is registered after AddMigrationApiClient,
                  * the factory might be running in the main migration DI scope
                  * (which should create a single scoped file store for the migration),
                  * or in one of the endpoint API client DI scopes
-                 * (which should mimic AddMigrationApiClient factory's behavior of using the ApiClientInput overriden value).
+                 * (which should mimic AddMigrationApiClient factory's behavior of using the ApiClientInput overridden value).
                  * 
                  * We look at IApiClientInputInitializer.IsInitialized to determine what scope we are in.
                  */
@@ -171,8 +226,5 @@ namespace Tableau.Migration.Engine
 
                 return new EncryptedFileStore(s, s.GetRequiredService<MigrationDirectoryContentFileStore>());
             });
-
-            return services;
-        }
     }
 }

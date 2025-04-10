@@ -72,7 +72,7 @@ namespace Tableau.Migration
         protected static int CompareValues(T x, T y, Func<T, string?> getValue, StringComparison comparison)
             => CompareValues(x, y, getValue, StringComparer.FromComparison(comparison));
 
-        protected static int CompareValues(params Func<int>[] comparisons)
+        protected static int CompareValues(params IEnumerable<Func<int>> comparisons)
         {
             Guard.AgainstNullOrEmpty(comparisons, nameof(comparisons));
 

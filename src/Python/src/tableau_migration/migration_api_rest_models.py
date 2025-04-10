@@ -89,75 +89,78 @@ class PyPermissionsCapabilityModes(StrEnum):
     DENY = "Deny"
     
 class PyPermissionsCapabilityNames(StrEnum):
-    """The Capability names used in the test API."""
+    """Enumeration class for the various capability names used in REST API permissions."""
     
-    """Gets the name of capability name for no capabilities."""
+    """Gets the name of the None capability."""
     NONE = "None"
     
-    """Gets the name of capability name for AddComment."""
+    """Gets the name of the "Add Comment" capability."""
     ADD_COMMENT = "AddComment"
     
-    """Gets the name of capability name for ChangeHierarchy."""
+    """Gets the name of the "Change Hierarchy" capability."""
     CHANGE_HIERARCHY = "ChangeHierarchy"
     
-    """Gets the name of capability name for ChangePermissions."""
+    """Gets the name of the "Change Permissions" capability."""
     CHANGE_PERMISSIONS = "ChangePermissions"
     
-    """Gets the name of capability name for Connect."""
+    """Gets the name of the "Connect" capability."""
     CONNECT = "Connect"
     
-    """Gets the name of capability name for CreateRefreshMetrics."""
+    """Gets the name of the "Create Refresh Metrics" capability."""
     CREATE_REFRESH_METRICS = "CreateRefreshMetrics"
     
-    """Gets the name of capability name for Delete."""
+    """Gets the name of the "Delete" capability."""
     DELETE = "Delete"
     
-    """Gets the name of capability name for Execute."""
+    """Gets the name of the "Execute" capability."""
     EXECUTE = "Execute"
     
-    """Gets the name of capability name for ExportData."""
+    """Gets the name of the "Export Data" capability."""
     EXPORT_DATA = "ExportData"
     
-    """Gets the name of capability name for ExportImage."""
+    """Gets the name of the "Export Image" capability."""
     EXPORT_IMAGE = "ExportImage"
     
-    """Gets the name of capability name for ExportXml."""
+    """Gets the name of the "Export XML" capability."""
     EXPORT_XML = "ExportXml"
     
-    """Gets the name of capability name for Filter."""
+    """Gets the name of the "Extract Refresh" capability."""
+    EXTRACT_REFRESH = "ExtractRefresh"
+    
+    """Gets the name of the "Filter" capability."""
     FILTER = "Filter"
     
-    """Gets the name of capability name for InheritedProjectLeader."""
+    """Gets the name of the "Inherited Project Leader" capability."""
     INHERITED_PROJECT_LEADER = "InheritedProjectLeader"
     
-    """Gets the name of capability name for ProjectLeader."""
+    """Gets the name of the "Project Leader" capability."""
     PROJECT_LEADER = "ProjectLeader"
     
-    """Gets the name of capability name for Read."""
+    """Gets the name of the "Read" capability."""
     READ = "Read"
     
-    """Gets the name of capability name for RunExplainData."""
+    """Gets the name of the "Run Explain Data" capability."""
     RUN_EXPLAIN_DATA = "RunExplainData"
     
-    """Gets the name of capability name for SaveAs."""
+    """Gets the name of the "Save As" capability."""
     SAVE_AS = "SaveAs"
     
-    """Gets the name of capability name for ShareView."""
+    """Gets the name of the "Share View" capability."""
     SHARE_VIEW = "ShareView"
     
-    """Gets the name of capability name for ViewComments."""
+    """Gets the name of the "View Comments" capability."""
     VIEW_COMMENTS = "ViewComments"
     
-    """Gets the name of capability name for ViewUnderlyingData."""
+    """Gets the name of the "View Underlying Data" capability."""
     VIEW_UNDERLYING_DATA = "ViewUnderlyingData"
     
-    """Gets the name of capability name for WebAuthoring."""
+    """Gets the name of the "Web Authoring" capability."""
     WEB_AUTHORING = "WebAuthoring"
     
-    """Gets the name of capability name for WebAuthoringForFlows."""
+    """Gets the name of the "Web Authoring" capability for flows."""
     WEB_AUTHORING_FOR_FLOWS = "WebAuthoringForFlows"
     
-    """Gets the name of capability name for Write."""
+    """Gets the name of the "Write" capability."""
     WRITE = "Write"
     
 class PySiteRoles(StrEnum):

@@ -112,7 +112,7 @@ namespace Tableau.Migration.Api.Rest.Models.Requests
             /// Gets or sets the views to hide or show in the request
             /// </summary>
             [XmlArray("connections")]
-            [XmlArrayItem("connections")]
+            [XmlArrayItem("connection")]
             public ConnectionType[] Connections { get; set; } = Array.Empty<ConnectionType>();
 
             /// <summary>

@@ -1,0 +1,134 @@
+<table>
+    <thead>
+        <tr>
+            <th>Key</th>
+            <th>Description</th>
+            <th>Default</th>
+            <th>Python Environment Variable</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><code>Network.Resilience.RetryEnabled</code></td>
+            <td>Defines whether to retry failed requests.</td>
+            <td><code>true</code></td>
+            <td><code>MigrationSDK__Network__Resilience__RetryEnabled</code></td>
+        </tr>
+        <tr>
+            <td><code>Network.Resilience.RetryIntervals</code></td>
+            <td>Defines the number of retries and interval between retries.</td>
+            <td>
+                [<br/>
+                &nbsp;<code>500</code> ms,<br />
+                &nbsp;<code>500</code> ms,<br />
+                &nbsp;<code>500</code> ms,<br />
+                &nbsp;<code>1</code> s,<br />
+                &nbsp;<code>2</code> s</code><br/>
+                ]
+            </td>
+            <td>Not supported</td>
+        </tr>
+        <tr>
+            <td><code>Network.Resilience.RetryOverrideResponseCodes</code></td>
+            <td>Overrides the default error status codes for retries.</td>
+            <td></td>
+            <td>Not supported</td>
+        </tr>
+        <tr>
+            <td><code>Network.Resilience.ConcurrentRequestsLimitEnabled</code></td>
+            <td>Defines whether to limit concurrent requests.</td>
+            <td><code>false</code></td>
+            <td><code>MigrationSDK__Network__Resilience__ConcurrentRequestsLimitEnabled</code></td>
+        </tr>
+        <tr>
+            <td><code>Network.Resilience.MaxConcurrentRequests</code></td>
+            <td>
+                Defines the maximum quantity of concurrent API requests.<br/> 
+                This is based on the 
+                <a href="https://learn.microsoft.com/en-us/dotnet/api/system.environment.processorcount#remarks">number of logical processors</a>
+                (or <code>processor count</code>).
+            </td>
+            <td>
+                (<code>processor count</code>)/<code>2</code>
+            </td>
+            <td><code>MigrationSDK__Network__Resilience__MaxConcurrentRequests</code></td>
+        </tr>
+        <tr>
+            <td><code>Network.Resilience.ConcurrentWaitingRequestsOnQueue</code></td>
+            <td>Defines the quantity of concurrent API requests waiting on queue. This is also based on <code>processor count</code>.
+            </td>
+            <td>
+                (<code>processor count</code>)/<code>4</code>
+            </td>
+            <td><code>MigrationSDK__Network__Resilience__ConcurrentWaitingRequestsOnQueue</code></td>
+        </tr>
+        <tr>
+            <td><code>Network.Resilience.ClientThrottleEnabled</code></td>
+            <td>Defines whether to limit requests to a given endpoint.</td>
+            <td><code>false</code></td>
+            <td><code>MigrationSDK__Network__Resilience__ClientThrottleEnabled</code></td>
+        </tr>
+        <tr>
+            <td><code>Network.Resilience.MaxReadRequests</code></td>
+            <td>Limits the amount of GET requests for the Client Throttle.</td>
+            <td><code>40000</code></td>
+            <td><code>MigrationSDK__Network__Resilience__MaxReadRequests</code></td>
+        </tr>
+        <tr>
+            <td><code>Network.Resilience.MaxReadRequestsInterval</code></td>
+            <td>Defines the interval for the Read Request Throttle.</td>
+            <td><code>1</code> h</td>
+            <td><code>MigrationSDK__Network__Resilience__MaxReadRequestsInterval</code></td>
+        </tr>
+        <tr>
+            <td><code>Network.Resilience.MaxPublishRequests</code></td>
+            <td>Defines the maximum quantity of non-GET requests on the client side.</td>
+            <td><code>5500</code></td>
+            <td><code>MigrationSDK__Network__Resilience__MaxPublishRequests</code></td>
+        </tr>
+        <tr>
+            <td><code>Network.Resilience.MaxPublishRequestsInterval</code></td>
+            <td>Defines the interval for the limit of non-GET requests on the client side.</td>
+            <td><code>1</code> day</td>
+            <td><code>MigrationSDK__Network__Resilience__MaxPublishRequestsInterval</code></td>
+        </tr>
+        <tr>
+            <td><code>Network.Resilience.ServerThrottleEnabled</code></td>
+            <td>Defines whether to retry requests throttled on the server.</td>
+            <td><code>true</code></td>
+            <td><code>MigrationSDK__Network__Resilience__ServerThrottleEnabled</code></td>
+        </tr>
+        <tr>
+            <td><code>Network.Resilience.ServerThrottleLimitRetries</code></td>
+            <td>Defines whether there is a limit of retries for a throttled request.</td>
+            <td><code>false</code></td>
+            <td><code>MigrationSDK__Network__Resilience__ServerThrottleLimitRetries</code></td>
+        </tr>
+        <tr>
+            <td><code>Network.Resilience.ServerThrottleRetryIntervals</code></td>
+            <td>Defines the interval between each retry for throttled requests without the 'Retry-After' header.</td>
+            <td>
+                [<br/>
+                &nbsp;<code>1</code> s,<br />
+                &nbsp;<code>3</code> s,<br />
+                &nbsp;<code>10</code> s,<br />
+                &nbsp;<code>30</code> s,<br />
+                &nbsp;<code>1</code> m<br/>
+                ]
+            </td>
+            <td>Not supported</td>
+        </tr>
+        <tr>
+            <td><code>Network.Resilience.PerRequestTimeout</code></td>
+            <td>Defines the maximum duration of non-FileTransfer requests.</td>
+            <td><code>30</code> m</td>
+            <td><code>MigrationSDK__Network__Resilience__PerRequestTimeout</code></td>
+        </tr>
+        <tr>
+            <td><code>Network.Resilience.PerFileTransferRequestTimeout</code></td>
+            <td>Defines the maximum duration of FileTransfer requests.</td>
+            <td><code>12</code> h</td>
+            <td><code>MigrationSDK__Network__Resilience__PerFileTransferRequestTimeout</code></td>
+        </tr>
+    </tbody>
+</table>

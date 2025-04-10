@@ -52,14 +52,6 @@ namespace Tableau.Migration
         /// <summary>
         /// Creates a new <see cref="ContentLocation"/> value.
         /// </summary>
-        /// <param name="segments">The location path segments.</param>
-        public ContentLocation(params string[] segments)
-            : this((IEnumerable<string>)segments)
-        { }
-
-        /// <summary>
-        /// Creates a new <see cref="ContentLocation"/> value.
-        /// </summary>
         /// <param name="parent">The parent location to use as a base path.</param>
         /// <param name="name">The item name to use as the last path segment.</param>
         public ContentLocation(ContentLocation parent, string name)
@@ -70,7 +62,15 @@ namespace Tableau.Migration
         /// Creates a new <see cref="ContentLocation"/> value.
         /// </summary>
         /// <param name="segments">The location path segments.</param>
-        public ContentLocation(IEnumerable<string> segments)
+        public ContentLocation(params IEnumerable<string> segments)
+            : this(segments.ToImmutableArray())
+        { }
+
+        /// <summary>
+        /// Creates a new <see cref="ContentLocation"/> value.
+        /// </summary>
+        /// <param name="segments">The location path segments.</param>
+        public ContentLocation(params string[] segments) //Array overload for Python interop.
             : this(segments.ToImmutableArray())
         { }
 
@@ -144,16 +144,7 @@ namespace Tableau.Migration
         /// <typeparam name="TContent">The content type to create the location for.</typeparam>
         /// <param name="pathSegments">The location path segments.</param>
         /// <returns></returns>
-        public static ContentLocation ForContentType<TContent>(params string[] pathSegments)
-            => ForContentType(typeof(TContent), (IEnumerable<string>)pathSegments);
-
-        /// <summary>
-        /// Creates a new <see cref="ContentLocation"/> with the appropriate path separator for the content type.
-        /// </summary>
-        /// <typeparam name="TContent">The content type to create the location for.</typeparam>
-        /// <param name="pathSegments">The location path segments.</param>
-        /// <returns></returns>
-        public static ContentLocation ForContentType<TContent>(IEnumerable<string> pathSegments)
+        public static ContentLocation ForContentType<TContent>(params IEnumerable<string> pathSegments)
             => ForContentType(typeof(TContent), pathSegments);
 
         /// <summary>
@@ -162,16 +153,7 @@ namespace Tableau.Migration
         /// <param name="contentType">The content type to create the location for.</param>
         /// <param name="pathSegments">The location path segments.</param>
         /// <returns></returns>
-        public static ContentLocation ForContentType(Type contentType, params string[] pathSegments)
-            => ForContentType(contentType, (IEnumerable<string>)pathSegments);
-
-        /// <summary>
-        /// Creates a new <see cref="ContentLocation"/> with the appropriate path separator for the content type.
-        /// </summary>
-        /// <param name="contentType">The content type to create the location for.</param>
-        /// <param name="pathSegments">The location path segments.</param>
-        /// <returns></returns>
-        public static ContentLocation ForContentType(Type contentType, IEnumerable<string> pathSegments)
+        public static ContentLocation ForContentType(Type contentType, params IEnumerable<string> pathSegments)
         {
             string pathSeparator;
             switch(contentType)

@@ -224,11 +224,13 @@ namespace Tableau.Migration.Tests.Unit.Engine.Manifest
             public void SetsStatus()
             {
                 var e = new MigrationManifestEntry(MockEntryBuilder.Object, Create<ContentReferenceStub>());
+                string reason = "Test Skip";
 
-                var e2 = e.SetSkipped();
+                var e2 = e.SetSkipped(reason);
 
                 Assert.Same(e, e2);
                 Assert.Equal(MigrationManifestEntryStatus.Skipped, e.Status);
+                Assert.Same(reason, e.SkippedReason);
 
                 MockEntryBuilder.Verify(x => x.StatusUpdated(e, MigrationManifestEntryStatus.Pending), Times.Once);
             }
@@ -490,15 +492,17 @@ namespace Tableau.Migration.Tests.Unit.Engine.Manifest
             [Fact]
             public void ResetsStatus()
             {
+                string reason = "Test Skip";
                 var sourceRef = Create<ContentReferenceStub>();
                 var e = new MigrationManifestEntry(MockEntryBuilder.Object, sourceRef);
 
-                e.SetSkipped();
+                e.SetSkipped(reason);
 
                 var result = e.ResetStatus();
 
                 Assert.Same(e, result);
                 Assert.Equal(MigrationManifestEntryStatus.Pending, e.Status);
+                Assert.Empty(e.SkippedReason);
 
                 MockEntryBuilder.Verify(x => x.StatusUpdated(e, MigrationManifestEntryStatus.Skipped), Times.Once);
             }

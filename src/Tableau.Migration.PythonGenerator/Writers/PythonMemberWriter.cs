@@ -16,7 +16,6 @@
 //
 
 using System;
-using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 
@@ -157,7 +156,7 @@ namespace Tableau.Migration.PythonGenerator.Writers
             var typeConstraints = dotnetType.TypeParameters.First().ConstraintTypes;
             return string.Join(",", typeConstraints.Select(t => t.Name));
         }
-        
+
         protected static string BuildPythongGenericTypeConstraintsString(INamedTypeSymbol dotnetType)
         {
             var typeConstraints = dotnetType.TypeParameters.First().ConstraintTypes;

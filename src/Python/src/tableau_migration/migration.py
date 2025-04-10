@@ -21,7 +21,6 @@ import inspect
 import sys
 
 from typing import Type, TypeVar, List
-from typing_extensions import Self
 from uuid import UUID
 
 # region Generic Wrapper Helpers
@@ -142,69 +141,6 @@ def _get_new_python_logger_delegate(name: str) -> MigrationLogger:
 
 # endregion
 
-# region objects
-
-class PyMigrationManifest():
-    """Interface for an object that describes the various Tableau data items found to migrate and their migration results."""
-
-    _dotnet_base = IMigrationManifestEditor
-
-    def __init__(self, migration_manifest: IMigrationManifestEditor) -> None:
-        """Default init.
-
-        Args:
-            migration_manifest: IMigrationManifest that can be edited
-            
-        Returns: None.
-        """
-        self._migration_manifest = migration_manifest
-
-    @property
-    def plan_id(self) -> UUID:
-        """Gets the unique identifier of the IMigrationPlan that was executed to produce this manifest."""
-        return UUID(self._migration_manifest.PlanId.ToString())
-
-    @property
-    def migration_id(self) -> UUID:
-        """Gets the unique identifier of the migration run that produced this manifest."""
-        return UUID(self._migration_manifest.MigrationId.ToString())
-
-    @property
-    def manifest_version(self) -> int:
-        """Gets the version of this manifest. Used for serialization."""
-        return self._migration_manifest.ManifestVersion
-
-    @property
-    def errors(self):
-        """Gets top-level errors that are not related to any Tableau content item but occurred during the migration."""
-        return self._migration_manifest.Errors
-
-    @property
-    def entries(self):
-        """Gets the collection of manifest entries."""
-        return self._migration_manifest.Entries
-
-    def add_errors(self, errors) -> Self:
-        """Adds top-level errors that are not related to any Tableau content item.
-
-        Args:
-            errors: The errors to add. Either a List[System.Exception] or System.Exception
-
-        Returns: This manifest editor, for fluent API usage.
-        """
-        # If a list is passed in, marshal it to a dotnet list and pass it on
-        if(isinstance(errors, List)):
-            marshalled_error = System.Collections.Generic.List[System.Exception]()
-            [marshalled_error.Add(error) for error in errors]
-            self._migration_manifest.AddErrors(marshalled_error)
-            return
-
-        # If something else is passed in, let dotnet handle it. 
-        # It's either valid and it works
-        # or an exception will be thrown
-        self._migration_manifest.AddErrors(errors)
-
-# endregion
         
 # region _generated
 
@@ -359,6 +295,21 @@ class PyMigrationCompletionStatus(IntEnum):
     """The migration had a fatal error that interrupted completion."""
     FATAL_ERROR = 2
     
+class PyPipelineProfile(IntEnum):
+    """Enumeration of the various supported migration pipeline profiles."""
+    
+    """A custom pipeline supplied by the migration plan is used."""
+    CUSTOM = 1
+    
+    """The pipeline to bulk migrate content from a Tableau Server site to a Tableau Cloud site."""
+    SERVER_TO_CLOUD = 2
+    
+    """The pipeline to bulk migrate content from a Tableau Server site to a Tableau Server site."""
+    SERVER_TO_SERVER = 3
+    
+    """The pipeline to bulk migrate content from a Tableau Cloud site to a Tableau Cloud site."""
+    CLOUD_TO_CLOUD = 4
+    
 class PyResult():
     """Interface representing the result of an operation."""
     
@@ -386,6 +337,71 @@ class PyResult():
     
 
 # endregion
+
+class PyMigrationManifest():
+    """Interface for an object that describes the various Tableau data items found to migrate and their migration results."""
+
+    _dotnet_base = IMigrationManifestEditor
+
+    def __init__(self, migration_manifest: IMigrationManifestEditor) -> None:
+        """Default init.
+
+        Args:
+            migration_manifest: IMigrationManifest that can be edited
+            
+        Returns: None.
+        """
+        self._migration_manifest = migration_manifest
+
+    @property
+    def plan_id(self) -> UUID:
+        """Gets the unique identifier of the IMigrationPlan that was executed to produce this manifest."""
+        return UUID(self._migration_manifest.PlanId.ToString())
+
+    @property
+    def migration_id(self) -> UUID:
+        """Gets the unique identifier of the migration run that produced this manifest."""
+        return UUID(self._migration_manifest.MigrationId.ToString())
+
+    @property
+    def manifest_version(self) -> int:
+        """Gets the version of this manifest. Used for serialization."""
+        return self._migration_manifest.ManifestVersion
+
+    @property 
+    def pipeline_profile(self) -> PyPipelineProfile:
+        """Gets the profile of the migration pipeline that produced this manifest."""
+        return self._migration_manifest.PipelineProfile
+
+    @property
+    def errors(self):
+        """Gets top-level errors that are not related to any Tableau content item but occurred during the migration."""
+        return self._migration_manifest.Errors
+
+    @property
+    def entries(self):
+        """Gets the collection of manifest entries."""
+        return self._migration_manifest.Entries
+
+    def add_errors(self, errors) -> Self:
+        """Adds top-level errors that are not related to any Tableau content item.
+
+        Args:
+            errors: The errors to add. Either a List[System.Exception] or System.Exception
+
+        Returns: This manifest editor, for fluent API usage.
+        """
+        # If a list is passed in, marshal it to a dotnet list and pass it on
+        if(isinstance(errors, List)):
+            marshalled_error = System.Collections.Generic.List[System.Exception]()
+            [marshalled_error.Add(error) for error in errors]
+            self._migration_manifest.AddErrors(marshalled_error)
+            return
+
+        # If something else is passed in, let dotnet handle it. 
+        # It's either valid and it works
+        # or an exception will be thrown
+        self._migration_manifest.AddErrors(errors)
 
 class PyMigrationResult():
     """Interface for a result of a migration."""

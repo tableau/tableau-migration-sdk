@@ -16,6 +16,7 @@
 //
 
 using System;
+using System.Collections.Generic;
 
 namespace Tableau.Migration.Engine.Hooks
 {
@@ -34,6 +35,6 @@ namespace Tableau.Migration.Engine.Hooks
         /// </summary>
         /// <param name="errors">The errors that caused the failure.</param>
         /// <returns>The new <see cref="IInitializeMigrationHookResult"/> object.</returns>
-        IInitializeMigrationHookResult ToFailure(params Exception[] errors);
+        IInitializeMigrationHookResult ToFailure(params IEnumerable<Exception> errors);
     }
 }

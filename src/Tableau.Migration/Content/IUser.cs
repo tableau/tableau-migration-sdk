@@ -43,7 +43,18 @@ namespace Tableau.Migration.Content
         /// Gets or sets the authentication type of the user, 
         /// or null to not send an explicit authentication type for the user during migration.
         /// </summary>
-        string? AuthenticationType { get; set; }
+        public string? AuthenticationType
+        {
+            get => Authentication.AuthenticationType;
+            set => Authentication =
+                string.IsNullOrEmpty(value) ? new(null, Authentication.IdpConfigurationId) : UserAuthenticationType.ForAuthenticationType(value);
+        }
+
+        /// <summary>
+        /// Gets or sets the authentication type of the user.
+        /// Use <see cref="UserAuthenticationType.Default"/> to use either the default authentication type of the site.
+        /// </summary>
+        UserAuthenticationType Authentication { get; set; }
 
         /// <summary>
         /// Gets the user's administrator level derived from <see cref="SiteRole"/>.

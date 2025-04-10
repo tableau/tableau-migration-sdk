@@ -35,7 +35,7 @@ namespace Tableau.Migration
         /// <param name="success">True if the operation is successful, false otherwise.</param>
         /// <param name="value">The result of the operation.</param>
         /// <param name="errors">The errors encountered during the operation, if any.</param>
-        private AsyncDisposableResult(bool success, T? value, params Exception[] errors)
+        private AsyncDisposableResult(bool success, T? value, params IEnumerable<Exception> errors)
             : base(success, value, errors)
         { }
 

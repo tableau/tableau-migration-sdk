@@ -16,6 +16,8 @@
 //
 
 using System;
+using Tableau.Migration.Api.Models;
+using Tableau.Migration.Api.Rest.Models;
 using Tableau.Migration.Api.Rest.Models.Responses;
 
 namespace Tableau.Migration.Content
@@ -32,7 +34,7 @@ namespace Tableau.Migration.Content
         public string SiteRole { get; set; }
 
         /// <inheritdoc/>
-        public string? AuthenticationType { get; set; }
+        public UserAuthenticationType Authentication { get; set; }
 
         public User(UsersResponse.UserType response)
             : this(
@@ -42,25 +44,29 @@ namespace Tableau.Migration.Content
                   response.Name,
                   response.FullName,
                   response.SiteRole,
-                  response.AuthSetting)
-        {
-        }
+                  response.GetAuthenticationType()
+                )
+        { }
 
-        public User(
+        public User(Guid id, IUpdateUserResult result)
+            : this(id, null, result.Email, result.Name, result.FullName, result.SiteRole, result.Authentication)
+        { }
+
+        private User(
             Guid id,
             string? userDomain,
             string? email,
             string? name,
             string? fullName,
             string? siteRole,
-            string? authSetting)
+            UserAuthenticationType authentication)
         {
             Id = Guard.AgainstDefaultValue(id, () => id);
             Email = email ?? string.Empty;
             Name = Guard.AgainstNullEmptyOrWhiteSpace(name, () => name);
             FullName = fullName ?? string.Empty;
             SiteRole = Guard.AgainstNullEmptyOrWhiteSpace(siteRole, () => siteRole);
-            AuthenticationType = authSetting;
+            Authentication = authentication;
             Domain = userDomain ?? string.Empty;
         }
     }

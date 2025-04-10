@@ -28,6 +28,7 @@ using Tableau.Migration.Engine;
 using Tableau.Migration.Engine.Hooks;
 using Tableau.Migration.Engine.Hooks.Transformers;
 using Tableau.Migration.Engine.Hooks.Transformers.Default;
+using Tableau.Migration.Resources;
 using Xunit;
 
 namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
@@ -56,7 +57,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
             mockPlan.SetupGet(x => x.Transformers).Returns(mockTransformers.Object);
             _plan = mockPlan.Object;
             Assert.NotNull(_plan.Transformers);
-            _runner = new(_plan, new Mock<IServiceProvider>().Object);
+            _runner = new(_plan, new Mock<IServiceProvider>().Object, new Mock<ISharedResourcesLocalizer>().Object, new Mock<ILogger<ContentTransformerRunner>>().Object);
         }
 
         [Theory]

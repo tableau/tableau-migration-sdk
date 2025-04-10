@@ -1,4 +1,4 @@
-﻿//
+//
 //  Copyright (c) 2025, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
@@ -16,6 +16,7 @@
 //
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -24,7 +25,9 @@ using System.Threading.Tasks;
 using AutoFixture;
 using Moq;
 using Tableau.Migration.Api;
+using Tableau.Migration.Api.Models;
 using Tableau.Migration.Api.Rest.Models;
+using Tableau.Migration.Api.Rest.Models.Requests;
 using Tableau.Migration.Api.Rest.Models.Responses;
 using Tableau.Migration.Api.Rest.Models.Types;
 using Tableau.Migration.Content;
@@ -44,20 +47,27 @@ namespace Tableau.Migration.Tests.Unit.Api
 
         #region - List -
 
-        public class ListClient : PagedListApiClientTestBase<IUsersApiClient, IUser, UsersResponse>
+        public sealed class ListClient : PagedListApiClientTestBase<IUsersApiClient, IUser, UsersResponse>
         { }
 
-        public class PageAccessor : ApiPageAccessorTestBase<IUsersApiClient, IUser, UsersResponse>
+        public sealed class PageAccessor : ApiPageAccessorTestBase<IUsersApiClient, IUser, UsersResponse>
         { }
 
         #endregion
 
-        public class ImportUsersAsync : UsersApiClientTest
+        #region - ImportUsersAsync -
+
+        public sealed class ImportUsersAsync : UsersApiClientTest
         {
             [Fact]
             public async Task MultipleAuthTypes()
             {
                 var users = AutoFixture.CreateMany<IUser>();
+                foreach(var u in users)
+                {
+                    u.Authentication = UserAuthenticationType.ForConfigurationId(Guid.NewGuid());
+                }
+
                 using var dataStream = Migration.Api.UsersApiClient.GenerateUserCsvStream(users);
                 var userData = await new StreamContent(dataStream).ReadAsStringAsync(Cancel);
                 dataStream.Seek(0, SeekOrigin.Begin);
@@ -89,7 +99,7 @@ namespace Tableau.Migration.Tests.Unit.Api
                 Assert.Equal("request_payload", requestUserContent.Headers.ContentDisposition?.Name);
 
                 var userPayload = await requestUserContent.ReadAsStringAsync();
-                var expectedPayload = $"<tsRequest>{string.Join("", users.Select(u => $@"<user name=""{u.Name}"" authSetting=""{u.AuthenticationType}"" />"))}</tsRequest>";
+                var expectedPayload = $"<tsRequest>{string.Join("", users.Select(u => $@"<user name=""{u.Name}"" idpConfigurationId=""{u.Authentication.IdpConfigurationId}"" />"))}</tsRequest>";
                 Assert.Equal(expectedPayload, userPayload);
 
                 request.AssertSingleHeaderValue("Accept", MediaTypes.Xml.MediaType!);
@@ -101,7 +111,7 @@ namespace Tableau.Migration.Tests.Unit.Api
                 var users = AutoFixture.CreateMany<IUser>();
                 foreach (var user in users)
                 {
-                    user.AuthenticationType = AuthenticationTypes.ServerDefault;
+                    user.Authentication = UserAuthenticationType.ForAuthenticationType(AuthenticationTypes.ServerDefault);
                 }
 
                 using var dataStream = Migration.Api.UsersApiClient.GenerateUserCsvStream(users);
@@ -146,7 +156,7 @@ namespace Tableau.Migration.Tests.Unit.Api
                 var users = AutoFixture.CreateMany<IUser>();
                 foreach (var user in users)
                 {
-                    user.AuthenticationType = string.Empty;
+                    user.Authentication = UserAuthenticationType.Default;
                 }
 
                 using var dataStream = Migration.Api.UsersApiClient.GenerateUserCsvStream(users);
@@ -207,33 +217,38 @@ namespace Tableau.Migration.Tests.Unit.Api
 
                 request.AssertRelativeUri($"/api/{TableauServerVersion.RestApiVersion}/sites/{SiteId}/users/import");
             }
-
         }
 
-        public class AddUserAsync : UsersApiClientTest
+        #endregion
+
+        #region - AddUserAsync -
+
+        public sealed class AddUserAsync : UsersApiClientTest
         {
             [Fact]
             public async Task Success()
             {
                 //Setup
                 var addResponse = AutoFixture.CreateResponse<AddUserResponse>();
+                addResponse.Item!.IdpConfigurationId = Guid.NewGuid().ToString();
 
-                var expectedUserId = addResponse?.Item?.Id;
-                Assert.NotNull(expectedUserId);
+                var expectedUserId = addResponse.Item.Id;
 
-                var expectedUserName = addResponse?.Item?.Name;
+                var expectedUserName = addResponse.Item.Name;
                 Assert.NotNull(expectedUserName);
 
-                var expectedSiteRole = addResponse?.Item?.SiteRole;
+                var expectedSiteRole = addResponse.Item.SiteRole;
                 Assert.NotNull(expectedSiteRole);
 
-                var expectedAuthSetting = addResponse?.Item?.AuthSetting;
+                var expectedAuthSetting = addResponse.Item.AuthSetting;
                 Assert.NotNull(expectedAuthSetting);
+
+                addResponse.Item.IdpConfigurationId = null;
 
                 MockHttpClient.SetupResponse(new MockHttpResponseMessage<AddUserResponse>(addResponse));
 
                 //Act
-                var result = await UsersApiClient.AddUserAsync(expectedUserName, expectedSiteRole, expectedAuthSetting, Cancel);
+                var result = await UsersApiClient.AddUserAsync(expectedUserName, expectedSiteRole, UserAuthenticationType.ForAuthenticationType(expectedAuthSetting), Cancel);
 
                 //Test
                 Assert.True(result.Success);
@@ -243,7 +258,8 @@ namespace Tableau.Migration.Tests.Unit.Api
                 Assert.Equal(expectedUserId, addUserResult.Id);
                 Assert.Equal(expectedUserName, addUserResult.Name);
                 Assert.Equal(expectedSiteRole, addUserResult.SiteRole);
-                Assert.Equal(expectedAuthSetting, addUserResult.AuthSetting);
+                Assert.Equal(expectedAuthSetting, addUserResult.Authentication.AuthenticationType);
+                Assert.Null(addUserResult.Authentication.IdpConfigurationId);
             }
 
             [Fact]
@@ -253,7 +269,7 @@ namespace Tableau.Migration.Tests.Unit.Api
                 MockHttpClient.SetupResponse(new MockHttpResponseMessage<AddUserResponse>(HttpStatusCode.InternalServerError, null));
 
                 //Act
-                var result = await UsersApiClient.AddUserAsync("testUser", "testSiteRole", null, Cancel);
+                var result = await UsersApiClient.AddUserAsync("testUser", "testSiteRole", UserAuthenticationType.Default, Cancel);
 
                 //Test
                 Assert.False(result.Success);
@@ -291,7 +307,7 @@ namespace Tableau.Migration.Tests.Unit.Api
                 MockHttpClient.SetupResponse(getAllUsersResponse);
 
                 // Act
-                var result = await UsersApiClient.AddUserAsync(existingUser.Name!, existingUser.SiteRole!, existingUser.AuthSetting, Cancel);
+                var result = await UsersApiClient.AddUserAsync(existingUser.Name!, existingUser.SiteRole!, UserAuthenticationType.ForAuthenticationType(existingUser.AuthSetting!), Cancel);
 
                 // Test
                 Assert.True(result.Success);
@@ -301,12 +317,16 @@ namespace Tableau.Migration.Tests.Unit.Api
                 Assert.Equal(existingUser.Id, addUserResult.Id);
                 Assert.Equal(existingUser.Name, addUserResult.Name);
                 Assert.Equal(existingUser.SiteRole, addUserResult.SiteRole);
-                Assert.Equal(existingUser.AuthSetting, addUserResult.AuthSetting);
+                Assert.Equal(existingUser.AuthSetting, addUserResult.Authentication.AuthenticationType);
+                Assert.Null(addUserResult.Authentication.IdpConfigurationId);
             }
-
         }
 
-        public class UpdateUserAsync : UsersApiClientTest
+        #endregion
+
+        #region - UpdateUserAsync -
+
+        public sealed class UpdateUserAsync : UsersApiClientTest
         {
             [Fact]
             public async Task Success_With_Required_Params()
@@ -343,7 +363,7 @@ namespace Tableau.Migration.Tests.Unit.Api
                 Assert.Equal(expectedFullName, addUserResult.FullName);
                 Assert.Equal(expectedEmail, addUserResult.Email);
                 Assert.Equal(expectedSiteRole, addUserResult.SiteRole);
-                Assert.Equal(expectedAuthSetting, addUserResult.AuthSetting);
+                Assert.Equal(expectedAuthSetting, addUserResult.Authentication.AuthenticationType);
             }
 
             [Fact]
@@ -376,7 +396,7 @@ namespace Tableau.Migration.Tests.Unit.Api
                                                                   newfullName: expectedFullName,
                                                                   newEmail: expectedEmail,
                                                                   newPassword: "Old-McD0nald-H@d-a-F@rm",
-                                                                  newAuthSetting: expectedAuthSetting);
+                                                                  newAuthentication: UserAuthenticationType.ForAuthenticationType(expectedAuthSetting));
 
                 //Test
                 Assert.True(result.Success);
@@ -387,7 +407,7 @@ namespace Tableau.Migration.Tests.Unit.Api
                 Assert.Equal(expectedFullName, addUserResult.FullName);
                 Assert.Equal(expectedEmail, addUserResult.Email);
                 Assert.Equal(expectedSiteRole, addUserResult.SiteRole);
-                Assert.Equal(expectedAuthSetting, addUserResult.AuthSetting);
+                Assert.Equal(expectedAuthSetting, addUserResult.Authentication.AuthenticationType);
             }
             [Fact]
             public async Task Failure()
@@ -402,7 +422,7 @@ namespace Tableau.Migration.Tests.Unit.Api
                                                                   newfullName: "Jack Sparrow",
                                                                   newEmail: "jsparrow@example.com",
                                                                   newPassword: "Why-Is-Th3-Rum-Gone?",
-                                                                  newAuthSetting: "local");
+                                                                  newAuthentication: UserAuthenticationType.ForAuthenticationType("local"));
 
                 //Test
                 Assert.False(result.Success);
@@ -412,7 +432,11 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
         }
 
-        public class DeleteUserAsync : UsersApiClientTest
+        #endregion
+
+        #region - DeleteUserAsync -
+
+        public sealed class DeleteUserAsync : UsersApiClientTest
         {
             [Fact]
             public async Task Success()
@@ -457,5 +481,209 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
         }
 
+        #endregion
+
+        #region - RetrieveUserSavedCredentialsAsync -
+
+        public sealed class RetrieveUserSavedCredentialsAsync : UsersApiClientTest
+        {
+            [Fact]
+            public async Task Returns_success()
+            {
+                var userId = Create<Guid>();
+                var options = Create<IDestinationSiteInfo>();
+                var response = AutoFixture.CreateResponse<RetrieveKeychainResponse>();
+
+                var mockResponse = new MockHttpResponseMessage<RetrieveKeychainResponse>(response);
+
+                MockHttpClient.SetupResponse(mockResponse);
+
+                var result = await ApiClient.RetrieveUserSavedCredentialsAsync(userId, options, Cancel);
+
+                Assert.True(result.Success);
+
+                var request = MockHttpClient.AssertSingleRequest();
+
+                request.AssertRelativeUri($"/api/{TableauServerVersion.RestApiVersion}/sites/{SiteId}/users/{userId}/retrieveSavedCreds");
+
+                var requestContent = Assert.IsType<StringContent>(request.Content);
+
+                var requestModel = await HttpContentSerializer.Instance.DeserializeAsync<RetrieveUserSavedCredentialsRequest>(requestContent, Cancel);
+
+                Assert.NotNull(requestModel);
+                Assert.Equal(options.ContentUrl, requestModel.DestinationSiteUrlNamespace);
+                Assert.Equal(options.SiteUrl, requestModel.DestinationServerUrl);
+                Assert.Equal(options.SiteId, requestModel.DestinationSiteLuid);
+            }
+
+            [Fact]
+            public async Task Returns_failure()
+            {
+                var userId = Create<Guid>();
+                var exception = new Exception();
+
+                var mockResponse = new MockHttpResponseMessage<RetrieveKeychainResponse>(HttpStatusCode.InternalServerError, null);
+                mockResponse.Setup(r => r.EnsureSuccessStatusCode()).Throws(exception);
+
+                MockHttpClient.SetupResponse(mockResponse);
+
+                var result = await ApiClient.RetrieveUserSavedCredentialsAsync(userId, Create<IDestinationSiteInfo>(), Cancel);
+
+                Assert.False(result.Success);
+
+                var error = Assert.Single(result.Errors);
+
+                Assert.Same(exception, error);
+
+                var request = MockHttpClient.AssertSingleRequest();
+
+                request.AssertRelativeUri($"/api/{TableauServerVersion.RestApiVersion}/sites/{SiteId}/users/{userId}/retrieveSavedCreds");
+            }
+        }
+
+        #endregion
+
+        #region - UploadUserSavedCredentialsAsync -
+
+        public sealed class UploadUserSavedCredentialsAsync : UsersApiClientTest
+        {
+            [Fact]
+            public async Task ErrorAsync()
+            {
+                var exception = new Exception();
+
+                var mockResponse = new MockHttpResponseMessage(HttpStatusCode.InternalServerError);
+                mockResponse.Setup(r => r.EnsureSuccessStatusCode()).Throws(exception);
+                MockHttpClient.SetupResponse(mockResponse);
+
+                var userId = Create<Guid>();
+                var encryptedKeychains = Create<IEnumerable<string>>();
+
+                var result = await ApiClient.UploadUserSavedCredentialsAsync(userId, encryptedKeychains, Cancel);
+
+                result.AssertFailure();
+
+                var resultError = Assert.Single(result.Errors);
+                Assert.Same(exception, resultError);
+
+                var request = MockHttpClient.AssertSingleRequest();
+                request.AssertRelativeUri($"/api/{TableauServerVersion.RestApiVersion}/sites/{SiteId}/users/{userId}/uploadSavedCreds");
+            }
+
+            [Fact]
+            public async Task SuccessAsync()
+            {
+                var mockResponse = new MockHttpResponseMessage(HttpStatusCode.OK);
+                MockHttpClient.SetupResponse(mockResponse);
+
+                var userId = Create<Guid>();
+                var encryptedKeychains = Create<IEnumerable<string>>();
+
+                var result = await ApiClient.UploadUserSavedCredentialsAsync(userId, encryptedKeychains, Cancel);
+
+                result.AssertSuccess();
+
+                var request = MockHttpClient.AssertSingleRequest();
+                request.AssertRelativeUri($"/api/{TableauServerVersion.RestApiVersion}/sites/{SiteId}/users/{userId}/uploadSavedCreds");
+            }
+        }
+
+        #endregion
+
+        #region - PublishAsync -
+
+        public sealed class PublishAsync : UsersApiClientTest
+        {
+            [Fact]
+            public async Task AddsAndUpdatesServerAsync()
+            {
+                InstanceType = TableauInstanceType.Server;
+
+                var user = Create<IUser>();
+
+                var addUserResponse = AutoFixture.CreateResponse<AddUserResponse>();
+                var updateUserResponse = AutoFixture.CreateResponse<UpdateUserResponse>();
+
+                MockHttpClient.SetupResponse(new MockHttpResponseMessage<AddUserResponse>(HttpStatusCode.Created, addUserResponse));
+                MockHttpClient.SetupResponse(new MockHttpResponseMessage<UpdateUserResponse>(updateUserResponse));
+
+                var result = await ApiClient.PublishAsync(user, Cancel);
+
+                result.AssertSuccess();
+
+                Assert.Equal(addUserResponse.Item!.Id, result.Value!.Id);
+            }
+
+            [Fact]
+            public async Task AddsAndUpdatesCloudAsync()
+            {
+                InstanceType = TableauInstanceType.Cloud;
+
+                var user = Create<IUser>();
+
+                var addUserResponse = AutoFixture.CreateResponse<AddUserResponse>();
+                var updateUserResponse = AutoFixture.CreateResponse<UpdateUserResponse>();
+
+                MockHttpClient.SetupResponse(new MockHttpResponseMessage<AddUserResponse>(HttpStatusCode.Created, addUserResponse));
+                MockHttpClient.SetupResponse(new MockHttpResponseMessage<UpdateUserResponse>(updateUserResponse));
+
+                var result = await ApiClient.PublishAsync(user, Cancel);
+
+                result.AssertSuccess();
+
+                Assert.Equal(addUserResponse.Item!.Id, result.Value!.Id);
+            }
+
+            [Fact]
+            public async Task InsufficientLicensesAsync()
+            {
+                var user = Create<IUser>();
+
+                var addUserResponse = AutoFixture.CreateResponse<AddUserResponse>();
+                var updateUserResponse = AutoFixture.CreateResponse<UpdateUserResponse>();
+                updateUserResponse.Item!.SiteRole = SiteRoles.Unlicensed;
+
+                MockHttpClient.SetupResponse(new MockHttpResponseMessage<AddUserResponse>(HttpStatusCode.Created, addUserResponse));
+                MockHttpClient.SetupResponse(new MockHttpResponseMessage<UpdateUserResponse>(updateUserResponse));
+
+                var result = await ApiClient.PublishAsync(user, Cancel);
+
+                result.AssertFailure();
+            }
+
+            [Fact]
+            public async Task AddFailsAsync()
+            {
+                var user = Create<IUser>();
+
+                var addUserResponse = AutoFixture.CreateErrorResponse<AddUserResponse>();
+                var updateUserResponse = AutoFixture.CreateResponse<UpdateUserResponse>();
+
+                MockHttpClient.SetupResponse(new MockHttpResponseMessage<AddUserResponse>(addUserResponse));
+                MockHttpClient.SetupResponse(new MockHttpResponseMessage<UpdateUserResponse>(updateUserResponse));
+
+                var result = await ApiClient.PublishAsync(user, Cancel);
+
+                result.AssertFailure();
+            }
+
+            [Fact]
+            public async Task UpdateFailsAsync()
+            {
+                var user = Create<IUser>();
+
+                var addUserResponse = AutoFixture.CreateResponse<AddUserResponse>();
+                var updateUserResponse = AutoFixture.CreateErrorResponse<UpdateUserResponse>();
+
+                MockHttpClient.SetupResponse(new MockHttpResponseMessage<AddUserResponse>(addUserResponse));
+                MockHttpClient.SetupResponse(new MockHttpResponseMessage<UpdateUserResponse>(updateUserResponse));
+
+                var result = await ApiClient.PublishAsync(user, Cancel);
+
+                result.AssertFailure();
+            }
+        }
+
+        #endregion
     }
 }

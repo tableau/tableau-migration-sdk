@@ -31,11 +31,12 @@ namespace Tableau.Migration.Tests.Unit.Api
 {
     public class IContentReferenceFinderFactoryExtensionsTests
     {
-        private class WithProjectType : IWithProjectType, INamedContent, IRestIdentifiable
+        private class WithProjectNamedReferenceType : IWithProjectNamedReferenceType, INamedContent, IRestIdentifiable
         {
             public virtual Guid Id { get; set; }
             public virtual string? Name { get; set; }
-            public virtual IProjectReferenceType? Project { get; set; }
+            public virtual IProjectNamedReferenceType? Project { get; set; }
+            IProjectReferenceType? IWithProjectReferenceType.Project => Project;
         }
 
         private class WithUserType : INamedContent, IRestIdentifiable
@@ -51,11 +52,11 @@ namespace Tableau.Migration.Tests.Unit.Api
             public virtual IRestIdentifiable? Owner { get; set; }
         }
 
-        private class WithWorkbookReferenceType : IWithWorkbookReferenceType, INamedContent, IRestIdentifiable
+        private class WithWorkbookNamedReferenceType : IWithWorkbookReferenceType, INamedContent, IRestIdentifiable
         {
             public virtual Guid Id { get; set; }
             public virtual string? Name { get; set; }
-            public virtual IRestIdentifiable? Workbook { get; set; }
+            public virtual IWorkbookReferenceType? Workbook { get; set; }
         }
 
         public abstract class IContentReferenceFinderFactoryExtensionsTest : AutoFixtureTestBase
@@ -83,7 +84,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             public async Task Throws_when_response_is_null()
             {
                 await Assert.ThrowsAsync<ArgumentNullException>(() =>
-                    MockFinderFactory.Object.FindProjectAsync<WithProjectType>(
+                    MockFinderFactory.Object.FindProjectAsync<WithProjectNamedReferenceType>(
                         null,
                         MockLogger.Object,
                         SharedResourcesLocalizer,
@@ -96,7 +97,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             {
                 await Assert.ThrowsAsync<ArgumentNullException>(() =>
                     MockFinderFactory.Object.FindProjectAsync(
-                        new WithProjectType(),
+                        new WithProjectNamedReferenceType(),
                         MockLogger.Object,
                         SharedResourcesLocalizer,
                         true,
@@ -106,10 +107,10 @@ namespace Tableau.Migration.Tests.Unit.Api
             [Fact]
             public async Task Throws_when_response_project_id_is_default()
             {
-                var mockProjectReference = new Mock<IProjectReferenceType>();
+                var mockProjectReference = new Mock<IProjectNamedReferenceType>();
                 mockProjectReference.SetupGet(p => p.Id).Returns(Guid.Empty);
 
-                var response = new WithProjectType { Project =  mockProjectReference.Object };
+                var response = new WithProjectNamedReferenceType { Project = mockProjectReference.Object };
 
                 await Assert.ThrowsAsync<ArgumentException>(() =>
                     MockFinderFactory.Object.FindProjectAsync(
@@ -126,12 +127,12 @@ namespace Tableau.Migration.Tests.Unit.Api
                 var mockContentReference = new Mock<IContentReference>();
                 mockContentReference.SetupGet(p => p.Id).Returns(Guid.NewGuid());
 
-                var mockProjectReference = new Mock<IProjectReferenceType>();
+                var mockProjectReference = new Mock<IProjectNamedReferenceType>();
                 mockProjectReference.SetupGet(p => p.Id).Returns(mockContentReference.Object.Id);
 
                 MockProjectFinder.Setup(f => f.FindByIdAsync(mockContentReference.Object.Id, Cancel)).ReturnsAsync(mockContentReference.Object);
 
-                var response = new WithProjectType { Project = mockProjectReference.Object };
+                var response = new WithProjectNamedReferenceType { Project = mockProjectReference.Object };
 
                 var result = await MockFinderFactory.Object.FindProjectAsync(
                     response,
@@ -146,7 +147,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             [Fact]
             public async Task Returns_null_when_not_found_and_throw_is_false()
             {
-                var response = new WithProjectType { Project = Create<Mock<IProjectReferenceType>>().Object };
+                var response = new WithProjectNamedReferenceType { Project = Create<Mock<IProjectNamedReferenceType>>().Object };
 
                 var result = await MockFinderFactory.Object.FindProjectAsync(
                     response,
@@ -161,7 +162,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             [Fact]
             public async Task Throws_when_not_found_and_throw_is_true()
             {
-                var response = new WithProjectType { Project = Create<Mock<IProjectReferenceType>>().Object };
+                var response = new WithProjectNamedReferenceType { Project = Create<Mock<IProjectNamedReferenceType>>().Object };
 
                 await Assert.ThrowsAsync<InvalidOperationException>(() => MockFinderFactory.Object.FindProjectAsync(
                     response,
@@ -348,7 +349,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             public async Task Throws_when_response_is_null()
             {
                 await Assert.ThrowsAsync<ArgumentNullException>(() =>
-                    MockFinderFactory.Object.FindWorkbookAsync<WithWorkbookReferenceType>(
+                    MockFinderFactory.Object.FindWorkbookAsync<WithWorkbookNamedReferenceType>(
                         null,
                         MockLogger.Object,
                         SharedResourcesLocalizer,
@@ -361,7 +362,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             {
                 await Assert.ThrowsAsync<ArgumentNullException>(() =>
                     MockFinderFactory.Object.FindWorkbookAsync(
-                        new WithWorkbookReferenceType(),
+                        new WithWorkbookNamedReferenceType(),
                         MockLogger.Object,
                         SharedResourcesLocalizer,
                         true,
@@ -371,10 +372,10 @@ namespace Tableau.Migration.Tests.Unit.Api
             [Fact]
             public async Task Throws_when_response_workbook_id_is_default()
             {
-                var mockWorkbookReference = new Mock<IRestIdentifiable>();
+                var mockWorkbookReference = new Mock<IWorkbookReferenceType>();
                 mockWorkbookReference.SetupGet(o => o.Id).Returns(Guid.Empty);
 
-                var response = new WithWorkbookReferenceType { Workbook = mockWorkbookReference.Object };
+                var response = new WithWorkbookNamedReferenceType { Workbook = mockWorkbookReference.Object };
 
                 await Assert.ThrowsAsync<ArgumentException>(() =>
                     MockFinderFactory.Object.FindWorkbookAsync(
@@ -391,12 +392,12 @@ namespace Tableau.Migration.Tests.Unit.Api
                 var mockContentReference = new Mock<IContentReference>();
                 mockContentReference.SetupGet(o => o.Id).Returns(Guid.NewGuid());
 
-                var mockWorkbookReference = new Mock<IRestIdentifiable>();
+                var mockWorkbookReference = new Mock<IWorkbookReferenceType>();
                 mockWorkbookReference.SetupGet(o => o.Id).Returns(mockContentReference.Object.Id);
 
-                MockWorkbookFinder.Setup(f => f.FindByIdAsync(mockContentReference.Object.Id, Cancel)).ReturnsAsync(mockContentReference.Object);
+                MockWorkbookFinder.Setup(f => f.FindByIdAsync(mockWorkbookReference.Object.Id, Cancel)).ReturnsAsync(mockContentReference.Object);
 
-                var response = new WithWorkbookReferenceType { Workbook = mockWorkbookReference.Object };
+                var response = new WithWorkbookNamedReferenceType { Workbook = mockWorkbookReference.Object };
 
                 var result = await MockFinderFactory.Object.FindWorkbookAsync(
                     response,
@@ -411,7 +412,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             [Fact]
             public async Task Returns_null_when_not_found_and_throw_is_false()
             {
-                var response = new WithWorkbookReferenceType { Workbook = Create<Mock<IRestIdentifiable>>().Object };
+                var response = new WithWorkbookNamedReferenceType { Workbook = Create<Mock<IWorkbookReferenceType>>().Object };
 
                 var result = await MockFinderFactory.Object.FindWorkbookAsync(
                     response,
@@ -426,7 +427,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             [Fact]
             public async Task Throws_when_not_found_and_throw_is_true()
             {
-                var response = new WithWorkbookReferenceType { Workbook = Create<Mock<IRestIdentifiable>>().Object };
+                var response = new WithWorkbookNamedReferenceType { Workbook = Create<Mock<IWorkbookReferenceType>>().Object };
 
                 await Assert.ThrowsAsync<InvalidOperationException>(() => MockFinderFactory.Object.FindWorkbookAsync(
                     response,

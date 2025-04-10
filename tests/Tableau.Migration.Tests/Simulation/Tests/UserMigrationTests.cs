@@ -30,6 +30,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests
     {
         public class Batch : ServerToCloud
         {
+            protected override bool UsersBatchImportEnabled => true;
         }
 
         public class Individual : ServerToCloud
@@ -66,17 +67,19 @@ namespace Tableau.Migration.Tests.Simulation.Tests
                 Assert.Equal(supportUsers.Count,
                     result.Manifest.Entries.ForContentType<IUser>().Where(e => e.Status == MigrationManifestEntryStatus.Skipped).Count());
 
-
                 void AssertUserMigrated(UsersResponse.UserType sourceUser)
                 {
-                    var destinationUser = Assert.Single(CloudDestinationApi.Data.Users, u => 
-                        u.Domain?.Name == sourceUser.Domain?.Name && 
+                    var destinationUser = Assert.Single(CloudDestinationApi.Data.Users, u =>
+                        u.Domain?.Name == sourceUser.Domain?.Name &&
                         u.Name == sourceUser.Name);
 
                     Assert.NotEqual(sourceUser.Id, destinationUser.Id);
                     Assert.Equal(sourceUser.Domain?.Name, destinationUser.Domain?.Name);
                     Assert.Equal(sourceUser.Name, destinationUser.Name);
+                    
+                    // Tableau Cloud does not allow updating user email/full name.
                     Assert.Null(destinationUser.Email);
+                    Assert.Null(destinationUser.FullName);
 
                     if (sourceUser.SiteRole == SiteRoles.Viewer ||
                         sourceUser.SiteRole == SiteRoles.Guest ||
@@ -92,7 +95,6 @@ namespace Tableau.Migration.Tests.Simulation.Tests
                     {
                         Assert.Equal(sourceUser.SiteRole, destinationUser.SiteRole);
                     }
-                    Assert.Null(destinationUser.FullName);
                 }
 
                 Assert.All(SourceApi.Data.Users.Where(u => u.SiteRole != SiteRoles.SupportUser), AssertUserMigrated);

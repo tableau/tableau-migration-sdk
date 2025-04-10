@@ -15,9 +15,14 @@
 //  limitations under the License.
 //
 
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Tableau.Migration.Api.Permissions;
+using Tableau.Migration.Api.Rest.Models.Responses;
 using Tableau.Migration.Api.Tags;
+using Tableau.Migration.Content;
 using Tableau.Migration.Content.Search;
 using Tableau.Migration.Net.Rest;
 using Tableau.Migration.Resources;
@@ -38,6 +43,32 @@ namespace Tableau.Migration.Api
             Permissions = permissionsClientFactory.Create(this);
             Tags = tagsClientFactory.Create(this);
         }
+
+        #region - IReadClientImplementation -
+
+        public async Task<IResult<IView>> GetByIdAsync(Guid contentId, CancellationToken cancel)
+        {
+            var getViewResult = await RestRequestBuilderFactory
+               .CreateUri($"/{UrlPrefix}/{contentId.ToUrlSegment()}")
+               .ForGetRequest()
+               .SendAsync<ViewResponse>(cancel)
+               .ToResultAsync<ViewResponse, IView>(async (r, c) =>
+               {
+                   Guard.AgainstNull(r.Item, () => r.Item);
+                   Guard.AgainstNull(r.Item.Workbook, () => r.Item.Workbook);
+                   Guard.AgainstNull(r.Item.Project, () => r.Item.Project);
+
+                   var workbook = await FindWorkbookByIdAsync(r.Item.Workbook.Id, true, c).ConfigureAwait(false);
+                   var project = await FindProjectByIdAsync(r.Item.Project.Id, true, c).ConfigureAwait(false);
+
+                   return new View(r.Item, project, workbook);
+               }, SharedResourcesLocalizer, cancel)
+               .ConfigureAwait(false);
+
+            return getViewResult;
+        }
+
+        #endregion - IReadClientImplementation -
 
         #region - IPermissionsContentApiClientImplementation -
 

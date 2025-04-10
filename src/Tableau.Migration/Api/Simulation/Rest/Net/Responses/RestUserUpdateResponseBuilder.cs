@@ -68,6 +68,9 @@ namespace Tableau.Migration.Api.Simulation.Rest.Net.Responses
             if (!string.IsNullOrEmpty(newUser.AuthSetting))
                 oldUser.AuthSetting = newUser.AuthSetting;
 
+            if (!string.IsNullOrEmpty(newUser.IdpConfigurationId))
+                oldUser.IdpConfigurationId = newUser.IdpConfigurationId;
+
             return oldUser;
         }
 
@@ -87,6 +90,7 @@ namespace Tableau.Migration.Api.Simulation.Rest.Net.Responses
                     Email = updatedUser.Email,
                     SiteRole = updatedUser.SiteRole,
                     AuthSetting = updatedUser.AuthSetting,
+                    IdpConfigurationId = updatedUser.IdpConfigurationId,
                     FullName = updatedUser.FullName,
                 }
 

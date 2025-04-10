@@ -17,6 +17,7 @@
 
 using System;
 using Microsoft.Extensions.Logging;
+using Tableau.Migration.Engine.Manifest.Logging;
 using Tableau.Migration.Resources;
 
 namespace Tableau.Migration.Engine.Manifest
@@ -43,13 +44,23 @@ namespace Tableau.Migration.Engine.Manifest
         /// <inheritdoc />
         public IMigrationManifestEditor Create(IMigrationInput input, Guid migrationId)
         {
-            return new MigrationManifest(_localizer, _loggerFactory, input.Plan.PlanId, migrationId, input.PreviousManifest);
+            if (input.PreviousManifest is not null)
+            {
+                if (input.Plan.PipelineProfile != input.PreviousManifest.PipelineProfile)
+                {
+                    throw new ArgumentException($"Plan and previous manifest must have the same pipeline profile");
+                }
+
+                return new LoggingMigrationManifest(_localizer, _loggerFactory, input.Plan.PlanId, migrationId, input.PreviousManifest);
+            }
+
+            return new LoggingMigrationManifest(_localizer, _loggerFactory, input.Plan.PlanId, migrationId, input.Plan.PipelineProfile);
         }
 
         /// <inheritdoc />
-        public IMigrationManifestEditor Create(Guid planId, Guid migrationId)
+        public IMigrationManifestEditor Create(Guid planId, Guid migrationId, PipelineProfile pipelineProfile)
         {
-            return new MigrationManifest(_localizer, _loggerFactory, planId, migrationId, null);
+            return new LoggingMigrationManifest(_localizer, _loggerFactory, planId, migrationId, pipelineProfile);
         }
     }
 }

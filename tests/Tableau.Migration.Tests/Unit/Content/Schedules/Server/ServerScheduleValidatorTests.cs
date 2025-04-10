@@ -76,7 +76,7 @@ namespace Tableau.Migration.Tests.Content.Schedules.Server
                 var intervals = new List<IInterval>()
                 {
                     Interval.WithHours(1),
-                    Interval.WithWeekday("Monday")
+                    Interval.WithWeekday(WeekDays.Monday)
                 };
 
                 var schedule = CreateMockSchedule(frequency, start: "12:00:00", end: "13:00:00", intervals);
@@ -92,7 +92,7 @@ namespace Tableau.Migration.Tests.Content.Schedules.Server
                 var intervals = new List<IInterval>()
                 {
                     Interval.WithHours(1),
-                    Interval.WithWeekday("Monday")
+                    Interval.WithWeekday(WeekDays.Monday)
                 };
 
                 var schedule = CreateMockSchedule(frequency, start: null, end: "13:00:00", intervals);
@@ -109,7 +109,7 @@ namespace Tableau.Migration.Tests.Content.Schedules.Server
                 var intervals = new List<IInterval>()
                 {
                     Interval.WithHours(1),
-                    Interval.WithWeekday("Monday")
+                    Interval.WithWeekday(WeekDays.Monday)
                 };
 
                 var schedule = CreateMockSchedule(frequency, start: "12:00:00", end: null, intervals);
@@ -156,7 +156,7 @@ namespace Tableau.Migration.Tests.Content.Schedules.Server
                 var intervals = new List<IInterval>()
                 {
                     Interval.WithHours(3),
-                    Interval.WithWeekday("Monday")
+                    Interval.WithWeekday(WeekDays.Monday)
                 };
 
                 var schedule = CreateMockSchedule(frequency, start: "12:00:00", end: "13:00:00", intervals);
@@ -219,7 +219,7 @@ namespace Tableau.Migration.Tests.Content.Schedules.Server
                 // Arrange
                 var intervals = new List<IInterval>()
                 {
-                    Interval.WithWeekday("Monday")
+                    Interval.WithWeekday(WeekDays.Monday)
                 };
 
                 var schedule = CreateMockSchedule(frequency, start: "12:00:00", end: null, intervals);

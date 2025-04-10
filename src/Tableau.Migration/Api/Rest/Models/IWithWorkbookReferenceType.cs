@@ -25,6 +25,6 @@ namespace Tableau.Migration.Api.Rest.Models
         /// <summary>
         /// Gets the workbook for the response.
         /// </summary>
-        IRestIdentifiable? Workbook { get; }
+        IWorkbookReferenceType? Workbook { get; }
     }
 }

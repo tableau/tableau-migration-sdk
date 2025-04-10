@@ -16,11 +16,13 @@
 //
 
 using System;
+using System.Linq;
+using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Tableau.Migration.Api.Models;
+using Tableau.Migration.JsonConverters.Exceptions;
 using Tableau.Migration.JsonConverters.SerializableObjects;
-
 
 namespace Tableau.Migration.JsonConverters
 {
@@ -77,13 +79,17 @@ namespace Tableau.Migration.JsonConverters
                 string exceptionNamespace = GetNamespace(exceptionTypeStr);
 
                 Type? exceptionType = null;
-                if (exceptionNamespace == "System")
+                Type? originalExceptionType = null;
+                if(exceptionNamespace.StartsWith("System"))
                 {
-                    exceptionType = Type.GetType($"{exceptionTypeStr}");
-                }
-                else
-                {
-                    exceptionType = Type.GetType($"{exceptionTypeStr}, {exceptionNamespace}");
+                    if (exceptionNamespace == "System")
+                    {
+                        exceptionType = Type.GetType(exceptionTypeStr);
+                    }
+                    else
+                    {
+                        exceptionType = Type.GetType($"{exceptionTypeStr}, {exceptionNamespace}");
+                    }
                 }
 
                 // Check if this is a built-in exception type
@@ -104,6 +110,16 @@ namespace Tableau.Migration.JsonConverters
 
                     }
                 }
+                else // This is a built in exception type
+                {
+                    // Check if the exception type has a constructor that takes a single string parameter
+                    if (!HasStringConstructor(exceptionType))
+                    {
+                        // If the exceptionType can't be created via a single message string, then use the base Exception type
+                        originalExceptionType = exceptionType;
+                        exceptionType = typeof(UnknownException);
+                    }
+                }
 
                 // Make sure the next property is the Exception 
                 JsonReaderUtils.ReadAndAssertPropertyName(ref reader, Constants.EXCEPTION);
@@ -113,6 +129,12 @@ namespace Tableau.Migration.JsonConverters
                 var ex = JsonSerializer.Deserialize(ref reader, exceptionType, options) as Exception;
 
                 Guard.AgainstNull(ex, nameof(ex));
+
+                // If this is an unknown exception type, add the original exception type to the Data dictionary
+                if (exceptionType == typeof(UnknownException))
+                {
+                    ex.Data.Add("OriginalExceptionType", originalExceptionType);
+                }
 
                 ret = new SerializableException(ex);
 
@@ -147,6 +169,24 @@ namespace Tableau.Migration.JsonConverters
 
             // End of serialized exception object
             writer.WriteEndObject();
+        }
+
+        /// <summary>
+        /// Checks if the specified type has a constructor that takes a single string parameter.
+        /// </summary>
+        /// <param name="type">The type to check for a string constructor.</param>
+        /// <returns><c>true</c> if the type has a constructor with a single string parameter; otherwise, <c>false</c>.</returns>
+        private bool HasStringConstructor(Type type)
+        {
+            // Get all constructors of the type
+            ConstructorInfo[] constructors = type.GetConstructors();
+
+            // Check if any constructor has a single parameter of type string
+            return constructors.Any(c =>
+            {
+                ParameterInfo[] parameters = c.GetParameters();
+                return parameters.Length == 1 && parameters[0].ParameterType == typeof(string);
+            });
         }
     }
 }

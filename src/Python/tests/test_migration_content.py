@@ -121,12 +121,19 @@ class TestPyWithTags(AutoFixtureTestBase):
         assert len(py.tags) == 0
 # region _generated
 
-from tableau_migration.migration import PyContentReference # noqa: E402, F401
+from tableau_migration.migration import (  # noqa: E402, F401
+    PyContentReference,
+    _generic_wrapper
+)
 from tableau_migration.migration_api_rest import PyRestIdentifiable # noqa: E402, F401
+from tableau_migration.migration_content_schedules import PyWithSchedule # noqa: E402, F401
 from typing import (  # noqa: E402, F401
     Sequence,
-    List
+    List,
+    Generic,
+    TypeVar
 )
+from typing_extensions import Self # noqa: E402, F401
 from uuid import UUID # noqa: E402, F401
 
 from System import (  # noqa: E402, F401
@@ -138,6 +145,7 @@ from System.Collections.Generic import (  # noqa: E402, F401
     HashSet as DotnetHashSet
 )
 from Tableau.Migration.Content import (  # noqa: E402, F401
+    ICloudSubscription,
     IConnection,
     IConnectionsContent,
     IContainerContent,
@@ -155,6 +163,9 @@ from Tableau.Migration.Content import (  # noqa: E402, F401
     IPublishableGroup,
     IPublishableWorkbook,
     IPublishedContent,
+    IServerSubscription,
+    ISubscription,
+    ISubscriptionContent,
     ITag,
     IUser,
     IUsernameContent,
@@ -164,10 +175,12 @@ from Tableau.Migration.Content import (  # noqa: E402, F401
     IWithTags,
     IWithWorkbook,
     IWorkbook,
-    IWorkbookDetails
+    IWorkbookDetails,
+    UserAuthenticationType
 )
 
 from tableau_migration.migration_content import (  # noqa: E402, F401
+    PyCloudSubscription,
     PyConnection,
     PyConnectionsContent,
     PyContainerContent,
@@ -185,8 +198,12 @@ from tableau_migration.migration_content import (  # noqa: E402, F401
     PyPublishableGroup,
     PyPublishableWorkbook,
     PyPublishedContent,
+    PyServerSubscription,
+    PySubscription,
+    PySubscriptionContent,
     PyTag,
     PyUser,
+    PyUserAuthenticationType,
     PyUsernameContent,
     PyView,
     PyWithDomain,
@@ -204,6 +221,8 @@ from System import (  # noqa: E402, F401
     Boolean,
     Nullable
 )
+from Tableau.Migration.Content.Schedules import ISchedule # noqa: E402, F401
+from tableau_migration.migration_content_schedules import PySchedule # noqa: E402, F401
 from tests.helpers.autofixture import AutoFixtureTestBase # noqa: E402, F401
 
 class TestPyConnectionGenerated(AutoFixtureTestBase):
@@ -243,6 +262,21 @@ class TestPyConnectionGenerated(AutoFixtureTestBase):
         py = PyConnection(dotnet)
         assert py.query_tagging_enabled == dotnet.QueryTaggingEnabled
     
+    def test_authentication_type_getter(self):
+        dotnet = self.create(IConnection)
+        py = PyConnection(dotnet)
+        assert py.authentication_type == dotnet.AuthenticationType
+    
+    def test_use_o_auth_managed_keychain_getter(self):
+        dotnet = self.create(IConnection)
+        py = PyConnection(dotnet)
+        assert py.use_o_auth_managed_keychain == dotnet.UseOAuthManagedKeychain
+    
+    def test_embed_password_getter(self):
+        dotnet = self.create(IConnection)
+        py = PyConnection(dotnet)
+        assert py.embed_password == dotnet.EmbedPassword
+    
 class TestPyConnectionsContentGenerated(AutoFixtureTestBase):
     
     def test_ctor(self):
@@ -255,6 +289,21 @@ class TestPyConnectionsContentGenerated(AutoFixtureTestBase):
         py = PyConnectionsContent(dotnet)
         assert len(dotnet.Connections) != 0
         assert len(py.connections) == len(dotnet.Connections)
+    
+    def test_has_embedded_password_getter(self):
+        dotnet = self.create(IConnectionsContent)
+        py = PyConnectionsContent(dotnet)
+        assert py.has_embedded_password == dotnet.HasEmbeddedPassword
+    
+    def test_has_embedded_o_auth_managed_keychain_getter(self):
+        dotnet = self.create(IConnectionsContent)
+        py = PyConnectionsContent(dotnet)
+        assert py.has_embedded_o_auth_managed_keychain == dotnet.HasEmbeddedOAuthManagedKeychain
+    
+    def test_has_embedded_o_auth_credentials_getter(self):
+        dotnet = self.create(IConnectionsContent)
+        py = PyConnectionsContent(dotnet)
+        assert py.has_embedded_o_auth_credentials == dotnet.HasEmbeddedOAuthCredentials
     
 class TestPyContainerContentGenerated(AutoFixtureTestBase):
     
@@ -713,6 +762,218 @@ class TestPyPublishedContentGenerated(AutoFixtureTestBase):
         py = PyPublishedContent(dotnet)
         assert py.webpage_url == dotnet.WebpageUrl
     
+class TestPySubscriptionGenerated(AutoFixtureTestBase):
+    
+    def test_ctor(self):
+        dotnet = self.create(ISubscription[ISchedule])
+        py = PySubscription[PySchedule](dotnet)
+        assert py._dotnet == dotnet
+    
+    def test_subject_getter(self):
+        dotnet = self.create(ISubscription[ISchedule])
+        py = PySubscription[PySchedule](dotnet)
+        assert py.subject == dotnet.Subject
+    
+    def test_subject_setter(self):
+        dotnet = self.create(ISubscription[ISchedule])
+        py = PySubscription[PySchedule](dotnet)
+        
+        # create test data
+        testValue = self.create(String)
+        
+        # set property to new test value
+        py.subject = testValue
+        
+        # assert value
+        assert py.subject == testValue
+    
+    def test_attach_image_getter(self):
+        dotnet = self.create(ISubscription[ISchedule])
+        py = PySubscription[PySchedule](dotnet)
+        assert py.attach_image == dotnet.AttachImage
+    
+    def test_attach_image_setter(self):
+        dotnet = self.create(ISubscription[ISchedule])
+        py = PySubscription[PySchedule](dotnet)
+        
+        # create test data
+        testValue = self.create(Boolean)
+        
+        # set property to new test value
+        py.attach_image = testValue
+        
+        # assert value
+        assert py.attach_image == testValue
+    
+    def test_attach_pdf_getter(self):
+        dotnet = self.create(ISubscription[ISchedule])
+        py = PySubscription[PySchedule](dotnet)
+        assert py.attach_pdf == dotnet.AttachPdf
+    
+    def test_attach_pdf_setter(self):
+        dotnet = self.create(ISubscription[ISchedule])
+        py = PySubscription[PySchedule](dotnet)
+        
+        # create test data
+        testValue = self.create(Boolean)
+        
+        # set property to new test value
+        py.attach_pdf = testValue
+        
+        # assert value
+        assert py.attach_pdf == testValue
+    
+    def test_page_orientation_getter(self):
+        dotnet = self.create(ISubscription[ISchedule])
+        py = PySubscription[PySchedule](dotnet)
+        assert py.page_orientation == dotnet.PageOrientation
+    
+    def test_page_orientation_setter(self):
+        dotnet = self.create(ISubscription[ISchedule])
+        py = PySubscription[PySchedule](dotnet)
+        
+        # create test data
+        testValue = self.create(String)
+        
+        # set property to new test value
+        py.page_orientation = testValue
+        
+        # assert value
+        assert py.page_orientation == testValue
+    
+    def test_page_size_option_getter(self):
+        dotnet = self.create(ISubscription[ISchedule])
+        py = PySubscription[PySchedule](dotnet)
+        assert py.page_size_option == dotnet.PageSizeOption
+    
+    def test_page_size_option_setter(self):
+        dotnet = self.create(ISubscription[ISchedule])
+        py = PySubscription[PySchedule](dotnet)
+        
+        # create test data
+        testValue = self.create(String)
+        
+        # set property to new test value
+        py.page_size_option = testValue
+        
+        # assert value
+        assert py.page_size_option == testValue
+    
+    def test_suspended_getter(self):
+        dotnet = self.create(ISubscription[ISchedule])
+        py = PySubscription[PySchedule](dotnet)
+        assert py.suspended == dotnet.Suspended
+    
+    def test_suspended_setter(self):
+        dotnet = self.create(ISubscription[ISchedule])
+        py = PySubscription[PySchedule](dotnet)
+        
+        # create test data
+        testValue = self.create(Boolean)
+        
+        # set property to new test value
+        py.suspended = testValue
+        
+        # assert value
+        assert py.suspended == testValue
+    
+    def test_message_getter(self):
+        dotnet = self.create(ISubscription[ISchedule])
+        py = PySubscription[PySchedule](dotnet)
+        assert py.message == dotnet.Message
+    
+    def test_message_setter(self):
+        dotnet = self.create(ISubscription[ISchedule])
+        py = PySubscription[PySchedule](dotnet)
+        
+        # create test data
+        testValue = self.create(String)
+        
+        # set property to new test value
+        py.message = testValue
+        
+        # assert value
+        assert py.message == testValue
+    
+    def test_content_getter(self):
+        dotnet = self.create(ISubscription[ISchedule])
+        py = PySubscription[PySchedule](dotnet)
+        assert py.content == None if dotnet.Content is None else PySubscriptionContent(dotnet.Content)
+    
+    def test_content_setter(self):
+        dotnet = self.create(ISubscription[ISchedule])
+        py = PySubscription[PySchedule](dotnet)
+        
+        # create test data
+        testValue = self.create(ISubscriptionContent)
+        
+        # set property to new test value
+        py.content = None if testValue is None else PySubscriptionContent(testValue)
+        
+        # assert value
+        assert py.content == None if testValue is None else PySubscriptionContent(testValue)
+    
+class TestPySubscriptionContentGenerated(AutoFixtureTestBase):
+    
+    def test_ctor(self):
+        dotnet = self.create(ISubscriptionContent)
+        py = PySubscriptionContent(dotnet)
+        assert py._dotnet == dotnet
+    
+    def test_id_getter(self):
+        dotnet = self.create(ISubscriptionContent)
+        py = PySubscriptionContent(dotnet)
+        assert py.id == None if dotnet.Id is None else UUID(dotnet.Id.ToString())
+    
+    def test_id_setter(self):
+        dotnet = self.create(ISubscriptionContent)
+        py = PySubscriptionContent(dotnet)
+        
+        # create test data
+        testValue = self.create(Guid)
+        
+        # set property to new test value
+        py.id = None if testValue is None else UUID(testValue.ToString())
+        
+        # assert value
+        assert py.id == None if testValue is None else UUID(testValue.ToString())
+    
+    def test_type_getter(self):
+        dotnet = self.create(ISubscriptionContent)
+        py = PySubscriptionContent(dotnet)
+        assert py.type == dotnet.Type
+    
+    def test_type_setter(self):
+        dotnet = self.create(ISubscriptionContent)
+        py = PySubscriptionContent(dotnet)
+        
+        # create test data
+        testValue = self.create(String)
+        
+        # set property to new test value
+        py.type = testValue
+        
+        # assert value
+        assert py.type == testValue
+    
+    def test_send_if_view_empty_getter(self):
+        dotnet = self.create(ISubscriptionContent)
+        py = PySubscriptionContent(dotnet)
+        assert py.send_if_view_empty == dotnet.SendIfViewEmpty
+    
+    def test_send_if_view_empty_setter(self):
+        dotnet = self.create(ISubscriptionContent)
+        py = PySubscriptionContent(dotnet)
+        
+        # create test data
+        testValue = self.create(Boolean)
+        
+        # set property to new test value
+        py.send_if_view_empty = testValue
+        
+        # assert value
+        assert py.send_if_view_empty == testValue
+    
 class TestPyTagGenerated(AutoFixtureTestBase):
     
     def test_ctor(self):
@@ -817,6 +1078,24 @@ class TestPyUserGenerated(AutoFixtureTestBase):
         # assert value
         assert py.authentication_type == testValue
     
+    def test_authentication_getter(self):
+        dotnet = self.create(IUser)
+        py = PyUser(dotnet)
+        assert py.authentication == None if dotnet.Authentication is None else PyUserAuthenticationType(dotnet.Authentication)
+    
+    def test_authentication_setter(self):
+        dotnet = self.create(IUser)
+        py = PyUser(dotnet)
+        
+        # create test data
+        testValue = self.create(UserAuthenticationType)
+        
+        # set property to new test value
+        py.authentication = None if testValue is None else PyUserAuthenticationType(testValue)
+        
+        # assert value
+        assert py.authentication == None if testValue is None else PyUserAuthenticationType(testValue)
+    
     def test_administrator_level_getter(self):
         dotnet = self.create(IUser)
         py = PyUser(dotnet)
@@ -831,6 +1110,18 @@ class TestPyUserGenerated(AutoFixtureTestBase):
         dotnet = self.create(IUser)
         py = PyUser(dotnet)
         assert py.can_publish == dotnet.CanPublish
+    
+class TestPyViewGenerated(AutoFixtureTestBase):
+    
+    def test_ctor(self):
+        dotnet = self.create(IView)
+        py = PyView(dotnet)
+        assert py._dotnet == dotnet
+    
+    def test_parent_workbook_getter(self):
+        dotnet = self.create(IView)
+        py = PyView(dotnet)
+        assert py.parent_workbook == None if dotnet.ParentWorkbook is None else PyContentReference(dotnet.ParentWorkbook)
     
 class TestPyWithDomainGenerated(AutoFixtureTestBase):
     
@@ -967,6 +1258,28 @@ class TestPyWorkbookDetailsGenerated(AutoFixtureTestBase):
         py = PyWorkbookDetails(dotnet)
         assert len(dotnet.Views) != 0
         assert len(py.views) == len(dotnet.Views)
+    
+class TestPyUserAuthenticationTypeGenerated(AutoFixtureTestBase):
+    
+    def test_ctor(self):
+        dotnet = self.create(UserAuthenticationType)
+        py = PyUserAuthenticationType(dotnet)
+        assert py._dotnet == dotnet
+    
+    def test_default_getter(self):
+        dotnet = self.create(UserAuthenticationType)
+        py = PyUserAuthenticationType(dotnet)
+        assert py.get_default() == None if UserAuthenticationType.Default is None else PyUserAuthenticationType(UserAuthenticationType.Default)
+    
+    def test_authentication_type_getter(self):
+        dotnet = self.create(UserAuthenticationType)
+        py = PyUserAuthenticationType(dotnet)
+        assert py.authentication_type == dotnet.AuthenticationType
+    
+    def test_idp_configuration_id_getter(self):
+        dotnet = self.create(UserAuthenticationType)
+        py = PyUserAuthenticationType(dotnet)
+        assert py.idp_configuration_id == None if dotnet.IdpConfigurationId is None else UUID(dotnet.IdpConfigurationId.ToString())
     
 
 # endregion

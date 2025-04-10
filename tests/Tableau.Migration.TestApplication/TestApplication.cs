@@ -25,7 +25,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Tableau.Migration.Content;
-using Tableau.Migration.Content.Schedules.Server;
 using Tableau.Migration.Engine.Manifest;
 using Tableau.Migration.Engine.Pipelines;
 using Tableau.Migration.TestApplication.Config;
@@ -76,6 +75,8 @@ namespace Tableau.Migration.TestApplication
 
             Console.WriteLine("Starting app");
             _logger.LogInformation("Starting app log");
+
+            AskIfTsmHasBeenRun();
 
             _planBuilder = _planBuilder
                 .FromSourceTableauServer(_options.Source.ServerUrl, _options.Source.SiteContentUrl, _options.Source.AccessTokenName, Environment.GetEnvironmentVariable("TABLEAU_MIGRATION_SOURCE_TOKEN") ?? _options.Source.AccessToken)
@@ -130,12 +131,20 @@ namespace Tableau.Migration.TestApplication
             _planBuilder.Mappings.Add<UnlicensedUserMapping, IUser>();
 
             // Save manifest every every batch of every content type.
-            var contentTypeArrays = ServerToCloudMigrationPipeline.ContentTypes.Select(t => new[] { t.ContentType });
+            var contentTypeArrays = MigrationPipelineContentType.GetMigrationPipelineContentTypes(_planBuilder.PipelineProfile)
+                                        .Select(t => new[] { t.ContentType });
+
             _planBuilder.Hooks.Add(typeof(LogMigrationBatchSummaryHook<>), contentTypeArrays);
             if (!string.IsNullOrEmpty(_options.Log.ManifestFolderPath))
             {
                 _planBuilder.Hooks.Add(typeof(SaveManifestAfterBatchMigrationCompletedHook<>), contentTypeArrays);
             }
+
+            // ViewOwnerTransformer
+            _planBuilder.Transformers.Add<ViewerOwnerTransformer<IProject>, IProject>();
+            _planBuilder.Transformers.Add<ViewerOwnerTransformer<IPublishableDataSource>, IPublishableDataSource>();
+            _planBuilder.Transformers.Add<ViewerOwnerTransformer<IPublishableWorkbook>, IPublishableWorkbook>();
+            _planBuilder.Transformers.Add<ViewerOwnerTransformer<IPublishableCustomView>, IPublishableCustomView>();
 
             // ViewOwnerTransformer
             _planBuilder.Transformers.Add<ViewerOwnerTransformer<IProject>, IProject>();
@@ -153,10 +162,18 @@ namespace Tableau.Migration.TestApplication
             _planBuilder.Mappings.Add<ContentWithinSkippedLocationMapping<IDataSource>, IDataSource>();
             _planBuilder.Mappings.Add<ContentWithinSkippedLocationMapping<IWorkbook>, IWorkbook>();
 
+            // Skip content with specific IDs
+            _planBuilder.Filters.Add<SkipIdsFilter<IUser>, IUser>();
+            _planBuilder.Filters.Add<SkipIdsFilter<IGroup>, IGroup>();
+            _planBuilder.Filters.Add<SkipIdsFilter<IProject>, IProject>();
+            _planBuilder.Filters.Add<SkipIdsFilter<IDataSource>, IDataSource>();
+            _planBuilder.Filters.Add<SkipIdsFilter<IWorkbook>, IWorkbook>();
+
+
             var prevManifest = await LoadManifest(_options.PreviousManifestPath, cancel);
 
             // Start timer 
-            var startTime = DateTime.UtcNow;
+            var startTime = DateTime.Now;
             _timer.Start();
 
             // Build plan
@@ -167,7 +184,7 @@ namespace Tableau.Migration.TestApplication
 
             _timer.Stop();
 
-            var endTime = DateTime.UtcNow;
+            var endTime = DateTime.Now;
 
             await _manifestSerializer.SaveAsync(result.Manifest, manifestFilePath);
 
@@ -176,6 +193,30 @@ namespace Tableau.Migration.TestApplication
             Console.WriteLine("Press any key to exit");
             Console.ReadKey();
             _appLifetime.StopApplication();
+        }
+
+        private void AskIfTsmHasBeenRun()
+        {
+            ConsoleKey key;
+            do
+            {
+                Console.Write("Has the ");
+                Console.ForegroundColor = ConsoleColor.Blue;
+                Console.Write("tsm security authorize-credential");
+                Console.ResetColor();
+                Console.Write(" command been run? [Y/n] ");
+                key = Console.ReadKey().Key;
+                Console.WriteLine();
+            } while (key is not ConsoleKey.Enter && key is not ConsoleKey.Y && key is not ConsoleKey.N);
+
+            if (key is ConsoleKey.N)
+            {
+                Console.WriteLine("Please run the tsm command before proceeding.");
+                Console.WriteLine("Press any key to exit");
+                Console.ReadKey();
+                _appLifetime.StopApplication();
+                return;
+            }
         }
 
         public Task StopAsync(CancellationToken cancel) => Task.CompletedTask;

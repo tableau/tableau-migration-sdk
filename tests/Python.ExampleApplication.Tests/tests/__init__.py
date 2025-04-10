@@ -19,7 +19,12 @@ import sys
 import os
 from os.path import abspath
 from pathlib import Path
-import tableau_migration
+
+_module_path = abspath(Path(__file__).parent.resolve().__str__() + "/../../../src/Python/src")
+sys.path.append(_module_path)
+
+from tableau_migration import clr # noqa: E402
+from  System.Reflection import Assembly # noqa: E402
 
 print("Adding example application paths to sys.path")
 sys.path.append(abspath(Path(__file__).parent.resolve().__str__() + "/../../../examples/Python.ExampleApplication/"))
@@ -30,14 +35,15 @@ sys.path.append(abspath(Path(__file__).parent.resolve().__str__() + "/../../../e
 sys.path.append(abspath(Path(__file__).parent.resolve().__str__() + "/../../../examples/Python.ExampleApplication/hooks/post_publish"))
 sys.path.append(abspath(Path(__file__).parent.resolve().__str__() + "/../../../examples/Python.ExampleApplication/hooks/transformers"))
 
+_bin_path = abspath(Path(__file__).parent.resolve().__str__() + "/../../../src/Python/src/tableau_migration/bin")
+sys.path.append(_bin_path)
+print("Added 'bin' at '" + _bin_path + "' to sys.path")
 
 if os.environ.get('MIG_SDK_PYTHON_BUILD', 'false').lower() == 'true':
     print("MIG_SDK_PYTHON_BUILD set to true. Building dotnet binaries for python tests.")
     # Not required for GitHub Actions
     import subprocess
     import shutil
-    _bin_path = abspath(Path(__file__).parent.resolve().__str__() + "/../../../src/Python/src/tableau_migration/bin")    
-    sys.path.append(_bin_path)
 
     shutil.rmtree(_bin_path, True)
     print("Building required binaries")
@@ -46,16 +52,25 @@ if os.environ.get('MIG_SDK_PYTHON_BUILD', 'false').lower() == 'true':
 else:
     print("MIG_SDK_PYTHON_BUILD set to false. Skipping dotnet build for python tests.")
 
-print("Adding test helpers to sys.path")
-_autofixture_helper_path = abspath(Path(__file__).parent.resolve().__str__() + "/../../../src/Python/tests/helpers")    
-sys.path.append(_autofixture_helper_path)
+def add_assembly_reference(name,add_by_path):        
+    if add_by_path:
+        assemblyPath = _bin_path+ "/"+ name + ".dll"
+        assembly = Assembly.LoadFile(assemblyPath)
+        print(f"Added reference to {assembly.GetName().Name} v{assembly.GetName().Version} Full Name: {assembly.FullName}")
+    else:
+        clr.AddReference(name)
+        assembly = Assembly.Load(name)
+        print(f"Added reference to {assembly.GetName().Name} v{assembly.GetName().Version} Full Name: {assembly.FullName}")
 
-from tableau_migration import clr
-clr.AddReference("AutoFixture")
-clr.AddReference("AutoFixture.AutoMoq")
-clr.AddReference("Moq")
-clr.AddReference("Tableau.Migration.Tests")
-clr.AddReference("Tableau.Migration")
+add_assembly_reference("AutoFixture", True)
+add_assembly_reference("AutoFixture.AutoMoq", True)
+add_assembly_reference("Moq", True)
+add_assembly_reference("Tableau.Migration", False)
+
+_autofixture_helper_path = abspath(Path(__file__).parent.resolve().__str__() + "/helpers")    
+sys.path.append(_autofixture_helper_path)
+print("Added 'helpers' at '" + _autofixture_helper_path + "' to sys.path")
+
 
 
 

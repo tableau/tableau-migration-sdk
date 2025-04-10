@@ -56,11 +56,11 @@ namespace Tableau.Migration.Net
                 .AddSingleton<IHttpContentSerializer, HttpContentSerializer>()
                 .AddSingleton<INetworkTraceRedactor, NetworkTraceRedactor>()
                 .AddTransient<INetworkTraceLogger, NetworkTraceLogger>()
-                .AddTransient<UserAgentHttpMessageHandler>()
-                .AddTransient<AuthenticationHandler>()
-                .AddTransient<LoggingHandler>()
+                .AddTransient<UserAgentHeaderHttpHandler>()
+                .AddTransient<AuthenticationHttpHandler>()
+                .AddTransient<LoggingHttpHandler>()
                 .AddTransient<SimulationHttpHandler>()
-                .AddTransient<RequestCorrelationIdHandler>()
+                .AddTransient<RequestCorrelationIdHeaderHttpHandler>()
                 // Keeping a single HttpClient instance alive for a long duration is a common pattern used before the inception
                 // of IHttpClientFactory. This pattern becomes unnecessary after migrating to IHttpClientFactory.
                 // Source: https://learn.microsoft.com/en-us/aspnet/core/fundamentals/http-requests?view=aspnetcore-7.0#httpclient-and-lifetime-management
@@ -69,8 +69,7 @@ namespace Tableau.Migration.Net
                     var clientFactory = provider.GetRequiredService<IHttpClientFactory>();
 
                     return new DefaultHttpClient(
-                        clientFactory.CreateClient(
-                            nameof(DefaultHttpClient)),
+                        clientFactory.CreateClient(nameof(DefaultHttpClient)),
                         provider.GetRequiredService<IHttpContentSerializer>());
                 })
                 // Resilience strategy builders - the order here is important for dependency injection.
@@ -85,10 +84,11 @@ namespace Tableau.Migration.Net
                 // The default handler lifetime is two minutes. The default value can be overridden on a per named client basis
                 .AddScopedHttpClient(nameof(DefaultHttpClient))
                 // From microsoft documentation:
+                // From Microsoft documentation:
                 // https://learn.microsoft.com/en-us/aspnet/core/fundamentals/http-requests?view=aspnetcore-7.0#outgoing-request-middleware
                 // Multiple handlers can be registered in the order that they should execute.
                 // Each handler wraps the next handler until the final HttpClientHandler executes the request.
-                .AddHttpMessageHandler<UserAgentHttpMessageHandler>();
+                .AddHttpMessageHandler<UserAgentHeaderHttpHandler>();
 
             httpClientBuilder.AddResilienceHandler(Constants.USER_AGENT_PREFIX, static (pipelineBuilder, ctx) =>
             {
@@ -111,9 +111,9 @@ namespace Tableau.Migration.Net
             });
 
             httpClientBuilder
-                .AddHttpMessageHandler<AuthenticationHandler>()
-                .AddHttpMessageHandler<LoggingHandler>()
-                .AddHttpMessageHandler<RequestCorrelationIdHandler>()
+                .AddHttpMessageHandler<AuthenticationHttpHandler>()
+                .AddHttpMessageHandler<LoggingHttpHandler>()
+                .AddHttpMessageHandler<RequestCorrelationIdHeaderHttpHandler>()
                 .AddHttpMessageHandler<SimulationHttpHandler>(); //Must be last for simulation to function.
 
             //Bootstrap and scope state tracking services.

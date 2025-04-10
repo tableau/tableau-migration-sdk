@@ -28,17 +28,19 @@ namespace Tableau.Migration.Engine.Migrators.Batch
     /// <summary>
     /// <see cref="IContentBatchMigrator{TContent}"/> implementation that publishes the entire batch after all items have been prepared.
     /// </summary>
-    /// <typeparam name="TContent">The content type.</typeparam>
-    /// <typeparam name="TPublish">The publish type.</typeparam>
-    public class BulkPublishContentBatchMigrator<TContent, TPublish> : ParallelContentBatchMigratorBatchBase<TContent, TPublish>
+    /// <typeparam name="TContent"><inheritdoc /></typeparam>
+    /// <typeparam name="TPrepare"><inheritdoc /></typeparam>
+    /// <typeparam name="TPublish"><inheritdoc /></typeparam>
+    public class BulkPublishContentBatchMigrator<TContent, TPrepare, TPublish> : ParallelContentBatchMigratorBatchBase<TContent, TPrepare, TPublish>
         where TContent : class, IContentReference
+        where TPrepare : class
         where TPublish : class
     {
         private readonly IMigration _migration;
         private readonly IMigrationHookRunner _hookRunner;
 
         /// <summary>
-        /// Creates a new <see cref="BulkPublishContentBatchMigrator{TContent, TPublish}"/> object.
+        /// Creates a new <see cref="BulkPublishContentBatchMigrator{TContent, TPrepare, TPublish}"/> object.
         /// </summary>
         /// <param name="migration">The current migration.</param>
         /// <param name="pipeline">The pipeline to use to get the item preparer.</param>
@@ -97,7 +99,7 @@ namespace Tableau.Migration.Engine.Migrators.Batch
     /// <see cref="IContentBatchMigrator{TContent}"/> implementation that publishes the entire batch after all items have been prepared.
     /// </summary>
     /// <typeparam name="TContent">The content type.</typeparam>
-    public class BulkPublishContentBatchMigrator<TContent> : BulkPublishContentBatchMigrator<TContent, TContent>
+    public class BulkPublishContentBatchMigrator<TContent> : BulkPublishContentBatchMigrator<TContent, TContent, TContent>
         where TContent : class, IContentReference
     {
         /// <summary>

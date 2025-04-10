@@ -25,6 +25,8 @@ using Moq;
 using Tableau.Migration.Api.Rest.Models;
 using Tableau.Migration.Content;
 using Tableau.Migration.Content.Search;
+using Tableau.Migration.Paging;
+using Tableau.Migration.Resources;
 using Xunit;
 
 using RestProject = Tableau.Migration.Api.Rest.Models.Responses.ProjectsResponse.ProjectType;
@@ -114,6 +116,29 @@ namespace Tableau.Migration.Tests.Unit.Api.Rest.Models
                 var restProj = Projects.First();
 
                 await Assert.ThrowsAsync<ArgumentNullException>(() => builder.BuildProjectAsync(restProj, mockUserFinder.Object, Cancel));
+            }
+
+            [Fact]
+            public async Task ExternalAssetsDefaultHasSystemOwnerAsync()
+            {
+                var externalAssetsDefaultProject = Create<RestProject>();
+                externalAssetsDefaultProject.Name = DefaultExternalAssetsProjectTranslations.English;
+
+                Projects.Clear();
+                Projects.Add(externalAssetsDefaultProject);
+
+                var builder = CreateBuilder();
+
+                var mockUserFinder = Create<Mock<IContentReferenceFinder<IUser>>>();
+                mockUserFinder.Setup(x => x.FindByIdAsync(It.IsAny<Guid>(), Cancel))
+                    .ReturnsAsync((IContentReference?)null);
+
+                var restProj = Projects.First();
+                var proj = await builder.BuildProjectAsync(restProj, mockUserFinder.Object, Cancel);
+
+                Assert.Equal(restProj.Id, proj.Id);
+                Assert.Equal(restProj.Owner!.Id, proj.Owner.Id);
+                Assert.Equal(Constants.SystemUserLocation, proj.Owner.Location);
             }
         }
 

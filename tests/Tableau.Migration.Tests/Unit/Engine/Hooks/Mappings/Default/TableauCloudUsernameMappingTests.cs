@@ -17,11 +17,14 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Localization;
+using Microsoft.Extensions.Logging;
 using Moq;
 using Tableau.Migration.Content;
 using Tableau.Migration.Engine.Hooks.Mappings;
 using Tableau.Migration.Engine.Hooks.Mappings.Default;
 using Tableau.Migration.Engine.Options;
+using Tableau.Migration.Resources;
 using Xunit;
 
 namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Mappings.Default
@@ -30,6 +33,9 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Mappings.Default
     {
         public class ExecuteAsync : AutoFixtureTestBase
         {
+            private Mock<ISharedResourcesLocalizer> MockLocalizer = new();
+            private Mock<ILogger<TableauCloudUsernameMapping>> MockLogger = new();
+
             private string MailDomain { get; set; } = string.Empty;
 
             private bool UseExistingEmail { get; set; } = true;
@@ -47,7 +53,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Mappings.Default
                 var mockOptionsProvider = Create<Mock<IMigrationPlanOptionsProvider<TableauCloudUsernameMappingOptions>>>();
                 mockOptionsProvider.Setup(x => x.Get()).Returns(opts);
 
-                return new TableauCloudUsernameMapping(mockOptionsProvider.Object);
+                return new TableauCloudUsernameMapping(mockOptionsProvider.Object, MockLocalizer.Object, MockLogger.Object);
             }
 
             [Fact]

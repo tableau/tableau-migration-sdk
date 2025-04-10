@@ -41,7 +41,7 @@ namespace Tableau.Migration.PythonGenerator.Writers
             if (property.Getter)
             {
                 string getterPrefix;
-                if(property.IsStatic)
+                if (property.IsStatic)
                 {
                     builder.AppendLine("@classmethod");
                     getterPrefix = "get_";
@@ -94,7 +94,7 @@ namespace Tableau.Migration.PythonGenerator.Writers
         }
 
         private static string DotNetPropertyReference(PythonType type, PythonProperty property)
-            => property.IsStatic? DotNetTypeName(type) : $"self.{PythonTypeWriter.DOTNET_OBJECT}";
+            => property.IsStatic ? DotNetTypeName(type) : $"self.{PythonTypeWriter.DOTNET_OBJECT}";
 
         private static string DotNetPropertyInvocation(PythonType type, PythonProperty property)
             => $"{DotNetPropertyReference(type, property)}.{property.DotNetProperty.Name}";

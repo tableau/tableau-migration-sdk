@@ -36,7 +36,7 @@ namespace Tableau.Migration.Engine.Manifest
         /// </summary>
         /// <param name="results">The results to add errors from.</param>
         /// <returns>This manifest editor, for fluent API usage.</returns>
-        public IMigrationManifestEditor AddErrors(IEnumerable<IResult> results)
+        public IMigrationManifestEditor AddErrors(params IEnumerable<IResult> results)
         {
             foreach (var result in results)
             {
@@ -58,13 +58,13 @@ namespace Tableau.Migration.Engine.Manifest
         /// </summary>
         /// <param name="errors">The errors to add.</param>
         /// <returns>This manifest editor, for fluent API usage.</returns>
-        IMigrationManifestEditor AddErrors(IEnumerable<Exception> errors);
+        IMigrationManifestEditor AddErrors(params IEnumerable<Exception> errors);
 
         /// <summary>
         /// Adds top-level errors that are not related to any Tableau content item.
         /// </summary>
         /// <param name="errors">The errors to add.</param>
         /// <returns>This manifest editor, for fluent API usage.</returns>
-        IMigrationManifestEditor AddErrors(params Exception[] errors);
+        IMigrationManifestEditor AddErrors(params Exception[] errors); //Overload for Python interop.
     }
 }

@@ -29,20 +29,22 @@ namespace Tableau.Migration.Engine.Migrators.Batch
     /// Abstract base class for <see cref="IContentBatchMigrator{TContent}"/> implementations.
     /// </summary>
     /// <typeparam name="TContent">The content type.</typeparam>
+    /// <typeparam name="TPrepare">The pulled type to prepare.</typeparam>
     /// <typeparam name="TPublish">The publish type.</typeparam>
-    public abstract class ContentBatchMigratorBase<TContent, TPublish> : IContentBatchMigrator<TContent>
+    public abstract class ContentBatchMigratorBase<TContent, TPrepare, TPublish> : IContentBatchMigrator<TContent>
         where TContent : class, IContentReference
+        where TPrepare : class
         where TPublish : class
     {
         private readonly IContentItemPreparer<TContent, TPublish> _itemPreparer;
 
         /// <summary>
-        /// Creates a new <see cref="ContentBatchMigratorBase{TContent, TPublish}"/> object.
+        /// Creates a new <see cref="ContentBatchMigratorBase{TContent, TPrepare, TPublish}"/> object.
         /// </summary>
         /// <param name="pipeline">The migration pipeline.</param>
         public ContentBatchMigratorBase(IMigrationPipeline pipeline)
         {
-            _itemPreparer = pipeline.GetItemPreparer<TContent, TPublish>();
+            _itemPreparer = pipeline.GetItemPreparer<TContent, TPrepare, TPublish>();
         }
 
         /// <summary>
@@ -96,11 +98,11 @@ namespace Tableau.Migration.Engine.Migrators.Batch
             catch (Exception ex) when (ex.IsCancellationException())
             {
                 item.ManifestEntry.SetCanceled();
-                itemResult = ContentItemMigrationResult<TContent>.Canceled(item.ManifestEntry, new[] { ex }, false);
+                itemResult = ContentItemMigrationResult<TContent>.Canceled(item.ManifestEntry, [ex], false);
             }
             catch (Exception ex) when (!ex.IsCancellationException())
             {
-                itemResult = ContentItemMigrationResult<TContent>.Failed(item.ManifestEntry, new[] { ex });
+                itemResult = ContentItemMigrationResult<TContent>.Failed(item.ManifestEntry, [ex]);
             }
 
             batch.ItemResults.Enqueue(itemResult);
@@ -151,15 +153,14 @@ namespace Tableau.Migration.Engine.Migrators.Batch
     /// Abstract base class for <see cref="IContentBatchMigrator{TContent}"/> implementations.
     /// </summary>
     /// <typeparam name="TContent">The content type.</typeparam>
-    public abstract class ContentBatchMigratorBase<TContent> : ContentBatchMigratorBase<TContent, TContent>
+    public abstract class ContentBatchMigratorBase<TContent> : ContentBatchMigratorBase<TContent, TContent, TContent>
         where TContent : class, IContentReference
     {
         /// <summary>
         /// Creates a new <see cref="ContentBatchMigratorBase{TContent}"/> object.
         /// </summary>
         /// <param name="pipeline">The migration pipeline.</param>
-        public ContentBatchMigratorBase(
-            IMigrationPipeline pipeline)
+        public ContentBatchMigratorBase(IMigrationPipeline pipeline)
             : base(pipeline)
         { }
     }

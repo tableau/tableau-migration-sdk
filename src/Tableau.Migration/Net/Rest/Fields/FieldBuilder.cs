@@ -38,7 +38,7 @@ namespace Tableau.Migration.Net.Rest.Fields
         }
 
         /// <inheritdoc/>
-        public IFieldBuilder AddFields(params Field[] fields)
+        public IFieldBuilder AddFields(params IEnumerable<Field> fields)
         {
             Guard.AgainstNull(fields, nameof(fields));
 

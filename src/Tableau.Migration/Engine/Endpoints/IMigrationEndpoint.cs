@@ -19,6 +19,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Tableau.Migration.Content;
+using Tableau.Migration.Engine.Endpoints.ContentClients;
 using Tableau.Migration.Paging;
 
 namespace Tableau.Migration.Engine.Endpoints
@@ -49,5 +50,12 @@ namespace Tableau.Migration.Engine.Endpoints
         /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>An awaitable task with the server session result.</returns>
         Task<IResult<IServerSession>> GetSessionAsync(CancellationToken cancel);
+
+        /// <summary>
+        /// Gets a content client for the given content type.
+        /// </summary>
+        /// <typeparam name="TContent">The content type.</typeparam>
+        /// <returns>The content client.</returns>
+        IContentClient<TContent> GetContentClient<TContent>();
     }
 }

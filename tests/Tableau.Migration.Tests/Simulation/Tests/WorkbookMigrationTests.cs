@@ -86,6 +86,13 @@ namespace Tableau.Migration.Tests.Simulation.Tests
                             SourceApi.Data.WorkbookPermissions[sourceWorkbook.Id],
                             CloudDestinationApi.Data.WorkbookPermissions[destinationWorkbook.Id]);
 
+                    // Assert keychains
+                    AssertEmbeddedCredentialsMigrated(result.Manifest,
+                        SourceApi.Data.WorkbookKeychains[sourceWorkbook.Id],
+                        CloudDestinationApi.Data.WorkbookKeychains[destinationWorkbook.Id],
+                        SourceApi.Data.UserSavedCredentials,
+                        CloudDestinationApi.Data.UserSavedCredentials);
+
                     // Assert workbook owner
                     Assert.NotNull(destinationWorkbook.Owner);
                     Assert.NotEqual(destinationWorkbook.Owner.Id, Guid.Empty);
@@ -100,7 +107,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests
                     // Assert connection
                     AssertWorkbookConnectionsMigrated(sourceWorkbook, destinationWorkbook);
 
-                    void AssertWorkbookViewMigrated(WorkbookResponse.WorkbookType.ViewReferenceType sourceView)
+                    void AssertWorkbookViewMigrated(WorkbookResponse.WorkbookType.WorkbookViewReferenceType sourceView)
                     {
                         // Get destination view
                         var destinationView = Assert.Single(destinationWorkbook!.Views, v => IViewReferenceTypeComparer.Instance.Equals(sourceView, v));

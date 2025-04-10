@@ -1,3 +1,5 @@
+- name: SDK Terminology
+  href: terms.md  
 - name: Configuration
   href: configuration.md  
 - name: Plan Validation

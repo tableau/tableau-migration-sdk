@@ -17,6 +17,7 @@
 
 # region _generated
 
+from tableau_migration.migration import PyPipelineProfile # noqa: E402, F401
 from typing import Sequence # noqa: E402, F401
 from typing_extensions import Self # noqa: E402, F401
 
@@ -73,28 +74,58 @@ class PyMigrationPipelineContentType():
         return None if MigrationPipelineContentType.Views is None else PyMigrationPipelineContentType(MigrationPipelineContentType.Views)
     
     @classmethod
+    def get_server_to_server_extract_refresh_tasks(cls) -> Self:
+        """Gets the Server to Server extract refresh tasks MigrationPipelineContentType."""
+        return None if MigrationPipelineContentType.ServerToServerExtractRefreshTasks is None else PyMigrationPipelineContentType(MigrationPipelineContentType.ServerToServerExtractRefreshTasks)
+    
+    @classmethod
     def get_server_to_cloud_extract_refresh_tasks(cls) -> Self:
         """Gets the Server to Cloud extract refresh tasks MigrationPipelineContentType."""
         return None if MigrationPipelineContentType.ServerToCloudExtractRefreshTasks is None else PyMigrationPipelineContentType(MigrationPipelineContentType.ServerToCloudExtractRefreshTasks)
+    
+    @classmethod
+    def get_cloud_to_cloud_extract_refresh_tasks(cls) -> Self:
+        """Gets the Cloud to Cloud extract refresh tasks MigrationPipelineContentType."""
+        return None if MigrationPipelineContentType.CloudToCloudExtractRefreshTasks is None else PyMigrationPipelineContentType(MigrationPipelineContentType.CloudToCloudExtractRefreshTasks)
     
     @classmethod
     def get_custom_views(cls) -> Self:
         """Gets the custom views MigrationPipelineContentType."""
         return None if MigrationPipelineContentType.CustomViews is None else PyMigrationPipelineContentType(MigrationPipelineContentType.CustomViews)
     
+    @classmethod
+    def get_server_to_server_subscriptions(cls) -> Self:
+        """Gets the Server to Server subscriptions MigrationPipelineContentType."""
+        return None if MigrationPipelineContentType.ServerToServerSubscriptions is None else PyMigrationPipelineContentType(MigrationPipelineContentType.ServerToServerSubscriptions)
+    
+    @classmethod
+    def get_server_to_cloud_subscriptions(cls) -> Self:
+        """Gets the Server to Cloud subscriptions MigrationPipelineContentType."""
+        return None if MigrationPipelineContentType.ServerToCloudSubscriptions is None else PyMigrationPipelineContentType(MigrationPipelineContentType.ServerToCloudSubscriptions)
+    
+    @classmethod
+    def get_cloud_to_cloud_subscriptions(cls) -> Self:
+        """Gets the Cloud to Cloud subscriptions MigrationPipelineContentType."""
+        return None if MigrationPipelineContentType.CloudToCloudSubscriptions is None else PyMigrationPipelineContentType(MigrationPipelineContentType.CloudToCloudSubscriptions)
+    
     @property
     def content_type(self) -> System.Type:
-        """The content type."""
+        """The content type. Content type is returned from list step, pre-pull."""
         return self._dotnet.ContentType
     
     @property
+    def prepare_type(self) -> System.Type:
+        """Gets the preparation type that is pulled and converted for publishing. The Prepare type is the post-pull, pre-conversion type."""
+        return self._dotnet.PrepareType
+    
+    @property
     def publish_type(self) -> System.Type:
-        """Gets the publish type."""
+        """Gets the publish type. The publish type is post-conversion, ready to publish."""
         return self._dotnet.PublishType
     
     @property
     def result_type(self) -> System.Type:
-        """Gets the result type."""
+        """Gets the result type returned by publishing."""
         return self._dotnet.ResultType
     
     @property
@@ -121,6 +152,37 @@ class PyMigrationPipelineContentType():
         """
         result = MigrationPipelineContentType.GetConfigKeyForType(content_type)
         return result
+    
+    @classmethod
+    def get_display_name_for_type(cls, content_type: System.Type, plural: bool) -> str:
+        """Gets the friendly display name for a content type.
+        
+        Args:
+            content_type: The content type.
+            plural: Whether the display name should be in plural form.
+        
+        Returns: The display name string.
+        """
+        result = MigrationPipelineContentType.GetDisplayNameForType(content_type, plural)
+        return result
+    
+    @classmethod
+    def get_migration_pipeline_content_types(cls, profile: PyPipelineProfile) -> Sequence[Self]:
+        """Gets the content types for a given profile.
+        
+        Args:
+            profile: Profile to get the types for.
+        
+        Returns: Array of content types supported by the given pipeline profile.
+        """
+        result = MigrationPipelineContentType.GetMigrationPipelineContentTypes(profile)
+        return None if result is None else list((None if x is None else PyMigrationPipelineContentType(x)) for x in result)
+    
+    @classmethod
+    def get_all_migration_pipeline_content_types(cls) -> Sequence[Self]:
+        """Gets all static instances of MigrationPipelineContentType."""
+        result = MigrationPipelineContentType.GetAllMigrationPipelineContentTypes()
+        return None if result is None else list((None if x is None else PyMigrationPipelineContentType(x)) for x in result)
     
 class PyServerToCloudMigrationPipeline():
     """IMigrationPipeline implementation to perform migrations from Tableau Server to Tableau Cloud."""

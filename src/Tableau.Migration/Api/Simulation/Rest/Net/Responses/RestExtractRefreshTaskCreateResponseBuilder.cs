@@ -28,7 +28,7 @@ using Tableau.Migration.Net;
 
 namespace Tableau.Migration.Api.Simulation.Rest.Net.Responses
 {
-    internal class RestExtractRefreshTaskCreateResponseBuilder : RestApiResponseBuilderBase<CreateExtractRefreshTaskResponse>
+    internal class RestExtractRefreshTaskCreateResponseBuilder : RestResponseBuilderBase<CreateExtractRefreshTaskResponse>
     {
         public RestExtractRefreshTaskCreateResponseBuilder(TableauData data, IHttpContentSerializer serializer)
             : base(data, serializer, requiresAuthentication: true)

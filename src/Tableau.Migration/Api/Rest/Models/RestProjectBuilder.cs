@@ -24,7 +24,6 @@ using System.Threading.Tasks;
 using Tableau.Migration.Content;
 using Tableau.Migration.Content.Search;
 using Tableau.Migration.Paging;
-using Tableau.Migration.Resources;
 
 using RestProject = Tableau.Migration.Api.Rest.Models.Responses.ProjectsResponse.ProjectType;
 
@@ -38,17 +37,6 @@ namespace Tableau.Migration.Api.Rest.Models
     internal sealed class RestProjectBuilder
     {
         private readonly ImmutableDictionary<Guid, RestProject> _restProjectsById;
-
-        private static readonly ImmutableHashSet<string> _systemProjectNames =
-            DefaultExternalAssetsProjectTranslations.GetAll()
-            .Append(Constants.DefaultProjectName)
-            // The admin insight project is usually named "Admin Insights"
-            // However, if that name is already taken when the real admin insights project is created
-            // one of the alternate names is used
-            .Append(Constants.AdminInsightsProjectName)
-            .Append(Constants.AdminInsightsTableauProjectName)
-            .Append(Constants.AdminInsightsTableauOnlineProjectName)
-            .ToImmutableHashSet(StringComparer.OrdinalIgnoreCase);
 
         public IEnumerable<RestProject> RestProjects => _restProjectsById.Values;
 
@@ -71,7 +59,7 @@ namespace Tableau.Migration.Api.Rest.Models
 
             if (foundOwner is null)
             {
-                if (restProject.Name is not null && _systemProjectNames.Contains(restProject.Name))
+                if (restProject.Name is not null && Constants.SystemProjectNames.Contains(restProject.Name))
                 {
                     return new ContentReferenceStub(ownerId, string.Empty, Constants.SystemUserLocation);
                 }

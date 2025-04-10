@@ -1,4 +1,4 @@
-﻿//
+//
 //  Copyright (c) 2025, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
@@ -17,10 +17,9 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Linq;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using Tableau.Migration;
 using Tableau.Migration.Api.Models;
 using Tableau.Migration.Api.Rest;
 using Tableau.Migration.Api.Rest.Models.Responses;
@@ -58,16 +57,17 @@ namespace Tableau.Migration.Api
                     // Deserializing it here if it exists so we can include it in the result.
                     var tsError = await serializer.TryDeserializeErrorAsync(response.Content, cancel).ConfigureAwait(false);
 
-                    var correlationId = response.Headers.GetCorrelationId();
-
                     if (tsError is not null)
                     {
-                        throw new RestException(
+                        var ex = new RestException(
                             response.RequestMessage?.Method,
                             response.RequestMessage?.RequestUri,
-                            correlationId,
+                            response.Headers.GetCorrelationId(),
                             tsError,
+                            new StackTrace(fNeedFileInfo: true).ToString(),
                             sharedResourcesLocalizer);
+
+                        return Result.Failed(ex);
                     }
                 }
 
@@ -123,14 +123,15 @@ namespace Tableau.Migration.Api
 
                 if (restError is not null)
                 {
-                    var correlationId = response.Headers.GetCorrelationId();
-
-                    throw new RestException(
+                    var ex = new RestException(
                         response.RequestMessage?.Method,
                         response.RequestMessage?.RequestUri,
-                        correlationId,
+                        response.Headers.GetCorrelationId(),
                         restError,
+                        new StackTrace(fNeedFileInfo: true).ToString(),
                         sharedResourcesLocalizer);
+
+                    return Result<TModel>.Failed(ex);
                 }
 
                 response.EnsureSuccessStatusCode();
@@ -157,14 +158,15 @@ namespace Tableau.Migration.Api
 
                 if (restError is not null)
                 {
-                    var correlationId = response.Headers.GetCorrelationId();
-
-                    throw new RestException(
+                    var ex = new RestException(
                         response.RequestMessage?.Method,
                         response.RequestMessage?.RequestUri,
-                        correlationId,
+                        response.Headers.GetCorrelationId(),
                         restError,
+                        new StackTrace(fNeedFileInfo: true).ToString(),
                         sharedResourcesLocalizer);
+
+                    return Result<TModel>.Failed(ex);
                 }
 
                 response.EnsureSuccessStatusCode();
@@ -207,14 +209,15 @@ namespace Tableau.Migration.Api
 
                 if (restError is not null)
                 {
-                    var correlationId = response.Headers.GetCorrelationId();
-
-                    throw new RestException(
+                    var ex = new RestException(
                         response.RequestMessage?.Method,
                         response.RequestMessage?.RequestUri,
-                        correlationId,
+                        response.Headers.GetCorrelationId(),
                         restError,
+                        new StackTrace(fNeedFileInfo: true).ToString(),
                         sharedResourcesLocalizer);
+
+                    return PagedResult<TModel>.Failed(ex);
                 }
 
                 response.EnsureSuccessStatusCode();
@@ -259,14 +262,15 @@ namespace Tableau.Migration.Api
 
                 if (restError is not null)
                 {
-                    var correlationId = response.Headers.GetCorrelationId();
-
-                    throw new RestException(
+                    var ex = new RestException(
                         response.RequestMessage?.Method,
                         response.RequestMessage?.RequestUri,
-                        correlationId,
+                        response.Headers.GetCorrelationId(),
                         restError,
+                        new StackTrace(fNeedFileInfo: true).ToString(),
                         sharedResourcesLocalizer);
+
+                    return PagedResult<TModel>.Failed(ex);
                 }
 
                 response.EnsureSuccessStatusCode();
@@ -285,6 +289,12 @@ namespace Tableau.Migration.Api
 
         #region - File Downloads -
 
+        /// <summary>
+        /// Parses the filename value from the Content-Disposition header with known Tableau API quirks.
+        /// .NET's validation of the Content Disposition header value fails with Tableau APIs, so we parse the header value manually.
+        /// </summary>
+        /// <param name="response">The HTTP response.</param>
+        /// <returns>The parsed filename, or null if no filename could be found.</returns>
         internal static string? GetContentDispositionFilename(this IHttpResponseMessage response)
         {
             if (!response.Content.Headers.TryGetValues(RestHeaders.ContentDisposition, out var contentDispositions))
@@ -306,13 +316,32 @@ namespace Tableau.Migration.Api
                     if (string.IsNullOrEmpty(part))
                         continue;
 
-                    var kvp = part.Trim().Split("=", StringSplitOptions.RemoveEmptyEntries);
+                    /* 
+                     * Linux Tableau Servers will encode the header value as UTF-8,
+                     * which uses a *=UTF-8'' separator in accordance with https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Disposition
+                     */
+                    var kvp = part.Trim().Split(["=", "*=UTF-8''"], StringSplitOptions.RemoveEmptyEntries);
                     if (kvp.IsNullOrEmpty() || kvp.Length != 2)
                         continue;
 
                     if (kvp[0].Equals("filename", StringComparison.OrdinalIgnoreCase))
                         return kvp[1].Trim('"');
                 }
+            }
+
+            return null;
+        }
+
+        internal static bool? DetectZipFileFromContentType(this IHttpResponseMessage response)
+        {
+            var contentType = response.Content.Headers.ContentType;
+            if(contentType.IsOctetStream())
+            {
+                return true;
+            }
+            else if(contentType.IsXml())
+            {
+                return false;
             }
 
             return null;
@@ -327,10 +356,10 @@ namespace Tableau.Migration.Api
                 response.EnsureSuccessStatusCode();
 
                 var filename = response.GetContentDispositionFilename();
-
                 var content = await response.Content.ReadAsStreamAsync(cancel).ConfigureAwait(false);
+                var isZipFile = response.DetectZipFileFromContentType();
 
-                var download = new FileDownload(filename, content);
+                var download = new FileDownload(filename, content, isZipFile);
                 return AsyncDisposableResult<FileDownload>.Succeeded(download);
             }
             catch (Exception ex)

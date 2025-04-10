@@ -146,16 +146,17 @@ class _SkipContentByParentLocationFilter(Generic[TContent]): # noqa: N801
         """Default init to set up logging."""
         self._logger = logging.getLogger(logger_name)
         self._logger.setLevel(logging.DEBUG)
+        self._skipped_project = helper.config['skipped_project']
 
     def should_migrate(self, item: ContentMigrationItem[TContent], services) -> bool:
-        if item.source_item.location.parent().path != helper.config['skipped_project']:
+        if not self._skipped_project or item.source_item.location.parent().path != self._skipped_project:
             return True
 
         source_project_finder = services.get_source_finder(IProject)
 
         content_reference = source_project_finder.find_by_source_location(item.source_item.location.parent())
 
-        self._logger.info('Skipping %s that belongs to "%s" (Project ID: %s)', self.__orig_class__.__args__[0].__name__, helper.config['skipped_project'], content_reference.id)
+        self._logger.info('Skipping %s that belongs to "%s" (Project ID: %s)', self.__orig_class__.__args__[0].__name__, self._skipped_project, content_reference.id)
         return False
 
 class SkipProjectByParentLocationFilter(ContentFilterBase[IProject]): # noqa: N801

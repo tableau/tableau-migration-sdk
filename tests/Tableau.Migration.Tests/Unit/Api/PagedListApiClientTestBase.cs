@@ -23,7 +23,7 @@ using Xunit;
 namespace Tableau.Migration.Tests.Unit.Api
 {
     public abstract class PagedListApiClientTestBase<TApiClient, TContent, TResponse> : ApiClientTestBase<TApiClient>
-        where TApiClient : IPagedListApiClient<TContent>
+        where TApiClient : IPagedListApiClient<TContent>, IContentApiClient
         where TResponse : TableauServerResponse, new()
     {
         [Fact]

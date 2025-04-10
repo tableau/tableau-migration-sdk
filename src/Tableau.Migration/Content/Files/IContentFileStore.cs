@@ -37,8 +37,9 @@ namespace Tableau.Migration.Content.Files
         /// </summary>
         /// <param name="relativeStorePath">The relative path and file name to create a file for within the file store.</param>
         /// <param name="originalFileName">The original file name external to the file store to preserve when publishing content items.</param>
+        /// <param name="zipFormatOverride">Whether or not the file is in zip format, or null if the zip status is unknown.</param>
         /// <returns>A handle to the newly created file.</returns>
-        IContentFileHandle Create(string relativeStorePath, string originalFileName);
+        IContentFileHandle Create(string relativeStorePath, string originalFileName, bool? zipFormatOverride = null);
 
         /// <summary>
         /// Creates a file managed by the file store.
@@ -46,8 +47,9 @@ namespace Tableau.Migration.Content.Files
         /// <typeparam name="TContent">The content type.</typeparam>
         /// <param name="contentItem">The content item to resolve a relative file store path from.</param>
         /// <param name="originalFileName">The original file name external to the file store to preserve when publishing content items.</param>
+        /// <param name="zipFormatOverride">Whether or not the file is in zip format, or null if the zip status is unknown.</param>
         /// <returns>A handle to the newly created file.</returns>
-        IContentFileHandle Create<TContent>(TContent contentItem, string originalFileName);
+        IContentFileHandle Create<TContent>(TContent contentItem, string originalFileName, bool? zipFormatOverride = null);
 
         /// <summary>
         /// Creates a file managed by the file store.
@@ -56,11 +58,12 @@ namespace Tableau.Migration.Content.Files
         /// <param name="originalFileName">The original file name external to the file store to preserve when publishing content items.</param>
         /// <param name="initialContent">The initial content to save the file with.</param>
         /// <param name="cancel">The cancellation token to obey.</param>
+        /// <param name="zipFormatOverride">Whether or not the file is in zip format, or null if the zip status is unknown.</param>
         /// <returns>A handle to the newly created file.</returns>
         public async Task<IContentFileHandle> CreateAsync(string relativeStorePath, string originalFileName,
-            Stream initialContent, CancellationToken cancel)
+            Stream initialContent, CancellationToken cancel, bool? zipFormatOverride = null)
         {
-            var handle = Create(relativeStorePath, originalFileName);
+            var handle = Create(relativeStorePath, originalFileName, zipFormatOverride);
 
             var writeStream = await OpenWriteAsync(handle, cancel).ConfigureAwait(false);
             await using (writeStream)
@@ -79,11 +82,12 @@ namespace Tableau.Migration.Content.Files
         /// <param name="originalFileName">The original file name external to the file store to preserve when publishing content items.</param>
         /// <param name="initialContent">The initial content to save the file with.</param>
         /// <param name="cancel">The cancellation token to obey.</param>
+        /// <param name="zipFormatOverride">Whether or not the file is in zip format, or null if the zip status is unknown.</param>
         /// <returns>A handle to the newly created file.</returns>
         public async Task<IContentFileHandle> CreateAsync<TContent>(TContent contentItem, string originalFileName,
-            Stream initialContent, CancellationToken cancel)
+            Stream initialContent, CancellationToken cancel, bool? zipFormatOverride = null)
         {
-            var handle = Create(contentItem, originalFileName);
+            var handle = Create(contentItem, originalFileName, zipFormatOverride);
 
             var writeStream = await OpenWriteAsync(handle, cancel).ConfigureAwait(false);
             await using (writeStream)
@@ -116,16 +120,11 @@ namespace Tableau.Migration.Content.Files
         /// </summary>
         /// <param name="handle">The handle to the file to get the editor for.</param>
         /// <param name="cancel">The cancellation token to obey.</param>
-        /// <param name="zipFormatOverride">
-        /// True to consider the file a zip archive, 
-        /// false to consider the file an XML file, 
-        /// or null to detect whether the file is a zip archive.
-        /// </param>
         /// <returns>
         /// The editor to use.
         /// Changes made will be flushed automatically before the content item is published.
         /// </returns>
-        Task<ITableauFileEditor> GetTableauFileEditorAsync(IContentFileHandle handle, CancellationToken cancel, bool? zipFormatOverride = null);
+        Task<ITableauFileEditor> GetTableauFileEditorAsync(IContentFileHandle handle, CancellationToken cancel);
 
         /// <summary>
         /// Closes the current Tableau file format editor for the content file, 

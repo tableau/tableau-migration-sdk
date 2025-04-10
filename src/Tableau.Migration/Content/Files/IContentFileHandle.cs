@@ -42,6 +42,12 @@ namespace Tableau.Migration.Content.Files
         IContentFileStore Store { get; }
 
         /// <summary>
+        /// Gets whether or not the file is a zip archive, 
+        /// or null if the zip file status is unknown.
+        /// </summary>
+        bool? IsZipFile { get; }
+
+        /// <summary>
         /// Opens a stream to read from a file.
         /// </summary>
         /// <param name="cancel">The cancellation token to obey.</param>
@@ -62,5 +68,8 @@ namespace Tableau.Migration.Content.Files
         /// </summary>
         /// <returns>The XML stream to edit.</returns>
         Task<ITableauFileXmlStream> GetXmlStreamAsync(CancellationToken cancel);
+
+        internal bool? HasZipFilePath =>
+            new FilePath(OriginalFileName).IsZipFile ?? new FilePath(Path).IsZipFile;
     }
 }

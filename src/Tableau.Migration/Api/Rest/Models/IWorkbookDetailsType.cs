@@ -25,6 +25,6 @@ namespace Tableau.Migration.Api.Rest.Models
         /// <summary>
         /// Gets the views for the response.
         /// </summary>
-        IViewReferenceType[] Views { get; }
+        IWorkbookViewReferenceType[] Views { get; }
     }
 }

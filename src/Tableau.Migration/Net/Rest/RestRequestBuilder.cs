@@ -96,7 +96,7 @@ namespace Tableau.Migration.Net.Rest
         }
 
         /// <inheritdoc/>
-        public IRestRequestBuilder WithFields(params Field[] fields)
+        public IRestRequestBuilder WithFields(params IEnumerable<Field> fields)
         {
             _fields.AddFields(fields);
             return this;
@@ -110,14 +110,7 @@ namespace Tableau.Migration.Net.Rest
         }
 
         /// <inheritdoc/>
-        public IRestRequestBuilder WithFilters(params Filter[] filters)
-        {
-            _filters.AddFilters(filters);
-            return this;
-        }
-
-        /// <inheritdoc/>
-        public IRestRequestBuilder WithFilters(IEnumerable<Filter> filters)
+        public IRestRequestBuilder WithFilters(params IEnumerable<Filter> filters)
         {
             _filters.AddFilters(filters);
             return this;
@@ -131,7 +124,7 @@ namespace Tableau.Migration.Net.Rest
         }
 
         /// <inheritdoc/>
-        public IRestRequestBuilder WithSorts(params Sort[] sorts)
+        public IRestRequestBuilder WithSorts(params IEnumerable<Sort> sorts)
         {
             _sorts.AddSorts(sorts);
             return this;

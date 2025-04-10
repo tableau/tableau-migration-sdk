@@ -22,11 +22,13 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using AutoFixture;
+using Microsoft.Extensions.Logging;
 using Moq;
 using Tableau.Migration.Content;
 using Tableau.Migration.Engine;
 using Tableau.Migration.Engine.Hooks;
 using Tableau.Migration.Engine.Hooks.Filters;
+using Tableau.Migration.Resources;
 using Xunit;
 
 namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Filters
@@ -39,6 +41,14 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Filters
 
         private class TestMigrationItems : IEnumerable<ContentMigrationItem<IUser>>
         {
+            public TestMigrationItems()
+            { }
+
+            public TestMigrationItems(IEnumerable<ContentMigrationItem<IUser>> items)
+            {
+                migrationItems.AddRange(items);
+            }
+
             private readonly List<ContentMigrationItem<IUser>> migrationItems = new();
 
             public IEnumerator<ContentMigrationItem<IUser>> GetEnumerator()
@@ -83,6 +93,9 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Filters
 
             private readonly IMigrationPlan _plan;
 
+            private readonly Mock<ISharedResourcesLocalizer> _mockLocalizer = new();
+            private readonly Mock<ILogger<ContentFilterRunner>> _mockLogger = new();
+
             private readonly ContentFilterRunner _runner;
 
             public ExecuteAsync()
@@ -97,7 +110,8 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Filters
                 mockPlan.SetupGet(x => x.Filters).Returns(mockFilters.Object);
                 _plan = mockPlan.Object;
                 Assert.NotNull(_plan.Filters);
-                _runner = new(_plan, new Mock<IServiceProvider>().Object);
+
+                _runner = new(_plan, new Mock<IServiceProvider>().Object, _mockLocalizer.Object, _mockLogger.Object);
             }
 
             private void AddFilterWithResult(TestMigrationItems? result)
@@ -113,16 +127,17 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Filters
                 //
                 // Setup 3 different results for the 3 different filters. 
                 // The filters don't do anything other then return the result it was given (for testing purposes)
-                var result1 = new TestMigrationItems();
-                var result2 = new TestMigrationItems();
-                var result3 = new TestMigrationItems();
+                var result1 = new TestMigrationItems(AutoFixture.CreateMany<ContentMigrationItem<IUser>>());
+                var result2 = new TestMigrationItems(AutoFixture.CreateMany<ContentMigrationItem<IUser>>());
+                var result3 = new TestMigrationItems(AutoFixture.CreateMany<ContentMigrationItem<IUser>>());
 
                 AddFilterWithResult(result1);
                 AddFilterWithResult(result2);
                 AddFilterWithResult(result3);
 
                 // Setup the input context that will be used to verify the filters
-                var input = new TestMigrationItems();
+                var input = new TestMigrationItems(AutoFixture.CreateMany<ContentMigrationItem<IUser>>());
+                Assert.NotEmpty(input);
 
                 // Act
                 var result = await _runner.ExecuteAsync(input, default);
@@ -137,6 +152,9 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Filters
                 // input context order is saved back to _transformerExecutionContexts because TestFilter saves them
                 // just to verify that the order is correct
                 Assert.Equal(new[] { input, result1, result2 }, _filterExecutionContexts);
+
+                // Verify logging was called at least once
+                _mockLogger.VerifyLogging(LogLevel.Debug, Times.AtLeastOnce());
             }
 
             [Fact]
@@ -151,7 +169,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Filters
                 AddFilterWithResult(null);
                 AddFilterWithResult(null);
 
-                var input = new TestMigrationItems();
+                var input = new TestMigrationItems(AutoFixture.CreateMany<ContentMigrationItem<IUser>>());
 
                 // Act
                 var result = await _runner.ExecuteAsync(input, default);
@@ -168,6 +186,9 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Filters
                 // just to verify that the order is correct
                 // In this case, none of the filters updated the input context, so they should all be the same
                 Assert.Equal(new[] { input, input, input }, _filterExecutionContexts);
+
+                // Verify logging was not called as the filters don't filter anything
+                _mockLogger.VerifyLogging(LogLevel.Debug, Times.Never());
             }
         }
 

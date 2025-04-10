@@ -1,4 +1,4 @@
-﻿//
+//
 //  Copyright (c) 2025, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
@@ -20,23 +20,28 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Tableau.Migration.Api;
+using Tableau.Migration.Api.Models;
 using Tableau.Migration.Content;
 using Tableau.Migration.Content.Files;
 using Tableau.Migration.Content.Permissions;
 using Tableau.Migration.Content.Search;
+using Tableau.Migration.Engine.Endpoints.ContentClients;
 using Tableau.Migration.Paging;
 using Tableau.Migration.Resources;
 
 namespace Tableau.Migration.Engine.Endpoints
 {
     /// <summary>
-    /// <see cref="IMigrationEndpoint"/> impelementation that uses Tableau Server/Cloud APIs.
+    /// <see cref="IMigrationEndpoint"/> implementation that uses Tableau Server/Cloud APIs.
     /// </summary>
     public abstract class TableauApiEndpointBase : IMigrationApiEndpoint
     {
+        private readonly ILoggerFactory _loggerFactory;
         private readonly ISharedResourcesLocalizer _localizer;
         private IAsyncDisposableResult<ISitesApiClient>? _signInResult;
+        private IContentClientFactory? _contentClientFactory;
 
         /// <summary>
         /// The per-endpoint dependency injection scope.
@@ -76,11 +81,13 @@ namespace Tableau.Migration.Engine.Endpoints
         /// <param name="config">The configuration options for connecting to the endpoint APIs.</param>
         /// <param name="finderFactory">The content finder factory to supply to the API client.</param>
         /// <param name="fileStore">The file store to use.</param>
+        /// <param name="loggerFactory">The logger factory to use.</param>
         /// <param name="localizer">A string localizer.</param>
         public TableauApiEndpointBase(IServiceScopeFactory serviceScopeFactory,
             ITableauApiEndpointConfiguration config,
             IContentReferenceFinderFactory finderFactory,
-            IContentFileStore fileStore, 
+            IContentFileStore fileStore,
+            ILoggerFactory loggerFactory,
             ISharedResourcesLocalizer localizer)
         {
             EndpointScope = serviceScopeFactory.CreateAsyncScope();
@@ -88,6 +95,7 @@ namespace Tableau.Migration.Engine.Endpoints
             var apiClientFactory = EndpointScope.ServiceProvider.GetRequiredService<IScopedApiClientFactory>();
 
             ServerApi = apiClientFactory.Initialize(config.SiteConnectionConfiguration, finderFactory, fileStore);
+            _loggerFactory = loggerFactory;
             _localizer = localizer;
         }
 
@@ -114,6 +122,12 @@ namespace Tableau.Migration.Engine.Endpoints
         public async Task<IResult> InitializeAsync(CancellationToken cancel)
         {
             _signInResult = await ServerApi.SignInAsync(cancel).ConfigureAwait(false);
+
+            if (_signInResult.Success)
+            {
+                _contentClientFactory = new ApiContentClientFactory(SiteApi, _loggerFactory, _localizer);
+            }
+
             return _signInResult;
         }
 
@@ -152,6 +166,39 @@ namespace Tableau.Migration.Engine.Endpoints
             return await apiClient.GetConnectionsAsync(contentItemId, cancel).ConfigureAwait(false);
         }
 
+        /// <inheritdoc />
+        public IContentClient<TContent> GetContentClient<TContent>()
+        {
+            if (_contentClientFactory is null)
+            {
+                throw new InvalidOperationException(_localizer[SharedResourceKeys.ApiEndpointNotInitializedError]);
+            }
+
+            return _contentClientFactory.GetContentClient<TContent>();
+        }
+
+
         #endregion
+
+
+        /// <inheritdoc />
+        public async Task<IResult<IEmbeddedCredentialKeychainResult>> RetrieveKeychainsAsync<TContent>(
+            Guid contentItemId,
+            IDestinationSiteInfo destinationSiteInfo,
+            CancellationToken cancel)
+            where TContent : IWithEmbeddedCredentials
+        {
+            var apiClient = SiteApi.GetEmbeddedCredentialsApiClient<TContent>();
+            return await apiClient.EmbeddedCredentials.RetrieveKeychainAsync(contentItemId, destinationSiteInfo, cancel).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc />
+        public async Task<IResult<IEmbeddedCredentialKeychainResult>> RetrieveUserSavedCredentialsAsync(
+            Guid userId,
+            IDestinationSiteInfo destinationSiteInfo,
+            CancellationToken cancel)
+        {
+            return await SiteApi.Users.RetrieveUserSavedCredentialsAsync(userId, destinationSiteInfo, cancel).ConfigureAwait(false);
+        }
     }
 }

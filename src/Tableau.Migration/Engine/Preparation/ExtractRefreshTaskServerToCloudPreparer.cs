@@ -27,6 +27,8 @@ using Tableau.Migration.Content.Schedules.Server;
 using Tableau.Migration.Engine.Endpoints;
 using Tableau.Migration.Engine.Endpoints.Search;
 using Tableau.Migration.Engine.Hooks.Transformers;
+using Tableau.Migration.Engine.Pipelines;
+using Tableau.Migration.Resources;
 
 namespace Tableau.Migration.Engine.Preparation
 {
@@ -35,7 +37,7 @@ namespace Tableau.Migration.Engine.Preparation
     /// the publish item from the source endpoint.
     /// </summary>
     public class ExtractRefreshTaskServerToCloudPreparer
-        : EndpointContentItemPreparer<IServerExtractRefreshTask, ICloudExtractRefreshTask>
+        : SourceContentItemPreparer<IServerExtractRefreshTask, ICloudExtractRefreshTask>
     {
         private readonly IDestinationApiEndpoint? _destinationApi;
         private readonly IConfigReader _configReader;
@@ -44,21 +46,20 @@ namespace Tableau.Migration.Engine.Preparation
         /// <summary>
         /// Creates a new <see cref="ExtractRefreshTaskServerToCloudPreparer"/> object.
         /// </summary>
-        /// <param name="source">The source endpoint.</param>
         /// <param name="destination">The destination endpoint.</param>
+        /// <param name="pipeline"><inheritdoc /></param>
         /// <param name="transformerRunner"><inheritdoc /></param>
         /// <param name="destinationFinderFactory"><inheritdoc /></param>
+        /// <param name="localizer"><inheritdoc /></param>
         /// <param name="configReader">A config reader.</param>
         public ExtractRefreshTaskServerToCloudPreparer(
-            ISourceEndpoint source,
             IDestinationEndpoint destination,
+            IMigrationPipeline pipeline,
             IContentTransformerRunner transformerRunner,
             IDestinationContentReferenceFinderFactory destinationFinderFactory,
+            ISharedResourcesLocalizer localizer,
             IConfigReader configReader)
-            : base(
-                  source, 
-                  transformerRunner,
-                  destinationFinderFactory)
+            : base(pipeline, transformerRunner, destinationFinderFactory, localizer)
         {
             if (destination is IDestinationApiEndpoint destinationApi)
             {

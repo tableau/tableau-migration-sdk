@@ -54,5 +54,10 @@ namespace Tableau.Migration.Content.Permissions
         /// Gets the table content type URL path segment.
         /// </summary>
         public const string Tables = "tables";
+
+        /// <summary>
+        /// Gets the virtual connections content type URL path segment.
+        /// </summary>
+        public const string VirtualConnections = "virtualconnections";
     }
 }

@@ -114,7 +114,7 @@ namespace Csharp.ExampleApplication
             #region UnlicensedUsersFilter-Registration
             _planBuilder.Filters.Add<UnlicensedUsersFilter, IUser>();
             #endregion
-            
+
             #region SharedCustomViewFilter-Registration
             _planBuilder.Filters.Add<SharedCustomViewFilter, ICustomView>();
             #endregion
@@ -143,9 +143,13 @@ namespace Csharp.ExampleApplication
             #region StartAtTransformer-Registration
             _planBuilder.Transformers.Add<SimpleScheduleStartAtTransformer<ICloudExtractRefreshTask>, ICloudExtractRefreshTask>();
             #endregion
-            
+
             #region CustomViewDefaultUsersTransformer-Registration
             _planBuilder.Transformers.Add<CustomViewExcludeDefaultUserTransformer, IPublishableCustomView>();
+            #endregion
+
+            #region ActionUrlXmlTransformer-Registration
+            _planBuilder.Transformers.Add<ActionUrlXmlTransformer, IPublishableWorkbook>();
             #endregion
 
             // Add initialize migration hooks
@@ -213,7 +217,7 @@ namespace Csharp.ExampleApplication
                 }
             }
 
-            foreach (var type in ServerToCloudMigrationPipeline.ContentTypes)
+            foreach (var type in MigrationPipelineContentType.GetMigrationPipelineContentTypes(result.Manifest.PipelineProfile))
             {
                 var contentType = type.ContentType;
 

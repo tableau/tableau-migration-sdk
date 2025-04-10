@@ -36,7 +36,7 @@ namespace Tableau.Migration.PythonGenerator.Writers
         {
             ctorBuilder.AppendLine($"dotnet = self.create({DotNetTypeName(type.DotNetType)})");
             ctorBuilder.AppendLine($"py = {PythonTypeName(type)}(dotnet)");
-            
+
             ctorBuilder.AppendLine($"assert py._dotnet == dotnet");
         }
     }

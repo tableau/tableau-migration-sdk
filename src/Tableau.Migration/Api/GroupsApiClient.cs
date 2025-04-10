@@ -40,8 +40,6 @@ namespace Tableau.Migration.Api
 {
     internal sealed class GroupsApiClient : ContentApiClientBase, IGroupsApiClient
     {
-        internal const string GROUP_NAME_CONFLICT_ERROR_CODE = "409009";
-
         private readonly IHttpContentSerializer _serializer;
         private readonly IConfigReader _configReader;
 
@@ -200,7 +198,7 @@ namespace Tableau.Migration.Api
         private async Task<IResult<IGroup>> FixupUniqueGroupErrorAsync(IPublishableGroup item, IResult<IGroup> publishResult, CancellationToken cancel)
         {
             if (publishResult.Success
-                || !publishResult.Errors.OfType<RestException>().Any(e => e.Code == GROUP_NAME_CONFLICT_ERROR_CODE))
+                || !publishResult.Errors.OfType<RestException>().Any(e => RestErrorCodes.Equals(e.Code, RestErrorCodes.GROUP_NAME_CONFLICT_ERROR_CODE)))
             {
                 return publishResult;
             }

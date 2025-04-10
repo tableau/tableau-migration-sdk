@@ -21,6 +21,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Tableau.Migration.Api;
+using Tableau.Migration.Api.EmbeddedCredentials;
 using Tableau.Migration.Api.Permissions;
 using Tableau.Migration.Api.Publishing;
 using Tableau.Migration.Api.Rest.Models;
@@ -64,19 +65,24 @@ namespace Tableau.Migration.Tests.Unit.Api
         public Mock<IWorkbookPublisher> MockWorkbookPublisher => Dependencies.MockWorkbookPublisher;
         public Mock<ITagsApiClient> MockTagsApiClient => Dependencies.MockTagsApiClient;
         public Mock<IViewsApiClient> MockViewsApiClient => Dependencies.MockViewsApiClient;
+        public Mock<IEmbeddedCredentialsApiClient> MockEmbeddedCredentialsApiClient => Dependencies.MockEmbeddedCredentialsApiClient;
         public TestHttpStreamProcessor HttpStreamProcessor => Dependencies.HttpStreamProcessor;
         public IHttpContentSerializer Serializer => Dependencies.Serializer;
         public IRestRequestBuilderFactory RestRequestBuilderFactory => Dependencies.RestRequestBuilderFactory;
         public TableauServerVersion TableauServerVersion => Dependencies.TableauServerVersion;
         public TableauSiteConnectionConfiguration SiteConnectionConfiguration => Dependencies.SiteConnectionConfiguration;
+        public Mock<ISchedulesApiClient> MockSchedulesApiClient => Dependencies.MockSchedulesApiClient;
 
         #endregion
+
+        protected TableauInstanceType InstanceType { get; set; }
 
         internal readonly ApiClientTestDependencies Dependencies;
 
         public ApiTestBase()
         {
             Dependencies = new(AutoFixture);
+            MockSessionProvider.SetupGet(x => x.InstanceType).Returns(() => InstanceType);
         }
 
         protected void AssertUri(HttpRequestMessage request, string expectedRelativeUri)

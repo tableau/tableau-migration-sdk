@@ -18,6 +18,7 @@
 using System;
 using System.Collections.Generic;
 using Moq;
+using Tableau.Migration.Config;
 using Tableau.Migration.Engine.Actions;
 using Tableau.Migration.Engine.Pipelines;
 using Xunit;
@@ -28,8 +29,8 @@ namespace Tableau.Migration.Tests.Unit.Engine.Pipelines
     {
         public sealed class TestCustomPipeline : MigrationPipelineBase
         {
-            public TestCustomPipeline(IServiceProvider services) 
-                : base(services)
+            public TestCustomPipeline(IServiceProvider services, IConfigReader configReader)
+                : base(services, configReader)
             { }
 
             protected override IEnumerable<IMigrationAction> BuildPipeline()

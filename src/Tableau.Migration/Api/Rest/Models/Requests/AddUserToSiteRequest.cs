@@ -16,6 +16,7 @@
 //
 
 using System.Xml.Serialization;
+using Tableau.Migration.Content;
 
 namespace Tableau.Migration.Api.Rest.Models.Requests
 {
@@ -40,15 +41,24 @@ namespace Tableau.Migration.Api.Rest.Models.Requests
         /// </summary>
         /// <param name="name">The username.</param>
         /// <param name="siteRole">The user's site role.</param>
-        /// <param name="authSetting">The user's authentication type.</param>
-        public AddUserToSiteRequest(string name, string siteRole, string? authSetting)
+        /// <param name="authentication">The user's authentication.</param>
+        public AddUserToSiteRequest(string name, string siteRole, UserAuthenticationType authentication)
         {
             User = new UserType
             {
                 Name = name,
-                SiteRole = siteRole,
-                AuthSetting = authSetting
+                SiteRole = siteRole
             };
+
+            // IdP configuration ID and auth setting are mutually exclusive, set the ID if available.
+            if (authentication.IdpConfigurationId is not null)
+            {
+                User.IdpConfigurationId = authentication.IdpConfigurationId.ToString();
+            }
+            else
+            {
+                User.AuthSetting = authentication.AuthenticationType;
+            }
         }
 
         /// <summary>
@@ -80,6 +90,11 @@ namespace Tableau.Migration.Api.Rest.Models.Requests
             [XmlAttribute("authSetting")]
             public string? AuthSetting { get; set; }
 
+            /// <summary>
+            /// Gets or sets the IDP Configuration ID for the request.
+            /// </summary>
+            [XmlAttribute("idpConfigurationId")]
+            public string? IdpConfigurationId { get; set; }
         }
     }
 }

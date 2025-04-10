@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.WebAssembly">
+    <PropertyGroup>
+        <TargetFramework>net8.0-browser</TargetFramework>
+        <OutputType>Exe</OutputType>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    </PropertyGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\Tableau.Migration.ManifestExplorer\Tableau.Migration.ManifestExplorer.csproj" />
+	</ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Avalonia.Browser" Version="$(AvaloniaVersion)" />
+    </ItemGroup>
+</Project>

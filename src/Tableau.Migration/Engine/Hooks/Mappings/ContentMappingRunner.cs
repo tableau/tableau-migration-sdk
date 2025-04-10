@@ -19,27 +19,55 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using Tableau.Migration.Resources;
 
 namespace Tableau.Migration.Engine.Hooks.Mappings
 {
     internal class ContentMappingRunner
         : MigrationHookRunnerBase, IContentMappingRunner
     {
+        private readonly ISharedResourcesLocalizer _localizer;
+        private readonly ILogger<ContentMappingRunner> _logger;
+
         /// <summary>
         /// Default constructor for this class.
         /// </summary>
         /// <param name="plan">Migration plan used to run the mappings.</param>
         /// <param name="services">Service provider context to resolve the mappings used by the runner.</param>
-        public ContentMappingRunner(IMigrationPlan plan, IServiceProvider services)
+        /// <param name="localizer">String localizer.</param>
+        /// <param name="logger">Default logger.</param>
+        public ContentMappingRunner(
+            IMigrationPlan plan,
+            IServiceProvider services,
+            ISharedResourcesLocalizer localizer,
+            ILogger<ContentMappingRunner> logger
+            )
             : base(plan, services)
-        { }
+        {
+            _localizer = localizer;
+            _logger = logger;
+        }
 
         /// <inheritdoc />
         public async Task<ContentMappingContext<TContent>> ExecuteAsync<TContent>(ContentMappingContext<TContent> location, CancellationToken cancel)
             where TContent : IContentReference
-            => await ExecuteAsync<IContentMapping<TContent>, ContentMappingContext<TContent>>(location, cancel).ConfigureAwait(false);
+            => await ExecuteAsync<IContentMapping<TContent>, ContentMappingContext<TContent>>(location, LogMappingAction, cancel).ConfigureAwait(false);
 
         protected sealed override ImmutableArray<IMigrationHookFactory> GetFactoryCollection<THook, TContext>()
             => Plan.Mappings.GetHooks<THook>();
+
+        protected void LogMappingAction<TContent>(string hookName, ContentMappingContext<TContent> inLocation, ContentMappingContext<TContent> outLocation)
+            where TContent : IContentReference
+        {
+            if (inLocation.MappedLocation != outLocation.MappedLocation)
+            {
+                _logger.LogDebug(
+                    _localizer[SharedResourceKeys.ContentMappingBaseDebugMessage],
+                    hookName,
+                    outLocation.ContentItem.ToStringForLog(),
+                    outLocation.MappedLocation);
+            }
+        }
     }
 }

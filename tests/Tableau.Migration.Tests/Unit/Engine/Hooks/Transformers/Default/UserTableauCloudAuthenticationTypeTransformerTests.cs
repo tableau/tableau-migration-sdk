@@ -15,11 +15,15 @@
 //  limitations under the License.
 //
 
+using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 using Moq;
 using Tableau.Migration.Api.Rest.Models.Types;
 using Tableau.Migration.Content;
+using Tableau.Migration.Engine.Endpoints.Search;
 using Tableau.Migration.Engine.Hooks.Transformers.Default;
 using Xunit;
 
@@ -29,24 +33,161 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
     {
         public class ExecuteAsync : OptionsHookTestBase<UserAuthenticationTypeTransformerOptions>
         {
+            private readonly Mock<IDestinationAuthenticationConfigurationsCache> MockDestinationCache;
+            
+            private List<IAuthenticationConfiguration> AuthenticationConfigurations { get; set; }
+
+            public ExecuteAsync()
+            {
+                AuthenticationConfigurations = new();
+
+                MockDestinationCache = Freeze<Mock<IDestinationAuthenticationConfigurationsCache>>();
+                MockDestinationCache.Setup(x => x.GetAllAsync(Cancel))
+                    .ReturnsAsync(() => AuthenticationConfigurations.ToImmutableArray());
+            }
+
             [Fact]
             public async Task SetsServerDefaultAuthType()
             {
-                var mockUser = new Mock<IUser>();
-                var mockLogger = new Mock<ILogger<UserAuthenticationTypeTransformer>>();
-                var mockLocalizer = new MockSharedResourcesLocalizer();
+                AuthenticationConfigurations.Clear();
 
+                var t = Create<UserAuthenticationTypeTransformer>();
+
+                var mockUser = new Mock<IUser>();
+                var resultUser = await t.ExecuteAsync(mockUser.Object, Cancel);
+
+                Assert.Same(resultUser, mockUser.Object);
+                mockUser.VerifySet(x => x.Authentication = UserAuthenticationType.ForAuthenticationType(AuthenticationTypes.ServerDefault), Times.Once);
+
+                MockDestinationCache.Verify(x => x.GetAllAsync(Cancel), Times.Once);
+            }
+
+            [Fact]
+            public async Task SetsAuthSettingAsync()
+            {
+                AuthenticationConfigurations.Clear();
                 Options = new UserAuthenticationTypeTransformerOptions
                 {
                     AuthenticationType = AuthenticationTypes.TableauIdWithMfa
                 };
 
-                var t = new UserAuthenticationTypeTransformer(MockOptionsProvider.Object, mockLocalizer.Object, mockLogger.Object);
+                var t = Create<UserAuthenticationTypeTransformer>();
 
-                var resultUser = await t.ExecuteAsync(mockUser.Object, default);
+                var mockUser = new Mock<IUser>();
+                var resultUser = await t.ExecuteAsync(mockUser.Object, Cancel);
 
                 Assert.Same(resultUser, mockUser.Object);
-                mockUser.VerifySet(x => x.AuthenticationType = AuthenticationTypes.TableauIdWithMfa, Times.Once);
+                mockUser.VerifySet(x => x.Authentication = UserAuthenticationType.ForAuthenticationType(AuthenticationTypes.TableauIdWithMfa), Times.Once);
+
+                MockDestinationCache.Verify(x => x.GetAllAsync(Cancel), Times.Once);
+            }
+
+            [Fact]
+            public async Task MatchesIdpConfigurationNameAsync()
+            {
+                AuthenticationConfigurations = CreateMany<IAuthenticationConfiguration>().ToList();
+                var authType = AuthenticationConfigurations.PickRandom();
+
+                Options = new UserAuthenticationTypeTransformerOptions
+                {
+                    AuthenticationType = authType.IdpConfigurationName
+                };
+
+                var t = Create<UserAuthenticationTypeTransformer>();
+
+                var mockUser = new Mock<IUser>();
+                var resultUser = await t.ExecuteAsync(mockUser.Object, Cancel);
+
+                Assert.Same(resultUser, mockUser.Object);
+                mockUser.VerifySet(x => x.Authentication = UserAuthenticationType.ForConfigurationId(authType.Id), Times.Once);
+
+                MockDestinationCache.Verify(x => x.GetAllAsync(Cancel), Times.Once);
+            }
+
+            [Fact]
+            public async Task MatchesAuthSettingAsync()
+            {
+                AuthenticationConfigurations = CreateMany<IAuthenticationConfiguration>().ToList();
+                var authType = AuthenticationConfigurations.PickRandom();
+
+                Options = new UserAuthenticationTypeTransformerOptions
+                {
+                    AuthenticationType = authType.AuthSetting
+                };
+
+                var t = Create<UserAuthenticationTypeTransformer>();
+
+                var mockUser = new Mock<IUser>();
+                var resultUser = await t.ExecuteAsync(mockUser.Object, Cancel);
+
+                Assert.Same(resultUser, mockUser.Object);
+                mockUser.VerifySet(x => x.Authentication = UserAuthenticationType.ForConfigurationId(authType.Id), Times.Once);
+
+                MockDestinationCache.Verify(x => x.GetAllAsync(Cancel), Times.Once);
+            }
+
+            [Fact]
+            public async Task MultipleIdpConfigurationNamesAsync()
+            {
+                AuthenticationConfigurations = CreateMany<IAuthenticationConfiguration>().ToList();
+                var authType = AuthenticationConfigurations.PickRandom();
+
+                AuthenticationConfigurations.Add(authType);
+                Options = new UserAuthenticationTypeTransformerOptions
+                {
+                    AuthenticationType = authType.IdpConfigurationName
+                };
+
+                var t = Create<UserAuthenticationTypeTransformer>();
+
+                var mockUser = new Mock<IUser>();
+                await Assert.ThrowsAsync<ArgumentException>(() => t.ExecuteAsync(mockUser.Object, Cancel));
+
+                mockUser.VerifySet(x => x.Authentication = It.IsAny<UserAuthenticationType>(), Times.Never);
+
+                MockDestinationCache.Verify(x => x.GetAllAsync(Cancel), Times.Once);
+            }
+
+            [Fact]
+            public async Task MultipleAuthSettingsAsync()
+            {
+                AuthenticationConfigurations = CreateMany<IAuthenticationConfiguration>().ToList();
+                var authType = AuthenticationConfigurations.PickRandom();
+
+                AuthenticationConfigurations.Add(authType);
+                Options = new UserAuthenticationTypeTransformerOptions
+                {
+                    AuthenticationType = authType.AuthSetting
+                };
+
+                var t = Create<UserAuthenticationTypeTransformer>();
+
+                var mockUser = new Mock<IUser>();
+                await Assert.ThrowsAsync<ArgumentException>(() => t.ExecuteAsync(mockUser.Object, Cancel));
+
+                mockUser.VerifySet(x => x.Authentication = It.IsAny<UserAuthenticationType>(), Times.Never);
+
+                MockDestinationCache.Verify(x => x.GetAllAsync(Cancel), Times.Once);
+            }
+
+            [Fact]
+            public async Task NoMatchAsync()
+            {
+                AuthenticationConfigurations = CreateMany<IAuthenticationConfiguration>().ToList();
+
+                Options = new UserAuthenticationTypeTransformerOptions
+                {
+                    AuthenticationType = Guid.NewGuid().ToString()
+                };
+
+                var t = Create<UserAuthenticationTypeTransformer>();
+
+                var mockUser = new Mock<IUser>();
+                await Assert.ThrowsAsync<ArgumentException>(() => t.ExecuteAsync(mockUser.Object, Cancel));
+
+                mockUser.VerifySet(x => x.Authentication = It.IsAny<UserAuthenticationType>(), Times.Never);
+
+                MockDestinationCache.Verify(x => x.GetAllAsync(Cancel), Times.Once);
             }
         }
     }

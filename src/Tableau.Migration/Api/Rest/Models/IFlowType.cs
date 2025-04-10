@@ -20,7 +20,7 @@ namespace Tableau.Migration.Api.Rest.Models
     /// <summary>
     /// Interface for a prep flow REST response.
     /// </summary>
-    public interface IFlowType : IRestIdentifiable, INamedContent, IWithProjectType, IWithOwnerType, IWithTagTypes
+    public interface IFlowType : IRestIdentifiable, INamedContent, IWithProjectNamedReferenceType, IWithOwnerType, IWithTagTypes
     {
         /// <summary>
         /// Gets the description for the response.

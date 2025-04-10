@@ -6,7 +6,7 @@ Once you have started building your migration using the example code in [C#](~/a
 
 ## Hook Registration
 
-To use hooks, you need to register them with the [plan builder](~/articles/configuration.md#migration-plan).
+To use hooks, you need to register them with the [plan builder](~/articles/configuration.md#basic-configuration).
 
 The process of registering hooks differs slightly between C# and Python, as described below.
 

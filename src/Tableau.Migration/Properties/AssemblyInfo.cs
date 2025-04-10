@@ -36,6 +36,7 @@ using Microsoft.Extensions.Localization;
 [assembly: Guid("1062274b-842c-411b-9349-8cf5f12b9c1c")]
 
 //Test assemblies can access internals.
+[assembly: InternalsVisibleTo("Tableau.Migration.ManifestExplorer")]
 [assembly: InternalsVisibleTo("Tableau.Migration.Tests")]
 [assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
 

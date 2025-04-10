@@ -28,4 +28,7 @@ autodoc_typehints='description'
 markdown_anchor_sections=True
 markdown_anchor_signatures=True
 add_module_names=False
+autodoc_default_options = {    
+    'member-order': 'bysource'
+}
 print("..done.")

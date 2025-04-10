@@ -45,7 +45,7 @@ namespace Tableau.Migration.TestApplication.Hooks
             var entries = _manifest.Entries.ForContentType<T>();
 
             var contentTypeName = MigrationPipelineContentType.GetConfigKeyForType(typeof(T));
-            
+
             var processedCount = entries.GetStatusTotals()
                 .Where(s => s.Key is not MigrationManifestEntryStatus.Pending)
                 .Sum(s => s.Value);

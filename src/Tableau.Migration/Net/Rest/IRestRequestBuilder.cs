@@ -62,7 +62,7 @@ namespace Tableau.Migration.Net.Rest
         /// </summary>
         /// <param name="fields">The fields used to build the URI's fields query string.</param>
         /// <returns>The current <see cref="IRestRequestBuilder"/> instance.</returns>
-        IRestRequestBuilder WithFields(params Field[] fields);
+        IRestRequestBuilder WithFields(params IEnumerable<Field> fields);
 
         /// <summary>
         /// Configures the filters for the URI.
@@ -76,14 +76,7 @@ namespace Tableau.Migration.Net.Rest
         /// </summary>
         /// <param name="filters">The filters used to build the URI's filter query string.</param>
         /// <returns>The current <see cref="IRestRequestBuilder"/> instance.</returns>
-        IRestRequestBuilder WithFilters(params Filter[] filters);
-
-        /// <summary>
-        /// Configures the filters for the URI.
-        /// </summary>
-        /// <param name="filters">The filters used to build the URI's filter query string.</param>
-        /// <returns>The current <see cref="IRestRequestBuilder"/> instance.</returns>
-        IRestRequestBuilder WithFilters(IEnumerable<Filter> filters);
+        IRestRequestBuilder WithFilters(params IEnumerable<Filter> filters);
 
         /// <summary>
         /// Configures the page for the URI.
@@ -119,6 +112,6 @@ namespace Tableau.Migration.Net.Rest
         /// </summary>
         /// <param name="sorts">The callback used to build the URI's sort query string.</param>
         /// <returns>The current <see cref="IRestRequestBuilder"/> instance.</returns>
-        IRestRequestBuilder WithSorts(params Sort[] sorts);
+        IRestRequestBuilder WithSorts(params IEnumerable<Sort> sorts);
     }
 }

@@ -34,6 +34,7 @@ using Tableau.Migration.Content.Files;
 using Tableau.Migration.Content.Search;
 using Tableau.Migration.Net;
 using Tableau.Migration.Net.Rest;
+using Tableau.Migration.Net.Rest.Filtering;
 using Tableau.Migration.Paging;
 using Tableau.Migration.Resources;
 
@@ -68,13 +69,21 @@ namespace Tableau.Migration.Api
             _fileStore = fileStore;
             _customViewPublisher = customViewPublisher;
         }
-
         /// <inheritdoc />
         public async Task<IPagedResult<ICustomView>> GetAllCustomViewsAsync(int pageNumber, int pageSize, CancellationToken cancel)
+            => await GetAllCustomViewsAsync(pageNumber, pageSize, Enumerable.Empty<Filter>(), cancel).ConfigureAwait(false);
+
+        /// <inheritdoc />
+        public async Task<IPagedResult<ICustomView>> GetAllCustomViewsAsync(
+            int pageNumber,
+            int pageSize,
+            IEnumerable<Filter> filters,
+            CancellationToken cancel)
         {
             var getAllCustomViewsResult = await RestRequestBuilderFactory
                 .CreateUri($"{UrlPrefix}")
                 .WithPage(pageNumber, pageSize)
+                .WithFilters(filters)
                 .ForGetRequest()
                 .SendAsync<CustomViewsResponse>(cancel)
                 .ToPagedResultAsync<CustomViewsResponse, ICustomView>(async (r, c) =>
@@ -84,7 +93,7 @@ namespace Tableau.Migration.Api
 
                     foreach (var item in r.Items)
                     {
-                        var workbook = await FindWorkbookAsync(item, false, c).ConfigureAwait(false);
+                        var workbook = await FindWorkbookAsync(Guard.AgainstNull(item, () => item), false, c).ConfigureAwait(false);
                         var owner = await FindOwnerAsync(item, false, c).ConfigureAwait(false);
 
                         if (workbook is null || owner is null)
@@ -243,7 +252,7 @@ namespace Tableau.Migration.Api
             CancellationToken cancel)
         {
             var downloadResult = await RestRequestBuilderFactory
-                .CreateUri($"{UrlPrefix}/{customViewId.ToUrlSegment()}/{RestUrlPrefixes.Content}", true)
+                .CreateUri($"{UrlPrefix}/{customViewId.ToUrlSegment()}/{RestUrlPrefixes.Content}")
                 .ForGetRequest()
                 .DownloadAsync(cancel)
                 .ConfigureAwait(false);
@@ -285,7 +294,96 @@ namespace Tableau.Migration.Api
         public async Task<IResult<ICustomView>> PublishCustomViewAsync(
             IPublishCustomViewOptions options,
             CancellationToken cancel)
-            => await _customViewPublisher.PublishAsync(options, cancel).ConfigureAwait(false);
+        {
+            var publishResult = await _customViewPublisher.PublishAsync(options, cancel)
+                .ConfigureAwait(false);
+
+            if (publishResult.Success ||
+                !publishResult.Errors.OfType<RestException>()
+                .Any(e => RestErrorCodes.Equals(e.Code, RestErrorCodes.CUSTOM_VIEW_ALREADY_EXISTS)))
+            {
+                return publishResult;
+            }
+
+            var existingCustomViewResult = await GetExistingCustomViewAsync(options.WorkbookId, options.Name, cancel)
+                .ConfigureAwait(false);
+
+            if (!existingCustomViewResult.Success)
+            {
+                return existingCustomViewResult.CastFailure<ICustomView>();
+            }
+
+            var existingCustomView = existingCustomViewResult.Value;
+
+            var deleteResult = await DeleteCustomViewAsync(existingCustomView.Id, cancel).ConfigureAwait(false);
+
+            if (!deleteResult.Success)
+            {
+                return deleteResult.CastFailure<ICustomView>();
+            }
+
+            publishResult = await _customViewPublisher.PublishAsync(options, cancel).ConfigureAwait(false);
+
+            return publishResult;
+        }
+
+        private async Task<IResult<ICustomView>> GetExistingCustomViewAsync(Guid workbookId, string name, CancellationToken cancel)
+        {
+            int pageNum = 1;
+
+            var existingCustomViewResult = await GetFilteredPage(workbookId, pageNum, cancel).ConfigureAwait(false);
+
+            if (!existingCustomViewResult.Success)
+            {
+                return existingCustomViewResult.CastFailure<ICustomView>();
+            }
+            var existingCustomView = FindByName(name);
+
+            if (existingCustomView != null)
+            {
+                return Result<ICustomView>.Succeeded(existingCustomView);
+            }
+
+            while (!existingCustomViewResult.FetchedAllPages)
+            {
+                pageNum++;
+                existingCustomViewResult = await GetFilteredPage(workbookId, pageNum, cancel).ConfigureAwait(false);
+
+                if (!existingCustomViewResult.Success)
+                {
+                    return existingCustomViewResult.CastFailure<ICustomView>();
+                }
+
+                var existingCustomViews = existingCustomViewResult.Value;
+                existingCustomView = FindByName(name);
+
+                if (existingCustomView != null)
+                {
+                    return Result<ICustomView>.Succeeded(existingCustomView);
+                }
+            }
+
+            if (existingCustomView == null)
+            {
+                return Result<ICustomView>.Failed(new Exception($"No custom view with name {name} was found"));
+            }
+
+            return Result<ICustomView>.Succeeded(existingCustomView);
+
+            async Task<IPagedResult<ICustomView>> GetFilteredPage(Guid workbookId, int pageNum, CancellationToken cancel)
+            {
+                var filters = new List<Filter>
+                {
+                    new("workbookId", FilterOperator.Equal, workbookId.ToString())
+                };
+
+                return await GetAllCustomViewsAsync(pageNum, _configReader.Get<ICustomView>().BatchSize, filters, cancel)
+                            .ConfigureAwait(false);
+            }
+
+            ICustomView? FindByName(string name)
+                => existingCustomViewResult?.Value.FirstOrDefault(cv => cv.Name == name);
+        }
 
         #region - IPublishApiClient<IPublishableCustomView, ICustomView> Implementation -
         /// <inheritdoc />
@@ -322,7 +420,7 @@ namespace Tableau.Migration.Api
 
         /// <inheritdoc />
         public async Task<IPagedResult<ICustomView>> GetPageAsync(int pageNumber, int pageSize, CancellationToken cancel)
-            => await GetAllCustomViewsAsync(pageNumber, pageSize, cancel).ConfigureAwait(false);
+            => await GetAllCustomViewsAsync(pageNumber, pageSize, [], cancel).ConfigureAwait(false);
 
         #endregion
 

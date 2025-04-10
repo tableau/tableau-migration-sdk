@@ -18,10 +18,12 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Net;
 using System.Net.Http;
 using System.Text.RegularExpressions;
 using Tableau.Migration.Api.Rest;
 using Tableau.Migration.Api.Rest.Models;
+using Tableau.Migration.Api.Rest.Models.Requests;
 using Tableau.Migration.Api.Rest.Models.Responses;
 using Tableau.Migration.Api.Simulation.Rest.Net.Requests;
 using Tableau.Migration.Api.Simulation.Rest.Net.Responses;
@@ -106,6 +108,52 @@ namespace Tableau.Migration.Api.Simulation.Rest.Net
                         new RestSingleEntityResponseBuilder<TResponse, TResponseItem>(simulator.Data, simulator.Serializer, getEntity, requiresAuthentication),
                         queryStringPatterns
             );
+
+        public static MethodSimulator SetupRestPost<TResponse>(this TableauApiResponseSimulator simulator,
+            Regex urlPattern,
+            Func<TableauData, HttpRequestMessage, TResponse> buildResponse,
+            IEnumerable<(string Key, Regex ValuePattern)>? queryStringPatterns = null,
+            bool requiresAuthentication = true)
+                where TResponse : TableauServerResponse, new()
+                    => simulator.SetupRestPost(
+                        urlPattern,
+                        new RestRequestResponseBuilder<TResponse>(simulator.Data, simulator.Serializer, buildResponse, requiresAuthentication),
+                        queryStringPatterns);
+
+        public static MethodSimulator SetupRestPost<TResponse>(this TableauApiResponseSimulator simulator,
+            Regex urlPattern,
+            Func<TableauData, HttpRequestMessage, (TResponse Response, HttpStatusCode ResponseCode)> buildResponse,
+            IEnumerable<(string Key, Regex ValuePattern)>? queryStringPatterns = null,
+            bool requiresAuthentication = true)
+                where TResponse : TableauServerResponse, new()
+                    => simulator.SetupRestPost(
+                        urlPattern,
+                        new RestRequestResponseBuilder<TResponse>(simulator.Data, simulator.Serializer, buildResponse, requiresAuthentication),
+                        queryStringPatterns);
+
+        public static MethodSimulator SetupRestPost<TRequest, TResponse>(this TableauApiResponseSimulator simulator,
+            Regex urlPattern,
+            Func<TableauData, TRequest, TResponse> buildResponse,
+            IEnumerable<(string Key, Regex ValuePattern)>? queryStringPatterns = null,
+            bool requiresAuthentication = true)
+                where TRequest: TableauServerRequest
+                where TResponse : TableauServerResponse, new()
+                    => simulator.SetupRestPost(
+                        urlPattern,
+                        new RestRequestResponseBuilder<TRequest, TResponse>(simulator.Data, simulator.Serializer, buildResponse, requiresAuthentication),
+                        queryStringPatterns);
+
+        public static MethodSimulator SetupRestPost<TRequest, TResponse>(this TableauApiResponseSimulator simulator,
+            Regex urlPattern,
+            Func<TableauData, TRequest, (TResponse Response, HttpStatusCode ResponseCode)> buildResponse,
+            IEnumerable<(string Key, Regex ValuePattern)>? queryStringPatterns = null,
+            bool requiresAuthentication = true)
+                where TRequest : TableauServerRequest
+                where TResponse : TableauServerResponse, new()
+                    => simulator.SetupRestPost(
+                        urlPattern,
+                        new RestRequestResponseBuilder<TRequest, TResponse>(simulator.Data, simulator.Serializer, buildResponse, requiresAuthentication),
+                        queryStringPatterns);
 
         public static MethodSimulator SetupRestPost<TResponse, TResponseItem>(
             this TableauApiResponseSimulator simulator,

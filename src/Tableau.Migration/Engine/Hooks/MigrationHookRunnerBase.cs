@@ -25,7 +25,7 @@ namespace Tableau.Migration.Engine.Hooks
     /// <summary>
     /// Base implementation for <see cref="IMigrationHookRunner"/>
     /// </summary>
-    internal abstract class MigrationHookRunnerBase
+    internal abstract class MigrationHookRunnerBase : IMigrationHookRunner
     {
         protected readonly IServiceProvider Services;
         protected readonly IMigrationPlan Plan;
@@ -33,9 +33,11 @@ namespace Tableau.Migration.Engine.Hooks
         /// <summary>
         /// Default constructor for this base class.
         /// </summary>
-        /// <param name="plan"></param>
-        /// <param name="services"></param>
-        protected MigrationHookRunnerBase(IMigrationPlan plan, IServiceProvider services)
+        /// <param name="plan">The migration plan.</param>
+        /// <param name="services">The service provider.</param>
+        protected MigrationHookRunnerBase(
+            IMigrationPlan plan,
+            IServiceProvider services)
         {
             Plan = plan;
             Services = services;
@@ -43,6 +45,10 @@ namespace Tableau.Migration.Engine.Hooks
 
         /// <inheritdoc/>
         public async Task<TContext> ExecuteAsync<THook, TContext>(TContext context, CancellationToken cancel) where THook : IMigrationHook<TContext>
+            => await ExecuteAsync<THook, TContext>(context, null, cancel).ConfigureAwait(false);
+
+        /// <inheritdoc/>
+        public async Task<TContext> ExecuteAsync<THook, TContext>(TContext context, Action<string, TContext, TContext>? afterHookAction, CancellationToken cancel) where THook : IMigrationHook<TContext>
         {
             var currentContext = context;
 
@@ -53,6 +59,8 @@ namespace Tableau.Migration.Engine.Hooks
 
                 var inputContext = currentContext;
                 currentContext = (await hook.ExecuteAsync(inputContext, cancel).ConfigureAwait(false)) ?? inputContext;
+
+                afterHookAction?.Invoke(hook.GetType().GetFormattedName(), inputContext, currentContext);
             }
 
             return currentContext;

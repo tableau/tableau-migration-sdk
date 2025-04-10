@@ -6,12 +6,6 @@ The Migration SDK has [default hooks](#default-hooks) that run for every migrati
 > [!NOTE]
 > You can also write [custom hooks](custom_hooks.md) to fit your specific use cases.
 
-## Terminology
-
-- Content Type: The type of Tableau content. Examples are user, project, workbook.
-- Content Item: Items of a certain content type.
-- Content Migration Action/Content Action: The action that migrates Content Items of a certain Content Type.
-
 ## Types of Hooks
 
 The Migration SDK has the following types of hooks, categorized broadly based on when they run.

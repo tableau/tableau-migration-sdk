@@ -1,4 +1,4 @@
-﻿//
+//
 //  Copyright (c) 2025, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
@@ -61,8 +61,11 @@ namespace Tableau.Migration
             try
             {
                 var bytes = new byte[ZIP_LEAD_BYTES.Length];
+                
                 stream.Seek(0, SeekOrigin.Begin);
-                stream.Read(bytes, 0, bytes.Length);
+                stream.ReadExactly(bytes, 0, bytes.Length);
+                stream.Seek(0, SeekOrigin.Begin);
+
                 return bytes.SequenceEqual(ZIP_LEAD_BYTES);
             }
             finally

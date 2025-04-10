@@ -44,7 +44,10 @@ namespace Tableau.Migration.Api
         /// <param name="pageSize">The size of the page.</param>
         /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>A list of a page of custom views in the current site.</returns>
-        Task<IPagedResult<ICustomView>> GetAllCustomViewsAsync(int pageNumber, int pageSize, CancellationToken cancel);
+        Task<IPagedResult<ICustomView>> GetAllCustomViewsAsync(
+            int pageNumber,
+            int pageSize,
+            CancellationToken cancel);
 
         /// <summary>
         /// Changes the owner of an existing custom view.

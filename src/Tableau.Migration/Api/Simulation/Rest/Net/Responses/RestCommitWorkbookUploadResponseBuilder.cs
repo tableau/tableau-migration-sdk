@@ -94,7 +94,7 @@ namespace Tableau.Migration.Api.Simulation.Rest.Net.Responses
                     Id = commitWorkbook.Project?.Id ?? Data.DefaultProject.Id
                 },
                 Tags = Array.Empty<WorkbookResponse.WorkbookType.TagType>(),
-                Views = Array.Empty<WorkbookResponse.WorkbookType.ViewReferenceType>()
+                Views = Array.Empty<WorkbookResponse.WorkbookType.WorkbookViewReferenceType>()
             };
 
             targetWorkbook.Name = commitWorkbook.Name;
@@ -128,6 +128,9 @@ namespace Tableau.Migration.Api.Simulation.Rest.Net.Responses
                     simulatedConnection.Credentials.Embed = connection.Credentials.Embed;
                 }
             }
+
+            // Publishing resets embedded credentials.
+            Data.WorkbookKeychains.AddOrUpdate(targetWorkbook.Id, new RetrieveKeychainResponse(), (_, _) => new RetrieveKeychainResponse());
 
             // Update view data
             foreach (var simulatedView in simulatedFileData.Views)

@@ -37,8 +37,20 @@ namespace Tableau.Migration.JsonConverters
         {
             writer.WriteStartObject();
             JsonWriterUtils.WriteExceptionProperties(ref writer, value);
+
+            WriteExtraExceptionProperties(writer, value, options);
+
             writer.WriteEndObject();
         }
+
+        /// <summary>
+        /// Serializes non-base exception properties.
+        /// </summary>
+        /// <param name="writer">The <see cref="Utf8JsonWriter"/> to write to.</param>
+        /// <param name="value">The <see cref="Exception"/> object to serialize.</param>
+        /// <param name="options">The <see cref="JsonSerializerOptions"/> to use for serialization.</param>
+        protected virtual void WriteExtraExceptionProperties(Utf8JsonWriter writer, TException value, JsonSerializerOptions options)
+        { }
 
         /// <summary>
         /// Reads the JSON representation of an Exception object.

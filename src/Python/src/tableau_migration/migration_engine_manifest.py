@@ -151,6 +151,11 @@ class PyMigrationManifestEntry():
         """Gets errors that occurred while migrating the content item."""
         return None if self._dotnet.Errors is None else list(self._dotnet.Errors)
     
+    @property
+    def skipped_reason(self) -> str:
+        """Gets the reason why the content item was skipped, if applicable."""
+        return self._dotnet.SkippedReason
+    
 class PyMigrationManifestEntryEditor(PyMigrationManifestEntry):
     """Interface for a IMigrationManifestEntry that can be edited."""
     
@@ -196,12 +201,15 @@ class PyMigrationManifestEntryEditor(PyMigrationManifestEntry):
         result = self._dotnet.DestinationFound(None if destination_info is None else destination_info._dotnet)
         return None if result is None else PyMigrationManifestEntryEditor(result)
     
-    def set_skipped(self) -> Self:
+    def set_skipped(self, skipped_reason: str) -> Self:
         """Sets the entry to skipped status.
+        
+        Args:
+            skipped_reason: Reason this item was skipped. Generally the skipped filter name.
         
         Returns: The current entry editor, for fluent API usage.
         """
-        result = self._dotnet.SetSkipped()
+        result = self._dotnet.SetSkipped(skipped_reason)
         return None if result is None else PyMigrationManifestEntryEditor(result)
     
     def set_canceled(self) -> Self:

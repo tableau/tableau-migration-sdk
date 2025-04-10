@@ -39,8 +39,8 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers
         public class TestTransformer : ContentTransformerBase<TestContentType>
         {
             public TestTransformer(
-                ISharedResourcesLocalizer localizer, 
-                ILogger<TestTransformer> logger) 
+                ISharedResourcesLocalizer localizer,
+                ILogger<TestTransformer> logger)
                     : base(localizer, logger) { }
 
 
@@ -55,7 +55,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers
         {
             public ExceptionTransformer(
                 ISharedResourcesLocalizer localizer,
-                ILogger<ExceptionTransformer> logger) 
+                ILogger<ExceptionTransformer> logger)
                     : base(localizer, logger) { }
 
             public override Task<TestContentType?> TransformAsync(TestContentType itemToTransform, CancellationToken cancel)
@@ -79,7 +79,8 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers
             private readonly ContentTransformerRunner _runner;
 
             private readonly MockSharedResourcesLocalizer _mockLocalizer = new();
-            private readonly Mock<ILogger<TestTransformer>> _mockLogger = new();
+            private readonly Mock<ILogger<TestTransformer>> _mockTransformerLogger = new();
+            private readonly Mock<ILogger<ContentTransformerRunner>> _mockRunnerLogger = new();
 
             public ExecuteAsync()
             {
@@ -94,9 +95,10 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers
                 mockPlan.SetupGet(x => x.Transformers).Returns(mockTransformers.Object);
                 _plan = mockPlan.Object;
                 Assert.NotNull(_plan.Transformers);
-                _runner = new(_plan, new Mock<IServiceProvider>().Object);
 
-                _mockLogger.Setup(x => x.IsEnabled(LogLevel.Debug)).Returns(true);
+                _mockTransformerLogger.Setup(x => x.IsEnabled(LogLevel.Debug)).Returns(true);
+
+                _runner = new(_plan, new Mock<IServiceProvider>().Object, _mockLocalizer.Object, _mockRunnerLogger.Object);
             }
 
             [Fact]
@@ -105,7 +107,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers
                 // Arrange
                 var input = AutoFixture.Create<TestContentType>();
 
-                _transformerFactories.Add(new MigrationHookFactory(s => new TestTransformer(_mockLocalizer.Object, _mockLogger.Object)));
+                _transformerFactories.Add(new MigrationHookFactory(s => new TestTransformer(_mockLocalizer.Object, _mockTransformerLogger.Object)));
 
                 // Act
                 var result = await _runner.ExecuteAsync<TestContentType>(input, default);
@@ -115,13 +117,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers
                 Assert.Single(Regex.Matches(result.ContentUrl, "Transformed"));
 
                 // Verify we got at least 1 debug log message
-                _mockLogger.Verify(
-                x => x.Log(
-                    It.Is<LogLevel>(l => l == LogLevel.Debug),
-                    It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((v, t) => true),
-                    It.IsAny<Exception>(),
-                    It.Is<Func<It.IsAnyType, Exception?, string>>((v, t) => true)));
+                _mockRunnerLogger.VerifyLogging(LogLevel.Debug, Times.AtLeastOnce());
             }
 
             [Fact]
@@ -130,8 +126,8 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers
                 // Arrange
                 var input = AutoFixture.Create<TestContentType>();
 
-                _transformerFactories.Add(new MigrationHookFactory(s => new TestTransformer(_mockLocalizer.Object, _mockLogger.Object)));
-                _transformerFactories.Add(new MigrationHookFactory(s => new TestTransformer(_mockLocalizer.Object, _mockLogger.Object)));
+                _transformerFactories.Add(new MigrationHookFactory(s => new TestTransformer(_mockLocalizer.Object, _mockTransformerLogger.Object)));
+                _transformerFactories.Add(new MigrationHookFactory(s => new TestTransformer(_mockLocalizer.Object, _mockTransformerLogger.Object)));
 
                 // Act
                 var result = await _runner.ExecuteAsync(input, default);
@@ -141,13 +137,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers
                 Assert.Equal(2, Regex.Matches(result.ContentUrl, "Transformed").Count);
 
                 // Verify we got at least 1 debug log message
-                _mockLogger.Verify(
-                x => x.Log(
-                    It.Is<LogLevel>(l => l == LogLevel.Debug),
-                    It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((v, t) => true),
-                    It.IsAny<Exception>(),
-                    It.Is<Func<It.IsAnyType, Exception?, string>>((v, t) => true)));
+                _mockRunnerLogger.VerifyLogging(LogLevel.Debug, Times.AtLeastOnce());
             }
 
             [Fact]
@@ -157,7 +147,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers
                 var input1 = AutoFixture.Create<TestContentType>();
                 var input2 = AutoFixture.Create<TestContentType>();
 
-                _transformerFactories.Add(new MigrationHookFactory(s => new TestTransformer(_mockLocalizer.Object, _mockLogger.Object)));
+                _transformerFactories.Add(new MigrationHookFactory(s => new TestTransformer(_mockLocalizer.Object, _mockTransformerLogger.Object)));
 
                 // Act
                 var result1 = await _runner.ExecuteAsync(input1, default);
@@ -170,13 +160,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers
                 Assert.Single(Regex.Matches(result2.ContentUrl, "Transformed"));
 
                 // Verify we got at least 1 debug log message
-                _mockLogger.Verify(
-                x => x.Log(
-                    It.Is<LogLevel>(l => l == LogLevel.Debug),
-                    It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((v, t) => true),
-                    It.IsAny<Exception>(),
-                    It.Is<Func<It.IsAnyType, Exception?, string>>((v, t) => true)));
+                _mockRunnerLogger.VerifyLogging(LogLevel.Debug, Times.AtLeastOnce());
             }
 
             [Fact]
@@ -186,8 +170,8 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers
                 var input1 = AutoFixture.Create<TestContentType>();
                 var input2 = AutoFixture.Create<TestContentType>();
 
-                _transformerFactories.Add(new MigrationHookFactory(s => new TestTransformer(_mockLocalizer.Object, _mockLogger.Object)));
-                _transformerFactories.Add(new MigrationHookFactory(s => new TestTransformer(_mockLocalizer.Object, _mockLogger.Object)));
+                _transformerFactories.Add(new MigrationHookFactory(s => new TestTransformer(_mockLocalizer.Object, _mockTransformerLogger.Object)));
+                _transformerFactories.Add(new MigrationHookFactory(s => new TestTransformer(_mockLocalizer.Object, _mockTransformerLogger.Object)));
 
                 // Act
                 var result1 = await _runner.ExecuteAsync(input1, default);
@@ -200,13 +184,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers
                 Assert.Equal(2, Regex.Matches(result1.ContentUrl, "Transformed").Count);
 
                 // Verify we got at least 1 debug log message
-                _mockLogger.Verify(
-                x => x.Log(
-                    It.Is<LogLevel>(l => l == LogLevel.Debug),
-                    It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((v, t) => true),
-                    It.IsAny<Exception>(),
-                    It.Is<Func<It.IsAnyType, Exception?, string>>((v, t) => true)));
+                _mockRunnerLogger.VerifyLogging(LogLevel.Debug, Times.AtLeastOnce());
             }
 
             [Fact]

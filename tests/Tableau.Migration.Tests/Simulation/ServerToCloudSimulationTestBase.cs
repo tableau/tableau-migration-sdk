@@ -16,8 +16,10 @@
 //
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.Metrics;
 using System.Linq;
 using AutoFixture;
 using Microsoft.Extensions.DependencyInjection;
@@ -25,6 +27,8 @@ using Moq;
 using Tableau.Migration.Api;
 using Tableau.Migration.Api.Rest.Models;
 using Tableau.Migration.Api.Rest.Models.Responses;
+using Tableau.Migration.Api.Rest.Models.Responses.Cloud;
+using Tableau.Migration.Api.Rest.Models.Responses.Server;
 using Tableau.Migration.Api.Rest.Models.Types;
 using Tableau.Migration.Api.Simulation;
 using Tableau.Migration.Config;
@@ -140,11 +144,100 @@ namespace Tableau.Migration.Tests.Simulation
             Assert.NotNull(sourceGranteeCapabilities);
             Assert.NotNull(destinationGranteeCapabilities);
 
-            var mappedGranteeCapabilities = sourceGranteeCapabilities.Select(g => ServerToCloudSimulationTestBase.MapGrantee(manifest, g));
+            var mappedGranteeCapabilities = sourceGranteeCapabilities.Select(g => MapGrantee(manifest, g));
 
             var comparer = new IGranteeCapabilityComparer(false);
 
             Assert.Equal(mappedGranteeCapabilities.ToIGranteeCapabilities(), destinationGranteeCapabilities.ToIGranteeCapabilities(), comparer);
+        }
+
+        protected static void AssertEmbeddedCredentialsMigrated(
+            IMigrationManifest manifest,
+            RetrieveKeychainResponse sourceKeychains,
+            RetrieveKeychainResponse destinationKeychains,
+            ConcurrentDictionary<Guid, RetrieveKeychainResponse> sourceUserSavedCredentials,
+            ConcurrentDictionary<Guid, RetrieveKeychainResponse> destinationUserSavedCredentials)
+        {
+            Assert.Equal(sourceKeychains.EncryptedKeychainList, destinationKeychains.EncryptedKeychainList);
+
+            var sourceUserIds = sourceKeychains.AssociatedUserLuidList.ToList();
+
+            var userMappings = GetUserMappings(manifest, sourceUserIds);
+
+            var expectedUserIds = userMappings.Select(uid => uid.Value).ToArray();
+
+            Assert.Equal(expectedUserIds, destinationKeychains.AssociatedUserLuidList);
+
+            foreach (var userMapping in userMappings)
+            {
+                AssertSavedCredentials(sourceUserSavedCredentials, destinationUserSavedCredentials, userMapping.Key, userMapping.Value);
+            }
+
+            static Dictionary<Guid, Guid> GetUserMappings(IMigrationManifest manifest, List<Guid> sourceUserIds)
+            {
+                var result = new Dictionary<Guid, Guid>();
+
+                foreach (var sourceUserId in sourceUserIds)
+                {
+                    var destinationUser = MapReference<IUser>(manifest, sourceUserId);
+                    if (destinationUser is null)
+                    {
+                        continue;
+                    }
+                    Assert.True(result.TryAdd(sourceUserId, destinationUser.Id));
+                }
+
+                return result;
+            }
+
+            static void AssertSavedCredentials(
+                ConcurrentDictionary<Guid, RetrieveKeychainResponse> sourceUserSavedCredentials,
+                ConcurrentDictionary<Guid, RetrieveKeychainResponse> destinationUserSavedCredentials,
+                Guid sourceUserId,
+                Guid destinationUserId)
+            {
+                sourceUserSavedCredentials.TryGetValue(sourceUserId, out RetrieveKeychainResponse? sourceCreds);
+
+                if (sourceCreds is null)
+                    return; ;
+
+                destinationUserSavedCredentials.TryGetValue(destinationUserId, out RetrieveKeychainResponse? destinationCreds);
+                Assert.NotNull(destinationCreds);
+
+                var sourceUserKeychains = sourceCreds.EncryptedKeychainList;
+                var destinationUserKeychains = destinationCreds.EncryptedKeychainList;
+                Assert.Equal(sourceUserKeychains.Length, destinationUserKeychains.Length);
+
+                var sourceUserLuids = sourceCreds.AssociatedUserLuidList;
+                var destUserLuids = destinationCreds.AssociatedUserLuidList;
+                Assert.Equal(sourceUserLuids.Length, destUserLuids.Length);
+
+                foreach (var keyChain in sourceUserKeychains)
+                {
+                    Assert.Contains(destinationUserKeychains, kc => string.Equals(kc, keyChain, StringComparison.OrdinalIgnoreCase));
+                }
+            }
+        }
+
+        protected static void AssertScheduleMigrated(ScheduleResponse.ScheduleType sourceSchedule, ICloudScheduleType? destinationSchedule)
+        {
+            Assert.NotNull(destinationSchedule);
+
+            // Assert schedule information
+            // This can't be done completely without manually writing the source and destination schedules to compare against.
+            // Server schedules requirements are different than Cloud schedule requirements. So we just check the frequence and start time.
+            // We can check frequency because non of the source schedule we built will change frequency to cloud, even though that is a possibilty,
+            // we just didn't include those.
+            Assert.Equal(sourceSchedule.Frequency, destinationSchedule.Frequency);
+            Assert.Equal(sourceSchedule.FrequencyDetails.Start, destinationSchedule.FrequencyDetails!.Start);
+            if (sourceSchedule.FrequencyDetails.End is null)
+            {
+                Assert.Null(destinationSchedule.FrequencyDetails.End);
+            }
+            else
+            {
+                Assert.Equal(sourceSchedule.FrequencyDetails.End, destinationSchedule.FrequencyDetails.End);
+            }
         }
 
         #endregion
@@ -186,6 +279,13 @@ namespace Tableau.Migration.Tests.Simulation
                 }
 
                 SourceApi.Data.Users.Add(user);
+
+                var savedCredentials = (i % 2) switch
+                {
+                    0 => new RetrieveKeychainResponse(),
+                    _ => new RetrieveKeychainResponse(CreateMany<string>(), [user.Id])
+                };
+                SourceApi.Data.UserSavedCredentials.TryAdd(user.Id, savedCredentials);
             }
 
             return (nonSupportUsers, supportUsers);
@@ -305,6 +405,44 @@ namespace Tableau.Migration.Tests.Simulation
 
         #endregion - Prepare Source Data (Projects) -
 
+        #region - Prepare Embedded Credentials -
+
+        // Creates a number of connections and returns the simulated "workbook file data" as a byte array
+        private void CreateConnections(SimulatedDataWithConnections data, bool embed, int connectionCount = 2)
+        {
+            for (int i = 0; i < connectionCount; i++)
+            {
+                var conn = Create<SimulatedConnection>();
+                data.Connections.Add(conn);
+
+                if (embed)
+                {
+                    conn.Credentials = Create<SimulatedConnectionCredentials>();
+                    conn.Credentials.Embed = "true";
+                }
+                else if (conn.Credentials is not null)
+                {
+                    conn.Credentials.Embed = null;
+                }
+            }
+        }
+
+        private RetrieveKeychainResponse PrepareEmbeddedCredentials(ConcurrentDictionary<Guid, RetrieveKeychainResponse> keychainCollection,
+            List<UsersResponse.UserType> users, Guid itemId, int counter)
+        {
+            var keychains = (counter % 3) switch
+            {
+                0 => new RetrieveKeychainResponse(),
+                1 => new RetrieveKeychainResponse(CreateMany<string>(), [users[counter % users.Count].Id]),
+                _ => new RetrieveKeychainResponse(CreateMany<string>(), [users[counter % users.Count].Id, users[(counter + 1) % users.Count].Id])
+            };
+
+            keychainCollection.TryAdd(itemId, keychains);
+            return keychains;
+        }
+
+        #endregion
+
         #region - Prepare Source Data (Data Sources) -
 
         protected List<DataSourceResponse.DataSourceType> PrepareSourceDataSourceData()
@@ -321,6 +459,8 @@ namespace Tableau.Migration.Tests.Simulation
 
                 var dataSource = Create<DataSourceResponse.DataSourceType>();
                 dataSource.Project = new DataSourceResponse.DataSourceType.ProjectType { Id = project.Id, Name = project.Name };
+
+                var dataSourceFileData = new SimulatedDataSourceData();
 
                 var owner = users[counter % users.Count];
                 dataSource.Owner = new DataSourceResponse.DataSourceType.OwnerType { Id = owner.Id };
@@ -350,9 +490,14 @@ namespace Tableau.Migration.Tests.Simulation
                 Assert.NotNull(dataSource.Tags);
                 Assert.NotEmpty(dataSource.Tags);
 
+                PrepareEmbeddedCredentials(SourceApi.Data.DataSourceKeychains, users, dataSource.Id, counter);
+
+                var keychains = PrepareEmbeddedCredentials(SourceApi.Data.DataSourceKeychains, users, dataSource.Id, counter);
+                CreateConnections(dataSourceFileData, embed: keychains.EncryptedKeychainList.Any());
+
                 // Our data source data will just be a guid as a string, encoded to a byte array
 
-                byte[] dataSourceData = Constants.DefaultEncoding.GetBytes($"<data>{Guid.NewGuid()}</data>");
+                byte[] dataSourceData = Constants.DefaultEncoding.GetBytes(dataSourceFileData.ToXml());
                 SourceApi.Data.AddDataSource(dataSource, dataSourceData);
                 dataSources.Add(dataSource);
                 counter++;
@@ -420,15 +565,6 @@ namespace Tableau.Migration.Tests.Simulation
                 }
             }
 
-            // Creates a number of connections and returns the simulated "workbook file data" as a byte array
-            void CreateConnectionsForWorkbook(SimulatedWorkbookData workbookData, int connectionCount = 2)
-            {
-                for (int i = 0; i < connectionCount; i++)
-                {
-                    workbookData.Connections.Add(Create<SimulatedConnection>());
-                }
-            }
-
             /*
              * Build workbook metadata
              * Add owner to workbook
@@ -453,7 +589,7 @@ namespace Tableau.Migration.Tests.Simulation
                 // Create workbook
                 var workbook = AutoFixture.Build<WorkbookResponse.WorkbookType>()
                                 // Views need to be saved in the workbook data, so created at a later step
-                                .With(x => x.Views, Array.Empty<WorkbookResponse.WorkbookType.ViewReferenceType>())
+                                .With(x => x.Views, Array.Empty<WorkbookResponse.WorkbookType.WorkbookViewReferenceType>())
                                 .Create();
 
                 var workbookFileData = new SimulatedWorkbookData();
@@ -489,7 +625,9 @@ namespace Tableau.Migration.Tests.Simulation
 
                 CreateViewsForWorkbook(workbook, workbookFileData);
 
-                CreateConnectionsForWorkbook(workbookFileData);
+                var keychains = PrepareEmbeddedCredentials(SourceApi.Data.WorkbookKeychains, users, workbook.Id, counter);
+                CreateConnections(workbookFileData, embed: keychains.EncryptedKeychainList.Any());
+
                 CreateViewsForWorkbook(workbook, workbookFileData);
 
                 SourceApi.Data.AddWorkbook(workbook, Constants.DefaultEncoding.GetBytes(workbookFileData.ToXml()));
@@ -741,7 +879,7 @@ namespace Tableau.Migration.Tests.Simulation
 
             CustomViewResponse.CustomViewType CreateCustomView(
                 WorkbookResponse.WorkbookType workbook,
-                WorkbookResponse.WorkbookType.ViewReferenceType view,
+                WorkbookResponse.WorkbookType.WorkbookViewReferenceType view,
                 WorkbookResponse.WorkbookType.OwnerType owner)
             {
                 return AutoFixture.Build<CustomViewResponse.CustomViewType>()
@@ -768,6 +906,50 @@ namespace Tableau.Migration.Tests.Simulation
                     .Create();
             }
         }
+        #endregion
+
+        #region - Prepare Source Data (Subscriptions) -
+
+        protected IImmutableList<Server.GetSubscriptionsResponse.SubscriptionType> PrepareSourceSubscriptionsData()
+        {
+            var subscriptions = ImmutableArray.CreateBuilder<Server.GetSubscriptionsResponse.SubscriptionType>();
+            var schedules = PrepareSchedulesData();
+
+            foreach (var workbook in SourceApi.Data.Workbooks)
+            {
+                var workbookSubscription = Create<Server.GetSubscriptionsResponse.SubscriptionType>();
+
+                var user = SourceApi.Data.Users.PickRandom();
+                workbookSubscription.User = new() { Id = user.Id, Name = user.Name };
+                workbookSubscription.Content = new() { Id = workbook.Id, Type = "workbook" };
+                subscriptions.Add(workbookSubscription);
+                
+                var schedule = SourceApi.Data.Schedules.PickRandom();
+                workbookSubscription.Schedule = new() { Id = schedule.Id, Name = schedule.Name };
+
+                foreach(var view in workbook.Views)
+                {
+                    var viewSubscription = Create<Server.GetSubscriptionsResponse.SubscriptionType>();
+
+                    user = SourceApi.Data.Users.PickRandom();
+                    viewSubscription.User = new() { Id = user.Id, Name = user.Name };
+                    viewSubscription.Content = new() { Id = view.Id, Type = "view" };
+
+                    schedule = SourceApi.Data.Schedules.PickRandom();
+                    viewSubscription.Schedule = new() { Id = schedule.Id, Name = schedule.Name };
+
+                    subscriptions.Add(viewSubscription);
+                }
+            }
+
+            foreach (var subscription in subscriptions)
+            {
+                SourceApi.Data.ServerSubscriptions.Add(subscription);
+            }
+
+            return subscriptions.ToImmutable();
+        }
+
         #endregion
     }
 }

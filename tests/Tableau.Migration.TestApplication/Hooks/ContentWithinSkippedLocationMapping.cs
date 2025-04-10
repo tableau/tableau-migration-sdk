@@ -24,11 +24,12 @@ using Microsoft.Extensions.Options;
 using Tableau.Migration.Content;
 using Tableau.Migration.Engine.Endpoints.Search;
 using Tableau.Migration.Engine.Hooks.Mappings;
+using Tableau.Migration.Resources;
 using Tableau.Migration.TestApplication.Config;
 
 namespace Tableau.Migration.TestApplication.Hooks
 {
-    class ContentWithinSkippedLocationMapping<TContent> : IContentMapping<TContent>
+    class ContentWithinSkippedLocationMapping<TContent> : ContentMappingBase<TContent>
         where TContent : IContentReference
     {
         private readonly ContentLocation _skippedParentProject;
@@ -37,9 +38,10 @@ namespace Tableau.Migration.TestApplication.Hooks
         private readonly ILogger<ContentWithinSkippedLocationMapping<TContent>> _logger;
 
         public ContentWithinSkippedLocationMapping(
+            ISharedResourcesLocalizer localizer,
             ILogger<ContentWithinSkippedLocationMapping<TContent>> logger,
             IDestinationContentReferenceFinderFactory destinationContentReferenceFinderFactory,
-            IOptions<TestApplicationOptions> options)
+            IOptions<TestApplicationOptions> options) : base(localizer, logger)
         {
             _destinationProjectContentReferenceFinder = destinationContentReferenceFinderFactory.ForDestinationContentType<IProject>();
             _logger = logger;
@@ -47,7 +49,7 @@ namespace Tableau.Migration.TestApplication.Hooks
             _missingParentLocation = ContentLocation.FromPath(options.Value.SkippedMissingParentDestination);
         }
 
-        public async Task<ContentMappingContext<TContent>?> ExecuteAsync(
+        public override async Task<ContentMappingContext<TContent>?> MapAsync(
             ContentMappingContext<TContent> ctx, 
             CancellationToken cancel)
         {

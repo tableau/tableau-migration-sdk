@@ -19,12 +19,19 @@ from Tableau.Migration import IContentReference # noqa: E402, F401
 
 # region _generated
 
-from tableau_migration.migration import PyContentReference # noqa: E402, F401
+from tableau_migration.migration import (  # noqa: E402, F401
+    PyContentReference,
+    _generic_wrapper
+)
 from tableau_migration.migration_api_rest import PyRestIdentifiable # noqa: E402, F401
+from tableau_migration.migration_content_schedules import PyWithSchedule # noqa: E402, F401
 from typing import (  # noqa: E402, F401
     Sequence,
-    List
+    List,
+    Generic,
+    TypeVar
 )
+from typing_extensions import Self # noqa: E402, F401
 from uuid import UUID # noqa: E402, F401
 
 from System import (  # noqa: E402, F401
@@ -36,6 +43,7 @@ from System.Collections.Generic import (  # noqa: E402, F401
     HashSet as DotnetHashSet
 )
 from Tableau.Migration.Content import (  # noqa: E402, F401
+    ICloudSubscription,
     IConnection,
     IConnectionsContent,
     IContainerContent,
@@ -53,6 +61,9 @@ from Tableau.Migration.Content import (  # noqa: E402, F401
     IPublishableGroup,
     IPublishableWorkbook,
     IPublishedContent,
+    IServerSubscription,
+    ISubscription,
+    ISubscriptionContent,
     ITag,
     IUser,
     IUsernameContent,
@@ -62,9 +73,52 @@ from Tableau.Migration.Content import (  # noqa: E402, F401
     IWithTags,
     IWithWorkbook,
     IWorkbook,
-    IWorkbookDetails
+    IWorkbookDetails,
+    UserAuthenticationType
 )
 
+TSchedule = TypeVar("TSchedule")
+
+class PyWithOwner(PyContentReference):
+    """Interface to be inherited by content items with owner."""
+    
+    _dotnet_base = IWithOwner
+    
+    def __init__(self, with_owner: IWithOwner) -> None:
+        """Creates a new PyWithOwner object.
+        
+        Args:
+            with_owner: A IWithOwner object.
+        
+        Returns: None.
+        """
+        self._dotnet = with_owner
+        
+    @property
+    def owner(self) -> PyContentReference:
+        """Gets or sets the owner for the content item."""
+        return None if self._dotnet.Owner is None else PyContentReference(self._dotnet.Owner)
+    
+    @owner.setter
+    def owner(self, value: PyContentReference) -> None:
+        """Gets or sets the owner for the content item."""
+        self._dotnet.Owner = None if value is None else value._dotnet
+    
+class PyCloudSubscription(PyWithOwner):
+    """The interface for a cloud subscription."""
+    
+    _dotnet_base = ICloudSubscription
+    
+    def __init__(self, cloud_subscription: ICloudSubscription) -> None:
+        """Creates a new PyCloudSubscription object.
+        
+        Args:
+            cloud_subscription: A ICloudSubscription object.
+        
+        Returns: None.
+        """
+        self._dotnet = cloud_subscription
+        
 class PyConnection():
     """Interface for a content item's embedded connection."""
     
@@ -110,6 +164,21 @@ class PyConnection():
         """Gets the query tagging enabled flag for the response. This is returned only for administrator users."""
         return self._dotnet.QueryTaggingEnabled
     
+    @property
+    def authentication_type(self) -> str:
+        """Gets the authentication type for the response."""
+        return self._dotnet.AuthenticationType
+    
+    @property
+    def use_o_auth_managed_keychain(self) -> bool:
+        """Gets whether to use OAuth managed keychain."""
+        return self._dotnet.UseOAuthManagedKeychain
+    
+    @property
+    def embed_password(self) -> bool:
+        """Gets whether to embed the password."""
+        return self._dotnet.EmbedPassword
+    
 class PyConnectionsContent():
     """Interface for content that has connection metadata."""
     
@@ -130,6 +199,21 @@ class PyConnectionsContent():
         """Gets the connection metadata. Connection metadata is read only because connection metadata should not be transformed directly. Instead, connections should be modified by either: 1) manipulating XML before publishing, or 2) updating connection metadata in a post-publish hook."""
         return None if self._dotnet.Connections is None else list((None if x is None else PyConnection(x)) for x in self._dotnet.Connections)
     
+    @property
+    def has_embedded_password(self) -> bool:
+        """Gets whether any Connections have an embedded password."""
+        return self._dotnet.HasEmbeddedPassword
+    
+    @property
+    def has_embedded_o_auth_managed_keychain(self) -> bool:
+        """Gets whether any Connections have an embedded password and uses OAuth managed keychain."""
+        return self._dotnet.HasEmbeddedOAuthManagedKeychain
+    
+    @property
+    def has_embedded_o_auth_credentials(self) -> bool:
+        """Gets whether any Connections have an embedded password and an OAuth authentication type."""
+        return self._dotnet.HasEmbeddedOAuthCredentials
+    
 class PyContainerContent():
     """Interface for a content item that belongs to a container (e.g. project or personal space)."""
     
@@ -149,31 +233,6 @@ class PyContainerContent():
     def container(self) -> PyContentReference:
         """Gets the container for the content item. Relocating the content should be done through mapping."""
         return None if self._dotnet.Container is None else PyContentReference(self._dotnet.Container)
-    
-class PyWithOwner(PyContentReference):
-    """Interface to be inherited by content items with owner."""
-    
-    _dotnet_base = IWithOwner
-    
-    def __init__(self, with_owner: IWithOwner) -> None:
-        """Creates a new PyWithOwner object.
-        
-        Args:
-            with_owner: A IWithOwner object.
-        
-        Returns: None.
-        """
-        self._dotnet = with_owner
-        
-    @property
-    def owner(self) -> PyContentReference:
-        """Gets or sets the owner for the content item."""
-        return None if self._dotnet.Owner is None else PyContentReference(self._dotnet.Owner)
-    
-    @owner.setter
-    def owner(self, value: PyContentReference) -> None:
-        """Gets or sets the owner for the content item."""
-        self._dotnet.Owner = None if value is None else value._dotnet
     
 class PyWithWorkbook(PyContentReference):
     """Interface to be inherited by content items with workbook."""
@@ -331,7 +390,7 @@ class PyExtractContent():
         self._dotnet.EncryptExtracts = value
     
 class PyTag():
-    """Inteface for tags associated with content items."""
+    """Interface for tags associated with content items."""
     
     _dotnet_base = ITag
     
@@ -763,6 +822,11 @@ class PyView(PyWithTags, PyContentReference):
         """
         self._dotnet = view
         
+    @property
+    def parent_workbook(self) -> PyContentReference:
+        """Gets the parent workbook of the view."""
+        return None if self._dotnet.ParentWorkbook is None else PyContentReference(self._dotnet.ParentWorkbook)
+    
 class PyWorkbookDetails(PyWorkbook):
     """Interface for a workbook object with extended information, from a GET query for example."""
     
@@ -824,6 +888,215 @@ class PyPublishableWorkbook(PyWorkbookDetails, PyConnectionsContent):
                 dotnet_collection.Add(x)
             self._dotnet.HiddenViewNames = dotnet_collection
     
+class PyServerSubscription(PyWithOwner):
+    """The interface for a server subscription."""
+    
+    _dotnet_base = IServerSubscription
+    
+    def __init__(self, server_subscription: IServerSubscription) -> None:
+        """Creates a new PyServerSubscription object.
+        
+        Args:
+            server_subscription: A IServerSubscription object.
+        
+        Returns: None.
+        """
+        self._dotnet = server_subscription
+        
+class PySubscriptionContent():
+    """The content of the subscription."""
+    
+    _dotnet_base = ISubscriptionContent
+    
+    def __init__(self, subscription_content: ISubscriptionContent) -> None:
+        """Creates a new PySubscriptionContent object.
+        
+        Args:
+            subscription_content: A ISubscriptionContent object.
+        
+        Returns: None.
+        """
+        self._dotnet = subscription_content
+        
+    @property
+    def id(self) -> UUID:
+        """The ID of the content item tied to the subscription."""
+        return None if self._dotnet.Id is None else UUID(self._dotnet.Id.ToString())
+    
+    @id.setter
+    def id(self, value: UUID) -> None:
+        """The ID of the content item tied to the subscription."""
+        self._dotnet.Id = None if value is None else Guid.Parse(str(value))
+    
+    @property
+    def type(self) -> str:
+        """The content type of the subscription."""
+        return self._dotnet.Type
+    
+    @type.setter
+    def type(self, value: str) -> None:
+        """The content type of the subscription."""
+        self._dotnet.Type = value
+    
+    @property
+    def send_if_view_empty(self) -> bool:
+        """Whether or not send the notification if the view is empty."""
+        return self._dotnet.SendIfViewEmpty
+    
+    @send_if_view_empty.setter
+    def send_if_view_empty(self, value: bool) -> None:
+        """Whether or not send the notification if the view is empty."""
+        self._dotnet.SendIfViewEmpty = value
+    
+class PySubscription(Generic[TSchedule], PyWithSchedule[TSchedule], PyWithOwner):
+    """Interface for a subscription."""
+    
+    _dotnet_base = ISubscription
+    
+    def __init__(self, subscription: ISubscription) -> None:
+        """Creates a new PySubscription object.
+        
+        Args:
+            subscription: A ISubscription object.
+        
+        Returns: None.
+        """
+        self._dotnet = subscription
+        
+    @property
+    def subject(self) -> str:
+        """Gets or sets the subject of the subscription."""
+        return self._dotnet.Subject
+    
+    @subject.setter
+    def subject(self, value: str) -> None:
+        """Gets or sets the subject of the subscription."""
+        self._dotnet.Subject = value
+    
+    @property
+    def attach_image(self) -> bool:
+        """Gets or sets whether or not an image file should be attached to the notification."""
+        return self._dotnet.AttachImage
+    
+    @attach_image.setter
+    def attach_image(self, value: bool) -> None:
+        """Gets or sets whether or not an image file should be attached to the notification."""
+        self._dotnet.AttachImage = value
+    
+    @property
+    def attach_pdf(self) -> bool:
+        """Gets or sets whether or not a pdf file should be attached to the notification."""
+        return self._dotnet.AttachPdf
+    
+    @attach_pdf.setter
+    def attach_pdf(self, value: bool) -> None:
+        """Gets or sets whether or not a pdf file should be attached to the notification."""
+        self._dotnet.AttachPdf = value
+    
+    @property
+    def page_orientation(self) -> str:
+        """Gets or set the page orientation of the subscription."""
+        return self._dotnet.PageOrientation
+    
+    @page_orientation.setter
+    def page_orientation(self, value: str) -> None:
+        """Gets or set the page orientation of the subscription."""
+        self._dotnet.PageOrientation = value
+    
+    @property
+    def page_size_option(self) -> str:
+        """Gets or set the page page size option of the subscription."""
+        return self._dotnet.PageSizeOption
+    
+    @page_size_option.setter
+    def page_size_option(self, value: str) -> None:
+        """Gets or set the page page size option of the subscription."""
+        self._dotnet.PageSizeOption = value
+    
+    @property
+    def suspended(self) -> bool:
+        """Gets or sets whether or not the subscription is suspended."""
+        return self._dotnet.Suspended
+    
+    @suspended.setter
+    def suspended(self, value: bool) -> None:
+        """Gets or sets whether or not the subscription is suspended."""
+        self._dotnet.Suspended = value
+    
+    @property
+    def message(self) -> str:
+        """Gets or sets the message of the subscription."""
+        return self._dotnet.Message
+    
+    @message.setter
+    def message(self, value: str) -> None:
+        """Gets or sets the message of the subscription."""
+        self._dotnet.Message = value
+    
+    @property
+    def content(self) -> PySubscriptionContent:
+        """Gets or set the content reference of the subscription."""
+        return None if self._dotnet.Content is None else PySubscriptionContent(self._dotnet.Content)
+    
+    @content.setter
+    def content(self, value: PySubscriptionContent) -> None:
+        """Gets or set the content reference of the subscription."""
+        self._dotnet.Content = None if value is None else value._dotnet
+    
+class PyUserAuthenticationType():
+    """Structure representing the authentication type of a user."""
+    
+    _dotnet_base = UserAuthenticationType
+    
+    def __init__(self, user_authentication_type: UserAuthenticationType) -> None:
+        """Creates a new PyUserAuthenticationType object.
+        
+        Args:
+            user_authentication_type: A UserAuthenticationType object.
+        
+        Returns: None.
+        """
+        self._dotnet = user_authentication_type
+        
+    @classmethod
+    def get_default(cls) -> Self:
+        """Gets a value representing the site default authentication type."""
+        return None if UserAuthenticationType.Default is None else PyUserAuthenticationType(UserAuthenticationType.Default)
+    
+    @property
+    def authentication_type(self) -> str:
+        """Gets the authentication type, or null if the site uses IdpConfigurationIds."""
+        return self._dotnet.AuthenticationType
+    
+    @property
+    def idp_configuration_id(self) -> UUID:
+        """Gets the IdP configuration ID, or null if the site uses AuthenticationTypes."""
+        return None if self._dotnet.IdpConfigurationId is None else UUID(self._dotnet.IdpConfigurationId.ToString())
+    
+    @classmethod
+    def for_authentication_type(cls, authentication_type: str) -> Self:
+        """Creates a new UserAuthenticationType value.
+        
+        Args:
+            authentication_type: The authentication type.
+        
+        Returns: The created UserAuthenticationType value.
+        """
+        result = UserAuthenticationType.ForAuthenticationType(authentication_type)
+        return None if result is None else PyUserAuthenticationType(result)
+    
+    @classmethod
+    def for_configuration_id(cls, idp_configuration_id: UUID) -> Self:
+        """Creates a new UserAuthenticationType value.
+        
+        Args:
+            idp_configuration_id: The IdP configuration ID.
+        
+        Returns: The created UserAuthenticationType value.
+        """
+        result = UserAuthenticationType.ForConfigurationId(None if idp_configuration_id is None else Guid.Parse(str(idp_configuration_id)))
+        return None if result is None else PyUserAuthenticationType(result)
+    
 class PyUser(PyUsernameContent):
     """Interface for a user content item."""
     
@@ -878,6 +1151,16 @@ class PyUser(PyUsernameContent):
     def authentication_type(self, value: str) -> None:
         """Gets or sets the authentication type of the user, or null to not send an explicit authentication type for the user during migration."""
         self._dotnet.AuthenticationType = value
+    
+    @property
+    def authentication(self) -> PyUserAuthenticationType:
+        """Gets or sets the authentication type of the user. Use Default to use either the default authentication type of the site."""
+        return None if self._dotnet.Authentication is None else PyUserAuthenticationType(self._dotnet.Authentication)
+    
+    @authentication.setter
+    def authentication(self, value: PyUserAuthenticationType) -> None:
+        """Gets or sets the authentication type of the user. Use Default to use either the default authentication type of the site."""
+        self._dotnet.Authentication = None if value is None else value._dotnet
     
     @property
     def administrator_level(self) -> str:

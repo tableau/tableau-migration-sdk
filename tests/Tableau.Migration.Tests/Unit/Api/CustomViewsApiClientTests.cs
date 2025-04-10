@@ -16,6 +16,7 @@
 //
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -24,9 +25,12 @@ using AutoFixture;
 using Moq;
 using Tableau.Migration.Api;
 using Tableau.Migration.Api.Rest;
+using Tableau.Migration.Api.Rest.Models;
 using Tableau.Migration.Api.Rest.Models.Responses;
 using Tableau.Migration.Config;
 using Tableau.Migration.Content;
+using Tableau.Migration.Content.Files;
+using Tableau.Migration.Net;
 using Tableau.Migration.Net.Rest;
 using Xunit;
 
@@ -37,22 +41,22 @@ namespace Tableau.Migration.Tests.Unit.Api
         public abstract class CustomViewsApiClientTest : ApiClientTestBase<ICustomViewsApiClient>
         {
             internal CustomViewsApiClient CustomViewsApiClient => GetApiClient<CustomViewsApiClient>();
-            private readonly string _baseApiUri;
+            protected readonly string BaseApiUri;
 
             protected CustomViewsApiClientTest()
             {
                 MockConfigReader
                     .Setup(x => x.Get<IUser>())
                     .Returns(new ContentTypesOptions());
-                _baseApiUri = $"/api/{TableauServerVersion.RestApiVersion}";
+                BaseApiUri = $"/api/{TableauServerVersion.RestApiVersion}";
             }
 
             protected internal void AssertCustomViewRelativeUri(
-                HttpRequestMessage request, 
+                HttpRequestMessage request,
                 Guid customViewId,
                 string? suffix = null)
             {
-                request.AssertRelativeUri($"{_baseApiUri}/{RestUrlPrefixes.Sites}/{SiteId}/{RestUrlPrefixes.CustomViews}/{customViewId.ToUrlSegment()}{suffix ?? string.Empty}");
+                request.AssertRelativeUri($"{BaseApiUri}/{RestUrlPrefixes.Sites}/{SiteId}/{RestUrlPrefixes.CustomViews}/{customViewId.ToUrlSegment()}{suffix ?? string.Empty}");
             }
         }
 
@@ -162,7 +166,7 @@ namespace Tableau.Migration.Tests.Unit.Api
         }
 
         #endregion
-        
+
         #region - GetCustomViewDefaultUsersAsync -
 
         public class GetCustomViewDefaultUsersAsync : CustomViewsApiClientTest
@@ -422,6 +426,11 @@ namespace Tableau.Migration.Tests.Unit.Api
 
         public class DownloadCustomViewAsync : CustomViewsApiClientTest
         {
+            private void AssertCustomViewDownloadUri(Guid CustomViewId, HttpRequestMessage request)
+            {
+                request.AssertRelativeUri($"{BaseApiUri}/sites/{SiteId}/customviews/{CustomViewId}/content");
+            }
+
             [Fact]
             public async Task ErrorAsync()
             {
@@ -441,7 +450,7 @@ namespace Tableau.Migration.Tests.Unit.Api
                 Assert.Same(exception, resultError);
 
                 var request = MockHttpClient.AssertSingleRequest();
-                request.AssertRelativeUri($"/api/exp/sites/{SiteId}/customviews/{CustomViewId}/content");
+                AssertCustomViewDownloadUri(CustomViewId, request);
             }
 
             [Fact]
@@ -461,8 +470,9 @@ namespace Tableau.Migration.Tests.Unit.Api
                 Assert.Single(result.Errors);
 
                 var request = MockHttpClient.AssertSingleRequest();
-                request.AssertRelativeUri($"/api/exp/sites/{SiteId}/customviews/{CustomViewId}/content");
+                AssertCustomViewDownloadUri(CustomViewId, request);
             }
+
 
             [Fact]
             public async Task SuccessAsync()
@@ -480,7 +490,7 @@ namespace Tableau.Migration.Tests.Unit.Api
                 Assert.NotNull(result.Value);
 
                 var request = MockHttpClient.AssertSingleRequest();
-                request.AssertRelativeUri($"/api/exp/sites/{SiteId}/customviews/{CustomViewId}/content");
+                AssertCustomViewDownloadUri(CustomViewId, request);
             }
         }
 
@@ -751,6 +761,113 @@ namespace Tableau.Migration.Tests.Unit.Api
                     r.AssertHttpMethod(HttpMethod.Put);
                     AssertCustomViewRelativeUri(r, customViewId);
                 });
+            }
+        }
+
+        #endregion
+
+        #region - PublishCustomViewAsync -
+        public class PublishCustomViewAsync : CustomViewsApiClientTest
+        {
+            public PublishCustomViewAsync()
+            {
+                MockConfigReader
+                  .Setup(x => x.Get<ICustomView>())
+                  .Returns(new ContentTypesOptions());
+            }
+
+            private void SetupFileUploadErrorResponse(string errorCode)
+                => SetupErrorResponse<FileUploadResponse>(new Error() { Code = errorCode });
+
+            private (IHttpResponseMessage<CustomViewsResponse> Response, CustomViewsResponse Content) SetupCustomViewListResponse()
+                => SetupSuccessResponse<CustomViewsResponse>();
+
+            private PublishableCustomView CreatePublishableCustomView(CustomViewsResponse.CustomViewResponseType.WorkbookType workBook, CustomViewsResponse.CustomViewResponseType lastCustomView, IContentReference owner)
+            {
+                var cvToPublish = new CustomView(
+                    lastCustomView,
+                    new ContentReferenceStub(workBook.Id, Create<string>(),
+                    Create<ContentLocation>()),
+                    owner);
+
+                var publishableCv = new PublishableCustomView(
+                    cvToPublish,
+                    Create<List<IContentReference>>(),
+                    Create<IContentFileHandle>());
+
+                return publishableCv;
+            }
+
+            private IContentReference CreateNewContentReferenceStub()
+                => new ContentReferenceStub(Create<Guid>(), Create<string>(), Create<ContentLocation>());
+
+            [Fact]
+            public async Task SuccessAsync()
+            {
+                SetupSuccessResponse<FileUploadResponse, FileUploadResponse.FileUploadType>();
+
+                // Setup for commit file upload request
+                SetupSuccessResponse<CustomViewResponse, CustomViewResponse.CustomViewType>();
+
+                var customView = Create<IPublishableCustomView>();
+
+                var result = await ApiClient.PublishAsync(customView, Cancel);
+
+                result.AssertSuccess();
+                Assert.NotNull(result.Value);
+            }
+
+            [Fact]
+            public async Task Publish_fails()
+            {
+                SetupErrorResponse<FileUploadResponse>();
+
+                var customView = Create<IPublishableCustomView>();
+
+                var result = await ApiClient.PublishAsync(customView, Cancel);
+
+                result.AssertFailure();
+                Assert.Null(result.Value);
+            }
+
+            [Fact]
+            public async Task Publish_succeeds_on_existing_custom_view()
+            {
+                SetupFileUploadErrorResponse(RestErrorCodes.CUSTOM_VIEW_ALREADY_EXISTS);                
+                SetupSuccessResponse();
+
+                var workBook = Create<CustomViewsResponse.CustomViewResponseType.WorkbookType>();
+
+                var customViewListSetup = SetupCustomViewListResponse();
+                var customViews = customViewListSetup.Content.Items.ToList();
+                var lastCustomView = customViews.Last();
+                var owner = CreateNewContentReferenceStub();
+
+                var publishableCv = CreatePublishableCustomView(workBook, lastCustomView, owner);
+
+                var result = await ApiClient.PublishAsync(publishableCv, Cancel);
+
+                MockHttpClient.AssertRequestCount(4);
+            }
+
+            [Fact]
+            public async Task Publish_fails_for_reasons_other_than_existing_custom_view()
+            {
+                SetupFileUploadErrorResponse(CreateString());
+
+                var workBook = Create<CustomViewsResponse.CustomViewResponseType.WorkbookType>();
+                var customViewListSetup = SetupCustomViewListResponse();
+
+                var customViews = customViewListSetup.Content.Items.ToList();
+                var lastCustomView = customViews.Last();
+                var owner = CreateNewContentReferenceStub();
+
+                var publishableCv = CreatePublishableCustomView(workBook, lastCustomView, owner);
+
+                var result = await ApiClient.PublishAsync(publishableCv, Cancel);
+
+                result.AssertFailure();
+                Assert.Null(result.Value);
             }
         }
 

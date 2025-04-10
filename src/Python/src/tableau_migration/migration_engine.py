@@ -20,6 +20,7 @@ from typing_extensions import Self
 from uuid import UUID
 
 from tableau_migration.migration import (
+    PyPipelineProfile,
     get_service_provider,
     get_service
 )
@@ -60,13 +61,11 @@ class PyMigrationPlan():
     def plan_id(self) -> UUID:
         """Gets the per-plan options to supply."""
         return UUID(self._migration_plan.PlanId.ToString())
-
     
     @property
-    def pipeline_profile(self):
+    def pipeline_profile(self) -> PyPipelineProfile:
         """Gets the profile of the pipeline that will be built and executed."""
-        return self._migration_plan.PipelineProfile # TODO: PipelineProfile needs python wrapper
-
+        return self._migration_plan.PipelineProfile 
 
     @property
     def options(self):
@@ -147,6 +146,11 @@ class PyServerToCloudMigrationPlanBuilder():
     def mappings(self) -> PyContentMappingBuilder:
         """Gets the mappings to execute at various points during the migration."""
         return self._mappings
+
+    @property
+    def pipeline_profile(self) -> PyPipelineProfile:
+        """Gets the profile of the pipeline that will be built and executed."""
+        return self._plan_builder.PipelineProfile 
 
     def from_source_tableau_server(self, server_url: str, site_content_url: str, access_token_name: str, access_token: str, create_api_simulator: bool = False) -> Self:
         """Sets or overwrites the configuration for the source Tableau Server site to migrate content from.
@@ -248,33 +252,35 @@ class PyServerToCloudMigrationPlanBuilder():
         self._plan_builder.AppendDefaultServerToCloudExtensions()
         return self
 
-    def with_saml_authentication_type(self, domain: str) -> Self:
+    def with_saml_authentication_type(self, domain: str, idp_configuration_name: Union[str, None] = None) -> Self:
         """Adds an object to map user and group domains based on the SAML authentication type.
 
         Args:
             domain: The domain to map users and groups to.
+            idp_configuration_name: The IdP configuration name for the authentication type to assign to users. Should be null when the destination site is Tableau Server or has a single authentication configuration. Should be non-null when the destination site is Tableau Cloud and has multiple authentication configurations.
 
         Returns: The same plan builder object for fluent API calls.
         """
-        self._plan_builder.WithSamlAuthenticationType(domain)
+        self._plan_builder.WithSamlAuthenticationType(domain, None if idp_configuration_name is None else idp_configuration_name)
         return self
 
-    def with_tableau_id_authentication_type(self, mfa: bool = True) -> Self:
+    def with_tableau_id_authentication_type(self, mfa: bool = True, idp_configuration_name: Union[str, None] = None) -> Self:
         """Adds an object to map user and group domains based on the Tableau ID authentication type.
 
         Args:
             mfa: Whether or not MFA is used, defaults to true.
+            idp_configuration_name: The IdP configuration name for the authentication type to assign to users. Should be null when the destination site is Tableau Server or has a single authentication configuration. Should be non-null when the destination site is Tableau Cloud and has multiple authentication configurations.
 
         Returns: The same plan builder object for fluent API calls.
         """
-        self._plan_builder.WithTableauIdAuthenticationType(mfa)
+        self._plan_builder.WithTableauIdAuthenticationType(mfa, None if idp_configuration_name is None else idp_configuration_name)
         return self
     
     def with_authentication_type(self, authentication_type: str, input_1, group_domain) -> Self:
         """Adds an object to map user and group domains based on the destination authentication type.
 
         Args:
-            authentication_type: An authentication type to assign to users.
+            authentication_type: The authentication type to assign to users. For sites without multiple authentication types an authSetting value from https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_users_and_groups.htm#add_user_to_site should be used. If the site has multiple authentication types the IdP configuration name shown in the authentication configuration list should be used.
             input_1: Either 1) the domain to map users to, or 2) the mapping to execute.
             group_domain: The domain to map users to. Not used with input_1 in a mapping object.
 
@@ -331,6 +337,7 @@ class PyMigrationPlanBuilder():
         self._transformers = PyContentTransformerBuilder(self._plan_builder.Transformers)
         self._options = PyMigrationPlanOptionsBuilder(self._plan_builder.Options)
 
+
     @property
     def filters(self) -> PyContentFilterBuilder:
         """Gets the filters to execute at various points during the migration."""
@@ -355,6 +362,10 @@ class PyMigrationPlanBuilder():
     def mappings(self) -> PyContentMappingBuilder:
         """Gets the mappings to execute at various points during the migration."""
         return self._mappings
+
+    def pipeline_profile(self) -> PyPipelineProfile:
+        """Gets the pipeline profile to execute."""
+        return self._plan_builder.PipelineProfile
 
     def from_source_tableau_server(self, server_url: str, site_content_url: str, access_token_name: str, access_token: str, create_api_simulator: bool = False) -> Self:
         """Sets or overwrites the configuration for the source Tableau Server site to migrate content from.

@@ -18,6 +18,7 @@
 using System.Collections.Immutable;
 using Tableau.Migration.Content.Search;
 using Tableau.Migration.Engine.Actions;
+using Tableau.Migration.Engine.Conversion;
 using Tableau.Migration.Engine.Endpoints.Search;
 using Tableau.Migration.Engine.Migrators;
 using Tableau.Migration.Engine.Migrators.Batch;
@@ -55,10 +56,22 @@ namespace Tableau.Migration.Engine.Pipelines
         /// Gets a content item preparer for the given content and publish types.
         /// </summary>
         /// <typeparam name="TContent">The content type.</typeparam>
+        /// <typeparam name="TPrepare">The type being prepared.</typeparam>
         /// <typeparam name="TPublish">The publish type.</typeparam>
         /// <returns>The content preparer.</returns>
-        IContentItemPreparer<TContent, TPublish> GetItemPreparer<TContent, TPublish>()
+        IContentItemPreparer<TContent, TPublish> GetItemPreparer<TContent, TPrepare, TPublish>()
             where TContent : class
+            where TPrepare : class
+            where TPublish : class;
+
+        /// <summary>
+        /// Gets a content item converter for the given prepare and publish types.
+        /// </summary>
+        /// <typeparam name="TPrepare">The type being prepared.</typeparam>
+        /// <typeparam name="TPublish">The publish type.</typeparam>
+        /// <returns></returns>
+        IContentItemConverter<TPrepare, TPublish> GetItemConverter<TPrepare, TPublish>()
+            where TPrepare : class
             where TPublish : class;
 
         /// <summary>

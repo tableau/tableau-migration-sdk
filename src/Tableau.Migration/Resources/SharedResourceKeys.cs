@@ -216,5 +216,31 @@ namespace Tableau.Migration.Resources
         public const string ScheduleUpdatedRemovedEndAtMessage = "ScheduleUpdatedRemovedEndAtMessage";
 
         public const string ScheduleUpdatedHoursMessage = "ScheduleUpdatedHoursMessage";
+
+        public const string ContainerParentNotFound = "ContainerParentNotFound";
+
+        public const string MappedContainerNotFound = "MappedContainerNotFound";
+
+        public const string InitializeMigrationBaseDebugMessage = "InitializeMigrationBaseDebugMessage";
+
+        public const string InitializeMigrationBaseNoChangesMessage = "InitializeMigrationBaseNoChangesMessage";
+
+        public const string MigrationDisabledWarning = "MigrationDisabledWarning";
+
+        public const string HasManagedOAuthCredentialsWarning = "HasManagedOAuthCredentialsWarning";
+
+        public const string OAuthCredentialMigrationUsersNotAtDestination = "OAuthCredentialMigrationUsersNotAtDestination";
+
+        public const string DestinationEndpointNotAnApiMsg = "DestinationEndpointNotAnApiMsg";
+
+        public const string EmbeddedCredsDisabledReason = "EmbeddedCredsDisabledReason";
+
+        public const string DummySubscriptionName = "DummySubscriptionName";
+
+        public const string DummySubscriptionMessage = "DummySubscriptionMessage";
+
+        public const string ContentTypeDisabledWarning = "ContentTypeDisabledWarning";
+
+        public const string SubscriptionsDisabledReason = "SubscriptionsDisabledReason";
     }
 }

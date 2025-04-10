@@ -37,6 +37,11 @@ namespace Tableau.Migration
         Guid MigrationId { get; }
 
         /// <summary>
+        /// Gets the profile of the pipeline that was executed to produce this manifest.
+        /// </summary>
+        PipelineProfile PipelineProfile { get; }
+
+        /// <summary>
         /// Gets top-level errors that are not related to any Tableau content item but occurred during the migration.
         /// </summary>
         IReadOnlyList<Exception> Errors { get; }

@@ -89,7 +89,8 @@ namespace Tableau.Migration.Api.Rest.Models.Responses
             [XmlElement("project")]
             public ProjectType? Project { get; set; }
 
-            IProjectReferenceType? IWithProjectType.Project => Project;
+            IProjectNamedReferenceType? IWithProjectNamedReferenceType.Project => Project;
+            IProjectReferenceType? IWithProjectReferenceType.Project => Project;
 
             /// <summary>
             /// Gets or sets the owner for the response.
@@ -115,7 +116,7 @@ namespace Tableau.Migration.Api.Rest.Models.Responses
             /// <summary>
             /// Class representing a REST API project response.
             /// </summary>
-            public class ProjectType : IProjectReferenceType
+            public class ProjectType : IProjectNamedReferenceType
             {
                 /// <summary>
                 /// Gets or sets the ID for the response.

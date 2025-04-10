@@ -49,6 +49,7 @@ namespace Tableau.Migration.Tests.Unit.Content.Files
                 WrittenFileData = MemoryStreamManager.GetStream();
                 MockWriteFileStream = CreateTestFileStream(WrittenFileData);
 
+                MockFile.SetupGet(x => x.IsZipFile).Returns((bool?)null);
                 MockFile.Setup(x => x.OpenWriteAsync(Cancel))
                     .ReturnsAsync((CancellationToken c) =>
                     {
@@ -202,7 +203,30 @@ namespace Tableau.Migration.Tests.Unit.Content.Files
         public class OpenAsync : TableauFileEditorTest
         {
             [Fact]
-            public async Task OpensXmlFileAsync()
+            public async Task OpensXmlFileFromFileOverrideAsync()
+            {
+                var dataStream = CreateMemoryStream(TEST_XML);
+
+                var mockFileStream = CreateTestFileStream(dataStream);
+
+                MockFile.SetupGet(x => x.IsZipFile).Returns(false);
+                MockFile.Setup(x => x.OpenReadAsync(Cancel))
+                    .ReturnsAsync(mockFileStream.Object);
+
+                await using var editor = await TableauFileEditor.OpenAsync(MockFile.Object, MemoryStreamManager, Cancel);
+
+                Assert.NotSame(dataStream, editor.Content);
+                Assert.Equal(0, editor.Content.Position); //stream is ready to read.
+
+                Assert.Equal(dataStream.ToArray(), editor.Content.ToArray());
+
+                mockFileStream.Verify(x => x.DisposeAsync(), Times.Once);
+
+                Assert.Null(editor.Archive);
+            }
+
+            [Fact]
+            public async Task OpensXmlFileFromFileNameAsync()
             {
                 var dataStream = CreateMemoryStream(TEST_XML);
 
@@ -225,7 +249,52 @@ namespace Tableau.Migration.Tests.Unit.Content.Files
             }
 
             [Fact]
-            public async Task OpensZipFileAsync()
+            public async Task OpensXmlFileFromStreamDetectionAsync()
+            {
+                var dataStream = CreateMemoryStream(TEST_XML);
+
+                var mockFileStream = CreateTestFileStream(dataStream);
+
+                MockFile.Setup(x => x.OpenReadAsync(Cancel))
+                    .ReturnsAsync(mockFileStream.Object);
+
+                await using var editor = await TableauFileEditor.OpenAsync(MockFile.Object, MemoryStreamManager, Cancel);
+
+                Assert.NotSame(dataStream, editor.Content);
+                Assert.Equal(0, editor.Content.Position); //stream is ready to read.
+
+                Assert.Equal(dataStream.ToArray(), editor.Content.ToArray());
+
+                mockFileStream.Verify(x => x.DisposeAsync(), Times.Once);
+
+                Assert.Null(editor.Archive);
+            }
+
+            [Fact]
+            public async Task OpensZipFileFromFileOverrideAsync()
+            {
+                var data = BundleXmlIntoZipFile(TEST_XML);
+                var dataStream = CreateMemoryStream(data);
+
+                var mockFileStream = CreateTestFileStream(dataStream);
+
+                MockFile.SetupGet(x => x.IsZipFile).Returns(true);
+                MockFile.Setup(x => x.OpenReadAsync(Cancel))
+                    .ReturnsAsync(mockFileStream.Object);
+
+                await using var editor = await TableauFileEditor.OpenAsync(MockFile.Object, MemoryStreamManager, Cancel);
+
+                Assert.NotSame(dataStream, editor.Content);
+                Assert.Equal(dataStream.ToArray(), editor.Content.ToArray());
+
+                mockFileStream.Verify(x => x.DisposeAsync(), Times.Once);
+
+                Assert.NotNull(editor.Archive);
+                Assert.Equal(ZipArchiveMode.Update, editor.Archive.Mode);
+            }
+
+            [Fact]
+            public async Task OpensZipFileFromFileNameAsync()
             {
                 var data = BundleXmlIntoZipFile(TEST_XML);
                 var dataStream = CreateMemoryStream(data);
@@ -233,6 +302,28 @@ namespace Tableau.Migration.Tests.Unit.Content.Files
                 var mockFileStream = CreateTestFileStream(dataStream);
 
                 MockFile.SetupGet(x => x.OriginalFileName).Returns("test.twbx");
+                MockFile.Setup(x => x.OpenReadAsync(Cancel))
+                    .ReturnsAsync(mockFileStream.Object);
+
+                await using var editor = await TableauFileEditor.OpenAsync(MockFile.Object, MemoryStreamManager, Cancel);
+
+                Assert.NotSame(dataStream, editor.Content);
+                Assert.Equal(dataStream.ToArray(), editor.Content.ToArray());
+
+                mockFileStream.Verify(x => x.DisposeAsync(), Times.Once);
+
+                Assert.NotNull(editor.Archive);
+                Assert.Equal(ZipArchiveMode.Update, editor.Archive.Mode);
+            }
+
+            [Fact]
+            public async Task OpensZipFileFromStreamDetectionAsync()
+            {
+                var data = BundleXmlIntoZipFile(TEST_XML);
+                var dataStream = CreateMemoryStream(data);
+
+                var mockFileStream = CreateTestFileStream(dataStream);
+
                 MockFile.Setup(x => x.OpenReadAsync(Cancel))
                     .ReturnsAsync(mockFileStream.Object);
 
