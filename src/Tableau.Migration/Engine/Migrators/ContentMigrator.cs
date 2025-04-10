@@ -16,7 +16,6 @@
 //
 
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Tableau.Migration.Config;
@@ -110,12 +109,6 @@ namespace Tableau.Migration.Engine.Migrators
 
                 //Apply filters.
                 var filteredItems = (await _filterRunner.ExecuteAsync(batchItems, cancel).ConfigureAwait(false)).ToImmutableArray();
-
-                var skippedItems = batchItems.Except(filteredItems).ToImmutableArray();
-                foreach (var skippedItem in skippedItems)
-                {
-                    skippedItem.ManifestEntry.SetSkipped();
-                }
 
                 cancel.ThrowIfCancellationRequested();
 

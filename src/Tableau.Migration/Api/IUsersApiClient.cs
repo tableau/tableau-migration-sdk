@@ -64,10 +64,10 @@ namespace Tableau.Migration.Api
         /// </summary>
         /// <param name="userName">The username. In case of Tableau Cloud, the user name is the email address of the user.</param>
         /// <param name="siteRole">The site role for the user.</param>
-        /// <param name="authenticationType">The optional authentication type of the user.</param>
+        /// <param name="authentication">The authentication type of the user.</param>
         /// <param name="cancel">The cancellation token to obey.</param>
-        /// <returns></returns>
-        Task<IResult<IAddUserResult>> AddUserAsync(string userName, string siteRole, string? authenticationType, CancellationToken cancel);
+        /// <returns>The added user information.</returns>
+        Task<IResult<IAddUserResult>> AddUserAsync(string userName, string siteRole, UserAuthenticationType authentication, CancellationToken cancel);
 
         /// <summary>
         /// Updates the user already present at the destination.
@@ -78,23 +78,40 @@ namespace Tableau.Migration.Api
         /// <param name="newfullName">(Optional) The new Full Name for the user.</param>
         /// <param name="newEmail">(Optional) The new email address for the user.</param>
         /// <param name="newPassword">(Optional) The new password for the user.</param>
-        /// <param name="newAuthSetting">(Optional) The new email Auth Setting for the user.</param>
-
-        /// <returns></returns>
+        /// <param name="newAuthentication">(Optional) The new authentication for the user.</param>
+        /// <returns>The updated user information.</returns>
         Task<IResult<IUpdateUserResult>> UpdateUserAsync(Guid id,
                                              string newSiteRole,
                                              CancellationToken cancel,
                                              string? newfullName = null,
                                              string? newEmail = null,
                                              string? newPassword = null,
-                                             string? newAuthSetting = null);
+                                             UserAuthenticationType? newAuthentication = null);
 
         /// <summary>
         /// Deletes a user.
         /// </summary>
         /// <param name="userId">The user's ID.</param>
         /// <param name="cancel">The cancellation token to obey.</param>
-        /// <returns></returns>
+        /// <returns>A result indicating success or failure.</returns>
         Task<IResult> DeleteUserAsync(Guid userId, CancellationToken cancel);
+
+        /// <summary>
+        /// Retrieves saved credentials for a specific user.
+        /// </summary>
+        /// <param name="userId">The user's ID.</param>
+        /// <param name="destinationSiteInfo">The destination site information..</param>        
+        /// <param name="cancel">The cancellation token.</param>
+        /// <returns>The user's </returns>
+        Task<IResult<IEmbeddedCredentialKeychainResult>> RetrieveUserSavedCredentialsAsync(Guid userId, IDestinationSiteInfo destinationSiteInfo, CancellationToken cancel);
+
+        /// <summary>
+        /// Uploads saved credentials for a user
+        /// </summary>
+        /// <param name="userId">The user id</param>
+        /// <param name="encryptedKeychains">The list of encrypted keychains</param>
+        /// <param name="cancel">The cancellation token</param>
+        /// <returns></returns>
+        Task<IResult> UploadUserSavedCredentialsAsync(Guid userId, IEnumerable<string> encryptedKeychains, CancellationToken cancel);
     }
 }

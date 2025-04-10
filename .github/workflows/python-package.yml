@@ -2,91 +2,109 @@
 name: Python Publish Package Workflow
 
 on:
-  workflow_call:
-    secrets:
-      PYPI_PUBLISH_USER_PASS:
-        required: false
-    inputs:
-      runs-on-config:
-        required: true
-        type: string
-      build-config:
-        required: true
-        type: string
-      publish-environment:
-        required: true
-        type: string
-      beta-version:
-        required: true
-        type: string
-      publish-artifact:
-        required: false
-        type: boolean
-        default: false
+    workflow_call:
+        secrets:
+            PYPI_PUBLISH_USER_PASS:
+                required: false
+        inputs:
+            runs-on-config:
+                required: true
+                type: string
+            build-config:
+                required: true
+                type: string
+            publish-environment:
+                required: true
+                type: string
+            beta-version:
+                required: true
+                type: string
+            publish-artifact:
+                required: false
+                type: boolean
+                default: false
 
 env:
-  PUBLISH_PACKAGE_KEY: ${{ secrets.PYPI_PUBLISH_USER_PASS }}
+    PUBLISH_PACKAGE_KEY: ${{ secrets.PYPI_PUBLISH_USER_PASS }}
 
 defaults:
-  run:
-    working-directory: ./src/Python
+    run:
+        working-directory: ./src/Python
 
 jobs:
-  publish-package:
-    environment:
-      name: ${{ inputs.publish-environment }}
-    runs-on: ${{ inputs.runs-on-config }}
-    name: Publish Package with ${{ inputs.build-config }} configuration
-    steps:
-    - uses: actions/checkout@v4
-      if: ${{ env.PUBLISH_PACKAGE_KEY != '' }}
-    - uses: ./.github/actions/setup-dotnet
-      if: ${{ env.PUBLISH_PACKAGE_KEY != '' && inputs.runs-on-config != 'self-hosted' }}
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      if: ${{ env.PUBLISH_PACKAGE_KEY != '' && inputs.runs-on-config != 'self-hosted' }}
-      with:
-        python-version: ${{ vars.PYTHON_TEST_VERSIONS }}
-        cache: 'pip' # caching pip dependencies
-    - name: Install dependencies
-      if: ${{ env.PUBLISH_PACKAGE_KEY != '' }}
-      shell: pwsh
-      run: |
-        python -m pip install --upgrade pip
-        python -m pip install hatch twine
-    - name: Lint with ruff
-      if: ${{ env.PUBLISH_PACKAGE_KEY != '' }}
-      run: |
-        # default set of ruff rules with GitHub Annotations
-        python -m hatch run lint:lint
-    - uses: actions/download-artifact@v4
-      if: ${{ env.PUBLISH_PACKAGE_KEY != '' }}
-      with:
-        name: published-${{ inputs.build-config }}
-        path: ./src/Python/src/tableau_migration/bin/
-    - name: Set Replaced Version
-      if: ${{ env.PUBLISH_PACKAGE_KEY != '' && inputs.beta-version != '' }}
-      shell: pwsh
-      run: hatch version '${{ inputs.beta-version }}'
-    - name: Build Python Package
-      if: ${{ env.PUBLISH_PACKAGE_KEY != '' }}
-      shell: pwsh
-      run: python -m hatch build
-    - name: Publish Python Package Beta Version ${{ inputs.beta-version }}
-      if: ${{ env.PUBLISH_PACKAGE_KEY != '' }}
-      shell: pwsh
-      env:
-        TWINE_USERNAME: ${{ vars.PYPI_PUBLISH_USER }}
-        TWINE_NON_INTERACTIVE: 1
-        TWINE_PASSWORD: ${{ secrets.PYPI_PUBLISH_USER_PASS }}
-      run: |
-        python -m twine upload --repository-url ${{ vars.PYPI_PACKAGE_REPOSITORY_URL }} dist/*
-        Compress-Archive -Path .\dist\* -DestinationPath .\tableau_migration-pypi.zip
-    - name: Upload Pypi Artifact
-      uses: actions/upload-artifact@v4
-      if: ${{ env.PUBLISH_PACKAGE_KEY != '' && inputs.publish-artifact }}
-      with:
-        name: pypi-package
-        path: src/Python/tableau_migration-pypi.zip
-        if-no-files-found: error
-
+    publish-package:
+        environment:
+            name: ${{ inputs.publish-environment }}
+        runs-on: ${{ inputs.runs-on-config }}
+        name: Publish Package with ${{ inputs.build-config }} configuration
+        steps:
+            # Checkout the repository
+            - uses: actions/checkout@v4
+              if: ${{ env.PUBLISH_PACKAGE_KEY != '' }}
+            
+            # Setup .NET environment
+            - uses: ./.github/actions/setup-dotnet
+              if: ${{ env.PUBLISH_PACKAGE_KEY != '' && inputs.runs-on-config != 'self-hosted' }}
+            
+            # Setup Python environment
+            - name: Set up Python
+              uses: actions/setup-python@v5
+              if: ${{ env.PUBLISH_PACKAGE_KEY != '' && inputs.runs-on-config != 'self-hosted' }}
+              with:
+                  python-version: ${{ vars.PYTHON_TEST_VERSIONS }}
+                  cache: 'pip' # caching pip dependencies
+            
+            # Install dependencies
+            - name: Install dependencies
+              if: ${{ env.PUBLISH_PACKAGE_KEY != '' }}
+              shell: pwsh
+              run: |
+                  python -m pip install --upgrade pip
+                  python -m pip install hatch twine
+            
+            # Lint with ruff
+            - name: Lint with ruff
+              if: ${{ env.PUBLISH_PACKAGE_KEY != '' }}
+              run: |
+                  # default set of ruff rules with GitHub Annotations
+                  python -m hatch run lint:lint
+            
+            # Download the published artifact
+            - uses: actions/download-artifact@v4
+              if: ${{ env.PUBLISH_PACKAGE_KEY != '' }}
+              with:
+                  name: published-${{ inputs.build-config }}
+                  path: ./src/Python/src/tableau_migration/bin/
+            
+            # Set replaced version
+            - name: Set Replaced Version
+              if: ${{ env.PUBLISH_PACKAGE_KEY != '' && inputs.beta-version != '' }}
+              shell: pwsh
+              run: hatch version '${{ inputs.beta-version }}'
+            
+            # Build Python package
+            - name: Build Python Package
+              if: ${{ env.PUBLISH_PACKAGE_KEY != '' }}
+              shell: pwsh
+              run: python -m hatch build
+            
+            # Publish Python package
+            - name: Publish Python Package Beta Version ${{ inputs.beta-version }}
+              if: ${{ env.PUBLISH_PACKAGE_KEY != '' }}
+              shell: pwsh
+              env:
+                  TWINE_USERNAME: ${{ vars.PYPI_PUBLISH_USER }}
+                  TWINE_NON_INTERACTIVE: 1
+                  TWINE_PASSWORD: ${{ secrets.PYPI_PUBLISH_USER_PASS }}
+              run: |
+                  python -m twine upload --repository-url ${{ vars.PYPI_PACKAGE_REPOSITORY_URL }} dist/*
+                  Compress-Archive -Path .\dist\* -DestinationPath .\tableau_migration-pypi.zip
+            
+            # Upload PyPI artifact
+            - name: Upload Pypi Artifact
+              uses: actions/upload-artifact@v4
+              if: ${{ env.PUBLISH_PACKAGE_KEY != '' && inputs.publish-artifact }}
+              with:
+                  name: pypi-package
+                  path: src/Python/tableau_migration-pypi.zip
+                  if-no-files-found: error

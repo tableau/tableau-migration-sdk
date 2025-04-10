@@ -15,15 +15,16 @@
 //  limitations under the License.
 //
 
+using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System;
 
 namespace Tableau.Migration.PythonGenerator
 {
     internal static class GenerationListHelper
     {
-        internal static ImmutableHashSet<string> ToTypeNameHash(params Type[] types)
+        internal static ImmutableHashSet<string> ToTypeNameHash(params IEnumerable<Type> types)
            => types.Select(t => t.FullName!).ToImmutableHashSet();
     }
 }

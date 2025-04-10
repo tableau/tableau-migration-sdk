@@ -19,6 +19,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Serialization;
+using Tableau.Migration.Content;
 
 namespace Tableau.Migration.Api.Rest.Models.Requests
 {
@@ -38,15 +39,15 @@ namespace Tableau.Migration.Api.Rest.Models.Requests
         /// which is required for import if no other user payload is provided.
         /// </summary>
         public ImportUsersFromCsvRequest()
-            : this(new[] { new UserType() })
+            : this([new UserType()])
         { }
 
         /// <summary>
         /// Creates a new <see cref="ImportUsersFromCsvRequest"/> with a single user to specify a default authentication type.
         /// </summary>
-        /// <param name="authSetting">The default authentication type to request.</param>
-        public ImportUsersFromCsvRequest(string? authSetting)
-            : this(new[] { new UserType { AuthSetting = authSetting } })
+        /// <param name="authentication">The default authentication type to request.</param>
+        public ImportUsersFromCsvRequest(UserAuthenticationType authentication)
+            : this([new UserType(null, authentication)])
         { }
 
         /// <summary>
@@ -70,6 +71,24 @@ namespace Tableau.Migration.Api.Rest.Models.Requests
         public class UserType
         {
             /// <summary>
+            /// Creates a new <see cref="UserType"/>.
+            /// </summary>
+            public UserType()
+            { }
+
+            /// <summary>
+            /// Creates a new <see cref="UserType"/>.
+            /// </summary>
+            /// <param name="name">The user name.</param>
+            /// <param name="authentication">The user authentication type.</param>
+            public UserType(string? name, UserAuthenticationType authentication)
+            {
+                Name = name;
+                AuthSetting = authentication.AuthenticationType;
+                IdpConfigurationId = authentication.IdpConfigurationId?.ToString();
+            }
+
+            /// <summary>
             /// Gets or sets the username for the item.
             /// Use a null name to apply an empty user or default authentication type.
             /// </summary>
@@ -81,6 +100,12 @@ namespace Tableau.Migration.Api.Rest.Models.Requests
             /// </summary>
             [XmlAttribute("authSetting")]
             public string? AuthSetting { get; set; }
+
+            /// <summary>
+            /// Gets or sets the IdP configuration ID for the item.
+            /// </summary>
+            [XmlAttribute("idpConfigurationId")]
+            public string? IdpConfigurationId { get; set; }
         }
     }
 }

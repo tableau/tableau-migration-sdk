@@ -15,15 +15,14 @@
 //  limitations under the License.
 //
 
-using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using Moq;
 using Tableau.Migration.Content;
 using Tableau.Migration.Engine.Hooks.Mappings;
-using Microsoft.Extensions.Logging;
-using Xunit;
-using Moq;
 using Tableau.Migration.Resources;
+using Xunit;
 
 
 namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Mappings
@@ -36,10 +35,10 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Mappings
             private readonly ContentMappingContext<IUser> _replaceLocation;
 
             public StubUserMapping(
-                ContentMappingContext<IUser> searchLocation, 
+                ContentMappingContext<IUser> searchLocation,
                 ContentMappingContext<IUser> replaceLocation,
                 ISharedResourcesLocalizer localizer,
-                ILogger<StubUserMapping> logger) 
+                ILogger<StubUserMapping> logger)
                     : base(localizer, logger)
             {
                 _searchLocation = searchLocation;
@@ -79,9 +78,6 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Mappings
             // Asserts
             Assert.Equal(replaceLoc, mappedResult);
             Assert.Equal(unmappedLoc, unmappedResult);
-
-            // Verify we got at least 1 debug log message
-            mockLogger.VerifyLogging(LogLevel.Debug, Times.AtLeastOnce());
         }
     }
 }

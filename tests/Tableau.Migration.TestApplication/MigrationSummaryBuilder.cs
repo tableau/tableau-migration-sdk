@@ -50,11 +50,11 @@ namespace Tableau.Migration.TestApplication
         {
             summaryBuilder.AppendLine();
 
-            var contentTypeList = GetContentTypes();
+            var pipelineContentTypes = MigrationPipelineContentType.GetMigrationPipelineContentTypes(result.Manifest.PipelineProfile);
 
-            foreach (var contentType in contentTypeList)
+            foreach (var pipelineContentType in pipelineContentTypes)
             {
-                var typeResult = result.Manifest.Entries.ForContentType(contentType);
+                var typeResult = result.Manifest.Entries.ForContentType(pipelineContentType.ContentType);
 
                 if (typeResult is null)
                 {
@@ -70,7 +70,7 @@ namespace Tableau.Migration.TestApplication
             this StringBuilder summaryBuilder,
             IMigrationManifestContentTypePartition typeResult)
         {
-            var total = typeResult.ExpectedTotalCount;
+            var total = typeResult.Count;
 
             if (total == 0)
             {
@@ -134,7 +134,5 @@ namespace Tableau.Migration.TestApplication
         private static string GetMetricString(string metricName, int metricValue)
             => $"{metricName}{KEY_VALUE_SEPARATOR}{metricValue}";
 
-        private static List<Type> GetContentTypes()
-            => ServerToCloudMigrationPipeline.ContentTypes.Select(c => c.ContentType).ToList();
     }
 }

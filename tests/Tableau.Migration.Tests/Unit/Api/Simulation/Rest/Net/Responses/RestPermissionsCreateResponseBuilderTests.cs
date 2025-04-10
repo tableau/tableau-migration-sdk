@@ -19,6 +19,7 @@ using System;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Tableau.Migration.Api.Rest;
 using Tableau.Migration.Api.Rest.Models;
 using Tableau.Migration.Api.Rest.Models.Requests;
 using Tableau.Migration.Api.Rest.Models.Responses;
@@ -73,7 +74,7 @@ namespace Tableau.Migration.Tests.Unit.Api.Simulation.Rest.Net.Responses
                 var responseContent = await Serializer.DeserializeAsync<PermissionsResponse>(response.Content, Cancel);
                 Assert.NotNull(responseContent);
                 Assert.NotNull(responseContent.Error);
-                Assert.Equal("400009", responseContent.Error.Code);
+                Assert.Equal(RestErrorCodes.INVALID_CAPABILITY_FOR_RESOURCE, responseContent.Error.Code);
             }
         }
     }

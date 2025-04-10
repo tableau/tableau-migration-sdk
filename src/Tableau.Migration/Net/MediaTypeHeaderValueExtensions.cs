@@ -44,9 +44,9 @@ namespace Tableau.Migration.Net
             },
             StringComparer.OrdinalIgnoreCase);
 
-        internal static bool IsUtf8(this MediaTypeHeaderValue header)
+        internal static bool IsUtf8(this MediaTypeHeaderValue? header)
         {
-            if (header.CharSet is not null)
+            if (header?.CharSet is not null)
             {
                 try
                 {
@@ -64,16 +64,18 @@ namespace Tableau.Migration.Net
             return false;
         }
 
-        internal static bool IsHtml(this MediaTypeHeaderValue header) => IsMediaType(header, MediaTypeNames.Text.Html);
+        internal static bool IsHtml(this MediaTypeHeaderValue? header) => IsMediaType(header, MediaTypeNames.Text.Html);
 
-        internal static bool IsJson(this MediaTypeHeaderValue header) => IsMediaType(header, MediaTypeNames.Application.Json);
+        internal static bool IsJson(this MediaTypeHeaderValue? header) => IsMediaType(header, MediaTypeNames.Application.Json);
 
-        internal static bool IsXml(this MediaTypeHeaderValue header) => IsMediaType(header, MediaTypeNames.Application.Xml);
+        internal static bool IsXml(this MediaTypeHeaderValue? header) => IsMediaType(header, MediaTypeNames.Application.Xml);
 
-        internal static bool IsText(this MediaTypeHeaderValue header)
+        internal static bool IsOctetStream(this MediaTypeHeaderValue? header) => IsMediaType(header, MediaTypeNames.Application.Octet);
+
+        internal static bool IsText(this MediaTypeHeaderValue? header)
         {
             // Media type cannot be null
-            if (header.MediaType!.StartsWith("text/", StringComparison.OrdinalIgnoreCase))
+            if (header?.MediaType?.StartsWith("text/", StringComparison.OrdinalIgnoreCase) ?? false)
             {
                 return true;
             }
@@ -81,7 +83,7 @@ namespace Tableau.Migration.Net
             return false;
         }
 
-        internal static bool LogsAsText(this MediaTypeHeaderValue header)
+        internal static bool LogsAsText(this MediaTypeHeaderValue? header)
         {
             if (header.IsText())
             {
@@ -89,7 +91,7 @@ namespace Tableau.Migration.Net
             }
 
             // Media type cannot be null
-            if (_loggingOtherTextMediaTypes.Contains(header.MediaType!))
+            if (_loggingOtherTextMediaTypes.Contains(header?.MediaType ?? string.Empty))
             {
                 return true;
             }
@@ -97,9 +99,9 @@ namespace Tableau.Migration.Net
             return false;
         }
 
-        private static bool IsMediaType(MediaTypeHeaderValue header, string mediaType)
+        private static bool IsMediaType(MediaTypeHeaderValue? header, string mediaType)
         {
-            return string.Equals(header.MediaType, mediaType, StringComparison.OrdinalIgnoreCase);
+            return string.Equals(header?.MediaType, mediaType, StringComparison.OrdinalIgnoreCase);
         }
     }
 }

@@ -85,6 +85,9 @@ namespace Tableau.Migration.Api.Simulation.Rest.Net.Responses
 
             targetDataSource.Tags = [];
 
+            // Publishing resets embedded credentials.
+            Data.DataSourceKeychains.AddOrUpdate(targetDataSource.Id, new RetrieveKeychainResponse(), (_, _) => new RetrieveKeychainResponse());
+
             return targetDataSource;
         }
 

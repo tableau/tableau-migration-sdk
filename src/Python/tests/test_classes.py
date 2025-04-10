@@ -224,6 +224,7 @@ from tableau_migration.migration import (  # noqa: E402, F401
     PyContentLocation,
     PyContentReference,
     PyMigrationCompletionStatus,
+    PyPipelineProfile,
     PyResult
 )
 
@@ -247,6 +248,7 @@ from tableau_migration.migration_api_rest_models_types import (  # noqa: E402, F
 )
 
 from tableau_migration.migration_content import (  # noqa: E402, F401
+    PyCloudSubscription,
     PyConnection,
     PyConnectionsContent,
     PyContainerContent,
@@ -264,8 +266,12 @@ from tableau_migration.migration_content import (  # noqa: E402, F401
     PyPublishableGroup,
     PyPublishableWorkbook,
     PyPublishedContent,
+    PyServerSubscription,
+    PySubscription,
+    PySubscriptionContent,
     PyTag,
     PyUser,
+    PyUserAuthenticationType,
     PyUsernameContent,
     PyView,
     PyWithDomain,
@@ -324,6 +330,7 @@ from tableau_migration.migration_engine_pipelines import (  # noqa: E402, F401
 
 
 from Tableau.Migration import MigrationCompletionStatus
+from Tableau.Migration import PipelineProfile
 from Tableau.Migration.Api.Rest.Models import AdministratorLevels
 from Tableau.Migration.Api.Rest.Models import ContentPermissions
 from Tableau.Migration.Api.Rest.Models import ExtractEncryptionModes
@@ -344,6 +351,7 @@ _generated_class_data = [
     (PyContentReference, None),
     (PyResult, [ "CastFailure" ]),
     (PyRestIdentifiable, None),
+    (PyCloudSubscription, [ "AttachImage", "AttachPdf", "Content", "Message", "PageOrientation", "PageSizeOption", "Schedule", "Subject", "Suspended" ]),
     (PyConnection, None),
     (PyConnectionsContent, None),
     (PyContainerContent, None),
@@ -361,8 +369,12 @@ _generated_class_data = [
     (PyPublishableGroup, [ "SetLocation" ]),
     (PyPublishableWorkbook, [ "ChildPermissionContentItems", "ChildType", "DisposeAsync", "File", "SetLocation", "ShouldMigrateChildPermissions" ]),
     (PyPublishedContent, None),
+    (PyServerSubscription, [ "AttachImage", "AttachPdf", "Content", "Message", "PageOrientation", "PageSizeOption", "Schedule", "Subject", "Suspended" ]),
+    (PySubscription, None),
+    (PySubscriptionContent, None),
     (PyTag, None),
     (PyUser, [ "SetLocation" ]),
+    (PyUserAuthenticationType, None),
     (PyUsernameContent, [ "SetLocation" ]),
     (PyView, None),
     (PyWithDomain, None),
@@ -390,12 +402,13 @@ _generated_class_data = [
     (PyMigrationManifestEntryEditor, [ "SetFailed" ]),
     (PyContentItemMigrationResult, [ "CastFailure" ]),
     (PyContentBatchMigrationResult, [ "CastFailure" ]),
-    (PyMigrationPipelineContentType, [ "GetContentTypeForInterface", "GetPostPublishTypesForInterface", "GetPublishTypeForInterface", "WithPublishType", "WithResultType" ]),
-    (PyServerToCloudMigrationPipeline, [ "BuildActions", "BuildPipeline", "CreateDestinationCache", "CreateSourceCache", "GetBatchMigrator", "GetDestinationLockedProjectCache", "GetItemPreparer", "GetMigrator" ])
+    (PyMigrationPipelineContentType, [ "GetContentTypeForInterface", "GetPostPublishTypesForInterface", "GetPublishTypeForInterface", "WithPrepareType", "WithPublishType", "WithResultType" ]),
+    (PyServerToCloudMigrationPipeline, [ "BuildActions", "BuildPipeline", "CreateDestinationCache", "CreateSourceCache", "GetBatchMigrator", "GetDestinationLockedProjectCache", "GetItemConverter", "GetItemPreparer", "GetMigrator" ])
 ]
 
 _generated_enum_data = [
     (PyMigrationCompletionStatus, MigrationCompletionStatus),
+    (PyPipelineProfile, PipelineProfile),
     (PyAdministratorLevels, AdministratorLevels),
     (PyContentPermissions, ContentPermissions),
     (PyExtractEncryptionModes, ExtractEncryptionModes),

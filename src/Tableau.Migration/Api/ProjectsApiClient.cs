@@ -42,8 +42,6 @@ namespace Tableau.Migration.Api
     internal sealed class ProjectsApiClient :
         ContentApiClientBase, IProjectsApiClient, IProjectsResponseApiClient
     {
-        internal const string PROJECT_NAME_CONFLICT_ERROR_CODE = "409006";
-
         private readonly IHttpContentSerializer _serializer;
         private readonly IDefaultPermissionsApiClient _defaultPermissionsClient;
 
@@ -171,6 +169,40 @@ namespace Tableau.Migration.Api
 
         #region - IPublishApiClient<IProject> Implementation -
 
+        private static bool ContinueOnProjectCreationError(IProject projectToCreate, IResult createResult)
+        {
+            if(createResult.Success || !createResult.Errors.Any())
+            {
+                return false;
+            }
+
+            foreach (var e in createResult.Errors)
+            {
+                if(e is not RestException re)
+                {
+                    return false;
+                }
+
+                // Name conflict is OK - it means the project already exists, and we should get/update.
+                if(RestErrorCodes.Equals(re.Code, RestErrorCodes.PROJECT_NAME_CONFLICT_ERROR_CODE))
+                {
+                    continue;
+                }
+                /* Access error on "External Assets Default Project" is OK.
+                 * Users can assign ownership on this built-in project, which bypasses our system ownership filter,
+                 * but trying to overwrite it with creation gives an access error code instead of name conflict.
+                 * We want to get/update the project so we can set the owner to reflect the source.
+                 */
+                else if(RestErrorCodes.Equals(re.Code, RestErrorCodes.CREATE_PROJECT_FORBIDDEN) && 
+                    Constants.SystemProjectNames.Contains(projectToCreate.Name))
+                {
+                    continue;
+                }
+            }
+
+            return true;
+        }
+
         public async Task<IResult<IProject>> PublishAsync(IProject item, CancellationToken cancel)
         {
             var options = new CreateProjectOptions(
@@ -180,12 +212,11 @@ namespace Tableau.Migration.Api
                 item.ContentPermissions,
                 false);
 
-            var projectResult = await CreateProjectAsync(options, cancel).ConfigureAwait(false);
+            var createResult = await CreateProjectAsync(options, cancel).ConfigureAwait(false);
 
-            if (projectResult.Success
-                || !projectResult.Errors.OfType<RestException>().Any(e => e.Code == PROJECT_NAME_CONFLICT_ERROR_CODE))
+            if (createResult.Success || !ContinueOnProjectCreationError(item, createResult))
             {
-                return projectResult;
+                return createResult;
             }
 
             // If there's a conflict find the existing project.
@@ -219,21 +250,19 @@ namespace Tableau.Migration.Api
             }
 
             var conflictResultBuilder = new ResultBuilder();
-            conflictResultBuilder.Add(projectResult);
+            conflictResultBuilder.Add(createResult);
 
             if (!existingProjectResult.Success)
             {
                 conflictResultBuilder.Add(existingProjectResult);
             }
-            else if (existingProjectResult.Value.Count == 0)
+            else if (!existingProjectResult.Value.Any())
             {
-                conflictResultBuilder.Add(
-                    new Exception($@"Could not find a project with the name ""{options.Name}"" and parent project ID {options.ParentProject?.Id.ToString() ?? "<null>"}."));
+                conflictResultBuilder.Add(new Exception($@"Could not find a project with the name ""{options.Name}"" and parent project ID {options.ParentProject?.Id.ToString() ?? "<null>"}."));
             }
             else if (existingProjectResult.Value.Count > 1)
             {
-                conflictResultBuilder.Add(
-                    new Exception($@"Found multiple projects with the name ""{options.Name}"" and parent project ID {options.ParentProject?.Id.ToString() ?? "<null>"}."));
+                conflictResultBuilder.Add(new Exception($@"Found multiple projects with the name ""{options.Name}"" and parent project ID {options.ParentProject?.Id.ToString() ?? "<null>"}."));
             }
 
             return conflictResultBuilder.Build().CastFailure<IProject>();

@@ -30,7 +30,8 @@ namespace Tableau.Migration.Content
         IMappableContainerContent,
         IPermissionsContent,
         IRequiresOwnerUpdate,
-        IWithConnections
+        IWithConnections,
+        IRequiresEmbeddedCredentialMigration
     {
         /// <summary>
         /// Gets or sets whether tabs are shown.

@@ -84,7 +84,7 @@ namespace Tableau.Migration.Api.Rest.Models.Responses.Cloud
                 [XmlElement("workbook")]
                 public WorkbookType? Workbook { get; set; }
 
-                IRestIdentifiable? IWithWorkbookReferenceType.Workbook => Workbook;
+                IWorkbookReferenceType? IWithWorkbookReferenceType.Workbook => Workbook;
                 IRestIdentifiable? IWithDataSourceReferenceType.DataSource => DataSource;
 
                 /// <summary>
@@ -186,7 +186,7 @@ namespace Tableau.Migration.Api.Rest.Models.Responses.Cloud
                 /// <summary>
                 /// Class representing a response workbook item.
                 /// </summary>
-                public class WorkbookType : IRestIdentifiable
+                public class WorkbookType : IWorkbookReferenceType
                 {
                     /// <summary>
                     /// Gets or sets the ID for the response.

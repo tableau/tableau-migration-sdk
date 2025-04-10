@@ -17,13 +17,14 @@
 
 using Moq;
 using Tableau.Migration.Content;
-using Tableau.Migration.Content.Schedules;
 using Tableau.Migration.Content.Schedules.Cloud;
 using Tableau.Migration.Content.Schedules.Server;
 using Tableau.Migration.Engine.Actions;
+using Tableau.Migration.Engine.Conversion;
 using Tableau.Migration.Engine.Endpoints.Search;
 using Tableau.Migration.Engine.Migrators;
 using Tableau.Migration.Engine.Migrators.Batch;
+using Tableau.Migration.Engine.Pipelines;
 using Tableau.Migration.Engine.Preparation;
 using Xunit;
 
@@ -31,6 +32,41 @@ namespace Tableau.Migration.Tests.Unit.Engine.Pipelines
 {
     public class MigrationPipelineBaseTests
     {
+
+        #region - Verify First Party Pipelines -
+
+        [Fact]
+        public void Verify_AllPipelinesHaveExpectedNumberOfActions()
+        {
+            MigrationPipelineTestBase<ServerToServerMigrationPipeline> ServerToServerPipeline = new();
+            MigrationPipelineTestBase<ServerToCloudMigrationPipeline> ServerToCloudPipeline = new();
+            MigrationPipelineTestBase<CloudToCloudMigrationPipeline> CloudToCloudPipeline = new();
+
+            var serverToServerActions = ServerToServerPipeline.Pipeline.BuildActions();
+            var serverToCloudActions = ServerToCloudPipeline.Pipeline.BuildActions();
+            var cloudToCloudActions = CloudToCloudPipeline.Pipeline.BuildActions();
+
+            Assert.NotEmpty(serverToServerActions);
+            Assert.NotEmpty(serverToCloudActions);
+            Assert.NotEmpty(cloudToCloudActions);
+
+            Assert.Equal(serverToServerActions.Length, serverToCloudActions.Length);
+            Assert.Equal(serverToCloudActions.Length, cloudToCloudActions.Length);
+        }
+
+        [Fact]
+        public void Verify_AllPipelinesHaveExpectedNumberOfContentTypes()
+        {
+            Assert.NotEmpty(ServerToServerMigrationPipeline.ContentTypes);
+            Assert.NotEmpty(ServerToCloudMigrationPipeline.ContentTypes);
+            Assert.NotEmpty(CloudToCloudMigrationPipeline.ContentTypes);
+
+            Assert.Equal(ServerToServerMigrationPipeline.ContentTypes.Length, ServerToCloudMigrationPipeline.ContentTypes.Length);
+            Assert.Equal(ServerToCloudMigrationPipeline.ContentTypes.Length, CloudToCloudMigrationPipeline.ContentTypes.Length);
+        }
+
+        #endregion
+
         public class MigrationPipelineBaseTest : MigrationPipelineTestBase<TestPipeline>
         { }
 
@@ -125,28 +161,53 @@ namespace Tableau.Migration.Tests.Unit.Engine.Pipelines
             [Fact]
             public void CreatesDefaultSourceItemPreparer()
             {
-                var migrator = Pipeline.GetItemPreparer<TestContentType, TestContentType>();
+                var preparer = Pipeline.GetItemPreparer<TestContentType, TestContentType, TestContentType>();
 
-                Assert.IsType<SourceContentItemPreparer<TestContentType>>(migrator);
+                Assert.IsType<SourceContentItemPreparer<TestContentType>>(preparer);
                 MockServices.Verify(x => x.GetService(typeof(SourceContentItemPreparer<TestContentType>)), Times.Once);
             }
-            
+
+            [Fact]
+            public void CreatesNonPullSourceItemPreparer()
+            {
+                var preparer = Pipeline.GetItemPreparer<TestContentType, TestContentType, TestPublishType>();
+
+                Assert.IsType<SourceContentItemPreparer<TestContentType, TestPublishType>>(preparer);
+                MockServices.Verify(x => x.GetService(typeof(SourceContentItemPreparer<TestContentType, TestPublishType>)), Times.Once);
+            }
+
             [Fact]
             public void CreatesEndpointItemPreparer()
             {
-                var migrator = Pipeline.GetItemPreparer<TestContentType, OtherTestContentType>();
+                var preparer = Pipeline.GetItemPreparer<TestContentType, OtherTestContentType, OtherTestContentType>();
 
-                Assert.IsType<EndpointContentItemPreparer<TestContentType, OtherTestContentType>>(migrator);
-                MockServices.Verify(x => x.GetService(typeof(EndpointContentItemPreparer<TestContentType, OtherTestContentType>)), Times.Once);
+                Assert.IsType<EndpointContentItemPreparer<TestContentType, OtherTestContentType, OtherTestContentType>>(preparer);
+                MockServices.Verify(x => x.GetService(typeof(EndpointContentItemPreparer<TestContentType, OtherTestContentType, OtherTestContentType>)), Times.Once);
             }
-            
+
             [Fact]
             public void CreatesExtractRefreshTaskServerToCloudPreparer()
             {
-                var migrator = Pipeline.GetItemPreparer<IServerExtractRefreshTask, ICloudExtractRefreshTask>();
+                var preparer = Pipeline.GetItemPreparer<IServerExtractRefreshTask, ICloudExtractRefreshTask, ICloudExtractRefreshTask>();
 
-                Assert.IsType<ExtractRefreshTaskServerToCloudPreparer>(migrator);
+                Assert.IsType<ExtractRefreshTaskServerToCloudPreparer>(preparer);
                 MockServices.Verify(x => x.GetService(typeof(ExtractRefreshTaskServerToCloudPreparer)), Times.Once);
+            }
+        }
+
+        #endregion
+
+        #region - GetItemConverter -
+
+        public class GetItemConverter : MigrationPipelineBaseTest
+        {
+            [Fact]
+            public void CreatesIdentityConverter()
+            {
+                var converter = Pipeline.GetItemConverter<TestContentType, TestContentType>();
+
+                Assert.IsType<DirectContentItemConverter<TestContentType, TestContentType>>(converter);
+                MockServices.Verify(x => x.GetService(typeof(DirectContentItemConverter<TestContentType, TestContentType>)), Times.Once);
             }
         }
 
@@ -208,5 +269,6 @@ namespace Tableau.Migration.Tests.Unit.Engine.Pipelines
         }
 
         #endregion
+
     }
 }

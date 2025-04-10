@@ -21,6 +21,7 @@ using System.Threading.Tasks;
 using Moq;
 using Tableau.Migration.Api;
 using Tableau.Migration.Api.Models;
+using Tableau.Migration.Api.Rest;
 using Tableau.Migration.Api.Rest.Models.Requests;
 using Tableau.Migration.Api.Rest.Models.Responses;
 using Tableau.Migration.Net;
@@ -242,7 +243,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             {
                 var mockSitesResponse = new MockHttpResponseMessage();
                 var tsResponse = new EmptyTableauServerResponse(
-                    new() { Code = ApiClient.SITES_QUERY_NOT_SUPPORTED, Summary = It.IsAny<string>(), Detail = It.IsAny<string>() });
+                    new() { Code = RestErrorCodes.SITES_QUERY_NOT_SUPPORTED, Summary = It.IsAny<string>(), Detail = It.IsAny<string>() });
 
                 var content = new DefaultHttpResponseMessage(
                     new HttpResponseMessage(HttpStatusCode.Forbidden)

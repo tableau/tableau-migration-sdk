@@ -48,6 +48,11 @@ namespace Tableau.Migration.Config
             public const bool LOG_BINARY_CONTENT_ENABLED = false;
 
             /// <summary>
+            /// The default Network Workbook Content Logging Flag - Disabled as Default.
+            /// </summary>
+            public const bool LOG_WORKBOOK_CONTENT_ENABLED = false;
+
+            /// <summary>
             /// The default Network Exceptions Logging Flag - Disabled as Default.
             /// </summary>
             public const bool LOG_EXCEPTIONS_ENABLED = false;
@@ -97,6 +102,16 @@ namespace Tableau.Migration.Config
             set => _binaryContentLoggingEnabled = value;
         }
         private bool? _binaryContentLoggingEnabled;
+
+        /// <summary>
+        /// Indicates whether the SDK logs workbook content when downloading a .twb workbook. The default value is disabled.
+        /// </summary>
+        public bool WorkbookContentLoggingEnabled
+        {
+            get => _workbookContentLoggingEnabled ?? Defaults.LOG_WORKBOOK_CONTENT_ENABLED;
+            set => _workbookContentLoggingEnabled = value;
+        }
+        private bool? _workbookContentLoggingEnabled;
 
         /// <summary>
         /// Indicates whether the SDK logs network exceptions. The default value is disabled.

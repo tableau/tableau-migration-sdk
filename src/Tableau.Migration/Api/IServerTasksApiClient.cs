@@ -18,7 +18,6 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Tableau.Migration.Content.Schedules.Cloud;
 using Tableau.Migration.Content.Schedules.Server;
 
 namespace Tableau.Migration.Api
@@ -28,7 +27,6 @@ namespace Tableau.Migration.Api
     /// </summary>
     public interface IServerTasksApiClient :
         IContentApiClient,
-        IPullApiClient<IServerExtractRefreshTask, ICloudExtractRefreshTask>,
         IApiPageAccessor<IServerExtractRefreshTask>,
         IPagedListApiClient<IServerExtractRefreshTask>
     {

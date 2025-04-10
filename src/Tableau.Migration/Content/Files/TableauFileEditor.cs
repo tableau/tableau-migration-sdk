@@ -80,7 +80,7 @@ namespace Tableau.Migration.Content.Files
                 _ => false
             };
         }
-
+         
         /// <inheritdoc />
         public ITableauFileXmlStream GetXmlStream()
         {
@@ -109,17 +109,8 @@ namespace Tableau.Migration.Content.Files
         /// <param name="handle">The file store file to edit.</param>
         /// <param name="memoryStreamManager">The memory stream manager.</param>
         /// <param name="cancel">A cancellation token to obey, and to use when the editor is disposed.</param>
-        /// <param name="zipFormatOverride">
-        /// True to consider the file a zip archive, 
-        /// false to consider the file an XML file, 
-        /// or null to detect whether the file is a zip archive.
-        /// </param>
         /// <returns>The newly created file editor.</returns>
-        public static async Task<TableauFileEditor> OpenAsync(
-            IContentFileHandle handle,
-            IMemoryStreamManager memoryStreamManager,
-            CancellationToken cancel,
-            bool? zipFormatOverride = null)
+        public static async Task<TableauFileEditor> OpenAsync(IContentFileHandle handle, IMemoryStreamManager memoryStreamManager, CancellationToken cancel)
         {
             var fileStream = await handle.OpenReadAsync(cancel).ConfigureAwait(false);
 
@@ -127,14 +118,22 @@ namespace Tableau.Migration.Content.Files
 
             await using (fileStream)
             {
-                //Read the file into a seekable memory stream
-                //that the ZipArchive requires for update mode.
+                /*
+                 * Read the file into a seekable memory stream
+                 * that the ZipArchive requires for update mode.
+                 */
                 await fileStream.Content.CopyToAsync(outputStream, cancel).ConfigureAwait(false);
             }
 
             outputStream.Seek(0, SeekOrigin.Begin);
 
-            var isZip = zipFormatOverride == true || await handle.IsZipAsync(cancel).ConfigureAwait(false);
+            /*
+             * Determine zip format by with priority of effort to detect:
+             *   1. The zip flag on the file handle (usually based on download response Content-Type header).
+             *   2. The original filename/file store filename
+             *   3. The (potentially decrypted) output stream, looking for Zip file header bytes.
+             */
+            var isZip = handle.IsZipFile is true || handle.HasZipFilePath is true || outputStream.IsZip();
 
             var archive = isZip ? new ZipArchive(outputStream, ZipArchiveMode.Update, leaveOpen: true) : null;
 

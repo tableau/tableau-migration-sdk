@@ -1,4 +1,4 @@
-﻿//
+//
 //  Copyright (c) 2025, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
@@ -35,16 +35,12 @@ namespace Tableau.Migration.Content.Schedules
             : this(response.Start.ToTimeOrNull(), response.End.ToTimeOrNull(), response.Intervals.Select(i => new Interval(i) as IInterval))
         { }
 
-        public FrequencyDetails(TimeOnly? startAt, TimeOnly? endAt, IEnumerable<IInterval> intervals)
+        public FrequencyDetails(TimeOnly? startAt, TimeOnly? endAt, params IEnumerable<IInterval> intervals)
         {
             StartAt = startAt;
             EndAt = endAt;
             Intervals = intervals.ToList();
         }
-
-        public FrequencyDetails(TimeOnly? startAt, TimeOnly? endAt, params IInterval[] intervals)
-            : this(startAt, endAt, (IEnumerable<IInterval>)intervals)
-        { }
 
         public override string ToString()
         {

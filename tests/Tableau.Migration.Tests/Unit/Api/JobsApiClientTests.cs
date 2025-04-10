@@ -128,7 +128,8 @@ namespace Tableau.Migration.Tests.Unit.Api
                 foreach (var request in requests)
                     request.AssertRelativeUri($"/api/{TableauServerVersion.RestApiVersion}/sites/{SiteId}/jobs/{jobId.ToUrlSegment()}");
 
-                MockTaskDelayer.Verify(d => d.DelayAsync(TimeSpan.FromMilliseconds(50), Cancel), Times.Exactly(2));
+                var timeSpan = TimeSpan.FromMilliseconds(50);
+                MockTaskDelayer.Verify(d => d.DelayAsync(timeSpan, Cancel), Times.Exactly(2));
             }
 
             [Fact]

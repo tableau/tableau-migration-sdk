@@ -41,7 +41,7 @@ namespace Tableau.Migration
         /// </summary>
         /// <param name="results">The results to add errors from.</param>
         /// <returns>This result builder for fluent API usage.</returns>
-        public virtual ResultBuilder Add(params IResult[] results)
+        public virtual ResultBuilder Add(params IEnumerable<IResult> results)
         {
             foreach (var result in results)
             {

@@ -20,6 +20,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Tableau.Migration.Api.EmbeddedCredentials;
 using Tableau.Migration.Api.Labels;
 using Tableau.Migration.Api.Models;
 using Tableau.Migration.Api.Permissions;
@@ -57,6 +58,7 @@ namespace Tableau.Migration.Api
             IContentFileStore fileStore,
             IDataSourcePublisher dataSourcePublisher,
             ITagsApiClientFactory tagsClientFactory,
+            IEmbeddedCredentialsApiClientFactory embeddedCredentialsApiClientFactory,
             IConnectionManager connectionManager,
             ILabelsApiClientFactory labelsCLientFactory,
             IConfigReader configReader)
@@ -67,8 +69,10 @@ namespace Tableau.Migration.Api
             Labels = labelsCLientFactory.Create<IDataSource>();
             Permissions = permissionsClientFactory.Create(this);
             Tags = tagsClientFactory.Create(this);
+            EmbeddedCredentials = embeddedCredentialsApiClientFactory.Create(this);
             _connectionManager = connectionManager;
             _configReader = configReader;
+
         }
 
         #region - ILabelsContentApiClient Implementation -
@@ -92,11 +96,15 @@ namespace Tableau.Migration.Api
 
         #endregion
 
+        #region - IEmbeddedCredentialsContentApiClient Implementation
+
         /// <inheritdoc />
-        public async Task<IPagedResult<IDataSource>> GetAllPublishedDataSourcesAsync(
-            int pageNumber,
-            int pageSize,
-            CancellationToken cancel)
+        public IEmbeddedCredentialsApiClient EmbeddedCredentials { get; }
+
+        #endregion
+
+        /// <inheritdoc />
+        public async Task<IPagedResult<IDataSource>> GetAllPublishedDataSourcesAsync(int pageNumber, int pageSize, CancellationToken cancel)
         {
             var getAllResult = await RestRequestBuilderFactory
                 .CreateUri(UrlPrefix)
@@ -113,26 +121,27 @@ namespace Tableau.Migration.Api
                     foreach (var item in response.Items)
                     {
                         // Convert them all to type DataSource.
-                        if (item.Project is not null) // Project is null if item is in a personal space
+                        if (item.Project is null) // Project is null if item is in a personal space
                         {
-                            var project = await FindProjectAsync(item, false, cancel).ConfigureAwait(false);
-                            var owner = await FindOwnerAsync(item, false, cancel).ConfigureAwait(false);
-
-                            if (project is null || owner is null)
-                            {
-                                Logger.LogWarning(
-                                    SharedResourcesLocalizer[SharedResourceKeys.DataSourceSkippedMissingReferenceWarning],
-                                    item.Id,
-                                    item.Name,
-                                    item.Project!.Id,
-                                    project is null ? SharedResourcesLocalizer[SharedResourceKeys.NotFound] : SharedResourcesLocalizer[SharedResourceKeys.Found],
-                                    item.Owner!.Id,
-                                    owner is null ? SharedResourcesLocalizer[SharedResourceKeys.NotFound] : SharedResourcesLocalizer[SharedResourceKeys.Found]);
-                                continue;
-                            }
-
-                            results.Add(new DataSource(item, project, owner));
+                            continue;
                         }
+                        var project = await FindProjectAsync(item, false, cancel).ConfigureAwait(false);
+                        var owner = await FindOwnerAsync(item, false, cancel).ConfigureAwait(false);
+
+                        if (project is null || owner is null)
+                        {
+                            Logger.LogWarning(
+                                SharedResourcesLocalizer[SharedResourceKeys.DataSourceSkippedMissingReferenceWarning],
+                                item.Id,
+                                item.Name,
+                                item.Project!.Id,
+                                project is null ? SharedResourcesLocalizer[SharedResourceKeys.NotFound] : SharedResourcesLocalizer[SharedResourceKeys.Found],
+                                item.Owner!.Id,
+                                owner is null ? SharedResourcesLocalizer[SharedResourceKeys.NotFound] : SharedResourcesLocalizer[SharedResourceKeys.Found]);
+                            continue;
+                        }
+
+                        results.Add(new DataSource(item, project, owner));
                     }
 
                     // Produce immutable list of type IDataSource and return.
@@ -275,7 +284,7 @@ namespace Tableau.Migration.Api
                  * make sure the file is disposed. We clean up orphaned
                  * files at the end of the DI scope, but we don't want to 
                  * bloat disk usage when we're processing future pages of items.*/
-                var dataSourceResult = await file.DisposeOnThrowOrFailureAsync( 
+                var dataSourceResult = await file.DisposeOnThrowOrFailureAsync(
                     async () => await GetDataSourceAsync(contentItem.Id, cancel).ConfigureAwait(false)
                 ).ConfigureAwait(false);
 

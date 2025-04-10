@@ -28,7 +28,7 @@ using Tableau.Migration.Net;
 
 namespace Tableau.Migration.Api.Simulation.Rest.Net.Responses
 {
-    internal class RestUserAddResponseBuilder : RestApiResponseBuilderBase<AddUserResponse>
+    internal class RestUserAddResponseBuilder : RestResponseBuilderBase<AddUserResponse>
     {
         public RestUserAddResponseBuilder(TableauData data, IHttpContentSerializer serializer)
             : base(data, serializer, requiresAuthentication: true)
@@ -49,15 +49,18 @@ namespace Tableau.Migration.Api.Simulation.Rest.Net.Responses
                     $"Request must be of the type {nameof(AddUserToSiteRequest.UserType)} and not null",
                     "");
             }
+
             var siteRole = SiteRoleMapping.GetSiteRole(
                 SiteRoleMapping.GetAdministratorLevel(addUserRequest?.SiteRole), 
                 SiteRoleMapping.GetLicenseLevel(addUserRequest?.SiteRole), 
                 SiteRoleMapping.GetPublishingCapability(addUserRequest?.SiteRole));
+
             var user = new UsersResponse.UserType()
             {
                 Id = Guid.NewGuid(),
                 Name = addUserRequest?.Name,
                 AuthSetting = addUserRequest?.AuthSetting,
+                IdpConfigurationId = addUserRequest?.IdpConfigurationId,
                 SiteRole = siteRole,
                 Domain = TableauData.GetUserDomain(addUserRequest?.Name) ?? new() { Name = Data.DefaultDomain }
             };
@@ -70,6 +73,7 @@ namespace Tableau.Migration.Api.Simulation.Rest.Net.Responses
                 {
                     Id = user.Id,
                     AuthSetting = user.AuthSetting,
+                    IdpConfigurationId = user.IdpConfigurationId,
                     Name = user.Name,
                     SiteRole = siteRole
                 }

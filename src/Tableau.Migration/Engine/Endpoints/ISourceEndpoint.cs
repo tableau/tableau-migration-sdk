@@ -19,6 +19,7 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Tableau.Migration.Api.Models;
 using Tableau.Migration.Content;
 using Tableau.Migration.Content.Permissions;
 
@@ -31,15 +32,15 @@ namespace Tableau.Migration.Engine.Endpoints
     public interface ISourceEndpoint : IMigrationEndpoint
     {
         /// <summary>
-        /// Pulls enough information to publish the content item.
+        /// Pulls enough information to prepare and publish the content item.
         /// </summary>
         /// <typeparam name="TContent">The content type.</typeparam>
-        /// <typeparam name="TPublish">The publish type.</typeparam>
+        /// <typeparam name="TPrepare">The preparation type.</typeparam>
         /// <param name="contentItem">The content item to pull.</param>
         /// <param name="cancel">The cancellation token to obey.</param>
-        /// <returns>The result of the pull operation with the item to publish.</returns>
-        Task<IResult<TPublish>> PullAsync<TContent, TPublish>(TContent contentItem, CancellationToken cancel)
-            where TPublish : class;
+        /// <returns>The result of the pull operation with the item to prepare and publish.</returns>
+        Task<IResult<TPrepare>> PullAsync<TContent, TPrepare>(TContent contentItem, CancellationToken cancel)
+            where TPrepare : class;
 
         /// <summary>
         /// Gets permissions for the content item.
@@ -71,5 +72,32 @@ namespace Tableau.Migration.Engine.Endpoints
             Guid contentItemId,
             CancellationToken cancel)
             where TContent : IWithConnections;
+
+
+        /// <summary>
+        /// Retrieves the encrypted keychains for the content item.
+        /// </summary>
+        /// <param name="contentItemId">The ID of the content item.</param>
+        /// <param name="destinationSiteInfo">The destination site information.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
+        /// <returns>The operation result.</returns>
+        Task<IResult<IEmbeddedCredentialKeychainResult>> RetrieveKeychainsAsync<TContent>(
+           Guid contentItemId,
+           IDestinationSiteInfo destinationSiteInfo,
+           CancellationToken cancel)
+             where TContent : IWithEmbeddedCredentials;
+
+
+        /// <summary>
+        /// Retrieves saved credentials for a specific user.
+        /// </summary>
+        /// <param name="userId">The user's ID.</param>
+        /// <param name="destinationSiteInfo">The destination site information.</param>
+        /// <param name="cancel">The cancellation token.</param>
+        /// <returns>The user's saved credentials.</returns>
+        Task<IResult<IEmbeddedCredentialKeychainResult>> RetrieveUserSavedCredentialsAsync(
+            Guid userId,
+            IDestinationSiteInfo destinationSiteInfo,
+            CancellationToken cancel);
     }
 }

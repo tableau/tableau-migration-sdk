@@ -73,11 +73,9 @@ namespace Tableau.Migration.Api.Simulation.Rest.Api
                 });
 
             DownloadCustomView = simulator.SetupRestDownloadById(
-              SiteEntityUrl(
-                  postSitePreEntitySuffix: RestUrlPrefixes.CustomViews,
-                  postEntitySuffix: "content",
-                  useExperimental: true),
-              (data) => data.CustomViewFiles, 4);
+                SiteEntityUrl(RestUrlPrefixes.CustomViews, "content"),
+                (data) => data.CustomViewFiles,
+                4);
 
             CommitCustomViewUpload = simulator.SetupRestPost(
                 SiteUrl(RestUrlPrefixes.CustomViews, useExperimental: true),
@@ -94,7 +92,7 @@ namespace Tableau.Migration.Api.Simulation.Rest.Api
 
                      data.CustomViewDefaultUsers.TryGetValue(customViewId.Value, out List<UsersWithCustomViewAsDefaultViewResponse.UserType>? defaultUsers);
 
-                     return defaultUsers == null ? [] : defaultUsers;
+                     return defaultUsers ?? [];
                  });
 
 

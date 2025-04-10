@@ -15,6 +15,7 @@
 //  limitations under the License.
 //
 
+using System;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -30,6 +31,7 @@ namespace Tableau.Migration.Api.Simulation.Rest.Net.Responses
         private static readonly UnauthorizedRestErrorBuilder _unauthorizedErrorBuilder = new();
 
         private readonly IHttpContentSerializer _serializer;
+        private readonly Action<TableauData, HttpRequestMessage> _doWork;
 
         protected TableauData Data { get; }
 
@@ -38,10 +40,18 @@ namespace Tableau.Migration.Api.Simulation.Rest.Net.Responses
         public IRestErrorBuilder? ErrorOverride { get; set; }
 
         public EmptyRestResponseBuilder(TableauData data, IHttpContentSerializer serializer, bool requiresAuthentication)
+            : this(data, serializer, (_, _) => { }, requiresAuthentication)
+        { }
+
+        public EmptyRestResponseBuilder(TableauData data, IHttpContentSerializer serializer,
+            Action<TableauData, HttpRequestMessage> doWork,
+            bool requiresAuthentication)
         {
             Data = data;
             _serializer = serializer;
             RequiresAuthentication = requiresAuthentication;
+
+            _doWork = doWork;
         }
 
         protected virtual Task<HttpResponseMessage> BuildResponseAsync(HttpRequestMessage request, CancellationToken cancel)
@@ -75,6 +85,8 @@ namespace Tableau.Migration.Api.Simulation.Rest.Net.Responses
                     return BuildErrorResponse(request, _unauthorizedErrorBuilder);
                 }
             }
+
+            _doWork(Data, request);
 
             return await BuildResponseAsync(request, cancel).ConfigureAwait(false);
         }

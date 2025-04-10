@@ -20,7 +20,7 @@ namespace Tableau.Migration.Api.Rest.Models
     /// <summary>
     /// Interface for a view REST response.
     /// </summary>
-    public interface IViewType : IRestIdentifiable, INamedContent, IWithTagTypes, IWithWorkbookReferenceType
+    public interface IViewType : IRestIdentifiable, INamedContent, IWithTagTypes, IWithWorkbookReferenceType, IWithProjectReferenceType
     {
         /// <summary>
         /// The content URL for the response.

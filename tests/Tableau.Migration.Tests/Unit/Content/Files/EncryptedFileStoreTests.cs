@@ -104,14 +104,14 @@ namespace Tableau.Migration.Tests.Unit.Content.Files
                 var path = Create<string>();
                 var originalFileName = Create<string>();
 
-                var handle = FileStore.Create(path, originalFileName);
+                var handle = FileStore.Create(path, originalFileName, true);
 
                 var encryptedHandle = Assert.IsType<EncryptedFileHandle>(handle);
 
                 Assert.Equal(path, encryptedHandle.Path);
                 Assert.Equal(originalFileName, encryptedHandle.OriginalFileName);
 
-                MockInnerFileStore.Verify(x => x.Create(path, originalFileName), Times.Once);
+                MockInnerFileStore.Verify(x => x.Create(path, originalFileName, true), Times.Once);
             }
 
             [Fact]
@@ -120,13 +120,13 @@ namespace Tableau.Migration.Tests.Unit.Content.Files
                 var contentItem = Create<TestContentType>();
                 var originalFileName = Create<string>();
 
-                var handle = FileStore.Create(contentItem, originalFileName);
+                var handle = FileStore.Create(contentItem, originalFileName, true);
 
                 var encryptedHandle = Assert.IsType<EncryptedFileHandle>(handle);
 
                 Assert.Equal(originalFileName, encryptedHandle.OriginalFileName);
 
-                MockInnerFileStore.Verify(x => x.Create(contentItem, originalFileName), Times.Once);
+                MockInnerFileStore.Verify(x => x.Create(contentItem, originalFileName, true), Times.Once);
             }
         }
 
@@ -139,7 +139,7 @@ namespace Tableau.Migration.Tests.Unit.Content.Files
             [Fact]
             public async Task CallsInnerStoreAsync()
             {
-                var innerHandle = new ContentFileHandle(MockInnerFileStore.Object, Create<string>(), Create<string>());
+                var innerHandle = new ContentFileHandle(MockInnerFileStore.Object, Create<string>(), Create<string>(), null);
 
                 await FileStore.DeleteAsync(innerHandle, Cancel);
 
@@ -159,11 +159,11 @@ namespace Tableau.Migration.Tests.Unit.Content.Files
                 var path = Create<string>();
                 await using var file = FileStore.Create(path, Create<string>());
 
-                var innerHandle = new ContentFileHandle(MockInnerFileStore.Object, path, Create<string>());
+                var innerHandle = new ContentFileHandle(MockInnerFileStore.Object, path, Create<string>(), null);
 
                 await FileStore.GetTableauFileEditorAsync(innerHandle, Cancel);
 
-                MockInnerFileStore.Verify(x => x.GetTableauFileEditorAsync(innerHandle, Cancel, null), Times.Once);
+                MockInnerFileStore.Verify(x => x.GetTableauFileEditorAsync(innerHandle, Cancel), Times.Once);
             }
         }
 
@@ -176,7 +176,7 @@ namespace Tableau.Migration.Tests.Unit.Content.Files
             [Fact]
             public async Task CallsInnerStoreAsync()
             {
-                var innerHandle = new ContentFileHandle(MockInnerFileStore.Object, Create<string>(), Create<string>());
+                var innerHandle = new ContentFileHandle(MockInnerFileStore.Object, Create<string>(), Create<string>(), null);
 
                 await FileStore.CloseTableauFileEditorAsync(innerHandle, Cancel);
 

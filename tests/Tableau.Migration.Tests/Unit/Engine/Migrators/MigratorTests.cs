@@ -17,6 +17,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
@@ -72,7 +73,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Migrators
                 _mockManifest = Create<Mock<IMigrationManifestEditor>>();
                 _mockErrorManifest = Create<Mock<IMigrationManifestEditor>>();
 
-                _mockManifestFactory.Setup(x => x.Create(It.IsAny<Guid>(), It.IsAny<Guid>()))
+                _mockManifestFactory.Setup(x => x.Create(It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<PipelineProfile>()))
                     .Returns(_mockErrorManifest.Object);
 
                 _mockPipelineFactory = Freeze<Mock<IMigrationPipelineFactory>>();
@@ -130,7 +131,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Migrators
                 var result = await _migrator.ExecuteAsync(_plan, _cancel);
 
                 Assert.Equal(MigrationCompletionStatus.FatalError, result.Status);
-                _mockManifest.Verify(x => x.AddErrors(ex), Times.Once);
+                _mockManifest.Verify(x => x.AddErrors(It.Is<Exception[]>(exs => exs.Single() == ex)), Times.Once);
                 Assert.Same(_mockManifest.Object, result.Manifest);
             }
 
@@ -144,7 +145,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Migrators
                 var result = await _migrator.ExecuteAsync(_plan, _cancel);
 
                 Assert.Equal(MigrationCompletionStatus.Canceled, result.Status);
-                _mockManifest.Verify(x => x.AddErrors(ex), Times.Never);
+                _mockManifest.Verify(x => x.AddErrors(It.IsAny<IEnumerable<Exception>>()), Times.Never);
                 Assert.Same(_mockManifest.Object, result.Manifest);
             }
 
@@ -160,11 +161,11 @@ namespace Tableau.Migration.Tests.Unit.Engine.Migrators
                 Assert.Equal(MigrationCompletionStatus.FatalError, result.Status);
 
                 Assert.Same(_mockErrorManifest.Object, result.Manifest);
-                _mockManifest.Verify(x => x.AddErrors(ex), Times.Never);
+                _mockManifest.Verify(x => x.AddErrors(It.IsAny<Exception[]>()), Times.Never);
 
-                _mockManifestFactory.Verify(x => x.Create(_plan.PlanId, It.IsAny<Guid>()), Times.Once);
+                _mockManifestFactory.Verify(x => x.Create(_plan.PlanId, It.IsAny<Guid>(), It.IsAny<PipelineProfile>()), Times.Once);
 
-                _mockErrorManifest.Verify(x => x.AddErrors(ex), Times.Once);
+                _mockErrorManifest.Verify(x => x.AddErrors(It.Is<Exception[]>(exs => exs.Single() == ex)), Times.Once);
             }
 
             [Fact]

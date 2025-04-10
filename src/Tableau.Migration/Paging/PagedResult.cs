@@ -34,7 +34,7 @@ namespace Tableau.Migration.Paging
         /// <param name="totalCount">The total unpaged available item count.</param>
         /// <param name="fetchedAllPages">Whether the SDK has already fetched all pages or not.</param>
         /// <param name="errors">The errors encountered during the operation, if any.</param>
-        protected PagedResult(bool success, IImmutableList<TItem>? value, int pageNumber, int pageSize, int totalCount, bool fetchedAllPages, params Exception[] errors)
+        protected PagedResult(bool success, IImmutableList<TItem>? value, int pageNumber, int pageSize, int totalCount, bool fetchedAllPages, params IEnumerable<Exception> errors)
             : base(success, value, errors)
         {
             PageNumber = pageNumber;

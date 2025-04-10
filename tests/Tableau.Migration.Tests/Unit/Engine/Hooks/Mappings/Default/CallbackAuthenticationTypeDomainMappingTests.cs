@@ -17,9 +17,12 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using Moq;
 using Tableau.Migration.Content;
 using Tableau.Migration.Engine.Hooks.Mappings;
 using Tableau.Migration.Engine.Hooks.Mappings.Default;
+using Tableau.Migration.Resources;
 using Xunit;
 
 namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Mappings.Default
@@ -30,13 +33,16 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Mappings.Default
         {
             private readonly CancellationToken _cancel = new();
 
+            private readonly Mock<ISharedResourcesLocalizer> _mockLocalizer = new();
+            private readonly Mock<ILogger<CallbackAuthenticationTypeDomainMapping>> _mockLogger = new();
+
             [Fact]
             public async Task MapsDomainAsync()
             {
                 var callback = (ContentMappingContext<IUsernameContent> ctx, CancellationToken cancel)
                     => Task.FromResult("myDomain");
 
-                var mapper = new CallbackAuthenticationTypeDomainMapping(callback);
+                var mapper = new CallbackAuthenticationTypeDomainMapping(callback, _mockLocalizer.Object, _mockLogger.Object);
 
                 var ctx = Create<ContentMappingContext<IUser>>();
                 var result = await mapper.ExecuteAsync(ctx, _cancel);
@@ -55,7 +61,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Mappings.Default
                 var callback = (ContentMappingContext<IUsernameContent> ctx, CancellationToken cancel)
                     => Task.FromResult((string?)null);
 
-                var mapper = new CallbackAuthenticationTypeDomainMapping(callback);
+                var mapper = new CallbackAuthenticationTypeDomainMapping(callback, _mockLocalizer.Object, _mockLogger.Object);
 
                 var ctx = Create<ContentMappingContext<IUser>>();
                 var result = await mapper.ExecuteAsync(ctx, _cancel);

@@ -25,7 +25,7 @@ using Tableau.Migration.Net;
 
 namespace Tableau.Migration.Api.Simulation.Rest.Net.Responses
 {
-    internal class RestInitiateFileUploadResponseBuilder : RestApiResponseBuilderBase<FileUploadResponse>
+    internal class RestInitiateFileUploadResponseBuilder : RestResponseBuilderBase<FileUploadResponse>
     {
         public RestInitiateFileUploadResponseBuilder(
             TableauData data,

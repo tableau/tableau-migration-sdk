@@ -1,4 +1,4 @@
-﻿//
+//
 //  Copyright (c) 2025, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
@@ -18,8 +18,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Extensions.Logging;
-using Tableau.Migration.Resources;
 
 namespace Tableau.Migration.Engine.Manifest
 {
@@ -28,10 +26,6 @@ namespace Tableau.Migration.Engine.Manifest
     /// </summary>
     public class MigrationManifest : IMigrationManifestEditor
     {
-        private readonly ISharedResourcesLocalizer _localizer;
-        private readonly ILoggerFactory _loggerFactory;
-        private readonly ILogger<MigrationManifest> _logger;
-
         private readonly MigrationManifestEntryCollection _entries;
         private readonly List<Exception> _errors;
 
@@ -47,28 +41,52 @@ namespace Tableau.Migration.Engine.Manifest
         /// <summary>
         /// Creates a new <see cref="MigrationManifest"/> object.
         /// </summary>
-        /// <param name="localizer">A localizer.</param>
-        /// <param name="loggerFactory">A logger factory;</param>
-        /// <param name="planId"><inheritdoc cref="IMigrationManifest.PlanId"/></param>
-        /// <param name="migrationId"><inheritdoc cref="IMigrationManifest.MigrationId"/></param>
         /// <param name="copyEntriesManifest">
         /// An optional manifest to copy entries from.
         /// Null will initialize the manifest with an empty set of entries. 
         /// Top-level information is not copied.
         /// </param>
-        public MigrationManifest(ISharedResourcesLocalizer localizer, ILoggerFactory loggerFactory,
-            Guid planId, Guid migrationId, IMigrationManifest? copyEntriesManifest = null)
+        public MigrationManifest(IMigrationManifest copyEntriesManifest)
+            : this(Guid.NewGuid(), Guid.NewGuid(), copyEntriesManifest.PipelineProfile, copyEntriesManifest)
+        { }
+
+        /// <summary>
+        /// Creates a new <see cref="MigrationManifest"/> object.
+        /// </summary>
+        /// <param name="pipelineProfile"><inheritdoc cref="IMigrationManifest.PipelineProfile"/></param>
+        public MigrationManifest(PipelineProfile pipelineProfile)
+            : this(Guid.NewGuid(), Guid.NewGuid(), pipelineProfile)
+        { }
+
+        /// <summary>
+        /// Creates a new <see cref="MigrationManifest"/> object.
+        /// </summary>
+        /// <param name="planId"><inheritdoc cref="IMigrationManifest.PlanId"/></param>
+        /// <param name="migrationId"><inheritdoc cref="IMigrationManifest.MigrationId"/></param>
+        /// <param name="pipelineProfile"><inheritdoc cref="IMigrationManifest.PipelineProfile"/></param>
+        /// <param name="copyEntriesManifest">
+        /// An optional manifest to copy entries from.
+        /// Null will initialize the manifest with an empty set of entries. 
+        /// Top-level information is not copied.
+        /// </param>
+        public MigrationManifest(Guid planId, Guid migrationId, PipelineProfile pipelineProfile, IMigrationManifest? copyEntriesManifest = null)
         {
             _errors = new();
-
-            _localizer = localizer;
-            _loggerFactory = loggerFactory;
-            _logger = loggerFactory.CreateLogger<MigrationManifest>();
 
             PlanId = planId;
             MigrationId = migrationId;
 
-            _entries = new MigrationManifestEntryCollection(_localizer, _loggerFactory, copyEntriesManifest?.Entries);
+            if (copyEntriesManifest != null)
+            {
+                if (copyEntriesManifest.PipelineProfile != pipelineProfile)
+                {
+                    throw new ArgumentException($"PipelineProfile must match the {nameof(copyEntriesManifest)}'s PipelineProfile");
+                }
+            }
+
+            PipelineProfile = pipelineProfile;
+
+            _entries = new(copyEntriesManifest?.Entries);
         }
 
         #region - IMigrationManifest Implementation -
@@ -78,6 +96,9 @@ namespace Tableau.Migration.Engine.Manifest
 
         /// <inheritdoc />
         public Guid MigrationId { get; }
+
+        /// <inheritdoc/>
+        public PipelineProfile PipelineProfile { get; }
 
         /// <inheritdoc />
         public virtual uint ManifestVersion => LatestManifestVersion;
@@ -100,6 +121,7 @@ namespace Tableau.Migration.Engine.Manifest
             var equal =
                 PlanId.Equals(other.PlanId) &&
                 MigrationId.Equals(other.MigrationId) &&
+                PipelineProfile.Equals(other.PipelineProfile) &&
                 ManifestVersion.Equals(other.ManifestVersion) &&
                 Entries.Equals(other.Entries) &&
                 Errors.SequenceEqual(other.Errors, new ExceptionComparer());
@@ -154,21 +176,15 @@ namespace Tableau.Migration.Engine.Manifest
         public virtual IMigrationManifestEntryCollectionEditor Entries => _entries;
 
         /// <inheritdoc />
-        public IMigrationManifestEditor AddErrors(IEnumerable<Exception> errors)
+        public virtual IMigrationManifestEditor AddErrors(params IEnumerable<Exception> errors)
         {
             _errors.AddRange(errors);
-
-            foreach (var error in errors)
-            {
-                _logger.LogError(_localizer[SharedResourceKeys.MigrationErrorLogMessage], error);
-            }
-
             return this;
         }
 
         /// <inheritdoc />
-        public IMigrationManifestEditor AddErrors(params Exception[] errors)
-            => AddErrors((IEnumerable<Exception>)errors);
+        public virtual IMigrationManifestEditor AddErrors(params Exception[] errors)
+            => AddErrors((IEnumerable<Exception>)errors); //Overload for Python interop.
 
         #endregion
     }

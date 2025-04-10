@@ -22,7 +22,7 @@ namespace Tableau.Migration.Api.Rest.Models
     /// <summary>
     /// Interface for a workbook REST response.
     /// </summary>
-    public interface IWorkbookType : IRestIdentifiable, INamedContent, IWithProjectType, IWithOwnerType, IWithTagTypes
+    public interface IWorkbookType : IRestIdentifiable, INamedContent, IWithProjectNamedReferenceType, IWithOwnerType, IWithTagTypes
     {
         /// <summary>
         /// The description for the response.

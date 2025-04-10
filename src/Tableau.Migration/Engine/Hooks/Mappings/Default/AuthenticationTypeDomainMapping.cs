@@ -17,8 +17,10 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Tableau.Migration.Content;
 using Tableau.Migration.Engine.Options;
+using Tableau.Migration.Resources;
 
 namespace Tableau.Migration.Engine.Hooks.Mappings.Default
 {
@@ -29,14 +31,24 @@ namespace Tableau.Migration.Engine.Hooks.Mappings.Default
         : AuthenticationTypeDomainMappingBase
     {
         private readonly IMigrationPlanOptionsProvider<AuthenticationTypeDomainMappingOptions> _optionsProvider;
+        private readonly ISharedResourcesLocalizer _localizer;
+        private readonly ILogger<AuthenticationTypeDomainMapping>? _logger;
 
         /// <summary>
         /// Creates a new <see cref="AuthenticationTypeDomainMapping"/> object.
         /// </summary>
         /// <param name="optionsProvider">The options provider.</param>
-        public AuthenticationTypeDomainMapping(IMigrationPlanOptionsProvider<AuthenticationTypeDomainMappingOptions> optionsProvider)
+        /// <param name="localizer">A string localizer.</param>
+        /// <param name="logger">Default logger.</param>
+        public AuthenticationTypeDomainMapping(
+            IMigrationPlanOptionsProvider<AuthenticationTypeDomainMappingOptions> optionsProvider,
+            ISharedResourcesLocalizer localizer,
+            ILogger<AuthenticationTypeDomainMapping>? logger
+            )
         {
             _optionsProvider = optionsProvider;
+            _localizer = localizer;
+            _logger = logger;
         }
 
         /// <summary>
@@ -52,7 +64,22 @@ namespace Tableau.Migration.Engine.Hooks.Mappings.Default
             var domain = context.ContentItem is IGroup ? options.GroupDomain : options.UserDomain;
 
             var mappedUsername = ContentLocation.ForUsername(domain, context.MappedLocation.Name);
-            return context.MapTo(mappedUsername).ToTask();
+
+            ContentMappingContext<T> ret = context.MapTo(mappedUsername);
+
+            if (_logger is not null && _localizer is not null && ret is not null)
+            {
+                if (context.MappedLocation != ret.MappedLocation)
+                {
+                    _logger.LogDebug(
+                        _localizer[SharedResourceKeys.ContentMappingBaseDebugMessage],
+                        GetType().Name,
+                        ret.ContentItem.ToStringForLog(),
+                        ret.MappedLocation);
+                }
+            }
+
+            return ret?.ToTask() ?? Task.FromResult<ContentMappingContext<T>?>(null);
         }
     }
 }

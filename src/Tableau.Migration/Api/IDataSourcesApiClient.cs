@@ -18,6 +18,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Tableau.Migration.Api.EmbeddedCredentials;
 using Tableau.Migration.Api.Labels;
 using Tableau.Migration.Api.Models;
 using Tableau.Migration.Api.Permissions;
@@ -39,7 +40,8 @@ namespace Tableau.Migration.Api
         IApiPageAccessor<IDataSource>,
         IPermissionsContentApiClient,
         IConnectionsApiClient,
-        ILabelsContentApiClient<IDataSource>
+        ILabelsContentApiClient<IDataSource>,
+        IEmbeddedCredentialsContentApiClient
     {
         /// <summary>
         /// Gets all published data sources in the current site.

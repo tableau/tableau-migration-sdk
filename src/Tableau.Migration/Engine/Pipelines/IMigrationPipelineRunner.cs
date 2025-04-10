@@ -17,6 +17,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Tableau.Migration.Engine.Actions;
 
 namespace Tableau.Migration.Engine.Pipelines
 {
@@ -25,6 +26,11 @@ namespace Tableau.Migration.Engine.Pipelines
     /// </summary>
     public interface IMigrationPipelineRunner
     {
+        /// <summary>
+        /// The current action being executed. Null if no action is current being performed.
+        /// </summary>
+        IMigrationAction? CurrentAction { get; }
+
         /// <summary>
         /// Executes all pipeline actions.
         /// </summary>

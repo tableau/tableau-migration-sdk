@@ -37,7 +37,7 @@ namespace Tableau.Migration.Api.Simulation.Rest.Api
     /// <summary>
     /// Object that defines simulation of Tableau REST API workbook methods.
     /// </summary>
-    public sealed class WorkbooksRestApiSimulator : TagsRestApiSimulatorBase<WorkbookResponse.WorkbookType, WorkbookResponse.WorkbookType.TagType>
+    public sealed class WorkbooksRestApiSimulator : EmbeddedCredentialsRestApiSimulatorBase<WorkbookResponse.WorkbookType, WorkbookResponse.WorkbookType.TagType>
     {
         /// <summary>
         /// Gets the simulated workbook query API method.
@@ -79,10 +79,8 @@ namespace Tableau.Migration.Api.Simulation.Rest.Api
         /// </summary>
         /// <param name="simulator">A response simulator to setup with REST API methods.</param>
         public WorkbooksRestApiSimulator(TableauApiResponseSimulator simulator)
-            : base(
-                  simulator,
-                  RestUrlPrefixes.Workbooks,
-                  (data) => data.Workbooks)
+            : base(simulator, RestUrlPrefixes.Workbooks,
+                  data => data.Workbooks, data => data.WorkbookKeychains)
         {
             QueryWorkbook = simulator.SetupRestGet<WorkbookResponse, WorkbookResponse.WorkbookType>(
                 SiteEntityUrl(ContentTypeUrlPrefix),

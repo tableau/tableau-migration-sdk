@@ -15,7 +15,11 @@
 //  limitations under the License.
 //
 
+using System.Collections.Immutable;
+using System.Linq;
 using System.Text;
+using Tableau.Migration.Content;
+using Tableau.Migration.Resources;
 
 namespace Tableau.Migration
 {
@@ -55,6 +59,20 @@ namespace Tableau.Migration
         /// The username for the built-in system user.
         /// </summary>
         public const string SystemUsername = "_system";
+
+        /// <summary>
+        /// The names of system-managed projects.
+        /// </summary>
+        public static readonly ImmutableHashSet<string> SystemProjectNames =
+            DefaultExternalAssetsProjectTranslations.GetAll()
+            .Append(Constants.DefaultProjectName)
+            // The admin insight project is usually named "Admin Insights"
+            // However, if that name is already taken when the real admin insights project is created
+            // one of the alternate names is used
+            .Append(Constants.AdminInsightsProjectName)
+            .Append(Constants.AdminInsightsTableauProjectName)
+            .Append(Constants.AdminInsightsTableauOnlineProjectName)
+            .ToImmutableHashSet(Project.NameComparer);
 
         /// <summary>
         /// The location for the local system user.

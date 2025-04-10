@@ -50,24 +50,7 @@ namespace Tableau.Migration
         }
 
         /// <inheritdoc/>
-        public bool Equals(T? other)
-        {
-            if (other is null) return false;
-            if (ReferenceEquals(this, other)) return true;
-
-            return GetType() == other.GetType() && Message == other.Message && EqualsCore(other);
-        }
-
-        /// <summary>
-        /// Determines whether the specified exception is equal to the current exception.
-        /// Derived classes can override this method to add additional comparison logic.
-        /// </summary>
-        /// <param name="other">The exception to compare with the current exception.</param>
-        /// <returns>true if the specified exception is equal to the current exception; otherwise, false.</returns>
-        protected virtual bool EqualsCore(T other)
-        {
-            return true; // Default implementation, can be overridden by derived classes
-        }
+        public virtual bool Equals(T? other) => this.BaseExceptionEquals(other) ?? true;
 
         /// <inheritdoc/>
         public override int GetHashCode()

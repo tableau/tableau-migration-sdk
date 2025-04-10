@@ -108,6 +108,10 @@ namespace Csharp.ExampleApplication
             services.AddScoped<CustomViewExcludeDefaultUserTransformer>();
             #endregion
 
+            #region ActionUrlXmlTransformer-DI
+            services.AddScoped<ActionUrlXmlTransformer>();
+            #endregion
+
             #region LogMigrationActionsHook-DI
             services.AddScoped<LogMigrationActionsHook>();
             #endregion

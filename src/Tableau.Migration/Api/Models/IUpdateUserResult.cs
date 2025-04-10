@@ -15,6 +15,8 @@
 //  limitations under the License.
 //
 
+using Tableau.Migration.Content;
+
 namespace Tableau.Migration.Api.Models
 {
     /// <summary>
@@ -23,7 +25,7 @@ namespace Tableau.Migration.Api.Models
     public interface IUpdateUserResult
     {
         /// <summary>
-        /// Gets the Name of the user.
+        /// Gets the name of the user.
         /// </summary>
         string Name { get; }
 
@@ -38,13 +40,13 @@ namespace Tableau.Migration.Api.Models
         string? Email { get; }
 
         /// <summary>
-        /// Gets the SiteRole of the user.
+        /// Gets the site role of the user.
         /// </summary>
         string SiteRole { get; }
 
         /// <summary>
-        /// The AuthSetting for the user.
+        /// The authentication for the user.
         /// </summary>
-        string AuthSetting { get; }
+        UserAuthenticationType Authentication { get; }
     }
 }

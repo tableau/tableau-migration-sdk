@@ -16,6 +16,7 @@
 //
 
 using System;
+using Tableau.Migration.Api.Rest;
 using Tableau.Migration.Api.Rest.Models;
 
 namespace Tableau.Migration.Content
@@ -31,12 +32,10 @@ namespace Tableau.Migration.Content
             ServerAddress = response.ServerAddress;
             ServerPort = response.ServerPort;
             ConnectionUsername = response.ConnectionUsername;
-
-            if (response.QueryTaggingEnabled is not null &&
-                bool.TryParse(response.QueryTaggingEnabled, out var queryTaggingEnabled))
-            {
-                QueryTaggingEnabled = queryTaggingEnabled;
-            }
+            QueryTaggingEnabled = response.QueryTaggingEnabled.ToBoolOrNull();
+            AuthenticationType = response.AuthenticationType;
+            EmbedPassword = response.EmbedPassword.ToBoolOrNull();
+            UseOAuthManagedKeychain = response.UseOAuthManagedKeychain.ToBoolOrNull();
         }
 
         /// <inheritdoc/>
@@ -56,5 +55,14 @@ namespace Tableau.Migration.Content
 
         /// <inheritdoc/>
         public bool? QueryTaggingEnabled { get; set; }
+
+        /// <inheritdoc/>
+        public string? AuthenticationType { get; set; }
+
+        /// <inheritdoc/>
+        public bool? UseOAuthManagedKeychain { get; set; }
+
+        /// <inheritdoc/>
+        public bool? EmbedPassword { get; set; }
     }
 }

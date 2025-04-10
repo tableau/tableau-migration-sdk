@@ -1,6 +1,6 @@
 [bB]in
 [oO]bj
-/.vs
+**/.vs
 /docs/**
 *.csproj.user
 .idea/

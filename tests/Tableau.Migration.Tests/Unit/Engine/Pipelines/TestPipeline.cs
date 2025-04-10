@@ -18,6 +18,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using Tableau.Migration.Config;
 using Tableau.Migration.Engine.Actions;
 using Tableau.Migration.Engine.Pipelines;
 
@@ -29,8 +30,8 @@ namespace Tableau.Migration.Tests.Unit.Engine.Pipelines
 
         public ImmutableArray<TestAction> TestPipelineActions { get; private set; }
 
-        public TestPipeline(IServiceProvider services)
-            : base(services)
+        public TestPipeline(IServiceProvider services, IConfigReader configReader)
+            : base(services, configReader)
         {
             TestPipelineActions = new[]
             {

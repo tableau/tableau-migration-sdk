@@ -94,7 +94,7 @@ namespace Tableau.Migration.Engine.Migrators
                             migration.Manifest.AddErrors(endpointInitResults);
 
                             //Extra error log entry to clarify why we didn't start any migration.
-                            _log.LogError(_localizer[SharedResourceKeys.EndpointInitializationError]);
+                            _log.LogCritical(_localizer[SharedResourceKeys.EndpointInitializationError]);
                         }
 
                         return new(completionStatus, migration.Manifest);
@@ -116,7 +116,7 @@ namespace Tableau.Migration.Engine.Migrators
                 {
                     var completionStatus = ex.IsCancellationException() ? MigrationCompletionStatus.Canceled : MigrationCompletionStatus.FatalError;
 
-                    var manifest = migration?.Manifest ?? _manifestFactory.Create(plan.PlanId, Guid.NewGuid());
+                    var manifest = migration?.Manifest ?? _manifestFactory.Create(plan.PlanId, Guid.NewGuid(), plan.PipelineProfile);
                     if (completionStatus != MigrationCompletionStatus.Canceled) //Don't dirty the end result with op/task canceled exceptions.
                     {
                         manifest.AddErrors(ex);

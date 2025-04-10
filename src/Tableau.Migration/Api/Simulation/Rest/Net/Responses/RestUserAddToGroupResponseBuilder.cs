@@ -29,7 +29,7 @@ using Tableau.Migration.Net.Rest;
 
 namespace Tableau.Migration.Api.Simulation.Rest.Net.Responses
 {
-    internal class RestUserAddToGroupResponseBuilder : RestApiResponseBuilderBase<AddUserResponse>
+    internal class RestUserAddToGroupResponseBuilder : RestResponseBuilderBase<AddUserResponse>
     {
         public RestUserAddToGroupResponseBuilder(TableauData data, IHttpContentSerializer serializer)
             : base(data, serializer, requiresAuthentication: true)

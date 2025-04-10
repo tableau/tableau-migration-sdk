@@ -17,12 +17,13 @@
 
 using Tableau.Migration.Api.Permissions;
 using Tableau.Migration.Api.Tags;
+using Tableau.Migration.Content;
 
 namespace Tableau.Migration.Api
 {
     /// <summary>
-    /// Interface for an API client that modifies workbook views
+    /// Interface for an API client view operations.
     /// </summary>
-    public interface IViewsApiClient : IPermissionsContentApiClient, ITagsContentApiClient
+    public interface IViewsApiClient : IPermissionsContentApiClient, ITagsContentApiClient, IReadApiClient<IView>, IContentApiClient
     { }
 }

@@ -46,14 +46,7 @@ namespace Tableau.Migration.Net.Rest.Filtering
         /// </summary>
         /// <param name="filters">The filters to add.</param>
         /// <returns>The current <see cref="IFilterBuilder"/> instance.</returns>
-        IFilterBuilder AddFilters(params Filter[] filters);
-
-        /// <summary>
-        /// Adds filters to the builder.
-        /// </summary>
-        /// <param name="filters">The filters to add.</param>
-        /// <returns>The current <see cref="IFilterBuilder"/> instance.</returns>
-        IFilterBuilder AddFilters(IEnumerable<Filter> filters);
+        IFilterBuilder AddFilters(params IEnumerable<Filter> filters);
 
         /// <summary>
         /// Builds the string value for the filters for use in query strings.

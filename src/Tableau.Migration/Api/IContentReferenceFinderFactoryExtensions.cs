@@ -30,14 +30,16 @@ namespace Tableau.Migration.Api
 {
     internal static class IContentReferenceFinderFactoryExtensions
     {
+        #region - Project Find Methods -
+
         public static async Task<IContentReference?> FindProjectAsync<T>(
             this IContentReferenceFinderFactory finderFactory,
-            [NotNull] T? response,
+            T response,
             ILogger logger,
             ISharedResourcesLocalizer localizer,
             [DoesNotReturnIf(true)] bool throwIfNotFound,
             CancellationToken cancel)
-            where T : IWithProjectType, IRestIdentifiable
+            where T : IWithProjectReferenceType, IRestIdentifiable
             => await finderFactory
                 .FindAsync<T, IProject>(
                     response,
@@ -54,9 +56,31 @@ namespace Tableau.Migration.Api
                     cancel)
                 .ConfigureAwait(false);
 
+        public static async Task<IContentReference?> FindProjectByIdAsync(
+            this IContentReferenceFinderFactory finderFactory,
+            Guid id,
+            ILogger logger,
+            ISharedResourcesLocalizer localizer,
+            [DoesNotReturnIf(true)] bool throwIfNotFound,
+            CancellationToken cancel)
+            => await finderFactory
+                .FindByIdAsync<IProject>(
+                    id,
+                    logger,
+                    localizer,
+                    throwIfNotFound,
+                    SharedResourceKeys.ProjectReferenceNotFoundException,
+                    SharedResourceKeys.ProjectReferenceNotFoundException,
+                    cancel)
+                .ConfigureAwait(false);
+
+        #endregion - Project Find Methods -
+
+        #region - User Find Methods -
+
         public static async Task<IContentReference?> FindUserAsync<T>(
             this IContentReferenceFinderFactory finderFactory,
-            [NotNull] T? response,
+            T response,
             ILogger logger,
             ISharedResourcesLocalizer localizer,
             [DoesNotReturnIf(true)] bool throwIfNotFound,
@@ -77,9 +101,13 @@ namespace Tableau.Migration.Api
                     cancel)
                 .ConfigureAwait(false);
 
+        #endregion - User Find Methods -
+
+        #region - Owner Find Methods -
+
         public static async Task<IContentReference?> FindOwnerAsync<T>(
             this IContentReferenceFinderFactory finderFactory,
-            [NotNull] T? response,
+            T response,
             ILogger logger,
             ISharedResourcesLocalizer localizer,
             [DoesNotReturnIf(true)] bool throwIfNotFound,
@@ -101,9 +129,13 @@ namespace Tableau.Migration.Api
                     cancel)
                 .ConfigureAwait(false);
 
+        #endregion - Owner Find Methods -
+
+        #region - Workbook Find Methods -
+
         public static async Task<IContentReference?> FindWorkbookAsync<T>(
             this IContentReferenceFinderFactory finderFactory,
-            [NotNull] T? response,
+            T response,
             ILogger logger,
             ISharedResourcesLocalizer localizer,
             [DoesNotReturnIf(true)] bool throwIfNotFound,
@@ -125,9 +157,31 @@ namespace Tableau.Migration.Api
                     cancel)
                 .ConfigureAwait(false);
 
+        public static async Task<IContentReference?> FindWorkbookByIdAsync(
+            this IContentReferenceFinderFactory finderFactory,
+            Guid Id,
+            ILogger logger,
+            ISharedResourcesLocalizer localizer,
+            [DoesNotReturnIf(true)] bool throwIfNotFound,
+            CancellationToken cancel)
+            => await finderFactory
+                .FindByIdAsync<IWorkbook>(
+                    Id,
+                    logger,
+                    localizer,
+                    throwIfNotFound,
+                    SharedResourceKeys.WorkbookReferenceNotFoundException,
+                    SharedResourceKeys.WorkbookReferenceNotFoundException,
+                    cancel)
+                .ConfigureAwait(false);
+
+        #endregion - Workbook Find Methods -
+
+        #region - Base Find Methods -
+
         private static async Task<IContentReference?> FindAsync<TResponse, TContent>(
             this IContentReferenceFinderFactory finderFactory,
-            [NotNull] TResponse? response,
+            TResponse response,
             Func<TResponse, Guid> getResponseId,
             ILogger logger,
             ISharedResourcesLocalizer localizer,
@@ -164,5 +218,37 @@ namespace Tableau.Migration.Api
                         responseId))
                 : null;
         }
+
+        private static async Task<IContentReference?> FindByIdAsync<TContent>(
+            this IContentReferenceFinderFactory finderFactory,
+            Guid Id,
+            ILogger logger,
+            ISharedResourcesLocalizer localizer,
+            [DoesNotReturnIf(true)] bool throwIfNotFound,
+            string warningMessageResource,
+            string exceptionMessageResource,
+            CancellationToken cancel)
+            where TContent : class, IContentReference
+        {
+            var finder = finderFactory.ForContentType<TContent>();
+
+            var foundContent = await finder.FindByIdAsync(Id, cancel).ConfigureAwait(false);
+
+            if (foundContent is not null)
+                return foundContent;
+
+            logger.LogWarning(
+                localizer[warningMessageResource],
+                Id);
+
+            return throwIfNotFound
+                ? throw new InvalidOperationException(
+                    string.Format(
+                        localizer[exceptionMessageResource],
+                        Id))
+                : null;
+        }
+
+        #endregion - Base Find Methods -
     }
 }

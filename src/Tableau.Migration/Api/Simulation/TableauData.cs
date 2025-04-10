@@ -26,6 +26,7 @@ using Tableau.Migration.Api.Rest.Models.Types;
 using Tableau.Migration.Content;
 using Tableau.Migration.Content.Permissions;
 using Tableau.Migration.Net.Rest;
+
 using CloudResponse = Tableau.Migration.Api.Rest.Models.Responses.Cloud;
 using ServerResponse = Tableau.Migration.Api.Rest.Models.Responses.Server;
 
@@ -92,6 +93,11 @@ namespace Tableau.Migration.Api.Simulation
         public ConcurrentDictionary<Guid, byte[]> WorkbookFiles { get; set; } = new();
 
         /// <summary>
+        /// Gets or sets the workbook keychain data, by ID.
+        /// </summary>
+        public ConcurrentDictionary<Guid, RetrieveKeychainResponse> WorkbookKeychains { get; set; } = new();
+
+        /// <summary>
         /// Gets or sets the jobs.
         /// </summary>
         public ConcurrentSet<JobResponse.JobType> Jobs { get; set; } = new();
@@ -117,6 +123,16 @@ namespace Tableau.Migration.Api.Simulation
         public ConcurrentSet<CloudResponse.ExtractRefreshTasksResponse.TaskType> CloudExtractRefreshTasks { get; set; } = new();
 
         /// <summary>
+        /// Gets or sets the Tableau Server subscriptions.
+        /// </summary>
+        public ConcurrentSet<ServerResponse.GetSubscriptionsResponse.SubscriptionType> ServerSubscriptions { get; set; } = new();
+
+        /// <summary>
+        /// Gets or sets the Tableau Cloud subscriptions.
+        /// </summary>
+        public ConcurrentSet<CloudResponse.GetSubscriptionsResponse.SubscriptionType> CloudSubscriptions { get; set; } = new();
+
+        /// <summary>
         /// Gets or sets the jobs.
         /// </summary>
         public ConcurrentSet<ImportJobResponse.ImportJobType> UserImportJobs { get; set; } = new();
@@ -127,9 +143,14 @@ namespace Tableau.Migration.Api.Simulation
         public ConcurrentSet<UsersResponse.UserType> Users { get; set; } = new();
 
         /// <summary>
+        /// Gets or sets the user saved credential data, by ID.
+        /// </summary>
+        public ConcurrentDictionary<Guid, RetrieveKeychainResponse> UserSavedCredentials { get; set; } = new();
+
+        /// <summary>
         /// Gets or sets the users.
         /// </summary>
-        public ConcurrentSet<WorkbookResponse.WorkbookType.ViewReferenceType> Views { get; set; } = new();
+        public ConcurrentSet<WorkbookResponse.WorkbookType.WorkbookViewReferenceType> Views { get; set; } = new();
 
         /// <summary>
         /// Gets or sets the data source permissions.
@@ -162,9 +183,14 @@ namespace Tableau.Migration.Api.Simulation
         public ConcurrentSet<DataSourceResponse.DataSourceType> DataSources { get; set; } = new();
 
         /// <summary>
-        /// Gets or sets the data source fileData contents, by ID.
+        /// Gets or sets the data source file contents, by ID.
         /// </summary>
         public ConcurrentDictionary<Guid, byte[]> DataSourceFiles { get; set; } = new();
+
+        /// <summary>
+        /// Gets or sets the data source keychain data, by ID.
+        /// </summary>
+        public ConcurrentDictionary<Guid, RetrieveKeychainResponse> DataSourceKeychains { get; set; } = new();
 
         /// <summary>
         /// Gets or sets the uploaded files, by session Id.
@@ -176,13 +202,10 @@ namespace Tableau.Migration.Api.Simulation
         /// </summary>
         public ConcurrentSet<CustomViewResponse.CustomViewType> CustomViews { get; set; } = new();
 
-
         /// <summary>
         /// Gets or sets the custom view fileData contents, by ID.
         /// </summary>
         public ConcurrentDictionary<Guid, byte[]> CustomViewFiles { get; set; } = new();
-
-
 
         /// <summary>
         /// Gets or sets the custom view default users contents, by ID.
@@ -277,6 +300,7 @@ namespace Tableau.Migration.Api.Simulation
 
             Users.Add(user);
             UserGroups.TryAdd(user.Id, new());
+            UserSavedCredentials.TryAdd(user.Id, new());
 
             return user;
         }
@@ -432,7 +456,7 @@ namespace Tableau.Migration.Api.Simulation
         {
             schedule = AddSchedule(schedule);
             ScheduleExtractRefreshTasks.Add(extract);
-
+            
             ScheduleExtracts[schedule.Id].Add(extract.Id);
         }
 
@@ -517,8 +541,8 @@ namespace Tableau.Migration.Api.Simulation
         /// <summary>
         /// Adds a view to simulated dataset.
         /// </summary>
-        /// <param name="view">The <see cref="WorkbookResponse.WorkbookType.ViewReferenceType"/> metadata</param>
-        internal void AddView(WorkbookResponse.WorkbookType.ViewReferenceType view)
+        /// <param name="view">The <see cref="WorkbookResponse.WorkbookType.WorkbookViewReferenceType"/> metadata</param>
+        internal void AddView(WorkbookResponse.WorkbookType.WorkbookViewReferenceType view)
         {
             Views.Add(view);
         }
@@ -568,7 +592,7 @@ namespace Tableau.Migration.Api.Simulation
         internal void AddWorkbookPermissions(IWorkbookType workbook, PermissionsType permission)
             => AddContentTypePermissions(RestUrlPrefixes.Workbooks, workbook.Id, permission);
 
-        internal void AddViewPermissions(IViewReferenceType view, PermissionsType permission)
+        internal void AddViewPermissions(IWorkbookViewReferenceType view, PermissionsType permission)
             => AddContentTypePermissions(RestUrlPrefixes.Views, view.Id, permission);
 
         internal void AddViewPermissions(Guid viewId, PermissionsType permission)

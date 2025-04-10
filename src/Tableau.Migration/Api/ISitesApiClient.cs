@@ -1,4 +1,4 @@
-﻿//
+//
 //  Copyright (c) 2025, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
@@ -18,6 +18,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Tableau.Migration.Api.EmbeddedCredentials;
 using Tableau.Migration.Api.Permissions;
 using Tableau.Migration.Api.Tags;
 using Tableau.Migration.Content;
@@ -29,6 +30,11 @@ namespace Tableau.Migration.Api
     /// </summary>
     public interface ISitesApiClient : IAsyncDisposable, IContentApiClient
     {
+        /// <summary>
+        /// Gets the API client for authentication configuration operations.
+        /// </summary>
+        IAuthenticationConfigurationsApiClient AuthenticationConfigurations { get; }
+
         /// <summary>
         /// Gets the API client for group operations.
         /// </summary>
@@ -90,6 +96,16 @@ namespace Tableau.Migration.Api
         public ICustomViewsApiClient CustomViews { get; }
 
         /// <summary>
+        /// Gets the API client for Tableau Server subscription operations.
+        /// </summary>
+        IServerSubscriptionsApiClient ServerSubscriptions { get; }
+
+        /// <summary>
+        /// Gets the API client for Tableau Cloud subscription operations.
+        /// </summary>
+        ICloudSubscriptionsApiClient CloudSubscriptions { get; }
+
+        /// <summary>
         /// Gets the site with the specified ID.
         /// </summary>
         /// <param name="siteId">The site's ID.</param>
@@ -130,14 +146,14 @@ namespace Tableau.Migration.Api
             where TContent : class;
 
         /// <summary>
-        /// Gets the <see cref="IPullApiClient{TContent, TPublish}"/> for the given content and publish types.
+        /// Gets the <see cref="IPullApiClient{TContent, TPrepare}"/> for the given content and prepare types.
         /// </summary>
         /// <typeparam name="TContent">The content type.</typeparam>
-        /// <typeparam name="TPublish">The publish type.</typeparam>
-        /// <returns>The pull API client for the given content and publish types.</returns>
+        /// <typeparam name="TPrepare">The prepare type.</typeparam>
+        /// <returns>The pull API client for the given content and prepare types.</returns>
         /// <exception cref="ArgumentException">If a pull API client for the given types is not supported.</exception>
-        IPullApiClient<TContent, TPublish> GetPullApiClient<TContent, TPublish>()
-            where TPublish : class;
+        IPullApiClient<TContent, TPrepare> GetPullApiClient<TContent, TPrepare>()
+            where TPrepare : class;
 
         /// <summary>
         /// Gets the <see cref="IPublishApiClient{TPublish, TPublishResult}"/> for the given content publish type.
@@ -198,5 +214,23 @@ namespace Tableau.Migration.Api
         /// <exception cref="ArgumentException">If a ownership API client for the given content type is not supported.</exception>
         IConnectionsApiClient GetConnectionsApiClient<TContent>()
             where TContent : IWithConnections;
+
+        /// <summary>
+        /// Gets the <see cref="IEmbeddedCredentialsApiClient"/> for the given content type.
+        /// </summary>
+        /// <typeparam name="TContent">The content type.</typeparam>
+        /// <returns>The embedded embedded-credentials API client for the given content type.</returns>
+        /// <exception cref="ArgumentException">If a ownership API client for the given content type is not supported.</exception>
+        IEmbeddedCredentialsContentApiClient GetEmbeddedCredentialsApiClient<TContent>()
+            where TContent : IWithEmbeddedCredentials;
+
+        /// <summary>
+        /// Gets the <see cref="IDeleteApiClient"/> for the given content type.
+        /// </summary>
+        /// <typeparam name="TContent">The content type.</typeparam>
+        /// <returns>The embedded delete API client for the given content type.</returns>
+        /// <exception cref="ArgumentException">If a delete API client for the given content type is not supported.</exception>
+        IDeleteApiClient GetDeleteApiClient<TContent>()
+            where TContent : IDelible;
     }
 }

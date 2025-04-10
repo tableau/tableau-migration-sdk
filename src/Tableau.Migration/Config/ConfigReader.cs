@@ -53,23 +53,15 @@ namespace Tableau.Migration.Config
         public ContentTypesOptions Get<TContent>()
             where TContent : IContentReference
         {
-            var contentType = ServerToCloudMigrationPipeline.ContentTypes
-                .FirstOrDefault(c => c.ContentType.Name == typeof(TContent).Name);
+            var configKey = MigrationPipelineContentType.GetConfigKeyForType(typeof(TContent));
+            var contentTypeOptions = Get()
+                .ContentTypes
+                .FirstOrDefault(o => string.Equals(o.Type, configKey, StringComparison.OrdinalIgnoreCase));
 
-            if (contentType != null)
+            return contentTypeOptions ?? new ContentTypesOptions()
             {
-                var configKey = contentType.GetConfigKey();
-                var contentTypeOptions = Get()
-                    .ContentTypes
-                    .FirstOrDefault(o => string.Equals(o.Type, configKey, StringComparison.OrdinalIgnoreCase));
-
-                return contentTypeOptions ?? new ContentTypesOptions()
-                {
-                    Type = configKey
-                };
-            }
-
-            throw new NotSupportedException($"Content type specific options are not supported for {typeof(TContent)} since it is not supported for migration.");
+                Type = configKey
+            };
         }
     }
 }

@@ -19,8 +19,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Extensions.Logging;
-using Tableau.Migration.Resources;
 
 namespace Tableau.Migration.Engine.Manifest
 {
@@ -29,23 +27,14 @@ namespace Tableau.Migration.Engine.Manifest
     /// </summary>
     public class MigrationManifestEntryCollection : IMigrationManifestEntryCollection, IMigrationManifestEntryCollectionEditor
     {
-        private readonly ISharedResourcesLocalizer _localizer;
-        private readonly ILogger<MigrationManifestContentTypePartition> _partitionLogger;
-
         private readonly List<MigrationManifestContentTypePartition> _partitions = new();
 
         /// <summary>
         /// Creates a new <see cref="MigrationManifestEntryCollection"/> object.
         /// </summary>
-        /// <param name="localizer">A localizer.</param>
-        /// <param name="loggerFactory">A logger factory.</param>
         /// <param name="copy">An optional collection to deep copy entries from.</param>
-        public MigrationManifestEntryCollection(ISharedResourcesLocalizer localizer, ILoggerFactory loggerFactory,
-            IMigrationManifestEntryCollection? copy = null)
+        public MigrationManifestEntryCollection(IMigrationManifestEntryCollection? copy = null)
         {
-            _localizer = localizer;
-            _partitionLogger = loggerFactory.CreateLogger<MigrationManifestContentTypePartition>();
-
             if(copy is not null)
             {
                 copy.CopyTo(this);
@@ -59,6 +48,14 @@ namespace Tableau.Migration.Engine.Manifest
                 }
             }
         }
+
+        /// <summary>
+        /// Creates a new partition.
+        /// </summary>
+        /// <param name="contentType">The content type for the partition.</param>
+        /// <returns>The newly created partition.</returns>
+        protected virtual MigrationManifestContentTypePartition CreateParition(Type contentType)
+            => new MigrationManifestContentTypePartition(contentType);
 
         #region - IMigrationManifestEntryCollection Implementation -
 
@@ -177,7 +174,7 @@ namespace Tableau.Migration.Engine.Manifest
                 }
             }
 
-            var newPartition = new MigrationManifestContentTypePartition(contentType, _localizer, _partitionLogger);
+            var newPartition = CreateParition(contentType);
             _partitions.Add(newPartition);
 
             return newPartition;

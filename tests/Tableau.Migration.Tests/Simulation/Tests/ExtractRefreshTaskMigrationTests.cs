@@ -30,8 +30,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests
     public class ExtractRefreshTaskMigrationTests
     {
         public class UsersBatch : ServerToCloud
-        {
-        }
+        { }
 
         public class UsersIndividual : ServerToCloud
         {
@@ -117,21 +116,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests
                         Assert.Equal(extractRefreshType.Type, destinationExtractRefresh.Type);
                     }
 
-                    // Assert schedule information
-                    // This can't be done completely without manually writting the source and destination schedules to compare against.
-                    // Server schedules requirements are different than Cloud schedule requirements. So we just check the frequence and start time.
-                    // We can check frequency because non of the source schedule we built will change frequency to cloud, even though that is a possibilty,
-                    // we just didn't include those.
-                    Assert.Equal(sourceSchedule.Frequency, destinationExtractRefresh.Schedule.Frequency);
-                    Assert.Equal(sourceSchedule.FrequencyDetails.Start, destinationExtractRefresh.Schedule.FrequencyDetails!.Start);
-                    if (sourceSchedule.FrequencyDetails.End is null)
-                    {
-                        Assert.Null(destinationExtractRefresh.Schedule.FrequencyDetails.End);
-                    }
-                    else
-                    {
-                        Assert.Equal(sourceSchedule.FrequencyDetails.End, destinationExtractRefresh.Schedule.FrequencyDetails.End);
-                    }
+                    AssertScheduleMigrated(sourceSchedule, destinationExtractRefresh.Schedule);
                 }
             }
         }

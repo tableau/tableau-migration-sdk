@@ -19,12 +19,13 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.Extensions.DependencyInjection;
+using Tableau.Migration.Config;
 using Tableau.Migration.Content;
-using Tableau.Migration.Content.Schedules;
 using Tableau.Migration.Content.Schedules.Cloud;
 using Tableau.Migration.Content.Schedules.Server;
 using Tableau.Migration.Content.Search;
 using Tableau.Migration.Engine.Actions;
+using Tableau.Migration.Engine.Conversion;
 using Tableau.Migration.Engine.Endpoints.Search;
 using Tableau.Migration.Engine.Migrators;
 using Tableau.Migration.Engine.Migrators.Batch;
@@ -43,12 +44,21 @@ namespace Tableau.Migration.Engine.Pipelines
         protected IServiceProvider Services { get; }
 
         /// <summary>
+        /// Gets the config reader.
+        /// </summary>
+        protected readonly IConfigReader ConfigReader;
+
+        /// <summary>
         /// Creates a new <see cref="MigrationPipelineBase"/> object.
         /// </summary>
         /// <param name="services">A DI service provider to create actions with.</param>
-        protected MigrationPipelineBase(IServiceProvider services)
+        /// <param name="configReader">The config reader.</param>
+        protected MigrationPipelineBase(
+            IServiceProvider services,
+            IConfigReader configReader)
         {
             Services = services;
+            ConfigReader = configReader;
         }
 
         #region - Protected Methods -
@@ -95,24 +105,59 @@ namespace Tableau.Migration.Engine.Pipelines
         public virtual IContentBatchMigrator<TContent> GetBatchMigrator<TContent>()
             where TContent : class, IContentReference
         {
-            return Services.GetRequiredService<ItemPublishContentBatchMigrator<TContent>>();
+            switch (typeof(TContent))
+            {
+                case Type user when user == typeof(IUser):
+                    if (ConfigReader.Get<IUser>().BatchPublishingEnabled)
+                    {
+                        return Services.GetRequiredService<BulkPublishContentBatchMigrator<TContent>>();
+                    }
+                    return Services.GetRequiredService<ItemPublishContentBatchMigrator<TContent>>();
+
+                case Type group when group == typeof(IGroup):
+                    return Services.GetRequiredService<ItemPublishContentBatchMigrator<TContent, IPublishableGroup>>();
+
+                case Type project when project == typeof(IProject):
+                    return Services.GetRequiredService<ItemPublishContentBatchMigrator<TContent>>();
+
+                case Type dataSource when dataSource == typeof(IDataSource):
+                    return Services.GetRequiredService<ItemPublishContentBatchMigrator<TContent, IPublishableDataSource, IDataSourceDetails>>();
+
+                case Type workbook when workbook == typeof(IWorkbook):
+                    return Services.GetRequiredService<ItemPublishContentBatchMigrator<TContent, IPublishableWorkbook, IWorkbookDetails>>();
+
+                case Type customView when customView == typeof(ICustomView):
+                    return Services.GetRequiredService<ItemPublishContentBatchMigrator<TContent, IPublishableCustomView, ICustomView>>();
+
+                default:
+                    return Services.GetRequiredService<ItemPublishContentBatchMigrator<TContent>>();
+            }
         }
 
         /// <inheritdoc />
-        public virtual IContentItemPreparer<TContent, TPublish> GetItemPreparer<TContent, TPublish>()
+        public virtual IContentItemPreparer<TContent, TPublish> GetItemPreparer<TContent, TPrepare, TPublish>()
             where TContent : class
+            where TPrepare : class
             where TPublish : class
         {
             switch (typeof(TContent))
             {
-                case Type source when source == typeof(TPublish):
+                case Type source when source == typeof(TPrepare) && source == typeof(TPublish):
                     return (IContentItemPreparer<TContent, TPublish>)Services.GetRequiredService<SourceContentItemPreparer<TContent>>();
+                case Type source when source == typeof(TContent) && source == typeof(TPrepare):
+                    return Services.GetRequiredService<SourceContentItemPreparer<TContent, TPublish>>();
                 case Type source when source == typeof(IServerExtractRefreshTask) && typeof(TPublish) == typeof(ICloudExtractRefreshTask):
                     return (IContentItemPreparer<TContent, TPublish>)Services.GetRequiredService<ExtractRefreshTaskServerToCloudPreparer>();
                 default:
-                    return Services.GetRequiredService<EndpointContentItemPreparer<TContent, TPublish>>();
+                    return Services.GetRequiredService<EndpointContentItemPreparer<TContent, TPrepare, TPublish>>();
             }
         }
+
+        /// <inheritdoc />
+        public virtual IContentItemConverter<TPrepare, TPublish> GetItemConverter<TPrepare, TPublish>()
+            where TPrepare : class
+            where TPublish : class
+            => Services.GetRequiredService<DirectContentItemConverter<TPrepare, TPublish>>();
 
         /// <inheritdoc />
         public virtual IContentReferenceCache CreateSourceCache<TContent>()

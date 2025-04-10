@@ -51,6 +51,11 @@ namespace Tableau.Migration.JsonConverters.SerializableObjects
         public string? Status { get; set; }
 
         /// <summary>
+        /// Gets or sets the reason why the content was skipped, if applicable.
+        /// </summary>
+        public string? SkippedReason { get; set; }
+
+        /// <summary>
         /// Gets or sets a value indicating whether the content has been migrated.
         /// </summary>
         public bool HasMigrated { get; set; }
@@ -75,6 +80,7 @@ namespace Tableau.Migration.JsonConverters.SerializableObjects
             MappedLocation = new SerializableContentLocation(entry.MappedLocation);
             Destination = entry.Destination == null ? null : new SerializableContentReference(entry.Destination);
             Status = entry.Status.ToString();
+            SkippedReason = entry.SkippedReason;
             HasMigrated = entry.HasMigrated;
 
             Errors = entry.Errors.Select(e => new SerializableException(e)).ToList();
@@ -87,6 +93,8 @@ namespace Tableau.Migration.JsonConverters.SerializableObjects
         IContentReference? IMigrationManifestEntry.Destination => Destination?.AsContentReferenceStub();
 
         MigrationManifestEntryStatus IMigrationManifestEntry.Status => (MigrationManifestEntryStatus)Enum.Parse(typeof(MigrationManifestEntryStatus), Status!);
+
+        string IMigrationManifestEntry.SkippedReason => SkippedReason ?? string.Empty;
 
         bool IMigrationManifestEntry.HasMigrated => HasMigrated;
 
@@ -126,6 +134,8 @@ namespace Tableau.Migration.JsonConverters.SerializableObjects
 
             Source.VerifyDeserialization();
             MappedLocation.VerifyDeseralization();
+
+            Destination?.VerifyDeserialization();
         }
 
         /// <summary>

@@ -32,7 +32,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Migrators.Batch
 {
     public class ParallelContentBatchMigratorBatchBaseTests
     {
-        public class TestParallelContentBatchMigrator : ParallelContentBatchMigratorBatchBase<TestContentType, TestPublishType>
+        public class TestParallelContentBatchMigrator : ParallelContentBatchMigratorBatchBase<TestContentType, TestPublishType, TestPublishType>
         {
             public ContentMigrationBatch<TestContentType, TestPublishType>? CurrentBatch { get; private set; }
 
@@ -55,7 +55,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Migrators.Batch
             }
         }
 
-        public class MigrateBatchAsync : ParallelContentBatchMigratorBatchTestBase<TestContentType, TestPublishType>
+        public class MigrateBatchAsync : ParallelContentBatchMigratorBatchTestBase<TestContentType, TestPublishType, TestPublishType>
         {
             private readonly TestParallelContentBatchMigrator _batchMigrator;
 

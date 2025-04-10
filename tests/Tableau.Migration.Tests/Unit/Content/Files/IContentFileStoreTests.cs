@@ -41,8 +41,8 @@ namespace Tableau.Migration.Tests.Unit.Content.Files
                     CallBase = true
                 };
 
-                var handle = new ContentFileHandle(mockFileStore.Object, path, originalFileName);
-                mockFileStore.Setup(x => x.Create(path, originalFileName)).Returns(handle);
+                var handle = new ContentFileHandle(mockFileStore.Object, path, originalFileName, null);
+                mockFileStore.Setup(x => x.Create(path, originalFileName, true)).Returns(handle);
 
                 var writeStream = new MemoryStream();
                 mockFileStore.Setup(x => x.OpenWriteAsync(handle, cancel))
@@ -50,9 +50,9 @@ namespace Tableau.Migration.Tests.Unit.Content.Files
 
                 using var initialStream = new MemoryStream(Constants.DefaultEncoding.GetBytes(content));
 
-                var result = await mockFileStore.Object.CreateAsync(path, originalFileName, initialStream, cancel);
+                var result = await mockFileStore.Object.CreateAsync(path, originalFileName, initialStream, cancel, true);
 
-                mockFileStore.Verify(x => x.Create(path, originalFileName), Times.Once);
+                mockFileStore.Verify(x => x.Create(path, originalFileName, true), Times.Once);
                 mockFileStore.Verify(x => x.OpenWriteAsync(handle, cancel), Times.Once);
 
                 Assert.Equal(content, Constants.DefaultEncoding.GetString(writeStream.ToArray()));
@@ -71,8 +71,8 @@ namespace Tableau.Migration.Tests.Unit.Content.Files
                     CallBase = true
                 };
 
-                var handle = new ContentFileHandle(mockFileStore.Object, "generatedPath", originalFileName);
-                mockFileStore.Setup(x => x.Create(contentItem, originalFileName)).Returns(handle);
+                var handle = new ContentFileHandle(mockFileStore.Object, "generatedPath", originalFileName, null);
+                mockFileStore.Setup(x => x.Create(contentItem, originalFileName, true)).Returns(handle);
 
                 var writeStream = new MemoryStream();
                 mockFileStore.Setup(x => x.OpenWriteAsync(handle, cancel))
@@ -80,9 +80,9 @@ namespace Tableau.Migration.Tests.Unit.Content.Files
 
                 using var initialStream = new MemoryStream(Constants.DefaultEncoding.GetBytes(content));
 
-                var result = await mockFileStore.Object.CreateAsync(contentItem, originalFileName, initialStream, cancel);
+                var result = await mockFileStore.Object.CreateAsync(contentItem, originalFileName, initialStream, cancel, true);
 
-                mockFileStore.Verify(x => x.Create(contentItem, originalFileName), Times.Once);
+                mockFileStore.Verify(x => x.Create(contentItem, originalFileName, true), Times.Once);
                 mockFileStore.Verify(x => x.OpenWriteAsync(handle, cancel), Times.Once);
 
                 Assert.Equal(content, Constants.DefaultEncoding.GetString(writeStream.ToArray()));

@@ -30,6 +30,13 @@ namespace Tableau.Migration.Tests.Unit.Content.Schedules.Cloud
 {
     public class CloudScheduleValidatorTests
     {
+        protected const string TIME_12_00_00 = "12:00:00";
+        protected const string TIME_13_00_00 = "13:00:00";
+        protected const string TIME_13_30_00 = "13:30:00";
+        protected const string TIME_12_00 = "12:00";
+        protected const string TIME_13_00 = "13:00";
+        protected const string WEEKDAY_INVALID = "Thanksgiving";
+
         private readonly Mock<ILogger<CloudScheduleValidator>> _loggerMock;
         private readonly ISharedResourcesLocalizer _localizer;
         private readonly CloudScheduleValidator _validator;
@@ -76,11 +83,11 @@ namespace Tableau.Migration.Tests.Unit.Content.Schedules.Cloud
                 var intervals = new List<IInterval>()
                 {
                     Interval.WithHours(1),
-                    Interval.WithWeekday("Monday")
+                    Interval.WithWeekday(WeekDays.Monday)
                 };
 
                 // Act & Assert
-                var schedule = CreateMockSchedule(frequency, start: "12:00", end: "13:00", intervals);
+                var schedule = CreateMockSchedule(frequency, start: TIME_12_00, end: TIME_13_00, intervals);
                 _validator.Validate(schedule.Object);
             }
 
@@ -91,10 +98,10 @@ namespace Tableau.Migration.Tests.Unit.Content.Schedules.Cloud
                 var intervals = new List<IInterval>()
                 {
                     Interval.WithHours(1),
-                    Interval.WithWeekday("Monday")
+                    Interval.WithWeekday(WeekDays.Monday)
                 };
 
-                var schedule = CreateMockSchedule(frequency, start: null, end: "13:00", new List<IInterval> { new Mock<IInterval>().Object });
+                var schedule = CreateMockSchedule(frequency, start: null, end: TIME_13_00, new List<IInterval> { new Mock<IInterval>().Object });
 
                 // Act & Assert
                 var exception = Assert.Throws<InvalidScheduleException>(() => _validator.Validate(schedule.Object));
@@ -108,10 +115,10 @@ namespace Tableau.Migration.Tests.Unit.Content.Schedules.Cloud
                 var intervals = new List<IInterval>()
                 {
                     Interval.WithHours(1),
-                    Interval.WithWeekday("Monday")
+                    Interval.WithWeekday(WeekDays.Monday)
                 };
 
-                var schedule = CreateMockSchedule(frequency, start: "12:00:00", end: null, intervals);
+                var schedule = CreateMockSchedule(frequency, start: TIME_12_00_00, end: null, intervals);
 
                 // Act & Assert
                 var exception = Assert.Throws<InvalidScheduleException>(() => _validator.Validate(schedule.Object));
@@ -125,10 +132,10 @@ namespace Tableau.Migration.Tests.Unit.Content.Schedules.Cloud
                 var intervals = new List<IInterval>()
                 {
                     Interval.WithHours(1),
-                    Interval.WithWeekday("Monday")
+                    Interval.WithWeekday(WeekDays.Monday)
                 };
 
-                var schedule = CreateMockSchedule(frequency, start: "12:00:00", end: "13:30:00", intervals);
+                var schedule = CreateMockSchedule(frequency, start: TIME_12_00_00, end: TIME_13_30_00, intervals);
 
                 // Act & Assert
                 var exception = Assert.Throws<InvalidScheduleException>(() => _validator.Validate(schedule.Object));
@@ -143,10 +150,10 @@ namespace Tableau.Migration.Tests.Unit.Content.Schedules.Cloud
                 {
                     Interval.WithHours(1),
                     Interval.WithMinutes(60),
-                    Interval.WithWeekday("Monday")
+                    Interval.WithWeekday(WeekDays.Monday)
                 };
 
-                var schedule = CreateMockSchedule(frequency, start: "12:00:00", end: "13:00:00", intervals);
+                var schedule = CreateMockSchedule(frequency, start: TIME_12_00_00, end: TIME_13_00_00, intervals);
 
                 // Act & Assert
                 var exception = Assert.Throws<InvalidScheduleException>(() => _validator.Validate(schedule.Object));
@@ -160,10 +167,10 @@ namespace Tableau.Migration.Tests.Unit.Content.Schedules.Cloud
                 var intervals = new List<IInterval>()
                 {
                     Interval.WithHours(2),
-                    Interval.WithWeekday("Monday")
+                    Interval.WithWeekday(WeekDays.Monday)
                 };
 
-                var schedule = CreateMockSchedule(frequency, start: "12:00:00", end: "13:00:00", intervals);
+                var schedule = CreateMockSchedule(frequency, start: TIME_12_00_00, end: TIME_13_00_00, intervals);
 
                 // Act & Assert
                 var exception = Assert.Throws<InvalidScheduleException>(() => _validator.Validate(schedule.Object));
@@ -177,10 +184,10 @@ namespace Tableau.Migration.Tests.Unit.Content.Schedules.Cloud
                 var intervals = new List<IInterval>()
                 {
                     Interval.WithMinutes(30),
-                    Interval.WithWeekday("Monday")
+                    Interval.WithWeekday(WeekDays.Monday)
                 };
 
-                var schedule = CreateMockSchedule(frequency, start: "12:00:00", end: "13:00:00", intervals);
+                var schedule = CreateMockSchedule(frequency, start: TIME_12_00_00, end: TIME_13_00_00, intervals);
 
                 // Act & Assert
                 var exception = Assert.Throws<InvalidScheduleException>(() => _validator.Validate(schedule.Object));
@@ -196,7 +203,7 @@ namespace Tableau.Migration.Tests.Unit.Content.Schedules.Cloud
                     Interval.WithHours(1),
                 };
 
-                var schedule = CreateMockSchedule(frequency, start: "12:00:00", end: "13:00:00", intervals);
+                var schedule = CreateMockSchedule(frequency, start: TIME_12_00_00, end: TIME_13_00_00, intervals);
 
                 // Act & Assert
                 var exception = Assert.Throws<InvalidScheduleException>(() => _validator.Validate(schedule.Object));
@@ -210,10 +217,10 @@ namespace Tableau.Migration.Tests.Unit.Content.Schedules.Cloud
                 var intervals = new List<IInterval>()
                 {
                     Interval.WithHours(1),
-                    Interval.WithWeekday("Thanksgiving")
+                    Interval.WithWeekday(WEEKDAY_INVALID)
                 };
 
-                var schedule = CreateMockSchedule(frequency, start: "12:00:00", end: "13:00:00", intervals);
+                var schedule = CreateMockSchedule(frequency, start: TIME_12_00_00, end: TIME_13_00_00, intervals);
 
                 // Act & Assert
                 var exception = Assert.Throws<InvalidScheduleException>(() => _validator.Validate(schedule.Object));
@@ -232,11 +239,11 @@ namespace Tableau.Migration.Tests.Unit.Content.Schedules.Cloud
                 var intervals = new List<IInterval>()
                 {
                     Interval.WithHours(2),
-                    Interval.WithWeekday("Monday")
+                    Interval.WithWeekday(WeekDays.Monday)
                 };
 
                 // Act & Assert
-                var schedule = CreateMockSchedule(frequency, start: "12:00", end: "13:00", intervals);
+                var schedule = CreateMockSchedule(frequency, start: TIME_12_00, end: TIME_13_00, intervals);
                 _validator.Validate(schedule.Object);
             }
 
@@ -247,10 +254,10 @@ namespace Tableau.Migration.Tests.Unit.Content.Schedules.Cloud
                 var intervals = new List<IInterval>()
                 {
                     Interval.WithHours(2),
-                    Interval.WithWeekday("Monday")
+                    Interval.WithWeekday(WeekDays.Monday)
                 };
 
-                var schedule = CreateMockSchedule(frequency, start: null, end: "13:00", new List<IInterval> { new Mock<IInterval>().Object });
+                var schedule = CreateMockSchedule(frequency, start: null, end: TIME_13_00, new List<IInterval> { new Mock<IInterval>().Object });
 
                 // Act & Assert
                 var exception = Assert.Throws<InvalidScheduleException>(() => _validator.Validate(schedule.Object));
@@ -266,7 +273,7 @@ namespace Tableau.Migration.Tests.Unit.Content.Schedules.Cloud
                     Interval.WithHours(2),
                 };
 
-                var schedule = CreateMockSchedule(frequency, start: "12:00:00", end: "13:00:00", intervals);
+                var schedule = CreateMockSchedule(frequency, start: TIME_12_00_00, end: TIME_13_00_00, intervals);
 
                 // Act & Assert
                 var exception = Assert.Throws<InvalidScheduleException>(() => _validator.Validate(schedule.Object));
@@ -280,10 +287,10 @@ namespace Tableau.Migration.Tests.Unit.Content.Schedules.Cloud
                 var intervals = new List<IInterval>()
                 {
                     Interval.WithHours(2),
-                    Interval.WithWeekday("Thanksgiving")
+                    Interval.WithWeekday(WEEKDAY_INVALID)
                 };
 
-                var schedule = CreateMockSchedule(frequency, start: "12:00:00", end: "13:00:00", intervals);
+                var schedule = CreateMockSchedule(frequency, start: TIME_12_00_00, end: TIME_13_00_00, intervals);
 
                 // Act & Assert
                 var exception = Assert.Throws<InvalidScheduleException>(() => _validator.Validate(schedule.Object));
@@ -297,10 +304,10 @@ namespace Tableau.Migration.Tests.Unit.Content.Schedules.Cloud
                 var intervals = new List<IInterval>()
                 {
                     Interval.WithHours(3),
-                    Interval.WithWeekday("Tuesday")
+                    Interval.WithWeekday(WeekDays.Tuesday)
                 };
 
-                var schedule = CreateMockSchedule(frequency, start: "12:00:00", end: "13:00:00", intervals);
+                var schedule = CreateMockSchedule(frequency, start: TIME_12_00_00, end: TIME_13_00_00, intervals);
 
                 // Act & Assert
                 var exception = Assert.Throws<InvalidScheduleException>(() => _validator.Validate(schedule.Object));
@@ -314,10 +321,10 @@ namespace Tableau.Migration.Tests.Unit.Content.Schedules.Cloud
                 var intervals = new List<IInterval>()
                 {
                     Interval.WithHours(2),
-                    Interval.WithWeekday("Monday")
+                    Interval.WithWeekday(WeekDays.Monday)
                 };
 
-                var schedule = CreateMockSchedule(frequency, start: "12:00:00", end: null, intervals);
+                var schedule = CreateMockSchedule(frequency, start: TIME_12_00_00, end: null, intervals);
 
                 // Act & Assert
                 var exception = Assert.Throws<InvalidScheduleException>(() => _validator.Validate(schedule.Object));
@@ -334,10 +341,10 @@ namespace Tableau.Migration.Tests.Unit.Content.Schedules.Cloud
                 var intervals = new List<IInterval>()
                 {
                     Interval.WithHours(24),
-                    Interval.WithWeekday("Monday")
+                    Interval.WithWeekday(WeekDays.Monday)
                 };
 
-                var schedule = CreateMockSchedule(frequency, start: "12:00:00", end: null, intervals);
+                var schedule = CreateMockSchedule(frequency, start: TIME_12_00_00, end: null, intervals);
 
                 // Act & Assert
                 var exception = Assert.Throws<InvalidScheduleException>(() => _validator.Validate(schedule.Object));
@@ -351,10 +358,10 @@ namespace Tableau.Migration.Tests.Unit.Content.Schedules.Cloud
                 var intervals = new List<IInterval>()
                 {
                     Interval.WithHours(2),
-                    Interval.WithWeekday("Monday")
+                    Interval.WithWeekday(WeekDays.Monday)
                 };
 
-                var schedule = CreateMockSchedule(frequency, start: "12:00:00", end: "13:30:00", intervals);
+                var schedule = CreateMockSchedule(frequency, start: TIME_12_00_00, end: TIME_13_30_00, intervals);
 
                 // Act & Assert
                 var exception = Assert.Throws<InvalidScheduleException>(() => _validator.Validate(schedule.Object));
@@ -372,11 +379,11 @@ namespace Tableau.Migration.Tests.Unit.Content.Schedules.Cloud
                 // Arrange
                 var intervals = new List<IInterval>()
                 {
-                    Interval.WithWeekday("Wednesday")
+                    Interval.WithWeekday(WeekDays.Wednesday)
                 };
 
                 // Act & Assert
-                var schedule = CreateMockSchedule(frequency, start: "12:00", end: null, intervals);
+                var schedule = CreateMockSchedule(frequency, start: TIME_12_00, end: null, intervals);
                 _validator.Validate(schedule.Object);
             }
 
@@ -386,11 +393,11 @@ namespace Tableau.Migration.Tests.Unit.Content.Schedules.Cloud
                 // Arrange
                 var intervals = new List<IInterval>()
                 {
-                    Interval.WithWeekday("Monday"),
-                    Interval.WithWeekday("Wednesday")
+                    Interval.WithWeekday(WeekDays.Monday),
+                    Interval.WithWeekday(WeekDays.Wednesday)
                 };
 
-                var schedule = CreateMockSchedule(frequency, start: "12:00:00", end: null, intervals);
+                var schedule = CreateMockSchedule(frequency, start: TIME_12_00_00, end: null, intervals);
 
                 // Act & Assert
                 var exception = Assert.Throws<InvalidScheduleException>(() => _validator.Validate(schedule.Object));
@@ -404,10 +411,10 @@ namespace Tableau.Migration.Tests.Unit.Content.Schedules.Cloud
                 var intervals = new List<IInterval>()
                 {
                     Interval.WithHours(1),
-                    Interval.WithWeekday("Thanksgiving")
+                    Interval.WithWeekday(WEEKDAY_INVALID)
                 };
 
-                var schedule = CreateMockSchedule(frequency, start: "12:00:00", end: null, intervals);
+                var schedule = CreateMockSchedule(frequency, start: TIME_12_00_00, end: null, intervals);
 
                 // Act & Assert
                 var exception = Assert.Throws<InvalidScheduleException>(() => _validator.Validate(schedule.Object));
@@ -421,10 +428,10 @@ namespace Tableau.Migration.Tests.Unit.Content.Schedules.Cloud
                 var intervals = new List<IInterval>()
                 {
                     Interval.WithHours(1),
-                    Interval.WithWeekday("Monday")
+                    Interval.WithWeekday(WeekDays.Monday)
                 };
 
-                var schedule = CreateMockSchedule(frequency, start: "12:00:00", end: "13:00:00", intervals);
+                var schedule = CreateMockSchedule(frequency, start: TIME_12_00_00, end: TIME_13_00_00, intervals);
 
                 // Act & Assert
                 var exception = Assert.Throws<InvalidScheduleException>(() => _validator.Validate(schedule.Object));

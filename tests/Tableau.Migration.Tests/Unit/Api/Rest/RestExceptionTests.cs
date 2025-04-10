@@ -16,6 +16,7 @@
 //
 
 using System;
+using System.Diagnostics;
 using System.Net.Http;
 using Microsoft.Extensions.Localization;
 using Moq;
@@ -49,6 +50,7 @@ namespace Tableau.Migration.Tests.Unit.Api.Rest
                     new Uri("http://localhost"),
                     correlationId,
                     error,
+                    new StackTrace(fNeedFileInfo: true).ToString(),
                     mockLocalizer.Object);
 
                 Assert.Equal(error.Code, exception.Code);

@@ -18,7 +18,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
-using AutoFixture;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Tableau.Migration.Engine;
@@ -56,6 +55,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Manifest
 
                 _planId = Guid.NewGuid();
                 _mockInput.SetupGet(x => x.Plan.PlanId).Returns(_planId);
+                _mockInput.SetupGet(x => x.Plan.PipelineProfile).Returns(PipelineProfile.ServerToCloud);
                 _mockInput.SetupGet(x => x.MigrationId).Returns(_migrationId);
             }
 
@@ -63,8 +63,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Manifest
             public void InitializesEmptyManifestWithInput()
             {
                 // Customize the AutoFixture instance to remove the customization for IMigrationManifest that was created from AutoFixtureTestBase/FixtureFactory
-                AutoFixture.Customize<IMigrationManifest>(c => c.FromFactory(() =>
-                    new MigrationManifest(AutoFixture.Create<ISharedResourcesLocalizer>(), AutoFixture.Create<ILoggerFactory>(), Guid.NewGuid(), Guid.NewGuid())));
+                AutoFixture.Customize<IMigrationManifest>(c => c.FromFactory(() => new MigrationManifest(PipelineProfile.ServerToCloud)));
 
                 var manifest = _factory.Create(_mockInput.Object, _migrationId);
 
@@ -77,7 +76,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Manifest
             [Fact]
             public void InitializesEmptyManifestWithoutInput()
             {
-                var manifest = _factory.Create(_planId, _migrationId);
+                var manifest = _factory.Create(_planId, _migrationId, PipelineProfile.ServerToCloud);
 
                 Assert.Equal(_planId, manifest.PlanId);
                 Assert.Equal(_migrationId, manifest.MigrationId);
@@ -97,8 +96,8 @@ namespace Tableau.Migration.Tests.Unit.Engine.Manifest
             [Fact]
             public void CreatesInstancesWithoutInput()
             {
-                var manifest1 = _factory.Create(_planId, _migrationId);
-                var manifest2 = _factory.Create(_planId, _migrationId);
+                var manifest1 = _factory.Create(_planId, _migrationId, PipelineProfile.ServerToCloud);
+                var manifest2 = _factory.Create(_planId, _migrationId, PipelineProfile.ServerToCloud);
 
                 Assert.NotSame(manifest1, manifest2);
             }
@@ -108,7 +107,8 @@ namespace Tableau.Migration.Tests.Unit.Engine.Manifest
             {
                 var previousEntries = CreateMany<IMigrationManifestEntry>().ToImmutableArray();
 
-                var previousManifest = Create<MigrationManifest>();
+                var previousManifest = new MigrationManifest(PipelineProfile.ServerToCloud);
+
                 previousManifest.Entries
                     .GetOrCreatePartition<ITestContent>()
                     .CreateEntries(previousEntries);
@@ -118,6 +118,22 @@ namespace Tableau.Migration.Tests.Unit.Engine.Manifest
                 var manifest = _factory.Create(_mockInput.Object, _migrationId);
 
                 Assert.Equal(previousManifest.Entries.Count(), manifest.Entries.Count());
+            }
+
+            [Fact]
+            public void ErrorWhenCopiesFromPreviousManifestWithWrongProfile()
+            {
+                var previousEntries = CreateMany<IMigrationManifestEntry>().ToImmutableArray();
+
+                var previousManifest = new MigrationManifest(PipelineProfile.ServerToServer);
+
+                previousManifest.Entries
+                    .GetOrCreatePartition<ITestContent>()
+                    .CreateEntries(previousEntries);
+
+                _mockInput.SetupGet(x => x.PreviousManifest).Returns(previousManifest);
+
+                Assert.Throws<ArgumentException>(() => _factory.Create(_mockInput.Object, _migrationId));
             }
         }
     }

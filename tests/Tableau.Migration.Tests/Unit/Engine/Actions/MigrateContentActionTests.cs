@@ -17,10 +17,12 @@
 
 using System;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Moq;
 using Tableau.Migration.Engine.Actions;
 using Tableau.Migration.Engine.Migrators;
 using Tableau.Migration.Engine.Pipelines;
+using Tableau.Migration.Resources;
 using Xunit;
 
 namespace Tableau.Migration.Tests.Unit.Engine.Actions
@@ -33,18 +35,23 @@ namespace Tableau.Migration.Tests.Unit.Engine.Actions
         {
             protected readonly Mock<IMigrationPipeline> MockPipeline;
             protected readonly Mock<IContentMigrator<TestContentType>> MockContentMigrator;
+            protected readonly Mock<IMigrationCapabilities> MockCapabilities;
+            protected readonly Mock<ILogger<MigrateContentAction<TestContentType>>> MockLogger;
+            protected readonly Mock<ISharedResourcesLocalizer> MockSharedResourcesLocalizer;
 
             protected readonly MigrateContentAction<TestContentType> Action;
 
             public MigrateContentActionTest()
             {
                 MockContentMigrator = Create<Mock<IContentMigrator<TestContentType>>>();
-
+                MockCapabilities = Create<Mock<IMigrationCapabilities>>();
                 MockPipeline = Create<Mock<IMigrationPipeline>>();
                 MockPipeline.Setup(x => x.GetMigrator<TestContentType>())
                     .Returns(MockContentMigrator.Object);
+                MockLogger = new Mock<ILogger<MigrateContentAction<TestContentType>>>();
+                MockSharedResourcesLocalizer = new Mock<ISharedResourcesLocalizer>();
 
-                Action = new(MockPipeline.Object);
+                Action = new(MockPipeline.Object, MockCapabilities.Object, MockLogger.Object, MockSharedResourcesLocalizer.Object);
             }
         }
 
@@ -87,6 +94,34 @@ namespace Tableau.Migration.Tests.Unit.Engine.Actions
 
                 result.AssertFailure();
                 Assert.Equal(failure.Errors, result.Errors);
+            }
+
+            [Fact]
+            public async Task Skips_migration_when_disabled()
+            {
+                MockCapabilities.Setup(x => x.ContentTypesDisabledAtDestination)
+                    .Returns([typeof(TestContentType)]);
+
+                MockContentMigrator.Setup(x => x.MigrateAsync(Cancel)).ReturnsAsync(Result.Succeeded());
+
+                var result = await Action.ExecuteAsync(Cancel);
+
+                result.AssertSuccess();
+                MockLogger.VerifyWarnings(Times.Once);
+            }
+
+            [Fact]
+            public async Task Migrates_when_not_disabled()
+            {
+                MockCapabilities.Setup(x => x.ContentTypesDisabledAtDestination)
+                    .Returns([]);
+
+                MockContentMigrator.Setup(x => x.MigrateAsync(Cancel)).ReturnsAsync(Result.Succeeded());
+
+                var result = await Action.ExecuteAsync(Cancel);
+
+                result.AssertSuccess();
+                MockLogger.VerifyWarnings(Times.Never);
             }
         }
 

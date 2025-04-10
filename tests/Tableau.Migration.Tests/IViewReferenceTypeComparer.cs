@@ -22,11 +22,11 @@ using Xunit;
 
 namespace Tableau.Migration.Tests
 {
-    internal class IViewReferenceTypeComparer : ComparerBase<IViewReferenceType>
+    internal class IViewReferenceTypeComparer : ComparerBase<IWorkbookViewReferenceType>
     {
         public static IViewReferenceTypeComparer Instance = new();
 
-        protected override int CompareItems(IViewReferenceType x, IViewReferenceType y)
+        protected override int CompareItems(IWorkbookViewReferenceType x, IWorkbookViewReferenceType y)
         {
             Assert.NotNull(x.ContentUrl);
             Assert.NotNull(y.ContentUrl);

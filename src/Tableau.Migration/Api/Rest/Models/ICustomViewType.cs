@@ -25,7 +25,7 @@ namespace Tableau.Migration.Api.Rest.Models
     public interface ICustomViewType :
         IRestIdentifiable,
         INamedContent,
-        IWithWorkbookReferenceType,
+        IWithWorkbookNamedReferenceType,
         IWithOwnerType
     {
         /// <summary>

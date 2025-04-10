@@ -15,6 +15,7 @@
 //  limitations under the License.
 //
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -33,16 +34,14 @@ namespace Tableau.Migration.PythonGenerator
         public string GenericDefinitionName
             => GenericTypes is null ? Name : $"{Name}[{string.Join(", ", GenericTypes.Value.Select(g => g.GenericDefinitionName))}]";
 
-        public bool IsExplicitReference => Name.Contains(".");
+        public bool IsExplicitReference => Name.Contains('.');
 
-        public static string ToPythonTypeName(ITypeSymbol dotNetType)
-        {
-            var typeName = dotNetType.Name;
-            if (typeName.StartsWith("I"))
-                typeName = typeName.Substring(1);
+        public static string ToPythonTypeName(ITypeSymbol dotNetType) => GetPythonTypeName(dotNetType.Name);
 
-            return "Py" + typeName;
-        }
+        public static string ToPythonTypeName(Type dotNetType) => GetPythonTypeName(dotNetType.Name);
+
+        public static string GetPythonTypeName(string typeName)
+            => typeName.StartsWith('I') ? "Py" + typeName[1..] : "Py" + typeName;
 
         public IEnumerable<PythonTypeReference> UnwrapGenerics()
         {
@@ -58,7 +57,7 @@ namespace Tableau.Migration.PythonGenerator
         }
 
         public static PythonTypeReference ForGenericType(ITypeSymbol genericType)
-            => new PythonTypeReference(genericType.Name, null, ConversionMode.WrapGeneric);
+            => new(genericType.Name, null, ConversionMode.WrapGeneric);
 
         public static PythonTypeReference ForDotNetType(ITypeSymbol dotNetType)
         {

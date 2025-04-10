@@ -18,7 +18,7 @@
 namespace Tableau.Migration.Content
 {
     /// <summary>
-    /// Inteface for tags associated with content items.
+    /// Interface for tags associated with content items.
     /// </summary>
     public interface ITag
     {

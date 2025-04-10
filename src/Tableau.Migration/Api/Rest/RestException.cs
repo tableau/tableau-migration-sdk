@@ -16,6 +16,7 @@
 //
 
 using System;
+using System.Diagnostics;
 using System.Net.Http;
 using Tableau.Migration.Api.Rest.Models;
 using Tableau.Migration.Resources;
@@ -58,6 +59,11 @@ namespace Tableau.Migration.Api.Rest
         public readonly string? CorrelationId;
 
         /// <summary>
+        /// Gets the full stack trace. Added for easier debuggability.
+        /// </summary>
+        public readonly string? FullStackTrace;
+
+        /// <summary>
         /// Creates a new <see cref="RestException"/> instance.
         /// </summary>
         /// <remarks>This should only be used for deserialization.</remarks>
@@ -65,12 +71,14 @@ namespace Tableau.Migration.Api.Rest
         /// <param name="requestUri">The request URI that generated the current error.</param>
         /// <param name="correlationId">The request Correlation ID</param>
         /// <param name="error">The <see cref="Error"/> returned from the Tableau API.</param>
+        /// <param name="fullStackTrace">The stack trace of the caller. Added for easier debuggability.</param>
         /// <param name="exceptionMessage">Message for base Exception.</param>
         internal RestException(
             HttpMethod? httpMethod,
             Uri? requestUri,
             string? correlationId,
             Error error,
+            string? fullStackTrace,
             string exceptionMessage)
             : base(exceptionMessage)
         {
@@ -80,6 +88,7 @@ namespace Tableau.Migration.Api.Rest
             Code = error.Code;
             Detail = error.Detail;
             Summary = error.Summary;
+            FullStackTrace = fullStackTrace ?? new StackTrace(fNeedFileInfo: true).ToString();
         }
 
         /// <summary>
@@ -89,14 +98,16 @@ namespace Tableau.Migration.Api.Rest
         /// <param name="requestUri">The request URI that generated the current error.</param>
         /// <param name="correlationId">The request Correlation ID</param>
         /// <param name="error">The <see cref="Error"/> returned from the Tableau API.</param>
+        /// <param name="fullStackTrace">The stack trace of the caller. Added for easier debuggability.</param>
         /// <param name="sharedResourcesLocalizer">A string localizer.</param>
         public RestException(
             HttpMethod? httpMethod,
             Uri? requestUri,
             string? correlationId,
             Error error,
+            string? fullStackTrace,
             ISharedResourcesLocalizer sharedResourcesLocalizer)
-            : this(httpMethod, requestUri, correlationId, error, FormatError(httpMethod, requestUri, correlationId, error, sharedResourcesLocalizer))
+            : this(httpMethod, requestUri, correlationId, error, fullStackTrace, FormatError(httpMethod, requestUri, correlationId, error, sharedResourcesLocalizer))
         { }
 
         private static string FormatError(
@@ -129,7 +140,8 @@ namespace Tableau.Migration.Api.Rest
                    RequestUri == other.RequestUri &&
                    Code == other.Code &&
                    Detail == other.Detail &&
-                   Summary == other.Summary;
+                   Summary == other.Summary &&
+                   FullStackTrace == other.FullStackTrace;
         }
 
         /// <inheritdoc/>
@@ -146,7 +158,7 @@ namespace Tableau.Migration.Api.Rest
         /// <inheritdoc/>
         public override int GetHashCode()
         {
-            return HashCode.Combine(HttpMethod, RequestUri, Code, Detail, Summary);
+            return HashCode.Combine(HttpMethod, RequestUri, Code, Detail, Summary, FullStackTrace);
         }
 
         #endregion

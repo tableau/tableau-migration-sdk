@@ -59,26 +59,24 @@ namespace Tableau.Migration.Api.Simulation.Rest.Net.Requests
             return new(pattern, RegexOptions.IgnoreCase | RegexOptions.Compiled);
         }
 
-        public static Regex SiteUrl(string postSiteSuffix, bool useExperimental = false) 
+        public static Regex SiteUrl(string postSiteSuffix, bool useExperimental = false)
             => RestApiUrl($"""/sites/{SiteId}/{postSiteSuffix.TrimPaths()}""", useExperimental);
 
         public static Regex EntityUrl(string preEntitySuffix) => RestApiUrl($"""{preEntitySuffix.TrimPaths()}/{EntityId}""");
 
-        public static Regex SiteEntityUrl(
-            string postSitePreEntitySuffix,
-            string? postEntitySuffix = null,
-            bool useExperimental = false)
+        public static Regex SiteEntityUrl(string postSitePreEntitySuffix, string? postEntitySuffix = null, bool useExperimental = false)
         {
             var trimmedSuffix = postEntitySuffix?.TrimPaths();
             trimmedSuffix = string.IsNullOrEmpty(trimmedSuffix) ? string.Empty : $"/{trimmedSuffix}";
-
-            return SiteUrl($"""{postSitePreEntitySuffix.TrimPaths()}/{EntityId}{trimmedSuffix}""", useExperimental);
+            var result = 
+             SiteUrl($"""{postSitePreEntitySuffix.TrimPaths()}/{EntityId}{trimmedSuffix}""", useExperimental);
+            return result;
         }
 
-        public static Regex SiteEntityTagsUrl(string postSitePreEntitySuffix, string? postTagsSuffix = null) 
+        public static Regex SiteEntityTagsUrl(string postSitePreEntitySuffix, string? postTagsSuffix = null)
             => SiteEntityUrl(postSitePreEntitySuffix, $"tags/{postTagsSuffix}".TrimEnd('/'));
 
-        public static Regex SiteEntityTagUrl(string postSitePreEntitySuffix) 
+        public static Regex SiteEntityTagUrl(string postSitePreEntitySuffix)
             => SiteEntityTagsUrl(postSitePreEntitySuffix, new Regex(NamePattern, RegexOptions.IgnoreCase).ToString());
 
         public static IEnumerable<(string Key, Regex ValuePattern)> SiteCommitFileUploadQueryString(string typeParam)

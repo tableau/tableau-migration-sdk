@@ -64,11 +64,12 @@ namespace Tableau.Migration.Api.Rest.Models.Responses
                 ServerPort = response.ServerPort;
                 Type = response.ConnectionType;
                 QueryTaggingEnabledFlag = response.QueryTaggingEnabled;
-
+                
                 var credentials = response.Credentials;
-                if (credentials != null)
+                if (credentials is not null)
                 {
                     ConnectionUsername = credentials.Name;
+                    EmbedPassword = credentials.Embed;
                 }
             }
 
@@ -102,6 +103,34 @@ namespace Tableau.Migration.Api.Rest.Models.Responses
             {
                 get => QueryTaggingEnabledFlag.HasValue ? QueryTaggingEnabledFlag.ToString() : null;
                 set => QueryTaggingEnabledFlag = !string.IsNullOrEmpty(value) ? bool.Parse(value) : default(bool?);
+            }
+
+            /// <inheritdoc/>
+            [XmlAttribute("authenticationType")]
+            public string? AuthenticationType { get; }
+
+            /// <inheritdoc/>
+            [XmlIgnore]
+            public bool? UseOAuthManagedKeychainFlag { get; set; }
+
+            /// <inheritdoc/>
+            [XmlAttribute("useOAuthManagedKeychain")]
+            public string? UseOAuthManagedKeychain
+            {
+                get => UseOAuthManagedKeychainFlag.HasValue ? UseOAuthManagedKeychainFlag.ToString() : null;
+                set => UseOAuthManagedKeychainFlag = !string.IsNullOrEmpty(value) ? bool.Parse(value) : default(bool?);
+            }
+
+            /// <inheritdoc/>
+            [XmlIgnore]
+            public bool? EmbedPasswordFlag { get; set; }
+
+            /// <inheritdoc/>
+            [XmlAttribute("embedPassword")]
+            public string? EmbedPassword
+            {
+                get => EmbedPasswordFlag.HasValue ? EmbedPasswordFlag.ToString() : null;
+                set => EmbedPasswordFlag = !string.IsNullOrEmpty(value) ? bool.Parse(value) : default(bool?);
             }
         }
     }

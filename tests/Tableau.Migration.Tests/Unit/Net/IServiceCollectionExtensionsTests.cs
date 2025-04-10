@@ -51,9 +51,10 @@ namespace Tableau.Migration.Tests.Unit.Net
                 await AssertServiceAsync<IHttpContentSerializer, HttpContentSerializer>(ServiceLifetime.Singleton);
                 await AssertServiceAsync<INetworkTraceRedactor, NetworkTraceRedactor>(ServiceLifetime.Singleton);
                 await AssertServiceAsync<INetworkTraceLogger, NetworkTraceLogger>(ServiceLifetime.Transient);
-                await AssertServiceAsync<UserAgentHttpMessageHandler>(ServiceLifetime.Transient);
-                await AssertServiceAsync<AuthenticationHandler>(ServiceLifetime.Transient);
-                await AssertServiceAsync<LoggingHandler>(ServiceLifetime.Transient);
+                await AssertServiceAsync<UserAgentHeaderHttpHandler>(ServiceLifetime.Transient);
+                await AssertServiceAsync<RequestCorrelationIdHeaderHttpHandler>(ServiceLifetime.Transient);
+                await AssertServiceAsync<AuthenticationHttpHandler>(ServiceLifetime.Transient);
+                await AssertServiceAsync<LoggingHttpHandler>(ServiceLifetime.Transient);
                 await AssertServiceAsync<IHttpClient, DefaultHttpClient>(ServiceLifetime.Transient);
 
                 var defaultHttpClientFactoryType = Migration.Net.IServiceCollectionExtensions.GetDefaultHttpClientFactoryType();

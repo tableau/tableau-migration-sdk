@@ -33,6 +33,6 @@ namespace Tableau.Migration.Api
         /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>A handle to the newly created file.</returns>
         public static async Task<IContentFileHandle> CreateAsync<T>(this IContentFileStore store, T contentItem, FileDownload download, CancellationToken cancel)
-            => await store.CreateAsync(contentItem, download.Filename ?? string.Empty, download.Content, cancel).ConfigureAwait(false);
+            => await store.CreateAsync(contentItem, download.Filename ?? string.Empty, download.Content, cancel, download.IsZipFile).ConfigureAwait(false);
     }
 }

@@ -51,22 +51,16 @@ namespace Tableau.Migration.Engine.Manifest
         /// <summary>
         /// Sets the entry to skipped status.
         /// </summary>
+        /// <param name="skippedReason">Reason this item was skipped. Generally the skipped filter name.</param>
         /// <returns>The current entry editor, for fluent API usage.</returns>
-        IMigrationManifestEntryEditor SetSkipped();
+        IMigrationManifestEntryEditor SetSkipped(string? skippedReason);
 
         /// <summary>
         /// Sets the entry to failed status and adding errors to the entry.
         /// </summary>
         /// <param name="errors">The errors to add to the entry.</param>
         /// <returns>The current entry editor, for fluent API usage.</returns>
-        IMigrationManifestEntryEditor SetFailed(IEnumerable<Exception> errors);
-
-        /// <summary>
-        /// Sets the entry to failed status and adding errors to the entry.
-        /// </summary>
-        /// <param name="errors">The errors to add to the entry.</param>
-        /// <returns>The current entry editor, for fluent API usage.</returns>
-        IMigrationManifestEntryEditor SetFailed(params Exception[] errors);
+        IMigrationManifestEntryEditor SetFailed(params IEnumerable<Exception> errors);
 
         /// <summary>
         /// Sets the entry to canceled status.

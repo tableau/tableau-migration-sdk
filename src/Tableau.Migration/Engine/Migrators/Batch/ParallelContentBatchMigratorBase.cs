@@ -24,16 +24,18 @@ namespace Tableau.Migration.Engine.Migrators.Batch
     /// <summary>
     /// Abstract base class for <see cref="IContentBatchMigrator{TContent}" /> implementations that migrates items in parallel.
     /// </summary>
-    /// <typeparam name="TContent">The content type.</typeparam>
-    /// <typeparam name="TPublish">The publish type.</typeparam>
-    public abstract class ParallelContentBatchMigratorBatchBase<TContent, TPublish> : ContentBatchMigratorBase<TContent, TPublish>
+    /// <typeparam name="TContent"><inheritdoc /></typeparam>
+    /// <typeparam name="TPrepare"><inheritdoc /></typeparam>
+    /// <typeparam name="TPublish"><inheritdoc /></typeparam>
+    public abstract class ParallelContentBatchMigratorBatchBase<TContent, TPrepare, TPublish> : ContentBatchMigratorBase<TContent, TPrepare, TPublish>
         where TContent : class, IContentReference
+        where TPrepare : class
         where TPublish : class
     {
         private readonly IConfigReader _configReader;
 
         /// <summary>
-        /// Creates a new <see cref="ParallelContentBatchMigratorBatchBase{TContent, TPublish}"/> object.
+        /// Creates a new <see cref="ParallelContentBatchMigratorBatchBase{TContent, TPrepare, TPublish}"/> object.
         /// </summary>
         /// <param name="pipeline">The pipeline to use to get the item preparer.</param>
         /// <param name="configReader">The configuration reader.</param>
@@ -65,7 +67,7 @@ namespace Tableau.Migration.Engine.Migrators.Batch
     /// Abstract base class for <see cref="IContentBatchMigrator{TContent}" /> implementations that migrates items in parallel.
     /// </summary>
     /// <typeparam name="TContent">The content type.</typeparam>
-    public abstract class ParallelContentBatchMigratorBatchBase<TContent> : ParallelContentBatchMigratorBatchBase<TContent, TContent>
+    public abstract class ParallelContentBatchMigratorBatchBase<TContent> : ParallelContentBatchMigratorBatchBase<TContent, TContent, TContent>
         where TContent : class, IContentReference
     {
         /// <summary>

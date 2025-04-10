@@ -26,7 +26,7 @@ using Tableau.Migration.Net;
 
 namespace Tableau.Migration.Api.Simulation.Rest.Net.Responses
 {
-    internal class RestSingleEntityResponseBuilder<TResponse, TResponseItem> : RestApiResponseBuilderBase<TResponse>
+    internal class RestSingleEntityResponseBuilder<TResponse, TResponseItem> : RestResponseBuilderBase<TResponse>
         where TResponse : TableauServerResponse, ITableauServerResponse<TResponseItem>, new()
     {
         private readonly Func<TableauData, HttpRequestMessage, TResponseItem?> _getEntity;

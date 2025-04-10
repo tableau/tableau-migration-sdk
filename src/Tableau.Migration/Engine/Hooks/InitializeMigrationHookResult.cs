@@ -16,6 +16,7 @@
 //
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Tableau.Migration.Engine.Hooks
@@ -24,7 +25,7 @@ namespace Tableau.Migration.Engine.Hooks
     {
         public IServiceProvider ScopedServices { get; }
 
-        protected InitializeMigrationHookResult(bool success, IServiceProvider scopedServices, params Exception[] errors)
+        protected InitializeMigrationHookResult(bool success, IServiceProvider scopedServices, params IEnumerable<Exception> errors)
             : base(success, errors)
         {
             ScopedServices = scopedServices;
@@ -32,7 +33,7 @@ namespace Tableau.Migration.Engine.Hooks
 
         public static InitializeMigrationHookResult Succeeded(IServiceProvider scopedServices) => new(true, scopedServices);
 
-        public IInitializeMigrationHookResult ToFailure(params Exception[] errors)
-            => new InitializeMigrationHookResult(false, ScopedServices, Errors.Concat(errors).ToArray());
+        public IInitializeMigrationHookResult ToFailure(params IEnumerable<Exception> errors)
+            => new InitializeMigrationHookResult(false, ScopedServices, Errors.Concat(errors));
     }
 }

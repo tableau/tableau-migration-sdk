@@ -23,11 +23,8 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 using Tableau.Migration.JsonConverters;
 using Tableau.Migration.JsonConverters.SerializableObjects;
-using Tableau.Migration.Resources;
-
 
 namespace Tableau.Migration.Engine.Manifest
 {
@@ -37,19 +34,15 @@ namespace Tableau.Migration.Engine.Manifest
     public class MigrationManifestSerializer
     {
         private readonly IFileSystem _fileSystem;
-        private readonly ISharedResourcesLocalizer _localizer;
-        private readonly ILoggerFactory _loggerFactory;
 
         private readonly ImmutableArray<JsonConverter> _converters;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MigrationManifestSerializer"/> class.
         /// </summary>
-        public MigrationManifestSerializer(IFileSystem fileSystem, ISharedResourcesLocalizer localizer, ILoggerFactory loggerFactory)
+        public MigrationManifestSerializer(IFileSystem fileSystem)
         {
             _fileSystem = fileSystem;
-            _localizer = localizer;
-            _loggerFactory = loggerFactory;
 
             _converters = CreateConverters();
         }
@@ -69,6 +62,7 @@ namespace Tableau.Migration.Engine.Manifest
         {
             return new JsonConverter[]
             {
+                new JsonStringEnumConverter(),
                 new PythonExceptionConverter(),
                 new SerializedExceptionJsonConverter(),
                 new BuildResponseExceptionJsonConverter(),
@@ -76,6 +70,7 @@ namespace Tableau.Migration.Engine.Manifest
                 new TimeoutJobExceptionJsonConverter(),
                 new RestExceptionJsonConverter(),
                 new FailedJobExceptionJsonConverter(),
+                new TableauInstanceTypeNotSupportedExceptionJsonConverter(),
                 new ExceptionJsonConverterFactory(),    // This needs to be at the end. This list is ordered.
             }.ToImmutableArray();
         }
@@ -102,23 +97,50 @@ namespace Tableau.Migration.Engine.Manifest
         /// <param name="jsonOptions">Optional JSON options to use.</param>
         public async Task SaveAsync(IMigrationManifest manifest, string path, JsonSerializerOptions? jsonOptions = null)
         {
-            jsonOptions = MergeJsonOptions(jsonOptions);
+            await SaveAsync(manifest, path, default, jsonOptions).ConfigureAwait(false);
+        }
 
+        /// <summary>
+        /// Saves a manifest in JSON format.
+        /// </summary>
+        /// <remarks>This async function does not take a cancellation token. This is because the saving should happen, 
+        /// no matter what the status of the cancellation token is. Otherwise the manifest is not saved if the migration is cancelled.</remarks>
+        /// <param name="manifest">The manifest to save.</param>
+        /// <param name="path">The file path to save the manifest to.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
+        /// <param name="jsonOptions">Optional JSON options to use.</param>
+        public async Task SaveAsync(IMigrationManifest manifest, string path, CancellationToken cancel, JsonSerializerOptions? jsonOptions = null)
+        {
             var dir = Path.GetDirectoryName(path);
             if (dir is not null && !_fileSystem.Directory.Exists(dir))
             {
                 _fileSystem.Directory.CreateDirectory(dir);
             }
 
-            var serializableManifest = new SerializableMigrationManifest(manifest);
-
             var file = _fileSystem.File.Create(path);
             await using (file.ConfigureAwait(false))
             {
-                // If cancellation was requested, we still need to save the file, so use the default token.
-                await JsonSerializer.SerializeAsync(file, serializableManifest, jsonOptions, default)
-                    .ConfigureAwait(false);
+                await SaveAsync(manifest, file, cancel, jsonOptions).ConfigureAwait(false);
             }
+        }
+
+        /// <summary>
+        /// Saves a manifest in JSON format.
+        /// </summary>
+        /// <remarks>This async function does not take a cancellation token. This is because the saving should happen, 
+        /// no matter what the status of the cancellation token is. Otherwise the manifest is not saved if the migration is cancelled.</remarks>
+        /// <param name="manifest">The manifest to save.</param>
+        /// <param name="stream">The stream to save the manifest to.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
+        /// <param name="jsonOptions">Optional JSON options to use.</param>
+        public async Task SaveAsync(IMigrationManifest manifest, Stream stream, CancellationToken cancel, JsonSerializerOptions? jsonOptions = null)
+        {
+            jsonOptions = MergeJsonOptions(jsonOptions);
+            var serializableManifest = new SerializableMigrationManifest(manifest);
+
+            // If cancellation was requested, we still need to save the file, so use the default token.
+            await JsonSerializer.SerializeAsync(stream, serializableManifest, jsonOptions, cancel)
+                .ConfigureAwait(false);
         }
 
         /// <summary>
@@ -135,24 +157,36 @@ namespace Tableau.Migration.Engine.Manifest
                 return null;
             }
 
-            jsonOptions = MergeJsonOptions(jsonOptions);
-
             var file = _fileSystem.File.OpenRead(path);
             await using (file.ConfigureAwait(false))
             {
-                var manifest = await JsonSerializer.DeserializeAsync<SerializableMigrationManifest>(file, jsonOptions, cancel)
+                return await LoadAsync(file, cancel, jsonOptions).ConfigureAwait(false);
+            }
+        }
+
+        /// <summary>
+        /// Loads a manifest from JSON format.
+        /// </summary>
+        /// <param name="stream">The stream to load the manifest from.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
+        /// <param name="jsonOptions">Optional JSON options to use.</param>
+        /// <returns>The loaded <see cref="MigrationManifest"/>, or null if the manifest could not be loaded.</returns>
+        public async Task<MigrationManifest?> LoadAsync(Stream stream, CancellationToken cancel, JsonSerializerOptions? jsonOptions = null)
+        {
+            jsonOptions = MergeJsonOptions(jsonOptions);
+
+            var manifest = await JsonSerializer.DeserializeAsync<SerializableMigrationManifest>(stream, jsonOptions, cancel)
                     .ConfigureAwait(false);
 
-                if (manifest is not null)
-                {
-                    if (manifest.ManifestVersion is not SupportedManifestVersion)
-                        throw new NotSupportedException($"This {nameof(MigrationManifestSerializer)} only supports Manifest version {SupportedManifestVersion}. The manifest being loaded is version {manifest.ManifestVersion}");
+            if (manifest is not null)
+            {
+                if (manifest.ManifestVersion is not SupportedManifestVersion)
+                    throw new NotSupportedException($"This {nameof(MigrationManifestSerializer)} only supports Manifest version {SupportedManifestVersion}. The manifest being loaded is version {manifest.ManifestVersion}");
 
-                    return manifest.ToMigrationManifest(_localizer, _loggerFactory) as MigrationManifest;
-                }
-
-                return null;
+                return manifest.ToMigrationManifest() as MigrationManifest;
             }
+
+            return null;
         }
     }
 }

@@ -25,11 +25,8 @@ namespace Tableau.Migration.JsonConverters
     /// <summary>
     /// JsonConverter that serializes a <see cref="TimeoutJobException"/>. It does not support reading exceptions back in.
     /// </summary>
-    internal class TimeoutJobExceptionJsonConverter : JsonConverter<TimeoutJobException>
+    internal sealed class TimeoutJobExceptionJsonConverter : JsonConverter<TimeoutJobException>
     {
-        public TimeoutJobExceptionJsonConverter()
-        { }
-
         public override void Write(Utf8JsonWriter writer, TimeoutJobException value, JsonSerializerOptions options)
         {
             writer.WriteStartObject();
@@ -77,7 +74,5 @@ namespace Tableau.Migration.JsonConverters
 
             return new TimeoutJobException(job, message);
         }
-
-
     }
 }

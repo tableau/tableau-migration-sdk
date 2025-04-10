@@ -26,9 +26,10 @@ namespace Tableau.Migration.Content.Files
     /// <param name="Store"><inheritdoc /></param>
     /// <param name="Path"><inheritdoc /></param>
     /// <param name="OriginalFileName"><inheritdoc /></param>
+    /// <param name="IsZipFile"><inheritdoc /></param>
     /// <param name="Inner">The file handle to the inner file store.</param>
-    public record EncryptedFileHandle(IContentFileStore Store, string Path, string OriginalFileName, IContentFileHandle Inner)
-        : ContentFileHandle(Store, Path, OriginalFileName)
+    public record EncryptedFileHandle(IContentFileStore Store, string Path, string OriginalFileName, bool? IsZipFile, IContentFileHandle Inner)
+        : ContentFileHandle(Store, Path, OriginalFileName, IsZipFile)
     {
         /// <summary>
         /// Creates a new <see cref="EncryptedFileHandle"/> object.
@@ -36,7 +37,7 @@ namespace Tableau.Migration.Content.Files
         /// <param name="store">The file store the handle is for.</param>
         /// <param name="inner">The file handle to the inner file store.</param>
         public EncryptedFileHandle(IContentFileStore store, IContentFileHandle inner)
-            : this(store, inner.Path, inner.OriginalFileName, inner)
+            : this(store, inner.Path, inner.OriginalFileName, inner.IsZipFile, inner)
         { }
 
         /// <inheritdoc />

@@ -126,7 +126,9 @@ namespace Tableau.Migration.Api.Rest.Models.Responses
             public ProjectType? Project { get; set; }
 
             ///<inheritdoc/>
-            IProjectReferenceType? IWithProjectType.Project => Project;
+            IProjectNamedReferenceType? IWithProjectNamedReferenceType.Project => Project;
+
+            IProjectReferenceType? IWithProjectReferenceType.Project => Project;
 
             /// <summary>
             /// Gets or sets the location for the response.
@@ -165,10 +167,10 @@ namespace Tableau.Migration.Api.Rest.Models.Responses
             /// </summary>
             [XmlArray("views")]
             [XmlArrayItem("view")]
-            public ViewReferenceType[] Views { get; set; } = Array.Empty<ViewReferenceType>();
+            public WorkbookViewReferenceType[] Views { get; set; } = Array.Empty<WorkbookViewReferenceType>();
 
             ///<inheritdoc/>
-            IViewReferenceType[] IWorkbookDetailsType.Views => Views;
+            IWorkbookViewReferenceType[] IWorkbookDetailsType.Views => Views;
 
             /// <summary>
             /// Gets or sets the data acceleration config for the response.
@@ -181,7 +183,7 @@ namespace Tableau.Migration.Api.Rest.Models.Responses
             /// <summary>
             /// Class representing a REST API project response.
             /// </summary>
-            public class ProjectType : IProjectReferenceType
+            public class ProjectType : IProjectNamedReferenceType
             {
                 /// <inheritdoc/>
                 [XmlAttribute("id")]
@@ -198,10 +200,10 @@ namespace Tableau.Migration.Api.Rest.Models.Responses
                 { }
 
                 /// <summary>
-                /// Constructor to build from <see cref="IProjectReferenceType"/>.
+                /// Constructor to build from <see cref="IProjectNamedReferenceType"/>.
                 /// </summary>
-                /// <param name="project">The <see cref="IProjectReferenceType"/> object.</param>
-                public ProjectType(IProjectReferenceType project)
+                /// <param name="project">The <see cref="IProjectNamedReferenceType"/> object.</param>
+                public ProjectType(IProjectNamedReferenceType project)
                 {
                     Id = project.Id;
                     Name = project.Name;
@@ -289,8 +291,38 @@ namespace Tableau.Migration.Api.Rest.Models.Responses
             /// <summary>
             /// Class representing a REST API view response.
             /// </summary>
-            public class ViewReferenceType : IViewReferenceType
+            public class WorkbookViewReferenceType : IWorkbookViewReferenceType
             {
+                /// <summary>
+                /// The default parameterless constructor.
+                /// </summary>
+                public WorkbookViewReferenceType()
+                { }
+
+                /// <summary>
+                /// Constructor to build from <see cref="IWorkbookViewReferenceType"/>.
+                /// </summary>
+                /// <param name="view">The <see cref="IWorkbookViewReferenceType"/> object.</param>
+                public WorkbookViewReferenceType(IWorkbookViewReferenceType view)
+                {
+                    Id = view.Id;
+                    Name = view.Name;
+                    ContentUrl = view.ContentUrl;
+                    Tags = view.Tags.Select(tag => new ViewTagType(tag)).ToArray();
+                }
+
+                /// <summary>
+                /// Constructor to build from <see cref="IViewType"/>.
+                /// </summary>
+                /// <param name="view">The <see cref="IViewType"/> object.</param>
+                public WorkbookViewReferenceType(IViewType view)
+                {
+                    Id = view.Id;
+                    Name = view.Name;
+                    ContentUrl = view.ContentUrl;
+                    Tags = view.Tags.Select(tag => new ViewTagType(tag)).ToArray();
+                }
+
                 ///<inheritdoc/>
                 [XmlAttribute("id")]
                 public Guid Id { get; set; }
@@ -310,59 +342,50 @@ namespace Tableau.Migration.Api.Rest.Models.Responses
                 [XmlArrayItem("tag")]
                 public ViewTagType[] Tags { get; set; } = Array.Empty<ViewTagType>();
 
-                ///<inheritdoc/>                
-                ITagType[] IViewReferenceType.Tags => Tags;
-
-                /// <summary>
-                /// The default parameterless constructor.
-                /// </summary>
-                public ViewReferenceType()
-                { }
-
-                /// <summary>
-                /// Constructor to build from <see cref="IViewReferenceType"/>.
-                /// </summary>
-                /// <param name="view">The <see cref="IViewReferenceType"/> object.</param>
-                public ViewReferenceType(IViewReferenceType view)
+                ITagType[] IWithTagTypes.Tags
                 {
-                    Id = view.Id;
-                    ContentUrl = view.ContentUrl;
+                    get => Tags;
+                    set => Tags = value.Select(t => new ViewTagType(t)).ToArray();
                 }
 
                 /// <summary>
-                /// Constructor to build from <see cref="IViewType"/>.
-                /// </summary>
-                /// <param name="view">The <see cref="IViewType"/> object.</param>
-                public ViewReferenceType(IViewType view)
-                {
-                    Id = view.Id;
-                    ContentUrl = view.ContentUrl;
-                }
-
-                /// <summary>
-                /// Class representing a REST API tag response.
+                /// Class representing a REST API view tags response.
                 /// </summary>
                 public class ViewTagType : ITagType
                 {
+                    /// <summary>
+                    /// The default parameterless constructor.
+                    /// </summary>
+                    public ViewTagType()
+                    { }
+
+                    /// <summary>
+                    /// Constructor to build from <see cref="ITagType"/>
+                    /// </summary>
+                    public ViewTagType(ITagType tag)
+                    {
+                        Label = tag.Label;
+                    }
+
                     /// <inheritdoc/>
                     [XmlAttribute("label")]
                     public string? Label { get; set; }
                 }
             }
-
-            /// <summary>
-            /// Class representing a REST API data acceleration config response.
-            /// </summary>
-            public class DataAccelerationConfigType
-            {
-                /// <summary>
-                /// Gets or sets the acceleration enabled value for the response.
-                /// </summary>
-                [XmlAttribute("accelerationEnabled")]
-                public bool AccelerationEnabled { get; set; }
-            }
-
-            #endregion
         }
+
+        /// <summary>
+        /// Class representing a REST API data acceleration config response.
+        /// </summary>
+        public class DataAccelerationConfigType
+        {
+            /// <summary>
+            /// Gets or sets the acceleration enabled value for the response.
+            /// </summary>
+            [XmlAttribute("accelerationEnabled")]
+            public bool AccelerationEnabled { get; set; }
+        }
+
+        #endregion
     }
 }

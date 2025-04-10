@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from autofixture import AutoFixtureTestBase 
+from autofixture import PySimpleAutoFixtureTestBase 
 
 from default_project_filter import DefaultProjectFilter
 
@@ -23,7 +23,7 @@ from tableau_migration import IProject
 from Tableau.Migration.Content import IProject as DotnetIProject
 from Tableau.Migration.Engine import ContentMigrationItem as DotnetContentMigrationItem
 
-class TestDefaultProjectFilter(AutoFixtureTestBase):
+class TestDefaultProjectFilter(PySimpleAutoFixtureTestBase):
     def test_init(self):
         DefaultProjectFilter()
         
@@ -32,10 +32,11 @@ class TestDefaultProjectFilter(AutoFixtureTestBase):
         dotnet_item = self.create(DotnetContentMigrationItem[DotnetIProject])
         item = ContentMigrationItem[IProject](dotnet_item)
         
+        
         filter = DefaultProjectFilter()        
         result = filter.should_migrate(item)
         
         assert item.source_item.name !='Default'
-        assert result == True
+        assert result
         
         

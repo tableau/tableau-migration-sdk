@@ -31,7 +31,7 @@ using Tableau.Migration.Net;
 
 namespace Tableau.Migration.Api.Simulation.Rest.Net.Responses
 {
-    internal abstract class RestCommitUploadResponseBuilder<TResponse, TItem, TCommitRequest> : RestApiResponseBuilderBase<TResponse>
+    internal abstract class RestCommitUploadResponseBuilder<TResponse, TItem, TCommitRequest> : RestResponseBuilderBase<TResponse>
         where TResponse : TableauServerResponse<TItem>, new()
         where TItem : class, IRestIdentifiable
         where TCommitRequest : TableauServerRequest

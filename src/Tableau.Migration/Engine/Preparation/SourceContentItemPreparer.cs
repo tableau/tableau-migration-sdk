@@ -19,6 +19,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Tableau.Migration.Engine.Endpoints.Search;
 using Tableau.Migration.Engine.Hooks.Transformers;
+using Tableau.Migration.Engine.Pipelines;
+using Tableau.Migration.Resources;
 
 namespace Tableau.Migration.Engine.Preparation
 {
@@ -26,19 +28,25 @@ namespace Tableau.Migration.Engine.Preparation
     /// <see cref="IContentItemPreparer{TContent, TPublish}"/> implementation that publishes the source item as-is
     /// and does not require extra pulled information.
     /// </summary>
-    /// <typeparam name="TContent">The content type.</typeparam>
-    public class SourceContentItemPreparer<TContent> : ContentItemPreparerBase<TContent, TContent>
+    /// <typeparam name="TContent"><inheritdoc /></typeparam>
+    /// <typeparam name="TPublish"><inheritdoc /></typeparam>
+    public class SourceContentItemPreparer<TContent, TPublish> : ContentItemPreparerBase<TContent, TContent, TPublish>
         where TContent : class
+        where TPublish : class
     {
         /// <summary>
-        /// Creates a new <see cref="SourceContentItemPreparer{TContent}"/>.
+        /// Creates a new <see cref="SourceContentItemPreparer{TContent, TPublish}"/>.
         /// </summary>
+        /// <param name="pipeline"><inheritdoc /></param>
         /// <param name="transformerRunner"><inheritdoc /></param>
         /// <param name="destinationFinderFactory"><inheritdoc /></param>
+        /// <param name="localizer"><inheritdoc /></param>
         public SourceContentItemPreparer(
+            IMigrationPipeline pipeline,
             IContentTransformerRunner transformerRunner,
-            IDestinationContentReferenceFinderFactory destinationFinderFactory)
-            : base(transformerRunner, destinationFinderFactory)
+            IDestinationContentReferenceFinderFactory destinationFinderFactory,
+            ISharedResourcesLocalizer localizer)
+            : base(pipeline, transformerRunner, destinationFinderFactory, localizer)
         { }
 
         /// <inheritdoc />
@@ -47,5 +55,29 @@ namespace Tableau.Migration.Engine.Preparation
             var result = Result<TContent>.Succeeded(item.SourceItem);
             return Task.FromResult<IResult<TContent>>(result);
         }
+    }
+
+    /// <summary>
+    /// <see cref="IContentItemPreparer{TContent, TPublish}"/> implementation that publishes the source item as-is
+    /// and does not require extra pulled information.
+    /// </summary>
+    /// <typeparam name="TContent"><inheritdoc /></typeparam>
+    public class SourceContentItemPreparer<TContent> : SourceContentItemPreparer<TContent, TContent>
+        where TContent : class
+    {
+        /// <summary>
+        /// Creates a new <see cref="SourceContentItemPreparer{TContent}"/>.
+        /// </summary>
+        /// <param name="pipeline"><inheritdoc /></param>
+        /// <param name="transformerRunner"><inheritdoc /></param>
+        /// <param name="destinationFinderFactory"><inheritdoc /></param>
+        /// <param name="localizer"><inheritdoc /></param>
+        public SourceContentItemPreparer(
+            IMigrationPipeline pipeline,
+            IContentTransformerRunner transformerRunner,
+            IDestinationContentReferenceFinderFactory destinationFinderFactory,
+            ISharedResourcesLocalizer localizer)
+            : base(pipeline, transformerRunner, destinationFinderFactory, localizer)
+        { }
     }
 }

@@ -69,7 +69,8 @@ namespace Tableau.Migration.TestApplication
                 .AddScoped(typeof(SkipByParentLocationFilter<>))
                 .AddScoped(typeof(ContentWithinSkippedLocationMapping<>))
                 .AddScoped<RemoveMissingDestinationUsersFromGroupsTransformer>()
-                .AddScoped(typeof(ViewerOwnerTransformer<>));
+                .AddScoped(typeof(ViewerOwnerTransformer<>))
+                .AddScoped(typeof(SkipIdsFilter<>));
 
             return services;
         }
@@ -85,9 +86,7 @@ namespace Tableau.Migration.TestApplication
                         .Enrich.WithThreadId()
                         .Enrich.With<ActivityEnricher>()
                         // Set the log level to Debug for select interfaces.
-                        .MinimumLevel.Override("Tableau.Migration.Engine.Hooks.Filters.IContentFilter", LogEventLevel.Debug)
-                        .MinimumLevel.Override("Tableau.Migration.Engine.Hooks.Mappings.IContentMapping", LogEventLevel.Debug)
-                        .MinimumLevel.Override("Tableau.Migration.Engine.Hooks.Transformers.IContentTransformer", LogEventLevel.Debug)
+                        .MinimumLevel.Override("Tableau.Migration.Engine.Hooks", LogEventLevel.Debug)
                         .WriteTo.Logger(lc => lc
                              // Create a filter that writes certain loggers to the console
                              .Filter.ByIncludingOnly((logEvent) =>
@@ -109,6 +108,10 @@ namespace Tableau.Migration.TestApplication
 
                                  return sourceContextToPrint.Contains(sourceContext);
                              })
+                             .WriteTo.Console())
+                        .WriteTo.Logger(lc => lc
+                             // Create a filter that writes fatal log events to the console
+                             .Filter.ByIncludingOnly(logEvent => logEvent.Level == LogEventLevel.Fatal)
                              .WriteTo.Console());
 
                     var logPath = ctx.Configuration.GetSection("log:folderPath").Value;

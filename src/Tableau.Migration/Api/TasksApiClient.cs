@@ -46,7 +46,6 @@ namespace Tableau.Migration.Api
         private readonly IServerSessionProvider _sessionProvider;
         private readonly IContentCacheFactory _contentCacheFactory;
         private readonly IHttpContentSerializer _serializer;
-        private readonly IExtractRefreshTaskConverter<IServerExtractRefreshTask, IServerSchedule, ICloudExtractRefreshTask, ICloudSchedule> _extractRefreshTaskConverter;
 
         public TasksApiClient(
             IRestRequestBuilderFactory restRequestBuilderFactory,
@@ -55,19 +54,12 @@ namespace Tableau.Migration.Api
             IServerSessionProvider sessionProvider,
             ILoggerFactory loggerFactory,
             ISharedResourcesLocalizer sharedResourcesLocalizer,
-            IHttpContentSerializer serializer,
-            IExtractRefreshTaskConverter<IServerExtractRefreshTask, IServerSchedule, ICloudExtractRefreshTask, ICloudSchedule> extractRefreshTaskConverter)
-            : base(
-                  restRequestBuilderFactory,
-                  finderFactory,
-                  loggerFactory,
-                  sharedResourcesLocalizer,
-                  RestUrlPrefixes.Tasks)
+            IHttpContentSerializer serializer)
+            : base(restRequestBuilderFactory, finderFactory, loggerFactory, sharedResourcesLocalizer, RestUrlPrefixes.Tasks)
         {
             _sessionProvider = sessionProvider;
             _contentCacheFactory = contentCacheFactory;
             _serializer = serializer;
-            _extractRefreshTaskConverter = extractRefreshTaskConverter;
         }
 
         #region - ITasksApiClient -
@@ -161,38 +153,20 @@ namespace Tableau.Migration.Api
                 cancel)
                 .ConfigureAwait(false);
 
-        /// <inheritdoc />
-        public Task<IResult<ICloudExtractRefreshTask>> PullAsync(
-            IServerExtractRefreshTask contentItem,
-            CancellationToken cancel)
-        {
-
-            var cloudExtractRefreshTask = _extractRefreshTaskConverter.Convert(contentItem);
-
-            return Task.FromResult(new ResultBuilder()
-                .Build(cloudExtractRefreshTask));
-        }
-
         #endregion
 
         #region - IPagedListApiClient<IServerExtractRefreshTask> Implementation -
 
         /// <inheritdoc />
-        public IPager<IServerExtractRefreshTask> GetPager(
-            int pageSize)
-            => new ApiListPager<IServerExtractRefreshTask>(
-                this,
-                pageSize);
+        public IPager<IServerExtractRefreshTask> GetPager(int pageSize)
+            => new ApiListPager<IServerExtractRefreshTask>(this, pageSize);
 
         #endregion
 
         #region - IApiPageAccessor<IServerExtractRefreshTask> Implementation -
 
         /// <inheritdoc />
-        public async Task<IPagedResult<IServerExtractRefreshTask>> GetPageAsync(
-            int pageNumber,
-            int pageSize,
-            CancellationToken cancel)
+        public async Task<IPagedResult<IServerExtractRefreshTask>> GetPageAsync(int pageNumber, int pageSize, CancellationToken cancel)
         {
             if (pageNumber != 1)
             {
@@ -204,14 +178,11 @@ namespace Tableau.Migration.Api
                     true);
             }
 
-            var loadResult = await ForServer()
-                .GetAllExtractRefreshTasksAsync(cancel)
-                .ConfigureAwait(false);
+            var loadResult = await ForServer().GetAllExtractRefreshTasksAsync(cancel).ConfigureAwait(false);
 
             if (!loadResult.Success)
             {
-                return PagedResult<IServerExtractRefreshTask>.Failed(
-                    loadResult.Errors);
+                return PagedResult<IServerExtractRefreshTask>.Failed(loadResult.Errors);
             }
 
             return PagedResult<IServerExtractRefreshTask>.Succeeded(

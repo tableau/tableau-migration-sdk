@@ -28,7 +28,7 @@ namespace Tableau.Migration.Engine.Actions
         /// <inheritdoc />
         public bool PerformNextAction { get; }
 
-        protected MigrationActionResult(bool success, bool performNextAction, IEnumerable<Exception> errors)
+        protected MigrationActionResult(bool success, bool performNextAction, params IEnumerable<Exception> errors)
             : base(success, errors)
         {
             PerformNextAction = performNextAction;
@@ -36,10 +36,6 @@ namespace Tableau.Migration.Engine.Actions
 
         protected MigrationActionResult(IResult baseResult, bool performNextAction)
             : this(baseResult.Success, performNextAction, baseResult.Errors)
-        { }
-
-        protected MigrationActionResult(bool success, bool performNextAction, params Exception[] errors)
-            : this(success, performNextAction, (IEnumerable<Exception>)errors)
         { }
 
         /// <summary>

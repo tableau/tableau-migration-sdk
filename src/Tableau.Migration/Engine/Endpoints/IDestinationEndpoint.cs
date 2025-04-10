@@ -1,4 +1,4 @@
-﻿//
+//
 //  Copyright (c) 2025, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
@@ -21,6 +21,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Tableau.Migration.Api.Models;
+using Tableau.Migration.Api.Rest;
 using Tableau.Migration.Content;
 using Tableau.Migration.Content.Permissions;
 
@@ -159,5 +160,33 @@ namespace Tableau.Migration.Engine.Endpoints
             Guid id,
             IEnumerable<IContentReference> users,
             CancellationToken cancel);
+
+        /// <summary>
+        /// Uploads and applies encrypted keychains to a content item.
+        /// </summary>
+        /// <param name="contentItemId">The ID of the content item.</param>
+        /// <param name="options">The apply keychain options.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
+        /// <returns>The operation result.</returns>
+        Task<IResult> ApplyKeychainsAsync<TContent>(Guid contentItemId, IApplyKeychainOptions options, CancellationToken cancel)
+            where TContent : IWithEmbeddedCredentials;
+
+        /// <summary>
+        /// Uploads saved credentials for a user
+        /// </summary>
+        /// <param name="userId">The user id</param>
+        /// <param name="encryptedKeychains">The list of encrypted keychains</param>
+        /// <param name="cancel">The cancellation token</param>
+        /// <returns>The success or failure result.</returns>
+        Task<IResult> UploadUserSavedCredentialsAsync(Guid userId, IEnumerable<string> encryptedKeychains, CancellationToken cancel);
+
+        /// <summary>
+        /// Deletes a content item
+        /// </summary>
+        /// <param name="id">The ID for the content item to be deleted.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
+        /// <returns>Result of the operation.</returns>
+        Task<IResult> DeleteAsync<TContent>(Guid id, CancellationToken cancel)
+            where TContent : IDelible, IRestIdentifiable;
     }
 }

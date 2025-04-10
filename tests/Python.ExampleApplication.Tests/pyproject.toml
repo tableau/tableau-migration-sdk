@@ -13,8 +13,17 @@ classifiers = [
 ]
 
 dependencies = [
-    "tableau_migration",
-    "pytest>=8.2.2"
+    "pytest>=8.3.3",
+    "pythonnet==3.0.5",
+    "typing_extensions==4.12.2"
+]
+
+[tool.hatch.build]
+exclude = [
+    "obj",
+    "TestResults",
+    "pytest.ini",
+    "Python.pyproj"
 ]
 
 [tool.ruff]
@@ -22,14 +31,28 @@ dependencies = [
 select = ["E", "F"]
 ignore = ["E501"]
 
+[tool.ruff.pydocstyle]
+# Use Google-style docstrings.
+convention = "google"
+
 [tool.hatch.envs.test]
 dev-mode = false
 dependencies = [
-  "pytest>=8.2.2"
+  "pytest>=8.3.3",
+  "pytest-cov>=6.0.0",
+  "pytest-env>=1.1.5",
+  "pythonnet==3.0.5",
+  "typing_extensions==4.12.2"
 ]
-
-[tool.hatch.envs.test.scripts]
-test = "pytest"
 
 [[tool.hatch.envs.test.matrix]]
 python = ["3.9", "3.10", "3.11", "3.12"]
+
+[tool.hatch.envs.lint.scripts]
+lint = "ruff check ." 
+
+[tool.hatch.envs.test.scripts]
+test = "pytest -vv"
+testcov = "test --cov-config=pyproject.toml --cov=../../examples/Python.ExampleApplication/hooks/ --cov-report term --cov-report xml:TestResults/coverage-{matrix:python}.xml"
+
+

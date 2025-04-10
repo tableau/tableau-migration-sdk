@@ -19,13 +19,12 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
-using Tableau.Migration.Engine;
-using Tableau.Migration.Engine.Hooks.Filters;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Xunit;
-using Polly;
+using Tableau.Migration.Engine;
+using Tableau.Migration.Engine.Hooks.Filters;
 using Tableau.Migration.Resources;
+using Xunit;
 
 namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Filters
 {
@@ -35,7 +34,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Filters
         {
             public TestFilter(
                 ISharedResourcesLocalizer localizer,
-                ILogger<IContentFilter<TestContentType>> logger) 
+                ILogger<IContentFilter<TestContentType>> logger)
                     : base(localizer, logger) { }
 
             public bool PublicDisabled
@@ -76,8 +75,8 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Filters
                 var allItems = CreateMany<ContentMigrationItem<TestContentType>>().ToImmutableList();
 
                 MockLogger.Setup(x => x.IsEnabled(LogLevel.Debug)).Returns(true);
-                                
-                var filter = new TestFilter(MockLocalizer.Object,MockLogger.Object)
+
+                var filter = new TestFilter(MockLocalizer.Object, MockLogger.Object)
                 {
                     FilterCallback = i => allItems.IndexOf(i) % 2 == 0
                 };
@@ -86,8 +85,6 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Filters
 
                 Assert.NotSame(allItems, results);
                 Assert.Equal(allItems.Where(filter.FilterCallback), results);
-
-                MockLogger.VerifyLogging(LogLevel.Debug, Times.AtLeastOnce());
             }
         }
     }

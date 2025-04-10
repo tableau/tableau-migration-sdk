@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<OutputType>Exe</OutputType>
-		<TargetFrameworks>net8.0</TargetFrameworks>
+		<TargetFrameworks>net9.0</TargetFrameworks>
 		<!-- Don't warn on ConfigureAwait on console application -->
 		<NoWarn>CA2007</NoWarn>
 		<UserSecretsId>7d7631f1-dc4a-49de-89d5-a194544705c1</UserSecretsId>
@@ -10,17 +10,17 @@
 		<ProjectReference Include="../../src/Tableau.Migration/Tableau.Migration.csproj" />
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="JunitXml.TestLogger" Version="4.0.254" />
-		<PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.1" />
-		<PackageReference Include="Serilog" Version="4.0.2" />
+		<PackageReference Include="JunitXml.TestLogger" Version="4.1.0" />
+		<PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.0" />
+		<PackageReference Include="Serilog" Version="4.1.0" />
 		<PackageReference Include="Serilog.Enrichers.Thread" Version="4.0.0" />
 		<PackageReference Include="Serilog.Extensions.Hosting" Version="8.0.0" />
 		<PackageReference Include="Serilog.Extensions.Logging" Version="8.0.0" />
-		<PackageReference Include="Serilog.Settings.Configuration" Version="8.0.3" />
+		<PackageReference Include="Serilog.Settings.Configuration" Version="8.0.4" />
 		<PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
 		<PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
-		<PackageReference Include="System.Configuration.ConfigurationManager" Version="8.0.1" />
-		<PackageReference Include="System.DirectoryServices.AccountManagement" Version="8.0.1" />
+		<PackageReference Include="System.Configuration.ConfigurationManager" Version="9.0.0" />
+		<PackageReference Include="System.DirectoryServices.AccountManagement" Version="9.0.0" />
 	</ItemGroup>
 	<ItemGroup>
 	  <None Update="appsettings.Development.json">

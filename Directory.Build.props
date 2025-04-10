@@ -1,13 +1,14 @@
 <Project>
 	<PropertyGroup>
-		<LangVersion>12.0</LangVersion>
+		<LangVersion>preview</LangVersion><!-- Must use preview version until docfx supports .NET 9 -->
 		<Nullable>enable</Nullable>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-		<Version>5.0.1</Version>
+		<Version>5.1.1</Version>
 		<Authors>Salesforce, Inc.</Authors>
 		<Company>Salesforce, Inc.</Company>
 		<Copyright>Copyright (c) 2025, Salesforce, Inc. and its licensors</Copyright>
 	    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+		<AvaloniaVersion>11.1.0</AvaloniaVersion>
 	</PropertyGroup>
 </Project>

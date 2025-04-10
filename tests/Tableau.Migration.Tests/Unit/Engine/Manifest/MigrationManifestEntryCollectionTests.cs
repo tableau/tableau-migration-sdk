@@ -20,7 +20,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.Extensions.Logging;
 using Moq;
 using Tableau.Migration.Content;
 using Tableau.Migration.Engine.Manifest;
@@ -34,24 +33,14 @@ namespace Tableau.Migration.Tests.Unit.Engine.Manifest
 
         public class MigrationManifestEntryCollectionTest : AutoFixtureTestBase
         {
-            protected readonly MockSharedResourcesLocalizer MockLocalizer;
-            protected readonly Mock<ILoggerFactory> MockLoggerFactory;
-            protected readonly Mock<ILogger<MigrationManifestContentTypePartition>> MockPartitionLogger;
-
             protected readonly MigrationManifestEntryCollection Collection;
 
             public MigrationManifestEntryCollectionTest()
             {
-                MockLocalizer = new();
-
-                MockPartitionLogger = Freeze<Mock<ILogger<MigrationManifestContentTypePartition>>>();
-                MockLoggerFactory = Freeze<Mock<ILoggerFactory>>();
-
                 Collection = CreateEmpty();
             }
 
-            protected MigrationManifestEntryCollection CreateEmpty()
-                => new(MockLocalizer.Object, MockLoggerFactory.Object);
+            protected MigrationManifestEntryCollection CreateEmpty() => new();
         }
 
         #endregion
@@ -63,7 +52,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Manifest
             [Fact]
             public void IntializesEmpty()
             {
-                var c = new MigrationManifestEntryCollection(MockLocalizer.Object, MockLoggerFactory.Object);
+                var c = new MigrationManifestEntryCollection();
                 Assert.Empty(c);
             }
 
@@ -79,7 +68,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Manifest
                         e.GetOrCreatePartition(typeof(IWorkbook)).CreateEntries(previousEntries);
                     });
 
-                var c = new MigrationManifestEntryCollection(MockLocalizer.Object, MockLoggerFactory.Object, mockPreviousCollection.Object);
+                var c = new MigrationManifestEntryCollection(mockPreviousCollection.Object);
                 mockPreviousCollection.Verify(x => x.CopyTo(c), Times.Once);
 
                 Assert.Equal(previousEntries.Length, c.Count());

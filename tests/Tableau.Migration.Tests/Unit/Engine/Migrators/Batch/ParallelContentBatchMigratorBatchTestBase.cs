@@ -20,8 +20,9 @@ using Tableau.Migration.Config;
 
 namespace Tableau.Migration.Tests.Unit.Engine.Migrators.Batch
 {
-    public class ParallelContentBatchMigratorBatchTestBase<TContent, TPublish> : ContentBatchMigratorTestBase<TContent, TPublish>
+    public class ParallelContentBatchMigratorBatchTestBase<TContent, TPrepare, TPublish> : ContentBatchMigratorTestBase<TContent, TPrepare, TPublish>
         where TContent : class
+        where TPrepare : class
         where TPublish : class
     {
         protected readonly Mock<IConfigReader> MockConfigReader;

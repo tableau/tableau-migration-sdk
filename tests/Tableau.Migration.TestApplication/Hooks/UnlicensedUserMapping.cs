@@ -36,7 +36,7 @@ namespace Tableau.Migration.TestApplication.Hooks
         public UnlicensedUserMapping(
             IOptions<TestApplicationOptions> options,
             ISharedResourcesLocalizer localizer,
-            ILogger<IContentMapping<IUser>> logger) : base(localizer, logger)
+            ILogger<UnlicensedUserMapping> logger) : base(localizer, logger)
         {
             _adminUser = ContentLocation.ForUsername(options.Value.SpecialUsers.AdminDomain, options.Value.SpecialUsers.AdminUsername);
         }

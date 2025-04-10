@@ -1,4 +1,4 @@
-﻿//
+//
 //  Copyright (c) 2025, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
@@ -21,6 +21,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Tableau.Migration.Api;
+using Tableau.Migration.Api.EmbeddedCredentials;
 using Tableau.Migration.Api.Permissions;
 using Tableau.Migration.Api.Publishing;
 using Tableau.Migration.Api.Tags;
@@ -56,9 +57,13 @@ namespace Tableau.Migration.Tests.Unit.Api
         public Mock<IWorkbookPublisher> MockWorkbookPublisher { get; } = new();
         public Mock<ITagsApiClientFactory> MockTagsApiClientFactory { get; } = new();
         public Mock<ITagsApiClient> MockTagsApiClient { get; } = new();
+
+        public Mock<ISchedulesApiClient> MockSchedulesApiClient { get; } = new();
+        public Mock<ISchedulesApiClientFactory> MockSchedulesApiClientFactory { get; } = new();
+
         public Mock<IViewsApiClientFactory> MockViewsApiClientFactory { get; } = new();
         public Mock<IViewsApiClient> MockViewsApiClient { get; } = new();
-        
+
         public Mock<IViewsApiClient> MockCustomViewsApiClient { get; } = new();
         public IHttpContentSerializer Serializer { get; } = HttpContentSerializer.Instance;
         public IRestRequestBuilderFactory RestRequestBuilderFactory { get; }
@@ -79,6 +84,9 @@ namespace Tableau.Migration.Tests.Unit.Api
         public TableauServerVersion TableauServerVersion { get; private set; }
 
         public TableauSiteConnectionConfiguration SiteConnectionConfiguration { get; }
+
+        public Mock<IEmbeddedCredentialsApiClient> MockEmbeddedCredentialsApiClient { get; } = new();
+        public Mock<IEmbeddedCredentialsApiClientFactory> MockEmbeddedCredentialsApiClientFactory { get; } = new();
 
         public ApiClientTestDependencies(IFixture autoFixture)
         {
@@ -128,6 +136,10 @@ namespace Tableau.Migration.Tests.Unit.Api
 
             MockViewsApiClientFactory.Setup(x => x.Create()).Returns(MockViewsApiClient.Object);
 
+            MockEmbeddedCredentialsApiClientFactory.Setup(x => x.Create(It.IsAny<IContentApiClient>())).Returns(MockEmbeddedCredentialsApiClient.Object);
+
+            MockSchedulesApiClientFactory.Setup(x => x.Create()).Returns(MockSchedulesApiClient.Object);
+
             Services = new ServiceCollection()
                 .AddTableauMigrationSdk();
 
@@ -158,6 +170,8 @@ namespace Tableau.Migration.Tests.Unit.Api
             ReplaceService(Serializer);
             ReplaceService(RestRequestBuilderFactory);
             ReplaceService<IHttpStreamProcessor>(HttpStreamProcessor);
+            ReplaceService(MockEmbeddedCredentialsApiClientFactory);
+            ReplaceService(MockSchedulesApiClientFactory);
         }
 
         public void ReplaceService<T>(T service)
@@ -166,7 +180,7 @@ namespace Tableau.Migration.Tests.Unit.Api
         #region - API Client Creation Factory Methods -
 
         public TApiClient CreateClient<TApiClient>()
-            where TApiClient : IContentApiClient
+            where TApiClient: notnull
             => this.GetRequiredService<TApiClient>();
 
         #endregion

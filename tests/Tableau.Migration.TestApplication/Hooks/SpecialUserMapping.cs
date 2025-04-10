@@ -36,7 +36,7 @@ namespace Tableau.Migration.TestApplication.Hooks
         public SpecialUserMapping(
             IOptions<TestApplicationOptions> options,
             ISharedResourcesLocalizer localizer,
-            ILogger<IContentMapping<IUser>> logger)
+            ILogger<SpecialUserMapping> logger)
                 : base(localizer, logger)
         {
             _options = options.Value;

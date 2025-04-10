@@ -26,8 +26,9 @@ using Tableau.Migration.Engine.Preparation;
 
 namespace Tableau.Migration.Tests.Unit.Engine.Migrators.Batch
 {
-    public class ContentBatchMigratorTestBase<TContent, TPublish> : AutoFixtureTestBase
+    public class ContentBatchMigratorTestBase<TContent, TPrepare, TPublish> : AutoFixtureTestBase
         where TContent : class
+        where TPrepare : class
         where TPublish : class
     {
         protected readonly Mock<IContentItemPreparer<TContent, TPublish>> MockPreparer;
@@ -41,7 +42,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Migrators.Batch
                 .ReturnsAsync(() => Result<TPublish>.Succeeded(Create<TPublish>()));
 
             var mockPipeline = Freeze<Mock<IMigrationPipeline>>();
-            mockPipeline.Setup(x => x.GetItemPreparer<TContent, TPublish>())
+            mockPipeline.Setup(x => x.GetItemPreparer<TContent, TPrepare, TPublish>())
                 .Returns(MockPreparer.Object);
 
             MockManifestEntries = CreateMany<Mock<MigrationManifestEntry>>().ToImmutableArray();

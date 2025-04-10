@@ -19,6 +19,7 @@ using System;
 using System.Threading.Tasks;
 using AutoFixture;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Moq;
 using Tableau.Migration.Api;
 using Tableau.Migration.Content;
@@ -47,8 +48,9 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints
                 ITableauApiEndpointConfiguration config,
                 IContentReferenceFinderFactory finderFactory,
                 IContentFileStore fileStore,
+                ILoggerFactory loggerFactory,
                 ISharedResourcesLocalizer localizer)
-                : base(serviceScopeFactory, config, finderFactory, fileStore, localizer)
+                : base(serviceScopeFactory, config, finderFactory, fileStore, loggerFactory, localizer)
             { }
         }
 
@@ -62,6 +64,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints
                     Create<ITableauApiEndpointConfiguration>(),
                     Create<IContentReferenceFinderFactory>(),
                     Create<IContentFileStore>(),
+                    Create<ILoggerFactory>(),
                     Create<ISharedResourcesLocalizer>()
                 );
             }
@@ -88,9 +91,10 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints
                 var config = Create<ITableauApiEndpointConfiguration>();
                 var mockFinderFactory = Create<IContentReferenceFinderFactory>();
                 var mockFileStore = Create<IContentFileStore>();
+                var mockLoggerFactory = Create<ILoggerFactory>();
                 var mockLocalizer = Create<ISharedResourcesLocalizer>();
 
-                var endpoint = new TestApiEndpoint(serviceScopeFactory, config, mockFinderFactory, mockFileStore, mockLocalizer);
+                var endpoint = new TestApiEndpoint(serviceScopeFactory, config, mockFinderFactory, mockFileStore, mockLoggerFactory, mockLocalizer);
 
                 Assert.Same(apiClient, endpoint.ServerApi);
             }
@@ -110,9 +114,10 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints
                 var config = Create<ITableauApiEndpointConfiguration>();
                 var mockFinderFactory = Create<IContentReferenceFinderFactory>();
                 var mockFileStore = Create<IContentFileStore>();
+                var mockLoggerFactory = Create<ILoggerFactory>();
                 var mockLocalizer = Create<ISharedResourcesLocalizer>();
 
-                var endpoint = new TestApiEndpoint(serviceScopeFactory, config, mockFinderFactory, mockFileStore, mockLocalizer);
+                var endpoint = new TestApiEndpoint(serviceScopeFactory, config, mockFinderFactory, mockFileStore, mockLoggerFactory, mockLocalizer);
 
                 Assert.Same(mockFileStore, endpoint.EndpointScope.ServiceProvider.GetService<IContentFileStore>());
             }

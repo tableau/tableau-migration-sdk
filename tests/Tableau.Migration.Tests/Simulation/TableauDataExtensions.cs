@@ -142,7 +142,7 @@ namespace Tableau.Migration.Tests.Simulation
         public static PermissionsType CreateViewPermissions(
             this TableauData data,
             IFixture autoFixture,
-            WorkbookResponse.WorkbookType.ViewReferenceType view,
+            WorkbookResponse.WorkbookType.WorkbookViewReferenceType view,
             Guid viewId,
             string? viewName)
         {
