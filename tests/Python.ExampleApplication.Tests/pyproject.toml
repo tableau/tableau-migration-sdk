@@ -53,6 +53,6 @@ lint = "ruff check ."
 
 [tool.hatch.envs.test.scripts]
 test = "pytest -vv"
-testcov = "test --cov-config=pyproject.toml --cov=../../examples/Python.ExampleApplication/hooks/ --cov-report term --cov-report xml:TestResults/coverage-{matrix:python}.xml"
+testcov = "test --cov-config=pyproject.toml --cov=../../../examples/Python.ExampleApplication/Hooks --cov-report term --cov-report xml:TestResults/coverage-{matrix:python}.xml"
 
 
