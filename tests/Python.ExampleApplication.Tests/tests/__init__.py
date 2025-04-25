@@ -28,12 +28,12 @@ from  System.Reflection import Assembly # noqa: E402
 
 print("Adding example application paths to sys.path")
 sys.path.append(abspath(Path(__file__).parent.resolve().__str__() + "/../../../examples/Python.ExampleApplication/"))
-sys.path.append(abspath(Path(__file__).parent.resolve().__str__() + "/../../../examples/Python.ExampleApplication/hooks/batch_migration_completed"))
-sys.path.append(abspath(Path(__file__).parent.resolve().__str__() + "/../../../examples/Python.ExampleApplication/hooks/filters"))
-sys.path.append(abspath(Path(__file__).parent.resolve().__str__() + "/../../../examples/Python.ExampleApplication/hooks/mappings"))
-sys.path.append(abspath(Path(__file__).parent.resolve().__str__() + "/../../../examples/Python.ExampleApplication/hooks/migration_action_completed"))
-sys.path.append(abspath(Path(__file__).parent.resolve().__str__() + "/../../../examples/Python.ExampleApplication/hooks/post_publish"))
-sys.path.append(abspath(Path(__file__).parent.resolve().__str__() + "/../../../examples/Python.ExampleApplication/hooks/transformers"))
+sys.path.append(abspath(Path(__file__).parent.resolve().__str__() + "/../../../examples/Python.ExampleApplication/Hooks/batch_migration_completed"))
+sys.path.append(abspath(Path(__file__).parent.resolve().__str__() + "/../../../examples/Python.ExampleApplication/Hooks/Filters"))
+sys.path.append(abspath(Path(__file__).parent.resolve().__str__() + "/../../../examples/Python.ExampleApplication/Hooks/mappings"))
+sys.path.append(abspath(Path(__file__).parent.resolve().__str__() + "/../../../examples/Python.ExampleApplication/Hooks/migration_action_completed"))
+sys.path.append(abspath(Path(__file__).parent.resolve().__str__() + "/../../../examples/Python.ExampleApplication/Hooks/post_publish"))
+sys.path.append(abspath(Path(__file__).parent.resolve().__str__() + "/../../../examples/Python.ExampleApplication/Hooks/transformers"))
 
 _bin_path = abspath(Path(__file__).parent.resolve().__str__() + "/../../../src/Python/src/tableau_migration/bin")
 sys.path.append(_bin_path)
