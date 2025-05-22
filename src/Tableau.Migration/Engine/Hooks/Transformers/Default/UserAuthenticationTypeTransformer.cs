@@ -50,7 +50,7 @@ namespace Tableau.Migration.Engine.Hooks.Transformers.Default
             IMigrationPlanOptionsProvider<UserAuthenticationTypeTransformerOptions> optionsProvider,
             IDestinationAuthenticationConfigurationsCache destinationAuthConfigCache,
             ISharedResourcesLocalizer localizer,
-            ILogger<UserAuthenticationTypeTransformer> logger) 
+            ILogger<UserAuthenticationTypeTransformer> logger)
                 : base(localizer, logger)
         {
             _destinationAuthConfigCache = destinationAuthConfigCache;
@@ -61,7 +61,7 @@ namespace Tableau.Migration.Engine.Hooks.Transformers.Default
         public override async Task<IUser?> TransformAsync(IUser itemToTransform, CancellationToken cancel)
         {
             var configs = await _destinationAuthConfigCache.GetAllAsync(cancel).ConfigureAwait(false);
-            if(!configs.Any())
+            if (!configs.Any())
             {
                 /* 
                  * If the site has no authentication configurations it does not support multiple authentication types.
@@ -81,7 +81,7 @@ namespace Tableau.Migration.Engine.Hooks.Transformers.Default
                 .Where(c => string.Equals(_authenticationType, c.IdpConfigurationName, ContentBase.NameComparison))
                 .ToImmutableArray();
 
-            if(configsByName.Length == 1)
+            if (configsByName.Length == 1)
             {
                 itemToTransform.Authentication = UserAuthenticationType.ForConfigurationId(configsByName.Single().Id);
                 return itemToTransform;
@@ -91,13 +91,13 @@ namespace Tableau.Migration.Engine.Hooks.Transformers.Default
                 .Where(c => string.Equals(_authenticationType, c.AuthSetting, ContentBase.NameComparison))
                 .ToImmutableArray();
 
-            if(configByAuthSetting.Length == 1)
+            if (configByAuthSetting.Length == 1)
             {
                 itemToTransform.Authentication = UserAuthenticationType.ForConfigurationId(configByAuthSetting.Single().Id);
                 return itemToTransform;
             }
 
-            if(configsByName.Length > 1 || configByAuthSetting.Length > 1)
+            if (configsByName.Length > 1 || configByAuthSetting.Length > 1)
             {
                 throw new ArgumentException($"Multiple authentication configurations were found with name or auth setting \"{_authenticationType}\".");
             }

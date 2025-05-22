@@ -25,6 +25,8 @@ from tableau_migration.migration import (  # noqa: E402, F401
 )
 from tableau_migration.migration_api_rest import PyRestIdentifiable # noqa: E402, F401
 from tableau_migration.migration_content_schedules import PyWithSchedule # noqa: E402, F401
+from tableau_migration.migration_content_schedules_cloud import PyCloudSchedule # noqa: E402, F401
+from tableau_migration.migration_content_schedules_server import PyServerSchedule # noqa: E402, F401
 from typing import (  # noqa: E402, F401
     Sequence,
     List,
@@ -104,7 +106,147 @@ class PyWithOwner(PyContentReference):
         """Gets or sets the owner for the content item."""
         self._dotnet.Owner = None if value is None else value._dotnet
     
-class PyCloudSubscription(PyWithOwner):
+class PySubscriptionContent():
+    """The content of the subscription."""
+    
+    _dotnet_base = ISubscriptionContent
+    
+    def __init__(self, subscription_content: ISubscriptionContent) -> None:
+        """Creates a new PySubscriptionContent object.
+        
+        Args:
+            subscription_content: A ISubscriptionContent object.
+        
+        Returns: None.
+        """
+        self._dotnet = subscription_content
+        
+    @property
+    def id(self) -> UUID:
+        """The ID of the content item tied to the subscription."""
+        return None if self._dotnet.Id is None else UUID(self._dotnet.Id.ToString())
+    
+    @id.setter
+    def id(self, value: UUID) -> None:
+        """The ID of the content item tied to the subscription."""
+        self._dotnet.Id = None if value is None else Guid.Parse(str(value))
+    
+    @property
+    def type(self) -> str:
+        """The content type of the subscription."""
+        return self._dotnet.Type
+    
+    @type.setter
+    def type(self, value: str) -> None:
+        """The content type of the subscription."""
+        self._dotnet.Type = value
+    
+    @property
+    def send_if_view_empty(self) -> bool:
+        """Whether or not send the notification if the view is empty."""
+        return self._dotnet.SendIfViewEmpty
+    
+    @send_if_view_empty.setter
+    def send_if_view_empty(self, value: bool) -> None:
+        """Whether or not send the notification if the view is empty."""
+        self._dotnet.SendIfViewEmpty = value
+    
+class PySubscription(Generic[TSchedule], PyWithSchedule[TSchedule], PyWithOwner):
+    """Interface for a subscription."""
+    
+    _dotnet_base = ISubscription
+    
+    def __init__(self, subscription: ISubscription) -> None:
+        """Creates a new PySubscription object.
+        
+        Args:
+            subscription: A ISubscription object.
+        
+        Returns: None.
+        """
+        self._dotnet = subscription
+        
+    @property
+    def subject(self) -> str:
+        """Gets or sets the subject of the subscription."""
+        return self._dotnet.Subject
+    
+    @subject.setter
+    def subject(self, value: str) -> None:
+        """Gets or sets the subject of the subscription."""
+        self._dotnet.Subject = value
+    
+    @property
+    def attach_image(self) -> bool:
+        """Gets or sets whether or not an image file should be attached to the notification."""
+        return self._dotnet.AttachImage
+    
+    @attach_image.setter
+    def attach_image(self, value: bool) -> None:
+        """Gets or sets whether or not an image file should be attached to the notification."""
+        self._dotnet.AttachImage = value
+    
+    @property
+    def attach_pdf(self) -> bool:
+        """Gets or sets whether or not a pdf file should be attached to the notification."""
+        return self._dotnet.AttachPdf
+    
+    @attach_pdf.setter
+    def attach_pdf(self, value: bool) -> None:
+        """Gets or sets whether or not a pdf file should be attached to the notification."""
+        self._dotnet.AttachPdf = value
+    
+    @property
+    def page_orientation(self) -> str:
+        """Gets or set the page orientation of the subscription."""
+        return self._dotnet.PageOrientation
+    
+    @page_orientation.setter
+    def page_orientation(self, value: str) -> None:
+        """Gets or set the page orientation of the subscription."""
+        self._dotnet.PageOrientation = value
+    
+    @property
+    def page_size_option(self) -> str:
+        """Gets or set the page page size option of the subscription."""
+        return self._dotnet.PageSizeOption
+    
+    @page_size_option.setter
+    def page_size_option(self, value: str) -> None:
+        """Gets or set the page page size option of the subscription."""
+        self._dotnet.PageSizeOption = value
+    
+    @property
+    def suspended(self) -> bool:
+        """Gets or sets whether or not the subscription is suspended."""
+        return self._dotnet.Suspended
+    
+    @suspended.setter
+    def suspended(self, value: bool) -> None:
+        """Gets or sets whether or not the subscription is suspended."""
+        self._dotnet.Suspended = value
+    
+    @property
+    def message(self) -> str:
+        """Gets or sets the message of the subscription."""
+        return self._dotnet.Message
+    
+    @message.setter
+    def message(self, value: str) -> None:
+        """Gets or sets the message of the subscription."""
+        self._dotnet.Message = value
+    
+    @property
+    def content(self) -> PySubscriptionContent:
+        """Gets or set the content reference of the subscription."""
+        return None if self._dotnet.Content is None else PySubscriptionContent(self._dotnet.Content)
+    
+    @content.setter
+    def content(self, value: PySubscriptionContent) -> None:
+        """Gets or set the content reference of the subscription."""
+        self._dotnet.Content = None if value is None else value._dotnet
+    
+class PyCloudSubscription(PySubscription[PyCloudSchedule]):
     """The interface for a cloud subscription."""
     
     _dotnet_base = ICloudSubscription
@@ -888,7 +1030,7 @@ class PyPublishableWorkbook(PyWorkbookDetails, PyConnectionsContent):
                 dotnet_collection.Add(x)
             self._dotnet.HiddenViewNames = dotnet_collection
     
-class PyServerSubscription(PyWithOwner):
+class PyServerSubscription(PySubscription[PyServerSchedule]):
     """The interface for a server subscription."""
     
     _dotnet_base = IServerSubscription
@@ -903,146 +1045,6 @@ class PyServerSubscription(PyWithOwner):
         """
         self._dotnet = server_subscription
         
-class PySubscriptionContent():
-    """The content of the subscription."""
-    
-    _dotnet_base = ISubscriptionContent
-    
-    def __init__(self, subscription_content: ISubscriptionContent) -> None:
-        """Creates a new PySubscriptionContent object.
-        
-        Args:
-            subscription_content: A ISubscriptionContent object.
-        
-        Returns: None.
-        """
-        self._dotnet = subscription_content
-        
-    @property
-    def id(self) -> UUID:
-        """The ID of the content item tied to the subscription."""
-        return None if self._dotnet.Id is None else UUID(self._dotnet.Id.ToString())
-    
-    @id.setter
-    def id(self, value: UUID) -> None:
-        """The ID of the content item tied to the subscription."""
-        self._dotnet.Id = None if value is None else Guid.Parse(str(value))
-    
-    @property
-    def type(self) -> str:
-        """The content type of the subscription."""
-        return self._dotnet.Type
-    
-    @type.setter
-    def type(self, value: str) -> None:
-        """The content type of the subscription."""
-        self._dotnet.Type = value
-    
-    @property
-    def send_if_view_empty(self) -> bool:
-        """Whether or not send the notification if the view is empty."""
-        return self._dotnet.SendIfViewEmpty
-    
-    @send_if_view_empty.setter
-    def send_if_view_empty(self, value: bool) -> None:
-        """Whether or not send the notification if the view is empty."""
-        self._dotnet.SendIfViewEmpty = value
-    
-class PySubscription(Generic[TSchedule], PyWithSchedule[TSchedule], PyWithOwner):
-    """Interface for a subscription."""
-    
-    _dotnet_base = ISubscription
-    
-    def __init__(self, subscription: ISubscription) -> None:
-        """Creates a new PySubscription object.
-        
-        Args:
-            subscription: A ISubscription object.
-        
-        Returns: None.
-        """
-        self._dotnet = subscription
-        
-    @property
-    def subject(self) -> str:
-        """Gets or sets the subject of the subscription."""
-        return self._dotnet.Subject
-    
-    @subject.setter
-    def subject(self, value: str) -> None:
-        """Gets or sets the subject of the subscription."""
-        self._dotnet.Subject = value
-    
-    @property
-    def attach_image(self) -> bool:
-        """Gets or sets whether or not an image file should be attached to the notification."""
-        return self._dotnet.AttachImage
-    
-    @attach_image.setter
-    def attach_image(self, value: bool) -> None:
-        """Gets or sets whether or not an image file should be attached to the notification."""
-        self._dotnet.AttachImage = value
-    
-    @property
-    def attach_pdf(self) -> bool:
-        """Gets or sets whether or not a pdf file should be attached to the notification."""
-        return self._dotnet.AttachPdf
-    
-    @attach_pdf.setter
-    def attach_pdf(self, value: bool) -> None:
-        """Gets or sets whether or not a pdf file should be attached to the notification."""
-        self._dotnet.AttachPdf = value
-    
-    @property
-    def page_orientation(self) -> str:
-        """Gets or set the page orientation of the subscription."""
-        return self._dotnet.PageOrientation
-    
-    @page_orientation.setter
-    def page_orientation(self, value: str) -> None:
-        """Gets or set the page orientation of the subscription."""
-        self._dotnet.PageOrientation = value
-    
-    @property
-    def page_size_option(self) -> str:
-        """Gets or set the page page size option of the subscription."""
-        return self._dotnet.PageSizeOption
-    
-    @page_size_option.setter
-    def page_size_option(self, value: str) -> None:
-        """Gets or set the page page size option of the subscription."""
-        self._dotnet.PageSizeOption = value
-    
-    @property
-    def suspended(self) -> bool:
-        """Gets or sets whether or not the subscription is suspended."""
-        return self._dotnet.Suspended
-    
-    @suspended.setter
-    def suspended(self, value: bool) -> None:
-        """Gets or sets whether or not the subscription is suspended."""
-        self._dotnet.Suspended = value
-    
-    @property
-    def message(self) -> str:
-        """Gets or sets the message of the subscription."""
-        return self._dotnet.Message
-    
-    @message.setter
-    def message(self, value: str) -> None:
-        """Gets or sets the message of the subscription."""
-        self._dotnet.Message = value
-    
-    @property
-    def content(self) -> PySubscriptionContent:
-        """Gets or set the content reference of the subscription."""
-        return None if self._dotnet.Content is None else PySubscriptionContent(self._dotnet.Content)
-    
-    @content.setter
-    def content(self, value: PySubscriptionContent) -> None:
-        """Gets or set the content reference of the subscription."""
-        self._dotnet.Content = None if value is None else value._dotnet
-    
 class PyUserAuthenticationType():
     """Structure representing the authentication type of a user."""
     

@@ -127,6 +127,8 @@ from tableau_migration.migration import (  # noqa: E402, F401
 )
 from tableau_migration.migration_api_rest import PyRestIdentifiable # noqa: E402, F401
 from tableau_migration.migration_content_schedules import PyWithSchedule # noqa: E402, F401
+from tableau_migration.migration_content_schedules_cloud import PyCloudSchedule # noqa: E402, F401
+from tableau_migration.migration_content_schedules_server import PyServerSchedule # noqa: E402, F401
 from typing import (  # noqa: E402, F401
     Sequence,
     List,

@@ -57,7 +57,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             protected static List<TExtractRefreshTask> AssertSuccess<TExtractRefreshTask, TSchedule>(IResult<IImmutableList<TExtractRefreshTask>> result)
-                where TExtractRefreshTask: IExtractRefreshTask<TSchedule>
+                where TExtractRefreshTask : IExtractRefreshTask<TSchedule>
                 where TSchedule : ISchedule
             {
                 Assert.NotNull(result);

@@ -26,12 +26,8 @@ using Tableau.Migration.Content.Schedules.Cloud;
 namespace Tableau.Migration.Api.Rest.Models.Requests.Cloud
 {
     /// <summary>
-    /// <para>
     /// Class representing an update workbook request.
-    /// </para>
-    /// <para>
     /// See <see href="https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_subscriptions.htm#tableau-cloud-request3">Tableau API Reference</see> for documentation.
-    /// </para>
     /// </summary>
     [XmlType(XmlTypeName)]
     public class UpdateSubscriptionRequest : TableauServerRequest

@@ -56,7 +56,7 @@ namespace Tableau.Migration.Tests.Unit.Api
                 Guid customViewId,
                 string? suffix = null)
             {
-                request.AssertRelativeUri($"{BaseApiUri}/{RestUrlPrefixes.Sites}/{SiteId}/{RestUrlPrefixes.CustomViews}/{customViewId.ToUrlSegment()}{suffix ?? string.Empty}");
+                request.AssertRelativeUri($"{BaseApiUri}/{RestUrlKeywords.Sites}/{SiteId}/{RestUrlKeywords.CustomViews}/{customViewId.ToUrlSegment()}{suffix ?? string.Empty}");
             }
         }
 
@@ -428,7 +428,7 @@ namespace Tableau.Migration.Tests.Unit.Api
         {
             private void AssertCustomViewDownloadUri(Guid CustomViewId, HttpRequestMessage request)
             {
-                request.AssertRelativeUri($"{BaseApiUri}/sites/{SiteId}/customviews/{CustomViewId}/content");
+                request.AssertRelativeUri($"{BaseApiUri}/sites/{SiteId}/{RestUrlKeywords.CustomViews}/{CustomViewId}/{RestUrlKeywords.Content}");
             }
 
             [Fact]
@@ -833,7 +833,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             [Fact]
             public async Task Publish_succeeds_on_existing_custom_view()
             {
-                SetupFileUploadErrorResponse(RestErrorCodes.CUSTOM_VIEW_ALREADY_EXISTS);                
+                SetupFileUploadErrorResponse(RestErrorCodes.CUSTOM_VIEW_ALREADY_EXISTS);
                 SetupSuccessResponse();
 
                 var workBook = Create<CustomViewsResponse.CustomViewResponseType.WorkbookType>();

@@ -456,7 +456,7 @@ namespace Tableau.Migration.Api.Simulation
         {
             schedule = AddSchedule(schedule);
             ScheduleExtractRefreshTasks.Add(extract);
-            
+
             ScheduleExtracts[schedule.Id].Add(extract.Id);
         }
 
@@ -584,28 +584,28 @@ namespace Tableau.Migration.Api.Simulation
             });
 
         internal void AddProjectPermissions(IProjectType project, PermissionsType permission)
-            => AddContentTypePermissions(RestUrlPrefixes.Projects, project.Id, permission);
+            => AddContentTypePermissions(RestUrlKeywords.Projects, project.Id, permission);
 
         internal void AddDataSourcePermissions(IDataSourceType dataSource, PermissionsType permission)
-            => AddContentTypePermissions(RestUrlPrefixes.DataSources, dataSource.Id, permission);
+            => AddContentTypePermissions(RestUrlKeywords.DataSources, dataSource.Id, permission);
 
         internal void AddWorkbookPermissions(IWorkbookType workbook, PermissionsType permission)
-            => AddContentTypePermissions(RestUrlPrefixes.Workbooks, workbook.Id, permission);
+            => AddContentTypePermissions(RestUrlKeywords.Workbooks, workbook.Id, permission);
 
         internal void AddViewPermissions(IWorkbookViewReferenceType view, PermissionsType permission)
-            => AddContentTypePermissions(RestUrlPrefixes.Views, view.Id, permission);
+            => AddContentTypePermissions(RestUrlKeywords.Views, view.Id, permission);
 
         internal void AddViewPermissions(Guid viewId, PermissionsType permission)
-            => AddContentTypePermissions(RestUrlPrefixes.Views, viewId, permission);
+            => AddContentTypePermissions(RestUrlKeywords.Views, viewId, permission);
 
         internal ConcurrentDictionary<Guid, PermissionsType> GetContentTypePermissions(string contentTypeUrlPrefix)
         {
             return contentTypeUrlPrefix.ToLower() switch
             {
-                RestUrlPrefixes.DataSources => DataSourcePermissions,
-                RestUrlPrefixes.Projects => ProjectPermissions,
-                RestUrlPrefixes.Workbooks => WorkbookPermissions,
-                RestUrlPrefixes.Views => ViewPermissions,
+                RestUrlKeywords.DataSources => DataSourcePermissions,
+                RestUrlKeywords.Projects => ProjectPermissions,
+                RestUrlKeywords.Workbooks => WorkbookPermissions,
+                RestUrlKeywords.Views => ViewPermissions,
                 _ => throw new ArgumentException($"No permissions are set up for content type {contentTypeUrlPrefix}.", nameof(contentTypeUrlPrefix)),
             };
         }

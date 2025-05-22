@@ -49,7 +49,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Preparation
                 .Returns(new InvocationFunc(invocation =>
                 {
                     var genericArgs = invocation.Method.GetGenericArguments();
-                    return Activator.CreateInstance(typeof(DirectContentItemConverter<,>).MakeGenericType(genericArgs));
+                    return Activator.CreateInstance(typeof(DirectContentItemConverter<,>).MakeGenericType(genericArgs))!;
                 }));
 
             MockTransformerRunner = Freeze<Mock<IContentTransformerRunner>>();

@@ -23,6 +23,7 @@ using Moq;
 using Tableau.Migration.Engine.Hooks;
 using Tableau.Migration.Engine.Hooks.InitializeMigration.Default;
 using Tableau.Migration.Resources;
+using Tableau.Migration.Content;
 using Xunit;
 
 
@@ -57,7 +58,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.InitializeMigration.Default
             {
                 var ctx = Create<IInitializeMigrationHookResult>();
 
-                MockCapabilityManager.Setup(cm => cm.SetMigrationCapabilityAsync(It.IsAny<CancellationToken>()))
+                MockCapabilityManager.Setup(cm => cm.SetMigrationCapabilityAsync(It.IsAny<IServerSession>(), It.IsAny<CancellationToken>()))
                     .Returns(Task.FromResult((IResult)Result.Succeeded()));
 
                 var result = await Hook.ExecuteCheckAsync(ctx, new CancellationToken());
@@ -66,7 +67,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.InitializeMigration.Default
                 Assert.True(result.Success);
 
                 MockCapabilityManager.Verify(
-                    x => x.SetMigrationCapabilityAsync(It.IsAny<CancellationToken>()),
+                    x => x.SetMigrationCapabilityAsync(It.IsAny<IServerSession>(), It.IsAny<CancellationToken>()),
                     Times.Once);
             }
 
@@ -75,7 +76,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.InitializeMigration.Default
             {
                 var ctx = Create<InitializeMigrationHookResult>();
 
-                MockCapabilityManager.Setup(cm => cm.SetMigrationCapabilityAsync(It.IsAny<CancellationToken>()))
+                MockCapabilityManager.Setup(cm => cm.SetMigrationCapabilityAsync(It.IsAny<IServerSession>(), It.IsAny<CancellationToken>()))
                     .Returns(Task.FromResult((IResult)Result.Failed(CreateMany<Exception>())));
 
                 var result = await Hook.ExecuteCheckAsync(ctx, new CancellationToken());
@@ -84,7 +85,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.InitializeMigration.Default
                 Assert.False(result.Success);
 
                 MockCapabilityManager.Verify(
-                    x => x.SetMigrationCapabilityAsync(It.IsAny<CancellationToken>()),
+                    x => x.SetMigrationCapabilityAsync(It.IsAny<IServerSession>(), It.IsAny<CancellationToken>()),
                     Times.Once);
             }
         }

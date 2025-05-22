@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<Title>Tableau Migration SDK</Title>
 		<RepositoryUrl>https://github.com/tableau/tableau-migration-sdk</RepositoryUrl>
@@ -43,19 +43,19 @@ Note: This SDK is specific for migrating from Tableau Server to Tableau Cloud. I
 		<InternalsVisibleTo Include="LINQPadQuery" />
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="9.0.0" />
-		<PackageReference Include="Microsoft.Extensions.Http" Version="9.0.0" />
-		<PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="9.0.0" />
-		<PackageReference Include="Microsoft.Extensions.Localization" Version="9.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="9.0.5" />
+		<PackageReference Include="Microsoft.Extensions.Http" Version="9.0.5" />
+		<PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="9.5.0" />
+		<PackageReference Include="Microsoft.Extensions.Localization" Version="9.0.5" />
 		<PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="3.0.1" />
-		<PackageReference Include="pythonnet" Version="3.0.4" />
+		<PackageReference Include="pythonnet" Version="3.0.5" />
 		<PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
 		  <PrivateAssets>all</PrivateAssets>
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<PackageReference Include="System.Collections.Immutable" Version="9.0.0" />
-		<PackageReference Include="System.IO.Abstractions" Version="21.1.3" />
-		<PackageReference Include="System.Text.Json" Version="9.0.0" />
-		<PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="9.0.0" />
+		<PackageReference Include="System.Collections.Immutable" Version="9.0.5" />
+		<PackageReference Include="System.IO.Abstractions" Version="22.0.14" />
+		<PackageReference Include="System.Text.Json" Version="9.0.5" />
+		<PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="9.0.5" />
 	</ItemGroup>	
 </Project>

@@ -16,8 +16,8 @@ namespace DependencyInjection.ExampleApplication.Hooks.Filters
 
         // The logger instance here will be injected when a ProjectsFilter is 
         // retrieved from the service provider.
-        public ProjectsFilter(ISharedResourcesLocalizer localizer, ILogger<ProjectsFilter> logger) 
-            : base (localizer, logger)
+        public ProjectsFilter(ISharedResourcesLocalizer localizer, ILogger<ProjectsFilter> logger)
+            : base(localizer, logger)
         {
             _logger = logger;
 

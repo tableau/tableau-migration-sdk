@@ -18,6 +18,7 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using Tableau.Migration.Api.Rest;
 
 namespace Tableau.Migration.Net.Rest
 {
@@ -44,7 +45,7 @@ namespace Tableau.Migration.Net.Rest
             if (!uri.IsRest())
                 return false;
 
-            return uri.EnsureAbsoluteUri().GetNonSlashSegments().Skip(2).Take(2).SequenceEqual(new[] { "auth", "signin" }, StringComparer.OrdinalIgnoreCase) is true;
+            return uri.EnsureAbsoluteUri().GetNonSlashSegments().Skip(2).Take(2).SequenceEqual(new[] { RestUrlKeywords.Auth, RestUrlKeywords.SignIn }, StringComparer.OrdinalIgnoreCase) is true;
         }
 
         public static bool IsRestSignOut([NotNullWhen(true)] this Uri? uri)
@@ -52,7 +53,7 @@ namespace Tableau.Migration.Net.Rest
             if (!uri.IsRest())
                 return false;
 
-            return uri.EnsureAbsoluteUri().GetNonSlashSegments().Skip(2).Take(2).SequenceEqual(new[] { "auth", "signout" }, StringComparer.OrdinalIgnoreCase) is true;
+            return uri.EnsureAbsoluteUri().GetNonSlashSegments().Skip(2).Take(2).SequenceEqual(new[] { RestUrlKeywords.Auth, RestUrlKeywords.SignOut }, StringComparer.OrdinalIgnoreCase) is true;
         }
 
         internal static Uri EnsureAbsoluteUri(this Uri uri)

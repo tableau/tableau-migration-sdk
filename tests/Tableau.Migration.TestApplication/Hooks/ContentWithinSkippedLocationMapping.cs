@@ -50,7 +50,7 @@ namespace Tableau.Migration.TestApplication.Hooks
         }
 
         public override async Task<ContentMappingContext<TContent>?> MapAsync(
-            ContentMappingContext<TContent> ctx, 
+            ContentMappingContext<TContent> ctx,
             CancellationToken cancel)
         {
             if (_skippedParentProject.IsEmpty)

@@ -44,8 +44,8 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Mappings
         public class GenericMapping<TContent> : ContentMappingBase<TContent>
             where TContent : IContentReference
         {
-            public GenericMapping(ISharedResourcesLocalizer localizer, ILogger<GenericMapping<TContent>> logger) 
-                : base(localizer, logger) 
+            public GenericMapping(ISharedResourcesLocalizer localizer, ILogger<GenericMapping<TContent>> logger)
+                : base(localizer, logger)
             { }
 
             public override Task<ContentMappingContext<TContent>?> MapAsync(ContentMappingContext<TContent> ctx, CancellationToken cancel)

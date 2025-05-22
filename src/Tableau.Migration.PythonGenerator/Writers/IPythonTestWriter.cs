@@ -15,8 +15,8 @@
 //  limitations under the License.
 //
 
-using System.Threading.Tasks;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Tableau.Migration.PythonGenerator.Writers
 {

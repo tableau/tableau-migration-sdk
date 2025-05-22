@@ -20,6 +20,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Tableau.Migration.Api;
+using Tableau.Migration.Api.Rest;
 using Tableau.Migration.Api.Rest.Models.Responses;
 using Tableau.Migration.Content;
 using Xunit;
@@ -66,7 +67,7 @@ namespace Tableau.Migration.Tests.Unit.Api
                 Assert.Same(exception, resultError);
 
                 var request = MockHttpClient.AssertSingleRequest();
-                request.AssertRelativeUri($"/api/{TableauServerVersion.RestApiVersion}/sites/{SiteId}/flows/{flowId}/content");
+                request.AssertRelativeUri($"/api/{TableauServerVersion.RestApiVersion}/sites/{SiteId}/flows/{flowId}/{RestUrlKeywords.Content}");
             }
 
             [Fact]
@@ -85,7 +86,7 @@ namespace Tableau.Migration.Tests.Unit.Api
                 Assert.Single(result.Errors);
 
                 var request = MockHttpClient.AssertSingleRequest();
-                request.AssertRelativeUri($"/api/{TableauServerVersion.RestApiVersion}/sites/{SiteId}/flows/{flowId}/content");
+                request.AssertRelativeUri($"/api/{TableauServerVersion.RestApiVersion}/sites/{SiteId}/flows/{flowId}/{RestUrlKeywords.Content}");
             }
 
             [Fact]
@@ -104,7 +105,7 @@ namespace Tableau.Migration.Tests.Unit.Api
                 Assert.NotNull(result.Value);
 
                 var request = MockHttpClient.AssertSingleRequest();
-                request.AssertRelativeUri($"/api/{TableauServerVersion.RestApiVersion}/sites/{SiteId}/flows/{flowId}/content");
+                request.AssertRelativeUri($"/api/{TableauServerVersion.RestApiVersion}/sites/{SiteId}/flows/{flowId}/{RestUrlKeywords.Content}");
             }
         }
 

@@ -18,6 +18,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Tableau.Migration.Content;
 
 namespace Tableau.Migration.Engine.Hooks
 {
@@ -27,16 +28,11 @@ namespace Tableau.Migration.Engine.Hooks
     public interface IMigrationCapabilityManager
     {
         /// <summary>
-        /// Returns whether migration capability is disabled.
-        /// </summary>
-        /// <returns>True when the migration capability is disabled.</returns>
-        bool IsMigrationCapabilityDisabled();
-
-        /// <summary>
         /// Sets the migration capability.
         /// </summary>
+        /// <param name="destinationServerSession">The destination server session</param>
         /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>Success or failure result.</returns>
-        Task<IResult> SetMigrationCapabilityAsync(CancellationToken cancel);
+        Task<IResult> SetMigrationCapabilityAsync(IServerSession destinationServerSession, CancellationToken cancel);
     }
 }

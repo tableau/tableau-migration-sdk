@@ -42,7 +42,7 @@ namespace Tableau.Migration.PythonGenerator
 
         private void Indent()
         {
-            for(uint i = 0; i < _indentLevel; i++)
+            for (uint i = 0; i < _indentLevel; i++)
             {
                 NonIndentingBuilder.Append(INDENT);
             }

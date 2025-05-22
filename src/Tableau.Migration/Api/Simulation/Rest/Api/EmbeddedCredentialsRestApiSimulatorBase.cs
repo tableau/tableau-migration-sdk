@@ -57,19 +57,19 @@ namespace Tableau.Migration.Api.Simulation.Rest.Api
         /// <param name="contentTypeUrlPrefix">The content type's URl prefix.</param>
         /// <param name="getContent">Delegate used to retrieve content items by ID.</param>
         /// <param name="getKeychains">Delegate used to retrieve keychains of content items by ID.</param>
-        protected EmbeddedCredentialsRestApiSimulatorBase(TableauApiResponseSimulator simulator, string contentTypeUrlPrefix, 
+        protected EmbeddedCredentialsRestApiSimulatorBase(TableauApiResponseSimulator simulator, string contentTypeUrlPrefix,
             Func<TableauData, ICollection<TContent>> getContent,
-            Func<TableauData, ConcurrentDictionary<Guid, RetrieveKeychainResponse>> getKeychains) 
+            Func<TableauData, ConcurrentDictionary<Guid, RetrieveKeychainResponse>> getKeychains)
             : base(simulator, contentTypeUrlPrefix, getContent)
         {
-            ApplyKeychain = simulator.SetupRestPut(SiteEntityUrl(ContentTypeUrlPrefix, "applykeychain"),
+            ApplyKeychain = simulator.SetupRestPut(SiteEntityUrl(ContentTypeUrlPrefix, RestUrlKeywords.ApplyKeychain),
                 new EmptyRestResponseBuilder(simulator.Data, simulator.Serializer,
                 (data, request) =>
                 {
                     var id = request.GetRequestIdFromUri(hasSuffix: true);
 
                     var applyKeychain = request.GetTableauServerRequest<ApplyKeychainRequest>();
-                    if(applyKeychain is not null)
+                    if (applyKeychain is not null)
                     {
                         var destinationUserIds = applyKeychain.AssociatedUserLuidMapping?.Select(m => m.DestinationSiteUserLuid);
                         var keychains = new RetrieveKeychainResponse(applyKeychain.EncryptedKeychains, destinationUserIds);
@@ -79,11 +79,11 @@ namespace Tableau.Migration.Api.Simulation.Rest.Api
                 },
                 requiresAuthentication: true));
 
-            RetrieveKeychain = simulator.SetupRestPost(SiteEntityUrl(ContentTypeUrlPrefix, "retrievekeychain"),
+            RetrieveKeychain = simulator.SetupRestPost(SiteEntityUrl(ContentTypeUrlPrefix, RestUrlKeywords.RetrieveKeychain),
                 (data, request) =>
                 {
                     var id = request.GetRequestIdFromUri(hasSuffix: true);
-                    if(!getKeychains(data).TryGetValue(id, out var response))
+                    if (!getKeychains(data).TryGetValue(id, out var response))
                     {
                         response = new();
                     }

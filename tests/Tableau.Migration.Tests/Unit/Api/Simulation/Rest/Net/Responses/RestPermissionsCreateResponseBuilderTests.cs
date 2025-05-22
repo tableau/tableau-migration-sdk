@@ -54,7 +54,7 @@ namespace Tableau.Migration.Tests.Unit.Api.Simulation.Rest.Net.Responses
                 var builder = new RestPermissionsCreateResponseBuilder<ProjectsResponse.ProjectType>(
                     data,
                     Serializer,
-                    "projects",
+                    RestUrlKeywords.Projects,
                     d => d.Projects);
 
                 var capability = new Capability(new CapabilityType { Name = PermissionsCapabilityNames.ProjectLeader, Mode = PermissionsCapabilityModes.Deny });

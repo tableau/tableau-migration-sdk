@@ -16,7 +16,6 @@
 //
 
 using System;
-using System.Collections.Immutable;
 using Tableau.Migration.Api.Rest.Models.Responses;
 
 namespace Tableau.Migration.Api.Models
@@ -25,14 +24,14 @@ namespace Tableau.Migration.Api.Models
     {
         /// <inheritdoc />
         public Guid UserId { get; }
-        
+
         /// <inheritdoc />
         public bool Success { get; }
-        
+
         public CustomViewAsUserDefaultViewResult(CustomViewAsUsersDefaultViewResponse.CustomViewAsUserDefaultViewType response)
         {
             var user = Guard.AgainstNull(response.User, () => response.User);
-            
+
             UserId = Guard.AgainstDefaultValue(user.Id, () => response.User.Id);
 
             Success = response.Success;

@@ -30,7 +30,7 @@ namespace Tableau.Migration.Api.Models
         /// <param name="encryptedKeychains">The encrypted keychains to apply to the content item.</param>
         /// <param name="keychainUserMapping">The user mapping to use when applying the keychain.</param>
         public ApplyKeychainOptions(IEnumerable<string> encryptedKeychains, IEnumerable<IKeychainUserMapping> keychainUserMapping)
-        { 
+        {
             EncryptedKeychains = encryptedKeychains;
             KeychainUserMapping = keychainUserMapping;
         }

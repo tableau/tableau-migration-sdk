@@ -34,7 +34,7 @@ namespace DependencyInjection.ExampleApplication
                 .AddScoped<ProjectMapping>()
 
                 // Display the services in the collection.
-                .DisplayServices(DisplayFilter); 
+                .DisplayServices(DisplayFilter);
 
             // Build the service provider (container) instance to manage services.
             // Dependencies will be retrieved from this instance.

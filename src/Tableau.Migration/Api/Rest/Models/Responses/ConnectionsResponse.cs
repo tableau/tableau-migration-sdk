@@ -64,7 +64,7 @@ namespace Tableau.Migration.Api.Rest.Models.Responses
                 ServerPort = response.ServerPort;
                 Type = response.ConnectionType;
                 QueryTaggingEnabledFlag = response.QueryTaggingEnabled;
-                
+
                 var credentials = response.Credentials;
                 if (credentials is not null)
                 {

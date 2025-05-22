@@ -35,13 +35,13 @@ namespace Tableau.Migration.Engine.Manifest
         /// <param name="copy">An optional collection to deep copy entries from.</param>
         public MigrationManifestEntryCollection(IMigrationManifestEntryCollection? copy = null)
         {
-            if(copy is not null)
+            if (copy is not null)
             {
                 copy.CopyTo(this);
 
                 foreach (var partition in _partitions)
                 {
-                    foreach(var entry in partition)
+                    foreach (var entry in partition)
                     {
                         entry.ResetStatus();
                     }

@@ -27,7 +27,7 @@ namespace Tableau.Migration.Content.Schedules
 
         protected override int CompareItems(
             IInterval x,
-            IInterval y) 
+            IInterval y)
         {
             if (x is null && y is null)
                 return 0;

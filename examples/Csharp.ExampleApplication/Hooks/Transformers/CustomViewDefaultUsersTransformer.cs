@@ -1,10 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Tableau.Migration;
 using Tableau.Migration.Content;
 using Tableau.Migration.Engine.Hooks.Transformers;
 using Tableau.Migration.Resources;
@@ -17,8 +15,8 @@ namespace Csharp.ExampleApplication.Hooks.Transformers
         ILogger<CustomViewExcludeDefaultUserTransformer> logger)
         : ContentTransformerBase<IPublishableCustomView>(localizer, logger)
     {
-        public IList<string> ExcludeUsernames { get; } = new List<string>() {"User1", "User2"};
-            
+        public IList<string> ExcludeUsernames { get; } = new List<string>() { "User1", "User2" };
+
 
         private readonly ILogger<CustomViewExcludeDefaultUserTransformer>? _logger = logger;
 

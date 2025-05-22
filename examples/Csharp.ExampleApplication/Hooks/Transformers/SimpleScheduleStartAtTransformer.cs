@@ -9,24 +9,24 @@ using Tableau.Migration.Resources;
 namespace Csharp.ExampleApplication.Hooks.Transformers
 {
     #region class
-    public class SimpleScheduleStartAtTransformer<T> 
-        : ContentTransformerBase<T> 
+    public class SimpleScheduleStartAtTransformer<T>
+        : ContentTransformerBase<T>
         where T : IWithSchedule<ICloudSchedule>
     {
         private readonly ILogger<IContentTransformer<T>>? _logger;
 
         public SimpleScheduleStartAtTransformer(
-            ISharedResourcesLocalizer localizer, 
-            ILogger<IContentTransformer<T>> logger) 
+            ISharedResourcesLocalizer localizer,
+            ILogger<IContentTransformer<T>> logger)
             : base(
-                  localizer, 
+                  localizer,
                   logger)
         {
             _logger = logger;
         }
 
         public override async Task<T?> TransformAsync(
-            T itemToTransform, 
+            T itemToTransform,
             CancellationToken cancel)
         {
             // In this example, the `Start At` time is in the UTC time zone.

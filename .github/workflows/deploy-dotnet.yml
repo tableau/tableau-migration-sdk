@@ -1,0 +1,75 @@
+# This workflow will publish a package to a Nuget Repository
+name: Deploy .NET Package
+
+on:
+  workflow_call:
+    secrets:
+      NUGET_PUBLISH_API_KEY:
+        required: true
+    inputs:
+      runs-on-config:
+        description: "The OS that runs this workflow."
+        required: true
+        type: string
+      build-config:
+        description: "The build configuration to use. Usually Release or Debug."
+        required: true
+        type: string
+      publish-environment:
+        description: "The github environment that has the variables and secrets"
+        required: true
+        type: string
+      continue-on-error:
+        description: "Whether to continue on error for this deployment"
+        required: true
+        type: boolean
+
+env:
+  DOTNET_NOLOGO: "true"
+  NUGET_PUBLISH_API_KEY: ${{ secrets.NUGET_PUBLISH_API_KEY }}
+  NUGET_PACKAGE_REPOSITORY: ${{ vars.NUGET_PACKAGE_REPOSITORY }}
+
+jobs:
+  deploy-dotnet-package:
+    name: Deploy .NET Package with ${{ inputs.build-config }} configuration via ${{ inputs.publish-environment }}
+    environment:
+      name: ${{ inputs.publish-environment }}
+    runs-on: ${{ inputs.runs-on-config }}
+    continue-on-error: ${{ inputs.continue-on-error }}
+    steps:
+      # Check we have all required github environment variables
+      - name: Check we have all required github environment variables
+        shell: pwsh
+        run: |
+          if ($env:NUGET_PUBLISH_API_KEY -eq $null) {
+            throw "NUGET_PUBLISH_API_KEY is not set"
+          }
+          if ($env:NUGET_PACKAGE_REPOSITORY -eq $null) {
+            throw "NUGET_PACKAGE_REPOSITORY is not set"
+          }
+
+      # Checkout the repository
+      - uses: actions/checkout@v4
+
+      # Setup .NET environment
+      - name: Setup .NET
+        # Only setup .NET if the runs-on-config is not self-hosted.
+        # Self-hosted runners already have dotnet installed.
+        # This workflow needs to run in github on self-hosted runners to have access to artifactory.
+        # When running on a local machine via act, runs-on-config should be set to something other than self-hosted.
+        if: ${{ inputs.runs-on-config != 'self-hosted' }}
+        uses: ./.github/actions/setup-dotnet
+
+      # Download the NuGet package artifact
+      - uses: actions/download-artifact@v4
+
+        with:
+          name: nuget-package
+
+      # Publish the package to a NuGet Repository
+      - name: Publish the package to a Nuget Repository
+        shell: pwsh
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_PUBLISH_API_KEY }}
+        # This command will fail if the package already exists in the repository.
+        run: dotnet nuget push Tableau.Migration.*.nupkg -k $env:NUGET_API_KEY -s ${{ env.NUGET_PACKAGE_REPOSITORY }}

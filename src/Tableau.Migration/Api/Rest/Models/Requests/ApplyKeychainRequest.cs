@@ -44,7 +44,7 @@ namespace Tableau.Migration.Api.Rest.Models.Requests
         {
             EncryptedKeychains = encryptedKeychains.ToArray();
 
-            if(keychainUserMapping.IsNullOrEmpty())
+            if (keychainUserMapping.IsNullOrEmpty())
             {
                 AssociatedUserLuidMapping = null;
             }

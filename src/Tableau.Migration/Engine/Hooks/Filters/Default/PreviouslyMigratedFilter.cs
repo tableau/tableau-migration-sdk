@@ -25,7 +25,7 @@ namespace Tableau.Migration.Engine.Hooks.Filters.Default
     /// Migration filter that skips previously migrated content.
     /// </summary>
     /// <typeparam name="TContent">The content type.</typeparam>
-    public class PreviouslyMigratedFilter<TContent> 
+    public class PreviouslyMigratedFilter<TContent>
         : ContentFilterBase<TContent> where TContent : IContentReference
     {
         /// <summary>
@@ -36,8 +36,8 @@ namespace Tableau.Migration.Engine.Hooks.Filters.Default
         /// <param name="localizer">A string localizer.</param>
         /// <param name="logger">The logger.</param>
         public PreviouslyMigratedFilter(
-            IMigrationInput input, 
-            IMigrationPlanOptionsProvider<PreviouslyMigratedFilterOptions> optionsProvider, 
+            IMigrationInput input,
+            IMigrationPlanOptionsProvider<PreviouslyMigratedFilterOptions> optionsProvider,
             ISharedResourcesLocalizer localizer,
             ILogger<IContentFilter<TContent>> logger) : base(localizer, logger)
         {

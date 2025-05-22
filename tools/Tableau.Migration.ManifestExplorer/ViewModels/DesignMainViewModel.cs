@@ -21,7 +21,7 @@ namespace Tableau.Migration.ManifestExplorer.ViewModels
 {
     internal sealed class DesignMainViewModel : MainViewModel
     {
-        public DesignMainViewModel() 
+        public DesignMainViewModel()
             : base(new(new FileSystem()))
         { }
     }

@@ -55,7 +55,7 @@ namespace Tableau.Migration.Api.Permissions
         {
             return _contentTypeClients.GetOrAdd(contentTypeUrlSegment, s =>
             {
-                var uriBuilder = new PermissionsUriBuilder("projects", $"default-permissions/{s}");
+                var uriBuilder = new PermissionsUriBuilder(RestUrlKeywords.Projects, $"{RestUrlKeywords.DefaultPermissions}/{s}");
                 var client = _permissionsClientFactory.Create(uriBuilder);
                 _contentTypeClients[s] = client;
                 return client;
@@ -134,13 +134,13 @@ namespace Tableau.Migration.Api.Permissions
                 var updatePermissionsResult = await UpdatePermissionsAsync(permission.Key, projectId, permission.Value, cancel).ConfigureAwait(false);
 
                 resultBuilder.Add(updatePermissionsResult);
-                    
+
                 if (!updatePermissionsResult.Success)
                 {
                     continue;
                 }
             }
-            
+
             return resultBuilder.Build();
         }
     }

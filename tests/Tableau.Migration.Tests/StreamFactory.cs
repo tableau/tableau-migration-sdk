@@ -26,7 +26,7 @@ namespace Tableau.Migration.Tests
         private readonly Func<byte[], T> _factory;
 
         public StreamFactory(Func<byte[], T> factory)
-        { 
+        {
             _factory = factory;
         }
 

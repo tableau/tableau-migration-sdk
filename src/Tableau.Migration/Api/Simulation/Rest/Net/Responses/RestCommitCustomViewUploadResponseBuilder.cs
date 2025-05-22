@@ -84,7 +84,7 @@ namespace Tableau.Migration.Api.Simulation.Rest.Net.Responses
                 Shared = true,
                 Owner = new CustomViewResponse.CustomViewType.OwnerType
                 {
-                    Id = Guid.NewGuid()                
+                    Id = Guid.NewGuid()
                 },
                 Workbook = new CustomViewResponse.CustomViewType.WorkbookType
                 {

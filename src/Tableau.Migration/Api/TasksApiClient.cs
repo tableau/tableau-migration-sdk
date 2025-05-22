@@ -55,7 +55,7 @@ namespace Tableau.Migration.Api
             ILoggerFactory loggerFactory,
             ISharedResourcesLocalizer sharedResourcesLocalizer,
             IHttpContentSerializer serializer)
-            : base(restRequestBuilderFactory, finderFactory, loggerFactory, sharedResourcesLocalizer, RestUrlPrefixes.Tasks)
+            : base(restRequestBuilderFactory, finderFactory, loggerFactory, sharedResourcesLocalizer, RestUrlKeywords.Tasks)
         {
             _sessionProvider = sessionProvider;
             _contentCacheFactory = contentCacheFactory;
@@ -82,7 +82,7 @@ namespace Tableau.Migration.Api
             CancellationToken cancel)
         {
             var result = await RestRequestBuilderFactory
-                .CreateUri($"{UrlPrefix}/extractRefreshes/{extractRefreshTaskId.ToUrlSegment()}")
+                .CreateUri($"{UrlPrefix}/{RestUrlKeywords.ExtractRefreshes}/{extractRefreshTaskId.ToUrlSegment()}")
                 .ForDeleteRequest()
                 .SendAsync(cancel)
                 .ToResultAsync(_serializer, SharedResourcesLocalizer, cancel)
@@ -105,7 +105,7 @@ namespace Tableau.Migration.Api
             CancellationToken cancel)
         {
             var result = await RestRequestBuilderFactory
-                .CreateUri($"{UrlPrefix}/extractRefreshes")
+                .CreateUri($"{UrlPrefix}/{RestUrlKeywords.ExtractRefreshes}")
                 .ForPostRequest()
                 .WithXmlContent(new CreateExtractRefreshTaskRequest(options))
                 .SendAsync<CloudResponses.CreateExtractRefreshTaskResponse>(cancel)
@@ -203,7 +203,7 @@ namespace Tableau.Migration.Api
             where TSchedule : ISchedule
         {
             return await RestRequestBuilderFactory
-                .CreateUri($"{UrlPrefix}/extractRefreshes")
+                .CreateUri($"{UrlPrefix}/{RestUrlKeywords.ExtractRefreshes}")
                 .ForGetRequest()
                 .SendAsync<TResponse>(cancel)
                 .ToResultAsync(

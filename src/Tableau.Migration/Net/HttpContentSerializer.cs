@@ -45,7 +45,7 @@ namespace Tableau.Migration.Net
              * but want to include the HTML content in the exception
              * so users can check it for debugging purposes.
             */
-            if(content.IsHtmlContent())
+            if (content.IsHtmlContent())
             {
                 var htmlContent = await content.ReadAsEncodedStringAsync(cancel).ConfigureAwait(false);
                 throw new FormatException("Server responded with HTML error page: " + htmlContent);

@@ -84,9 +84,9 @@ namespace Tableau.Migration.Tests.Unit.Content.Schedules.Cloud
                 {
                     Items = Enumerable.Range(1, 10)
                         .Select(i => new ExtractRefreshTasksResponse.TaskType
-                            {
-                                ExtractRefresh = CreateExtractRefreshResponse(GetRandomType(), contentType)
-                            })
+                        {
+                            ExtractRefresh = CreateExtractRefreshResponse(GetRandomType(), contentType)
+                        })
                         .ToArray()
                 };
 

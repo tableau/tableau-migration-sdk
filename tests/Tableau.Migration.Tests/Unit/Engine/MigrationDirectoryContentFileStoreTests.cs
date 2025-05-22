@@ -34,7 +34,7 @@ namespace Tableau.Migration.Tests.Unit.Engine
             protected readonly Guid MigrationId = Guid.NewGuid();
 
             public MigrationDirectoryContentFileStoreTest()
-            { 
+            {
                 MockMigrationInput.SetupGet(i => i.MigrationId).Returns(MigrationId);
             }
 

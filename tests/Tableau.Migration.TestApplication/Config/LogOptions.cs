@@ -15,8 +15,7 @@
 //  limitations under the License.
 //
 
-using System;
-using Tableau.Migration.Api;
+using Serilog.Events;
 
 namespace Tableau.Migration.TestApplication.Config
 {
@@ -25,5 +24,18 @@ namespace Tableau.Migration.TestApplication.Config
         public string FolderPath { get; set; } = string.Empty;
 
         public string ManifestFolderPath { get; set; } = string.Empty;
+
+        public MinimumLogLevelOverride[] MinLogLevelOverrides { get; set; } = [];
+
+        public string[] ConsoleLoggingSources { get; set; } = [];
+
+        public int FileSizeLimitMB { get; set; } = 250;
+
+        public class MinimumLogLevelOverride
+        {
+            public string Source { get; set; } = string.Empty;
+
+            public LogEventLevel Level { get; set; }
+        }
     }
 }

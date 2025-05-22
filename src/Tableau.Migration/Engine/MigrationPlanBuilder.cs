@@ -27,7 +27,6 @@ using Tableau.Migration.Content;
 using Tableau.Migration.Content.Schedules.Cloud;
 using Tableau.Migration.Engine.Endpoints;
 using Tableau.Migration.Engine.Hooks;
-using Tableau.Migration.Engine.Hooks.ActionCompleted;
 using Tableau.Migration.Engine.Hooks.Filters;
 using Tableau.Migration.Engine.Hooks.Filters.Default;
 using Tableau.Migration.Engine.Hooks.InitializeMigration.Default;
@@ -149,7 +148,6 @@ namespace Tableau.Migration.Engine
             AppendDefaultFilters();
             AppendDefaultTransformers();
             AppendDefaultPostPublishHooks();
-            AppendDefaultActionCompletedHooks();
 
             return this;
 
@@ -157,6 +155,7 @@ namespace Tableau.Migration.Engine
             {
                 Hooks.Add<PreflightCheck>();
                 Hooks.Add<EmbeddedCredentialsPreflightCheck>();
+                Hooks.Add<SubscriptionsPreflightCheck>();
             }
 
             void AppendDefaultFilters()
@@ -188,11 +187,6 @@ namespace Tableau.Migration.Engine
                 Transformers.Add<CustomViewDefaultUserReferencesTransformer, IPublishableCustomView>();
                 Transformers.Add(typeof(EncryptExtractTransformer<>), GetPublishTypesByInterface<IExtractContent>());
                 Transformers.Add<SubscriptionTransformer, ICloudSubscription>();
-            }
-
-            void AppendDefaultActionCompletedHooks()
-            {
-                Hooks.Add<SubscriptionsEnabledActionCompletedHook>();
             }
         }
 

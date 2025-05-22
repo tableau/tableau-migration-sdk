@@ -76,7 +76,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests
                     Assert.NotEqual(sourceUser.Id, destinationUser.Id);
                     Assert.Equal(sourceUser.Domain?.Name, destinationUser.Domain?.Name);
                     Assert.Equal(sourceUser.Name, destinationUser.Name);
-                    
+
                     // Tableau Cloud does not allow updating user email/full name.
                     Assert.Null(destinationUser.Email);
                     Assert.Null(destinationUser.FullName);

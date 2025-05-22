@@ -42,7 +42,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Pipelines
         private static Type GetPublishType(object o)
         {
             var t = o.GetType();
-            switch(t.GenericTypeArguments.Length)
+            switch (t.GenericTypeArguments.Length)
             {
                 case 1:
                     return t.GenericTypeArguments[0];

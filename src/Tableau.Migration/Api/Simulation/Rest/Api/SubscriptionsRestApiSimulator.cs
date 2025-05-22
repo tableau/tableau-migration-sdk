@@ -60,7 +60,7 @@ namespace Tableau.Migration.Api.Simulation.Rest.Api
         /// <param name="simulator">A response simulator to setup with REST API methods.</param>
         public SubscriptionsRestApiSimulator(TableauApiResponseSimulator simulator)
         {
-            var subscriptionsUrl = SiteUrl(RestUrlPrefixes.Subscriptions);
+            var subscriptionsUrl = SiteUrl(RestUrlKeywords.Subscriptions);
 
             ListSubscriptions =
                 simulator.Data.IsTableauServer
@@ -72,11 +72,11 @@ namespace Tableau.Migration.Api.Simulation.Rest.Api
             CreateSubscription = simulator.SetupRestPost(subscriptionsUrl,
                 new RestCreateSubscriptionResponseBuilder(simulator.Data, simulator.Serializer));
 
-            UpdateSubscription = simulator.SetupRestPut(EntityUrl(RestUrlPrefixes.Subscriptions),
+            UpdateSubscription = simulator.SetupRestPut(EntityUrl(RestUrlKeywords.Subscriptions),
                 new RestUpdateSubscriptionResponseBuilder(simulator.Data, simulator.Serializer));
 
 
-            DeleteSubscription = simulator.SetupRestDelete(SiteEntityUrl(RestUrlPrefixes.Subscriptions), BuildDeleteResponseBuilder(simulator));
+            DeleteSubscription = simulator.SetupRestDelete(SiteEntityUrl(RestUrlKeywords.Subscriptions), BuildDeleteResponseBuilder(simulator));
         }
 
         private static RestDeleteResponseBuilder BuildDeleteResponseBuilder(TableauApiResponseSimulator simulator)

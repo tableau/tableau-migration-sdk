@@ -1,6 +1,6 @@
-﻿using Microsoft.Extensions.Logging;
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Tableau.Migration.Content;
 using Tableau.Migration.Engine.Hooks.Mappings;
 using Tableau.Migration.Engine.Hooks.Mappings.Default;
@@ -27,9 +27,9 @@ namespace Csharp.ExampleApplication.Hooks.Mappings
         /// </summary>
         /// <param name="optionsProvider">The options for this Mapping.</param>
         public EmailDomainMapping(
-            IMigrationPlanOptionsProvider<EmailDomainMappingOptions> optionsProvider, 
+            IMigrationPlanOptionsProvider<EmailDomainMappingOptions> optionsProvider,
             ISharedResourcesLocalizer localizer,
-            ILogger<EmailDomainMapping> logger) 
+            ILogger<EmailDomainMapping> logger)
                 : base(localizer, logger)
         {
             _domain = optionsProvider.Get().EmailDomain;

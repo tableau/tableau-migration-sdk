@@ -46,6 +46,7 @@ namespace Tableau.Migration.PythonGenerator.Writers
             var typeVars = pyTypes
                 .SelectMany(pt => pt.InheritedTypes)
                 .SelectMany(it => it.GenericTypes ?? ImmutableArray<PythonTypeReference>.Empty)
+                .Where(gt => gt.ImportModule is null)
                 .Select(gt => gt.Name)
                 .Distinct()
                 .Order()

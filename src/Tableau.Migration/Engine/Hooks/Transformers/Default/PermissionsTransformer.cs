@@ -41,6 +41,11 @@ namespace Tableau.Migration.Engine.Hooks.Transformers.Default
         private readonly ILogger<PermissionsTransformer> _logger;
         private readonly ISharedResourcesLocalizer _localizer;
 
+        private static readonly ImmutableHashSet<string> OBSOLETE_CAPABILITIES = ImmutableHashSet.Create<string>(StringComparer.OrdinalIgnoreCase,
+        [
+            PermissionsCapabilityNames.CreateRefreshMetrics
+        ]);
+
         /// <summary>
         /// Creates a new <see cref="PermissionsTransformer"/> object.
         /// </summary>
@@ -49,7 +54,7 @@ namespace Tableau.Migration.Engine.Hooks.Transformers.Default
         /// <param name="localizer">A string localizer.</param>
         public PermissionsTransformer(
             IDestinationContentReferenceFinderFactory destinationFinderFactory,
-            ILogger<PermissionsTransformer> logger, 
+            ILogger<PermissionsTransformer> logger,
             ISharedResourcesLocalizer localizer)
         {
             _userContentFinder = destinationFinderFactory.ForDestinationContentType<IUser>();
@@ -60,10 +65,18 @@ namespace Tableau.Migration.Engine.Hooks.Transformers.Default
 
         private static bool ShouldMigrateCapability(ICapability c)
         {
-            //W-14374726 Some versions of Tableau Server (pre-2020.1) supported ProjectLeader Deny capabilities,
-            //but that feature was removed. These capabilities remain in the database (even after upgrade)
-            //but will throw errors when migrated through APIs.
-            //Thus we filter out these capabilities to avoid errors the user has no control over.
+            // Obsolete capability are removed.
+            if(OBSOLETE_CAPABILITIES.Contains(c.Name))
+            {
+                return false;
+            }
+
+            /*
+             * W-14374726 Some versions of Tableau Server (pre-2020.1) supported ProjectLeader Deny capabilities,
+             * but that feature was removed. These capabilities remain in the database (even after upgrade)
+             * but will throw errors when migrated through APIs.
+             * Thus we filter out these capabilities to avoid errors the user has no control over.
+             */
             if (PermissionsCapabilityNames.IsAMatch(PermissionsCapabilityNames.ProjectLeader, c.Name))
             {
                 if (PermissionsCapabilityModes.IsAMatch(PermissionsCapabilityModes.Deny, c.Mode))
@@ -72,7 +85,7 @@ namespace Tableau.Migration.Engine.Hooks.Transformers.Default
                 }
             }
 
-            //Inherited leaders are calculated automatically and don't need to be set manually.
+            // Inherited leaders are calculated automatically and don't need to be set manually.
             if (PermissionsCapabilityNames.IsAMatch(PermissionsCapabilityNames.InheritedProjectLeader, c.Name))
             {
                 return false;
@@ -96,7 +109,7 @@ namespace Tableau.Migration.Engine.Hooks.Transformers.Default
 
                 var destinationGrantee = await GetDestinationGranteeAsync(
                     group.Key,
-                    granteeType, 
+                    granteeType,
                     cancel)
                     .ConfigureAwait(false);
 
@@ -125,8 +138,8 @@ namespace Tableau.Migration.Engine.Hooks.Transformers.Default
         }
 
         private async Task<IContentReference?> GetDestinationGranteeAsync(
-            Guid groupKey, 
-            GranteeType granteeType, 
+            Guid groupKey,
+            GranteeType granteeType,
             CancellationToken cancel)
         {
             if (granteeType is GranteeType.User)

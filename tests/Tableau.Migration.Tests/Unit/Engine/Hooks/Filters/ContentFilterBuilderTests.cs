@@ -21,15 +21,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Moq;
 using Tableau.Migration.Content;
 using Tableau.Migration.Engine;
 using Tableau.Migration.Engine.Hooks;
 using Tableau.Migration.Engine.Hooks.Filters;
-using Moq;
-using Xunit;
-using Polly;
 using Tableau.Migration.Resources;
-using Microsoft.Extensions.Localization;
+using Xunit;
 
 namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Filters
 {
@@ -47,8 +45,8 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Filters
         private class GenericFilter<TContent> : ContentFilterBase<TContent>
             where TContent : IContentReference
         {
-            public GenericFilter(ISharedResourcesLocalizer localizer, ILogger<IContentFilter<TContent>> logger) 
-                : base (localizer, logger) { }
+            public GenericFilter(ISharedResourcesLocalizer localizer, ILogger<IContentFilter<TContent>> logger)
+                : base(localizer, logger) { }
 
             public override bool ShouldMigrate(ContentMigrationItem<TContent> item) => true;
         }

@@ -30,24 +30,16 @@ namespace Tableau.Migration.Content.Files
         {
             var extension = Path.GetExtension(originalFileName) ?? string.Empty;
 
-            if (contentItem is IDataSource ds)
+            return contentItem switch
             {
-                return Path.Combine("data-sources", $"data-source-{ds.Id:N}{extension}");
-            }
-            else if(contentItem is IFlow f)
-            {
-                return Path.Combine("flows", $"flow-{f.Id:N}{extension}");
-            }
-            else if (contentItem is IWorkbook wb)
-            {
-                return Path.Combine("workbooks", $"workbook-{wb.Id:N}{extension}");
-            }
-            else if (contentItem is ICustomView cv)
-            {
-                return Path.Combine("customviews", $"customview-{cv.Id:N}{extension}");
-            }
+                IDataSource ds => Path.Combine(ContentTypeDirectoryNames.DataSources, GetFileName(ContentTypeFilePrefixes.DataSource, ds.Id, extension)),
+                IFlow f => Path.Combine(ContentTypeDirectoryNames.Flows, GetFileName(ContentTypeFilePrefixes.Flow, f.Id, extension)),
+                IWorkbook wb => Path.Combine(ContentTypeDirectoryNames.Workbooks, GetFileName(ContentTypeFilePrefixes.Workbook, wb.Id, extension)),
+                ICustomView cv => Path.Combine(ContentTypeDirectoryNames.CustomViews, GetFileName(ContentTypeFilePrefixes.CustomView, cv.Id, extension)),
+                _ => throw new ArgumentException($"Cannot generate a file store path for content type {typeof(TContent).Name}"),
+            };
 
-            throw new ArgumentException($"Cannot generate a file store path for content type {typeof(TContent).Name}");
+            static string GetFileName(string prefix, Guid id, string extension) => $"{prefix}-{id:N}{extension}";
         }
     }
 }

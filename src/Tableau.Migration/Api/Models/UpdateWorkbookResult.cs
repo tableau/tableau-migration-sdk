@@ -27,7 +27,7 @@ namespace Tableau.Migration.Api.Models
 
         /// <inheritdoc/>
         public string Name { get; }
-        
+
         /// <inheritdoc/>
         public string? Description { get; }
 

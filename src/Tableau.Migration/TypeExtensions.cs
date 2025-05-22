@@ -100,6 +100,17 @@ namespace Tableau.Migration
             }
         }
 
+        /// <summary>
+        /// Gets all the values of string constants in a given type.
+        /// </summary>
+        /// <param name="type">The <see cref="Type"/> to get the values for.</param>
+        /// <returns>All public string constant values.</returns>
+        public static HashSet<string> GetAllPublicStringValues(this Type type)
+            => new(type
+                .GetFields(BindingFlags.Public | BindingFlags.Static)
+                .Where(f => f.IsLiteral && !f.IsInitOnly && f.FieldType == typeof(string))
+                .Select(f => (string)f.GetRawConstantValue()!));
+
         #region - private implementations 
 
         private static List<PropertyInfo> FindAllInterfaceProperties(this Type interfaceType, BindingFlags bindingAttr = BindingFlags.Default)

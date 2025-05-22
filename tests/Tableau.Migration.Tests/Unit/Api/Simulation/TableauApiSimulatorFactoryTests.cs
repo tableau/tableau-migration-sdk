@@ -61,7 +61,7 @@ namespace Tableau.Migration.Tests.Unit.Api.Simulation
 
                 var simulator1 = factory.GetOrCreate(new("http://localhost"), true);
                 var simulator2 = factory.GetOrCreate(new("http://localhost"), true);
-                
+
                 Assert.Same(simulator1, simulator2);
                 MockSimulatorCollection.Verify(x => x.AddOrUpdate(It.IsAny<TableauApiSimulator>()), Times.Once);
             }

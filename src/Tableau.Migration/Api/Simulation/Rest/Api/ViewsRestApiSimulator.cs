@@ -30,7 +30,7 @@ namespace Tableau.Migration.Api.Simulation.Rest.Api
         /// </summary>
         /// <param name="simulator"></param>
         public ViewsRestApiSimulator(TableauApiResponseSimulator simulator) :
-            base(simulator, RestUrlPrefixes.Views, (data) => data.Views)
+            base(simulator, RestUrlKeywords.Views, (data) => data.Views)
         {
         }
     }

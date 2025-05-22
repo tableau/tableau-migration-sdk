@@ -42,7 +42,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
             public TestTableauServerConnectionUrlTransformer(
                 IMigration migration,
                 IDestinationContentReferenceFinderFactory destinationFinderFactory,
-                ILogger<TableauServerConnectionUrlTransformer> logger, 
+                ILogger<TableauServerConnectionUrlTransformer> logger,
                 ISharedResourcesLocalizer localizer)
                 : base(migration, destinationFinderFactory, logger, localizer)
             { }

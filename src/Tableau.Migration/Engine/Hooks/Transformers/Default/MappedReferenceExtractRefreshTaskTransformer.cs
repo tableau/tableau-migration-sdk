@@ -29,7 +29,7 @@ namespace Tableau.Migration.Engine.Hooks.Transformers.Default
     /// <summary>
     /// Transformer that maps the workbook/data source from a given extract refresh task.
     /// </summary>
-    public class MappedReferenceExtractRefreshTaskTransformer 
+    public class MappedReferenceExtractRefreshTaskTransformer
         : ContentTransformerBase<ICloudExtractRefreshTask>
     {
         private readonly IDestinationContentReferenceFinder<IDataSource> _dataSourceFinder;
@@ -44,7 +44,7 @@ namespace Tableau.Migration.Engine.Hooks.Transformers.Default
         public MappedReferenceExtractRefreshTaskTransformer(
             IDestinationContentReferenceFinderFactory destinationFinderFactory,
             ISharedResourcesLocalizer localizer,
-            ILogger<MappedReferenceExtractRefreshTaskTransformer> logger) 
+            ILogger<MappedReferenceExtractRefreshTaskTransformer> logger)
             : base(localizer, logger)
         {
             _dataSourceFinder = destinationFinderFactory.ForDestinationContentType<IDataSource>();
@@ -65,8 +65,8 @@ namespace Tableau.Migration.Engine.Hooks.Transformers.Default
             if (destinationReference is null)
             {
                 Logger.LogWarning(
-                    Localizer[SharedResourceKeys.MappedReferenceExtractRefreshTaskTransformerCannotFindReferenceWarning], 
-                    extractRefreshTask.Id, 
+                    Localizer[SharedResourceKeys.MappedReferenceExtractRefreshTaskTransformerCannotFindReferenceWarning],
+                    extractRefreshTask.Id,
                     extractRefreshTask.ContentType,
                     extractRefreshTask.Content);
             }

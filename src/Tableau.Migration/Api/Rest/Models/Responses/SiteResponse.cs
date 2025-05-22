@@ -60,6 +60,12 @@ namespace Tableau.Migration.Api.Rest.Models.Responses
             /// </summary>
             [XmlAttribute("extractEncryptionMode")]
             public string? ExtractEncryptionMode { get; set; }
+            
+            /// <summary>
+            /// Gets or sets the site extract encryption mode for the response.
+            /// </summary>
+            [XmlAttribute("disableSubscriptions")]
+            public bool DisableSubscriptions { get; set; }
         }
     }
 }

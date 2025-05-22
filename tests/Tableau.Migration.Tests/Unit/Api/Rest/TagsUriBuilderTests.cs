@@ -47,7 +47,7 @@ namespace Tableau.Migration.Tests.Unit.Api.Rest
             {
                 var builder = new TagsUriBuilder(Create<string>());
 
-                Assert.Equal("tags", builder.Suffix);
+                Assert.Equal(RestUrlKeywords.Tags, builder.Suffix);
             }
         }
 

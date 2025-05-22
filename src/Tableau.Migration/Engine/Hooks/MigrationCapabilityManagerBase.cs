@@ -18,6 +18,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Tableau.Migration.Content;
 using Tableau.Migration.Resources;
 
 namespace Tableau.Migration.Engine.Hooks
@@ -39,10 +40,7 @@ namespace Tableau.Migration.Engine.Hooks
         }
 
         /// <inheritdoc/>
-        public abstract bool IsMigrationCapabilityDisabled();
-
-        /// <inheritdoc/>
-        public abstract Task<IResult> SetMigrationCapabilityAsync(CancellationToken cancel);
+        public abstract Task<IResult> SetMigrationCapabilityAsync(IServerSession destinationServerSession, CancellationToken cancel);
 
         protected void LogCapabilityDisabled(string typeName, string reason)
             => Logger.LogWarning(Localizer[SharedResourceKeys.MigrationDisabledWarning], typeName, reason);

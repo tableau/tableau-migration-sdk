@@ -60,7 +60,7 @@ namespace Tableau.Migration.Api
         public async Task<IResult<IGroup>> CreateLocalGroupAsync(string name, string? minimumSiteRole, CancellationToken cancel)
         {
             var groupResult = await RestRequestBuilderFactory
-                .CreateUri("/groups")
+                .CreateUri($"/{RestUrlKeywords.Groups}")
                 .ForPostRequest()
                 .WithXmlContent(new CreateLocalGroupRequest(name, minimumSiteRole))
                 .SendAsync<CreateGroupResponse>(cancel)
@@ -78,7 +78,7 @@ namespace Tableau.Migration.Api
             CancellationToken cancel)
         {
             var jobResult = await RestRequestBuilderFactory
-                .CreateUri("/groups")
+                .CreateUri($"/{RestUrlKeywords.Groups}")
                 .ForPostRequest()
                 .WithXmlContent(new ImportGroupRequest(name, ImportGroupRequest.ActiveDirectorySource, domainName, minimumSiteRole, grantLicenseMode))
                 .SendAsync<CreateGroupResponse>(cancel)
@@ -96,7 +96,7 @@ namespace Tableau.Migration.Api
             CancellationToken cancel)
         {
             var jobResult = await RestRequestBuilderFactory
-                .CreateUri("/groups")
+                .CreateUri($"/{RestUrlKeywords.Groups}")
                 .WithQuery("asJob", "true")
                 .ForPostRequest()
                 .WithXmlContent(new ImportGroupRequest(name, ImportGroupRequest.ActiveDirectorySource, domainName, minimumSiteRole, grantLicenseMode))
@@ -115,7 +115,7 @@ namespace Tableau.Migration.Api
         public async Task<IPagedResult<IGroup>> GetAllGroupsAsync(int pageNumber, int pageSize, IEnumerable<Filter> filters, CancellationToken cancel)
         {
             var getAllGroupsResult = await RestRequestBuilderFactory
-                .CreateUri("/groups")
+                .CreateUri($"/{RestUrlKeywords.Groups}")
                 .WithPage(pageNumber, pageSize)
                 .WithFilters(filters)
                 .ForGetRequest()
@@ -130,7 +130,7 @@ namespace Tableau.Migration.Api
         public async Task<IPagedResult<IUser>> GetGroupUsersAsync(Guid groupId, int pageNumber, int pageSize, CancellationToken cancel)
         {
             var getGroupUsersResult = await RestRequestBuilderFactory
-                .CreateUri($"/groups/{groupId.ToUrlSegment()}/users")
+                .CreateUri($"/{RestUrlKeywords.Groups}/{groupId.ToUrlSegment()}/{RestUrlKeywords.Users}")
                 .WithPage(pageNumber, pageSize)
                 .ForGetRequest()
                 .SendAsync<UsersResponse>(cancel)
@@ -144,7 +144,7 @@ namespace Tableau.Migration.Api
         public async Task<IResult<IAddUserToGroupResult>> AddUserToGroupAsync(Guid groupId, Guid userId, CancellationToken cancel)
         {
             var userResult = await RestRequestBuilderFactory
-                .CreateUri($"/groups/{groupId}/users")
+                .CreateUri($"/{RestUrlKeywords.Groups}/{groupId}/{RestUrlKeywords.Users}")
                 .ForPostRequest()
                 .WithXmlContent(new AddUserToGroupRequest(userId))
                 .SendAsync<AddUserResponse>(cancel)
@@ -158,7 +158,7 @@ namespace Tableau.Migration.Api
         public async Task<IResult> RemoveUserFromGroupAsync(Guid groupId, Guid userId, CancellationToken cancel)
         {
             var result = await RestRequestBuilderFactory
-                .CreateUri($"/groups/{groupId}/users/{userId}")
+                .CreateUri($"/{RestUrlKeywords.Groups}/{groupId}/{RestUrlKeywords.Users}/{userId}")
                 .ForDeleteRequest()
                 .SendAsync(cancel)
                 .ToResultAsync(_serializer, SharedResourcesLocalizer, cancel)
@@ -171,7 +171,7 @@ namespace Tableau.Migration.Api
         public async Task<IResult> DeleteGroupAsync(Guid groupId, CancellationToken cancel)
         {
             var result = await RestRequestBuilderFactory
-                .CreateUri($"/groups/{groupId.ToUrlSegment()}")
+                .CreateUri($"/{RestUrlKeywords.Groups}/{groupId.ToUrlSegment()}")
                 .ForDeleteRequest()
                 .SendAsync(cancel)
                 .ToResultAsync(_serializer, SharedResourcesLocalizer, cancel)
@@ -274,18 +274,22 @@ namespace Tableau.Migration.Api
             var resultBuilder = new ResultBuilder();
             var destinationUserIds = destinationGroupUsersResult.Value.Users.Select(u => u.User.Id).ToImmutableHashSet();
             var targetUserIds = item.Users.Select(u => u.User.Id).ToImmutableHashSet();
-            foreach (var destinationUserId in destinationUserIds)
+
+            if (_configReader.Get<IGroup>().OverwriteGroupUsersEnabled)
             {
-                cancel.ThrowIfCancellationRequested();
-                if (targetUserIds.Contains(destinationUserId))
+                foreach (var destinationUserId in destinationUserIds)
                 {
-                    continue;
+                    cancel.ThrowIfCancellationRequested();
+                    if (targetUserIds.Contains(destinationUserId))
+                    {
+                        continue;
+                    }
+
+                    var removeUserResult = await RemoveUserFromGroupAsync(destinationGroupId, destinationUserId, cancel)
+                        .ConfigureAwait(false);
+
+                    resultBuilder.Add(removeUserResult);
                 }
-
-                var addUserResult = await RemoveUserFromGroupAsync(destinationGroupId, destinationUserId, cancel)
-                    .ConfigureAwait(false);
-
-                resultBuilder.Add(addUserResult);
             }
 
             foreach (var targetUserId in targetUserIds)

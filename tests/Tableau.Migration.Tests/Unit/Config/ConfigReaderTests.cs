@@ -57,7 +57,8 @@ namespace Tableau.Migration.Tests.Unit.Config
                 new()
                 {
                     Type = "Group",
-                    BatchSize = 224
+                    BatchSize = 224,
+                    OverwriteGroupUsersEnabled = false
                 },
                 new()
                 {
@@ -83,10 +84,15 @@ namespace Tableau.Migration.Tests.Unit.Config
         {
             Assert.Equal(expected.BatchSize, actual.BatchSize);
         }
-        
+
         public void AssertCustomIncludeExtractResult(ContentTypesOptions expected, ContentTypesOptions actual)
         {
             Assert.Equal(expected.IncludeExtractEnabled, actual.IncludeExtractEnabled);
+        }
+
+        public void AssertCustomOverwriteGroupUsersResult(ContentTypesOptions expected, ContentTypesOptions actual)
+        {
+            Assert.Equal(expected.OverwriteGroupUsersEnabled, actual.OverwriteGroupUsersEnabled);
         }
 
         public void AssertDefaultResult(ContentTypesOptions actual)
@@ -110,9 +116,12 @@ namespace Tableau.Migration.Tests.Unit.Config
                 AssertCustomBatchSizeResult(testData.First(i => i.Type == "Project"), Reader.Get<IProject>());
                 AssertCustomBatchSizeResult(testData.First(i => i.Type == "Workbook"), Reader.Get<IWorkbook>());
                 AssertCustomBatchSizeResult(testData.First(i => i.Type == "DataSource"), Reader.Get<IDataSource>());
-                
+
                 AssertCustomIncludeExtractResult(testData.First(i => i.Type == "Workbook"), Reader.Get<IWorkbook>());
                 AssertCustomIncludeExtractResult(testData.First(i => i.Type == "DataSource"), Reader.Get<IDataSource>());
+
+                AssertCustomOverwriteGroupUsersResult(testData.First(i => i.Type == "Group"), Reader.Get<IGroup>());
+
             }
 
             [Fact]

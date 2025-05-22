@@ -18,6 +18,7 @@
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using Tableau.Migration.Api.Rest;
 using Tableau.Migration.Api.Simulation.Rest.Net;
 using Tableau.Migration.Api.Simulation.Rest.Net.Requests;
 using Tableau.Migration.Api.Simulation.Rest.Net.Responses;
@@ -44,31 +45,31 @@ namespace Tableau.Migration.Api.Simulation.Rest.Api
         /// <param name="simulator">A response simulator to setup with REST API methods.</param>
         public TasksRestApiSimulator(TableauApiResponseSimulator simulator)
         {
-            ListServerExtractRefreshTasks = 
+            ListServerExtractRefreshTasks =
                 simulator.Data.IsTableauServer
                     ? simulator.SetupRestGetList<ServerResponse.ExtractRefreshTasksResponse, ServerResponse.ExtractRefreshTasksResponse.TaskType>(
-                        SiteUrl("tasks/extractRefreshes"), 
-                        (d,r) => d.ServerExtractRefreshTasks,
+                        SiteUrl($"{RestUrlKeywords.Tasks}/{RestUrlKeywords.ExtractRefreshes}"),
+                        (d, r) => d.ServerExtractRefreshTasks,
                         null,
                         true)
                     : simulator.SetupRestGetList<CloudResponse.ExtractRefreshTasksResponse, CloudResponse.ExtractRefreshTasksResponse.TaskType>(
-                        SiteUrl("tasks/extractRefreshes"),
+                        SiteUrl($"{RestUrlKeywords.Tasks}/{RestUrlKeywords.ExtractRefreshes}"),
                         (d, r) => d.CloudExtractRefreshTasks,
                         null,
                         true);
 
             simulator.SetupRestPost(
-                SiteUrl("tasks/extractRefreshes"), 
+                SiteUrl($"{RestUrlKeywords.Tasks}/{RestUrlKeywords.ExtractRefreshes}"),
                 new RestExtractRefreshTaskCreateResponseBuilder(simulator.Data, simulator.Serializer));
 
             simulator.SetupRestDelete(
-                SiteEntityUrl("tasks/extractRefreshes"),
+                SiteEntityUrl($"{RestUrlKeywords.Tasks}/{RestUrlKeywords.ExtractRefreshes}"),
                 new RestDeleteResponseBuilder(simulator.Data, DeleteExtractRefresh, simulator.Serializer));
         }
 
         private HttpStatusCode DeleteExtractRefresh(TableauData data, HttpRequestMessage request)
         {
-            var extractRefreshId = request.GetIdAfterSegment("extractRefreshes");
+            var extractRefreshId = request.GetIdAfterSegment(RestUrlKeywords.ExtractRefreshes);
 
             if (extractRefreshId is null)
             {

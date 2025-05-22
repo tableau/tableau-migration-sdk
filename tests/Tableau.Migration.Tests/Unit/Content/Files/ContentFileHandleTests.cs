@@ -111,7 +111,7 @@ namespace Tableau.Migration.Tests.Unit.Content.Files
                 IContentFileHandle h = new ContentFileHandle(MockFileStore.Object, path, originalFileName, null);
                 Assert.Equal(expectedResult, h.HasZipFilePath);
             }
-            
+
         }
     }
 }

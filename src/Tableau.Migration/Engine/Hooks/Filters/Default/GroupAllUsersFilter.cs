@@ -17,10 +17,10 @@
 
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.Extensions.Logging;
 using Tableau.Migration.Content;
 using Tableau.Migration.Engine.Options;
 using Tableau.Migration.Resources;
-using Microsoft.Extensions.Logging;
 
 namespace Tableau.Migration.Engine.Hooks.Filters.Default
 {
@@ -38,7 +38,7 @@ namespace Tableau.Migration.Engine.Hooks.Filters.Default
         /// <param name="localizer">A string localizer.</param>
         /// <param name="logger">Default logger.</param>
         public GroupAllUsersFilter(
-            IMigrationPlanOptionsProvider<GroupAllUsersFilterOptions> optionsProvider, 
+            IMigrationPlanOptionsProvider<GroupAllUsersFilterOptions> optionsProvider,
             ISharedResourcesLocalizer localizer,
             ILogger<IContentFilter<IGroup>> logger) : base(localizer, logger)
         {

@@ -91,7 +91,7 @@ namespace Tableau.Migration.Tests.Unit.Api.Rest.Models.Responses.Cloud
                 Assert.Equal(expectedSchedule.Frequency, actualSchedule.Frequency);
                 Assert.Equal(expectedSchedule.NextRunAt, actualSchedule.NextRunAt);
 
-                var actualFrequencyDetails= actualSchedule.FrequencyDetails;
+                var actualFrequencyDetails = actualSchedule.FrequencyDetails;
                 Assert.NotNull(actualFrequencyDetails);
                 Assert.Equal(expectedFrequencyDetails.Start, actualFrequencyDetails.Start);
                 Assert.Equal(expectedFrequencyDetails.End, actualFrequencyDetails.End);

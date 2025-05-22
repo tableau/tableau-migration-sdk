@@ -81,7 +81,7 @@ namespace Tableau.Migration.Interop
 
             var configBuilder = new ConfigurationBuilder()
                 .AddEnvironmentVariables(Constants.PYTHON_ENVIRONMENT_VARIABLE_PREFIX);
-            
+
             var config = configBuilder.Build();
             return config;
         }

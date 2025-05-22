@@ -62,7 +62,7 @@ namespace Tableau.Migration.Api
                   finderFactory,
                   loggerFactory,
                   sharedResourcesLocalizer,
-                  RestUrlPrefixes.CustomViews)
+                  RestUrlKeywords.CustomViews)
         {
             _serializer = serializer;
             _configReader = configReader;
@@ -179,7 +179,7 @@ namespace Tableau.Migration.Api
             CancellationToken cancel)
         {
             var result = await RestRequestBuilderFactory
-                .CreateUri($"{UrlPrefix}/{id.ToUrlSegment()}/default/users")
+                .CreateUri($"{UrlPrefix}/{id.ToUrlSegment()}/{RestUrlKeywords.Default}/{RestUrlKeywords.Users}")
                 .WithPage(pageNumber, pageSize)
                 .ForGetRequest()
                 .SendAsync<UsersWithCustomViewAsDefaultViewResponse>(cancel)
@@ -232,7 +232,7 @@ namespace Tableau.Migration.Api
             }
 
             var setResult = await RestRequestBuilderFactory
-                .CreateUri($"{UrlPrefix}/{id.ToUrlSegment()}/default/users")
+                .CreateUri($"{UrlPrefix}/{id.ToUrlSegment()}/{RestUrlKeywords.Default}/{RestUrlKeywords.Users}")
                 .ForPostRequest()
                 .WithXmlContent(new SetCustomViewDefaultUsersRequest(users))
                 .SendAsync<CustomViewAsUsersDefaultViewResponse>(cancel)
@@ -252,7 +252,7 @@ namespace Tableau.Migration.Api
             CancellationToken cancel)
         {
             var downloadResult = await RestRequestBuilderFactory
-                .CreateUri($"{UrlPrefix}/{customViewId.ToUrlSegment()}/{RestUrlPrefixes.Content}")
+                .CreateUri($"{UrlPrefix}/{customViewId.ToUrlSegment()}/{RestUrlKeywords.Content}")
                 .ForGetRequest()
                 .DownloadAsync(cancel)
                 .ConfigureAwait(false);

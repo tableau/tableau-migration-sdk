@@ -33,7 +33,7 @@ namespace Tableau.Migration.Tests.Unit
             public void ThrowsOnInvalidConfiguration()
             {
                 var configBuilder = new ConfigurationBuilder();
-                
+
                 configBuilder.AddInMemoryCollection(new Dictionary<string, string?>
                 {
                     { "contentTypes:0:type", "user" },

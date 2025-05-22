@@ -17,6 +17,7 @@
 
 using System;
 using System.Collections.Generic;
+using Tableau.Migration.Content;
 
 namespace Tableau.Migration.Engine.Hooks
 {
@@ -29,6 +30,12 @@ namespace Tableau.Migration.Engine.Hooks
         /// Gets the migration-scoped service provider.
         /// </summary>
         IServiceProvider ScopedServices { get; }
+        
+        /// <summary>
+        /// Gets the migration-scoped server sessions.
+        /// </summary>
+        public IServerSession DestinationServerSession { get; }
+        
 
         /// <summary>
         /// Creates a new <see cref="IInitializeMigrationHookResult"/> object with the given errors.

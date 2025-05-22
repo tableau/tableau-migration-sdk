@@ -34,7 +34,7 @@ namespace Tableau.Migration.Tests.Unit.Api.Publishing
             protected override IFlowPublisher Publisher => FlowPublisher;
 
             public FlowPublisherTest()
-                : base(RestUrlPrefixes.Flows)
+                : base(RestUrlKeywords.Flows)
             {
                 FlowPublisher = CreateService<FlowPublisher>();
             }

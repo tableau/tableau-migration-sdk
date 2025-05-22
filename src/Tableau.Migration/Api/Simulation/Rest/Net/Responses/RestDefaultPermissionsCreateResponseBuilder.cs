@@ -30,7 +30,7 @@ namespace Tableau.Migration.Api.Simulation.Rest.Net.Responses
 {
     internal class RestDefaultPermissionsCreateResponseBuilder : RestResponseBuilderBase<PermissionsResponse>
     {
-        private static readonly string UrlPrefix = RestUrlPrefixes.Projects;
+        private static readonly string UrlPrefix = RestUrlKeywords.Projects;
 
         public RestDefaultPermissionsCreateResponseBuilder(
             TableauData data,

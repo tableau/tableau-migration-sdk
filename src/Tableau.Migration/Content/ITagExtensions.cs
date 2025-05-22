@@ -25,7 +25,7 @@ namespace Tableau.Migration.Content
     {
         public static IList<ITag> ToTagList<T>(this IEnumerable<T>? e, Func<T, ITag> factory)
         {
-            if(e.IsNullOrEmpty())
+            if (e.IsNullOrEmpty())
             {
                 return new List<ITag>();
             }

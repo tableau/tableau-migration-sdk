@@ -20,6 +20,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Tableau.Migration.Api.Rest;
 using Tableau.Migration.Api.Rest.Models;
 using Tableau.Migration.Api.Rest.Models.Responses.Server;
 using Tableau.Migration.Config;
@@ -57,7 +58,7 @@ namespace Tableau.Migration.Api
             CancellationToken cancel)
         {
             var scheduleResult = await RestRequestBuilderFactory
-                .CreateUri($"/schedules/{contentId.ToUrlSegment()}")
+                .CreateUri($"/{RestUrlKeywords.Schedules}/{contentId.ToUrlSegment()}")
                 .WithSiteId(null)
                 .ForGetRequest()
                 .SendAsync<ScheduleResponse>(cancel)
@@ -93,7 +94,7 @@ namespace Tableau.Migration.Api
             CancellationToken cancel)
         {
             var extractsResult = await RestRequestBuilderFactory
-                .CreateUri($"/schedules/{scheduleId.ToUrlSegment()}/extracts")
+                .CreateUri($"/{RestUrlKeywords.Schedules}/{scheduleId.ToUrlSegment()}/{RestUrlKeywords.Extracts}")
                 .WithPage(pageNumber, pageSize)
                 .ForGetRequest()
                 .SendAsync<ScheduleExtractRefreshTasksResponse>(cancel)

@@ -59,7 +59,8 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
                 foreach (var item in sourceCustomView.DefaultUsers)
                 {
                     defaultUsers.Add(item);
-                };
+                }
+                ;
 
                 MockUserTransformer
                    .Setup(p => p.ExecuteAsync(It.IsAny<IContentReference>(), Cancel))
@@ -68,7 +69,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
                 var result = await Transformer.TransformAsync(sourceCustomView, Cancel);
 
                 Assert.NotNull(result);
-                
+
                 MockLogger.VerifyDebug(Times.Once());
 
                 Assert.NotEmpty(result.DefaultUsers);
@@ -84,7 +85,8 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
                 foreach (var item in sourceCustomView.DefaultUsers)
                 {
                     sourceUsers.Add(item);
-                };
+                }
+                ;
 
                 var result = await Transformer.TransformAsync(sourceCustomView, Cancel);
 
@@ -105,7 +107,8 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
                 foreach (var item in sourceCustomView.DefaultUsers)
                 {
                     sourceUsers.Add(item);
-                };
+                }
+                ;
 
                 var userNotOnDestination = sourceCustomView.DefaultUsers.First();
                 MockUserTransformer
@@ -119,7 +122,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
                 Assert.Equal(sourceUsers.Count, sourceCustomView.DefaultUsers.Count);
                 Assert.NotEqual(sourceUsers, result.DefaultUsers);
                 Assert.Same(userNotOnDestination, result.DefaultUsers.First());
-                
+
                 MockLogger.VerifyDebug(Times.Once());
             }
         }

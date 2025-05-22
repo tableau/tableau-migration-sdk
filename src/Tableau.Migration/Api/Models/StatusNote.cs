@@ -15,7 +15,6 @@
 //  limitations under the License.
 //
 
-using System;
 using Tableau.Migration.Api.Rest.Models.Responses;
 
 namespace Tableau.Migration.Api.Models

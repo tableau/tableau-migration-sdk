@@ -17,6 +17,7 @@
 
 using System;
 using System.Linq;
+using Tableau.Migration.Api.Rest;
 using Tableau.Migration.Api.Rest.Models.Responses.Server;
 using Tableau.Migration.Api.Simulation.Rest.Net;
 using Tableau.Migration.Api.Simulation.Rest.Net.Requests;
@@ -48,11 +49,11 @@ namespace Tableau.Migration.Api.Simulation.Rest.Api
         public SchedulesRestApiSimulator(TableauApiResponseSimulator simulator)
         {
             GetServerSchedule = simulator.SetupRestGetById<ScheduleResponse, ScheduleResponse.ScheduleType>(
-                EntityUrl("schedules"), d => d.Schedules);
+                EntityUrl(RestUrlKeywords.Schedules), d => d.Schedules);
             GetExtractRefreshTasks = simulator.SetupRestPagedList<ScheduleExtractRefreshTasksResponse, ScheduleExtractRefreshTasksResponse.ExtractType>(
-                SiteEntityUrl("schedules", "extracts"), (d, r) =>
+                SiteEntityUrl(RestUrlKeywords.Schedules, RestUrlKeywords.Extracts), (d, r) =>
                 {
-                    var scheduleId = r.GetIdAfterSegment("schedules");
+                    var scheduleId = r.GetIdAfterSegment(RestUrlKeywords.Schedules);
 
                     if (scheduleId is null || !d.ScheduleExtracts.ContainsKey(scheduleId.Value))
                     {

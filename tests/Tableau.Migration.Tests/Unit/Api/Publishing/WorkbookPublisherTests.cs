@@ -34,7 +34,7 @@ namespace Tableau.Migration.Tests.Unit.Api.Publishing
             protected override IWorkbookPublisher Publisher => WorkbookPublisher;
 
             public WorkbookPublisherTest()
-                : base(RestUrlPrefixes.Workbooks)
+                : base(RestUrlKeywords.Workbooks)
             {
                 WorkbookPublisher = CreateService<WorkbookPublisher>();
             }

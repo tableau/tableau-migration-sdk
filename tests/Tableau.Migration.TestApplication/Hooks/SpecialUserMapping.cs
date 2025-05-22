@@ -50,7 +50,7 @@ namespace Tableau.Migration.TestApplication.Hooks
 
         public override Task<ContentMappingContext<IUser>?> MapAsync(ContentMappingContext<IUser> ctx, CancellationToken cancel)
         {
-            if(_options.SpecialUsers.Emails.Contains(ctx.ContentItem.Email))
+            if (_options.SpecialUsers.Emails.Contains(ctx.ContentItem.Email))
             {
                 ctx = ctx.MapTo(_adminUser);
             }

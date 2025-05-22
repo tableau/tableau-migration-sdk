@@ -298,6 +298,27 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
                 Assert.Equal(capabilities.Length - 1, resultGrantee.Capabilities.Count);
                 Assert.DoesNotContain(resultGrantee.Capabilities, c => c.Name == PermissionsCapabilityNames.InheritedProjectLeader);
             }
+
+            [Fact]
+            public async Task Excludes_Obsolete_Capability()
+            {
+                var capabilities = CreateMany<ICapability>()
+                    .Append(new Capability(new CapabilityType { Name = PermissionsCapabilityNames.CreateRefreshMetrics, Mode = PermissionsCapabilityModes.Allow }))
+                    .ToImmutableArray();
+
+                var grantee = new GranteeCapability(GranteeType.User, Guid.NewGuid(), capabilities);
+
+                _idMap.Add(grantee.GranteeId, Guid.NewGuid());
+
+                var result = await Transformer.ExecuteAsync(new IGranteeCapability[] { grantee }.ToImmutableList(), Cancel);
+
+                Assert.NotNull(result);
+
+                var resultGrantee = Assert.Single(result);
+
+                Assert.Equal(capabilities.Length - 1, resultGrantee.Capabilities.Count);
+                Assert.DoesNotContain(resultGrantee.Capabilities, c => c.Name == PermissionsCapabilityNames.CreateRefreshMetrics);
+            }
         }
     }
 }

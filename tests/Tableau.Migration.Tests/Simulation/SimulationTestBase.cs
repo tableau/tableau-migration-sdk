@@ -74,14 +74,14 @@ namespace Tableau.Migration.Tests.Simulation
         protected TableauApiSimulator RegisterApiSimulator(
             Uri serverUri,
             bool isTableauServer,
-            UsersResponse.UserType? defaultSignedInUser, 
+            UsersResponse.UserType? defaultSignedInUser,
             string defaultDomain = Constants.LocalDomain)
         {
             var simulator = new TableauApiSimulator(
-                serverUri, 
-                Serializer, 
-                isTableauServer, 
-                defaultSignedInUser, 
+                serverUri,
+                Serializer,
+                isTableauServer,
+                defaultSignedInUser,
                 defaultDomain);
             ApiSimulators.AddOrUpdate(simulator);
             return simulator;
@@ -101,7 +101,7 @@ namespace Tableau.Migration.Tests.Simulation
         /// <param name="serverUrl">The URL of the server.</param>
         /// <param name="defaultSignedInUser">Default signed in user. If null, no user will be created or signed in.</param>
         protected TableauApiSimulator RegisterTableauServerApiSimulator(
-            string serverUrl, 
+            string serverUrl,
             UsersResponse.UserType? defaultSignedInUser)
             => RegisterApiSimulator(
                 new Uri(serverUrl),
@@ -113,12 +113,12 @@ namespace Tableau.Migration.Tests.Simulation
         /// </summary>
         /// <param name="defaultSignedInUser">Default signed in user. If null, no user will be created or signed in.</param>
         protected TableauApiSimulator RegisterTableauCloudApiSimulator(
-            string podUrl, 
+            string podUrl,
             UsersResponse.UserType? defaultSignedInUser)
             => RegisterApiSimulator(
                 new Uri(podUrl),
                 false,
-                defaultSignedInUser, 
+                defaultSignedInUser,
                 Constants.TableauIdWithMfaDomain);
 
         public async ValueTask DisposeAsync()

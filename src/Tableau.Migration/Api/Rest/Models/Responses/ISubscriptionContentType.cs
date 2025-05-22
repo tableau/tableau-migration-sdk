@@ -15,7 +15,6 @@
 //  limitations under the License.
 //
 
-using System.Xml.Serialization;
 using System;
 
 namespace Tableau.Migration.Api.Rest.Models.Responses

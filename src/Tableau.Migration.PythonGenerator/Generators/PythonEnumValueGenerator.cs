@@ -27,7 +27,7 @@ namespace Tableau.Migration.PythonGenerator.Generators
         private readonly IPythonDocstringGenerator _docGenerator;
 
         public PythonEnumValueGenerator(IPythonDocstringGenerator docGenerator,
-            IOptions<PythonGeneratorOptions> options) 
+            IOptions<PythonGeneratorOptions> options)
             : base(options)
         {
             _docGenerator = docGenerator;
@@ -35,7 +35,7 @@ namespace Tableau.Migration.PythonGenerator.Generators
 
         public ImmutableArray<PythonEnumValue> GenerateEnumValues(INamedTypeSymbol dotNetType)
         {
-            if(!dotNetType.IsAnyEnum())
+            if (!dotNetType.IsAnyEnum())
             {
                 return ImmutableArray<PythonEnumValue>.Empty;
             }

@@ -101,7 +101,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks
                 SetupRetrieveKeychainAsync(CreateMany<string>());
 
                 // Act
-                var result = await EmbeddedCredsCapabilityManager.SetMigrationCapabilityAsync(new CancellationToken());
+                var result = await EmbeddedCredsCapabilityManager.SetMigrationCapabilityAsync(Create<IServerSession>(), new CancellationToken());
 
                 // Assert
                 Assert.True(result.Success);
@@ -117,7 +117,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks
                 SetupRetrieveKeychainAsyncFail(restException);
 
                 // Act
-                var result = await EmbeddedCredsCapabilityManager.SetMigrationCapabilityAsync(new CancellationToken());
+                var result = await EmbeddedCredsCapabilityManager.SetMigrationCapabilityAsync(Create<IServerSession>(), new CancellationToken());
 
                 // Assert
                 Assert.True(result.Success);
@@ -133,7 +133,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks
                 SetupRetrieveKeychainAsyncFail(restException);
 
                 // Act
-                var result = await EmbeddedCredsCapabilityManager.SetMigrationCapabilityAsync(new CancellationToken());
+                var result = await EmbeddedCredsCapabilityManager.SetMigrationCapabilityAsync(Create<IServerSession>(), new CancellationToken());
 
                 // Assert
                 Assert.True(result.Success);

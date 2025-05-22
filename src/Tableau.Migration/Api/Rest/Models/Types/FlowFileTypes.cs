@@ -18,12 +18,8 @@
 namespace Tableau.Migration.Api.Rest.Models.Types
 {
     /// <summary>
-    /// <para>
     /// Class containing prep flow file type constants.
-    /// </para>
-    /// <para>
     /// See <see href="https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_flow.htm#publish_flow">Tableau API Reference</see> for documentation.
-    /// </para>
     /// </summary>
     public class FlowFileTypes : StringEnum<FlowFileTypes>
     {

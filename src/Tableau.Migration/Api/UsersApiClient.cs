@@ -69,7 +69,7 @@ namespace Tableau.Migration.Api
         public async Task<IPagedResult<IGroup>> GetUserGroupsAsync(Guid userId, int pageNumber, int pageSize, CancellationToken cancel)
         {
             var getUserGroupsResult = await RestRequestBuilderFactory
-                .CreateUri($"/users/{userId.ToUrlSegment()}/groups")
+                .CreateUri($"/{RestUrlKeywords.Users}/{userId.ToUrlSegment()}/{RestUrlKeywords.Groups}")
                 .WithPage(pageNumber, pageSize)
                 .ForGetRequest()
                 .SendAsync<GroupsResponse>(cancel)
@@ -83,7 +83,7 @@ namespace Tableau.Migration.Api
         public async Task<IPagedResult<IUser>> GetAllUsersAsync(int pageNumber, int pageSize, CancellationToken cancel)
         {
             var getAllUsersResult = await RestRequestBuilderFactory
-                .CreateUri("/users")
+                .CreateUri($"/{RestUrlKeywords.Users}")
                 .WithPage(pageNumber, pageSize)
                 .ForGetRequest()
                 .SendAsync<UsersResponse>(cancel)
@@ -97,7 +97,7 @@ namespace Tableau.Migration.Api
         public async Task<IPagedResult<UsersResponse.UserType>> GetAllUsersAsync(int pageNumber, int pageSize, IEnumerable<Filter> filters, CancellationToken cancel)
         {
             var getAllUsersResult = await RestRequestBuilderFactory
-                .CreateUri("/users")
+                .CreateUri($"/{RestUrlKeywords.Users}")
                 .WithPage(pageNumber, pageSize)
                 .WithFilters(filters)
                 .ForGetRequest()
@@ -154,7 +154,7 @@ namespace Tableau.Migration.Api
                     };
 
                 var jobResult = await RestRequestBuilderFactory
-                    .CreateUri("/users/import")
+                    .CreateUri($"/{RestUrlKeywords.Users}/{RestUrlKeywords.Import}")
                     .ForPostRequest()
                     .WithContent(content)
                     .AcceptXml(false)
@@ -175,7 +175,7 @@ namespace Tableau.Migration.Api
         public async Task<IResult<IAddUserResult>> AddUserAsync(string userName, string siteRole, UserAuthenticationType authentication, CancellationToken cancel)
         {
             var userResult = await RestRequestBuilderFactory
-                .CreateUri("/users")
+                .CreateUri($"/{RestUrlKeywords.Users}")
                 .ForPostRequest()
                 .WithXmlContent(new AddUserToSiteRequest(userName, siteRole, authentication))
                 .SendAsync<AddUserResponse>(cancel)
@@ -249,7 +249,7 @@ namespace Tableau.Migration.Api
                                                           UserAuthenticationType? newAuthentication = null)
         {
             var userResult = await RestRequestBuilderFactory
-                .CreateUri($"/users/{id}")
+                .CreateUri($"/{RestUrlKeywords.Users}/{id}")
                 .ForPutRequest()
                 .WithXmlContent(new UpdateUserRequest(newSiteRole, newfullName, newEmail, newPassword, newAuthentication))
                 .SendAsync<UpdateUserResponse>(cancel)
@@ -263,7 +263,7 @@ namespace Tableau.Migration.Api
         public async Task<IResult> DeleteUserAsync(Guid userId, CancellationToken cancel)
         {
             var result = await RestRequestBuilderFactory
-                .CreateUri($"/users/{userId.ToUrlSegment()}")
+                .CreateUri($"/{RestUrlKeywords.Users}/{userId.ToUrlSegment()}")
                 .ForDeleteRequest()
                 .SendAsync(cancel)
                 .ToResultAsync(_serializer, SharedResourcesLocalizer, cancel)
@@ -278,7 +278,7 @@ namespace Tableau.Migration.Api
             CancellationToken cancel)
         {
             var retrieveUserSavedCredsResult = await RestRequestBuilderFactory
-                .CreateUri($"/users/{userId}/retrieveSavedCreds")
+                .CreateUri($"/{RestUrlKeywords.Users}/{userId}/{RestUrlKeywords.RetrieveSavedCreds}")
                 .ForPostRequest()
                 .WithXmlContent(new RetrieveUserSavedCredentialsRequest(destinationSiteInfo))
                 .SendAsync<RetrieveKeychainResponse>(cancel)
@@ -291,7 +291,7 @@ namespace Tableau.Migration.Api
         public async Task<IResult> UploadUserSavedCredentialsAsync(Guid userId, IEnumerable<string> encryptedKeychains, CancellationToken cancel)
         {
             var uploadSavedCredsResult = await RestRequestBuilderFactory
-                .CreateUri($"/users/{userId}/uploadSavedCreds")
+                .CreateUri($"/{RestUrlKeywords.Users}/{userId}/{RestUrlKeywords.UploadSavedCreds}")
                 .ForPutRequest()
                 .WithXmlContent(new UploadUserSavedCredentialsRequest(encryptedKeychains))
                 .SendAsync(cancel)
@@ -364,7 +364,7 @@ namespace Tableau.Migration.Api
         public async Task<IResult<IUser>> GetByIdAsync(Guid contentId, CancellationToken cancel)
         {
             var getUserResult = await RestRequestBuilderFactory
-               .CreateUri($"/users/{contentId.ToUrlSegment()}")
+               .CreateUri($"/{RestUrlKeywords.Users}/{contentId.ToUrlSegment()}")
                .ForGetRequest()
                .SendAsync<UserResponse>(cancel)
                .ToResultAsync<UserResponse, IUser>(r => new User(r.Item!), SharedResourcesLocalizer)
@@ -390,7 +390,7 @@ namespace Tableau.Migration.Api
              * The add user API will not overwrite existing users so we update those fields as well.
              */
             IResult<IUpdateUserResult> updateResult;
-            if(_sessionProvider.InstanceType is TableauInstanceType.Cloud)
+            if (_sessionProvider.InstanceType is TableauInstanceType.Cloud)
             {
                 // Tableau Cloud only allows updating site role and authentication.
                 updateResult = await UpdateUserAsync(addResult.Value.Id, item.SiteRole, cancel,
@@ -403,7 +403,7 @@ namespace Tableau.Migration.Api
                     item.FullName, item.Email, null, item.Authentication).ConfigureAwait(false);
             }
 
-            if(!updateResult.Success)
+            if (!updateResult.Success)
             {
                 return updateResult.CastFailure<IUser>();
             }
@@ -413,7 +413,7 @@ namespace Tableau.Migration.Api
              * We want to call the attention of the caller to this difference between intended and actual site role,
              * so we consider the publish failed, which will be logged in the manifest.
              */
-            if(!SiteRoles.IsAMatch(item.SiteRole, SiteRoles.Unlicensed) && SiteRoles.IsAMatch(updateResult.Value.SiteRole, SiteRoles.Unlicensed))
+            if (!SiteRoles.IsAMatch(item.SiteRole, SiteRoles.Unlicensed) && SiteRoles.IsAMatch(updateResult.Value.SiteRole, SiteRoles.Unlicensed))
             {
                 return Result<IUser>.Failed(new Exception($"User {item.Location} could not be published with site role {item.SiteRole} due to insufficient licenses. User was published as unlicensed."));
             }

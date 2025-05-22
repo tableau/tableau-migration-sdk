@@ -31,14 +31,14 @@ namespace Tableau.Migration.Engine.Pipelines
         /// Creates a new <see cref="CustomMigrationPipelineFactory{TPipeline}"/> object.
         /// </summary>
         /// <param name="services">A service provider to create pipelines with.</param>
-        public CustomMigrationPipelineFactory(IServiceProvider services) 
+        public CustomMigrationPipelineFactory(IServiceProvider services)
             : base(services)
         { }
 
         /// <inheritdoc />
         public override IMigrationPipeline Create(IMigrationPlan plan)
         {
-            switch(plan.PipelineProfile)
+            switch (plan.PipelineProfile)
             {
                 case PipelineProfile.Custom:
                     return Services.GetRequiredService<TPipeline>();

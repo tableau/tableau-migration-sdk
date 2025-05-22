@@ -29,7 +29,7 @@ namespace Tableau.Migration.PythonGenerator.Generators
         private readonly IPythonEnumValueGenerator _enumValueGenerator;
         private readonly IPythonDocstringGenerator _docGenerator;
 
-        public PythonTypeGenerator(IPythonPropertyGenerator propertyGenerator, 
+        public PythonTypeGenerator(IPythonPropertyGenerator propertyGenerator,
             IPythonMethodGenerator methodGenerator,
             IPythonEnumValueGenerator enumValueGenerator,
             IPythonDocstringGenerator docGenerator)
@@ -44,7 +44,7 @@ namespace Tableau.Migration.PythonGenerator.Generators
         {
             foreach (var childInterface in type.AllInterfaces)
             {
-                if(string.Equals(childInterface.ToDisplayString(), test.ToDisplayString(), System.StringComparison.Ordinal))
+                if (string.Equals(childInterface.ToDisplayString(), test.ToDisplayString(), System.StringComparison.Ordinal))
                 {
                     return true;
                 }
@@ -58,12 +58,12 @@ namespace Tableau.Migration.PythonGenerator.Generators
             return false;
         }
 
-        private (ImmutableArray<PythonTypeReference> InheritedTypes, ImmutableArray<INamedTypeSymbol> ExcludedInterfaces) 
+        private (ImmutableArray<PythonTypeReference> InheritedTypes, ImmutableArray<INamedTypeSymbol> ExcludedInterfaces)
             GenerateInheritedTypes(ImmutableHashSet<string> dotNetTypeNames, INamedTypeSymbol dotNetType)
         {
             var inheritedTypes = ImmutableArray.CreateBuilder<PythonTypeReference>();
 
-            if(dotNetType.TypeArguments.Any())
+            if (dotNetType.TypeArguments.Any())
             {
                 var genericTypes = dotNetType.TypeArguments
                     .Select(PythonTypeReference.ForGenericType)
@@ -77,11 +77,11 @@ namespace Tableau.Migration.PythonGenerator.Generators
                 inheritedTypes.Add(new("Generic", "typing", ConversionMode.Direct, genericTypes, ExtraImports: extraImports));
             }
 
-            if(dotNetType.IsOrdinalEnum())
+            if (dotNetType.IsOrdinalEnum())
             {
                 inheritedTypes.Add(new("IntEnum", "enum", ConversionMode.Direct));
             }
-            else if(dotNetType.IsStringEnum())
+            else if (dotNetType.IsStringEnum())
             {
                 inheritedTypes.Add(new("StrEnum", "migration_enum", ConversionMode.Direct));
             }
@@ -91,7 +91,7 @@ namespace Tableau.Migration.PythonGenerator.Generators
 
             foreach (var interfaceType in dotNetType.AllInterfaces)
             {
-                if(dotNetTypeNames.Contains(interfaceType.ToDisplayString()))
+                if (dotNetTypeNames.Contains(interfaceType.ConstructedFrom.ToDisplayString()))
                 {
                     interfaces.Add(interfaceType);
                 }
@@ -103,9 +103,9 @@ namespace Tableau.Migration.PythonGenerator.Generators
 
             // Remove interfaces implemented by other inherited interfaces,
             // to reduce multi-inheritance complexity.
-            foreach(var interfaceType in interfaces.ToImmutableArray())
+            foreach (var interfaceType in interfaces.ToImmutableArray())
             {
-                if(interfaces.Any(i => HasInterface(i, interfaceType)))
+                if (interfaces.Any(i => HasInterface(i, interfaceType)))
                 {
                     interfaces.Remove(interfaceType);
                 }
@@ -129,8 +129,8 @@ namespace Tableau.Migration.PythonGenerator.Generators
 
             var typeRef = PythonTypeReference.ForDotNetType(dotNetType);
 
-            return new(typeRef.Name, typeRef.ImportModule!, inheritedTypes, 
-                properties, methods, enumValues, 
+            return new(typeRef.Name, typeRef.ImportModule!, inheritedTypes,
+                properties, methods, enumValues,
                 docs, dotNetType, excludedInterfaces);
         }
     }

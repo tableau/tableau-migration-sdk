@@ -66,26 +66,26 @@ namespace Tableau.Migration.Api.Simulation.Rest.Api
         public CustomViewsRestApiSimulator(TableauApiResponseSimulator simulator)
         {
             QueryCustomViews = simulator.SetupRestPagedList<CustomViewsResponse, CustomViewsResponse.CustomViewResponseType>(
-                SiteUrl(RestUrlPrefixes.CustomViews),
+                SiteUrl(RestUrlKeywords.CustomViews),
                 (data, request) =>
                 {
                     return data.CustomViews.Select(x => new CustomViewsResponse.CustomViewResponseType(x)).ToList();
                 });
 
             DownloadCustomView = simulator.SetupRestDownloadById(
-                SiteEntityUrl(RestUrlPrefixes.CustomViews, "content"),
+                SiteEntityUrl(RestUrlKeywords.CustomViews, RestUrlKeywords.Content),
                 (data) => data.CustomViewFiles,
                 4);
 
             CommitCustomViewUpload = simulator.SetupRestPost(
-                SiteUrl(RestUrlPrefixes.CustomViews, useExperimental: true),
+                SiteUrl(RestUrlKeywords.CustomViews, useExperimental: true),
                 new RestCommitCustomViewUploadResponseBuilder(simulator.Data, simulator.Serializer));
 
             GetCustomViewDefaultUsers = simulator.SetupRestPagedList<UsersWithCustomViewAsDefaultViewResponse, UsersWithCustomViewAsDefaultViewResponse.UserType>(
-                SiteEntityUrl(RestUrlPrefixes.CustomViews, "/default/users"),
+                SiteEntityUrl(RestUrlKeywords.CustomViews, $"/{RestUrlKeywords.Default}/{RestUrlKeywords.Users}"),
                  (data, request) =>
                  {
-                     var customViewId = request.GetIdAfterSegment(RestUrlPrefixes.CustomViews);
+                     var customViewId = request.GetIdAfterSegment(RestUrlKeywords.CustomViews);
 
                      if (data.CustomViewDefaultUsers == null || customViewId == null)
                          return [];
@@ -97,7 +97,7 @@ namespace Tableau.Migration.Api.Simulation.Rest.Api
 
 
             SetCustomViewDefaultUsers = simulator.SetupRestPost(
-                 SiteEntityUrl(RestUrlPrefixes.CustomViews, "/default/users"),
+                 SiteEntityUrl(RestUrlKeywords.CustomViews, $"/{RestUrlKeywords.Default}/{RestUrlKeywords.Users}"),
                  new RestCustomViewDefaultUsersAddResponseBuilder(simulator.Data, simulator.Serializer));
         }
     }

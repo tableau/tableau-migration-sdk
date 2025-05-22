@@ -108,7 +108,7 @@ namespace Tableau.Migration.Tests.Unit.Api.Rest.Models.Responses
                 Assert.NotNull(deserialized);
                 Assert.NotNull(deserialized.AssociatedUserLuidList);
                 Assert.Empty(deserialized.AssociatedUserLuidList);
-                
+
                 Assert.NotNull(deserialized.EncryptedKeychainList);
                 Assert.Equal(expectedResponse.EncryptedKeychainList.Length, deserialized.EncryptedKeychainList.Length);
                 Assert.All(

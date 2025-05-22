@@ -55,7 +55,7 @@ namespace Tableau.Migration.Api
         public async Task<IResult<IJob>> GetJobStatusAsync(Guid jobId, CancellationToken cancel)
         {
             var jobResponse = await RestRequestBuilderFactory
-                .CreateUri($"/jobs/{jobId.ToUrlSegment()}")
+                .CreateUri($"/{RestUrlKeywords.Jobs}/{jobId.ToUrlSegment()}")
                 .ForGetRequest()
                 .SendAsync<JobResponse>(cancel)
                 .ConfigureAwait(false);

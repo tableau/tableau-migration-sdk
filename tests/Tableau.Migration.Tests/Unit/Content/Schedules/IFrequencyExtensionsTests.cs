@@ -36,10 +36,10 @@ namespace Tableau.Migration.Tests.Unit.Content.Schedules
             [InlineData(ScheduleFrequencies.Hourly, null, null, null, "26", true)]
             public void Parses(
                 string frequency,
-                int? minutes, 
-                int? hours, 
-                string? weekday, 
-                string? monthDay, 
+                int? minutes,
+                int? hours,
+                string? weekday,
+                string? monthDay,
                 bool expectedResult)
             {
                 // Arrange 
@@ -56,12 +56,12 @@ namespace Tableau.Migration.Tests.Unit.Content.Schedules
             [InlineData(ScheduleFrequencies.Hourly, 15)]
             [InlineData(ScheduleFrequencies.Hourly, 30)]
             public void Converts_unsupported(
-                string frequency, 
+                string frequency,
                 int? minutes)
             {
                 // Arrange 
                 var testIntervals = ImmutableList.Create(new Interval(null, minutes, null, null) as IInterval);
-                
+
                 // Act
                 var cloudInterval = frequency.ToCloudCompatible(testIntervals);
 
@@ -78,14 +78,14 @@ namespace Tableau.Migration.Tests.Unit.Content.Schedules
             [InlineData(ScheduleFrequencies.Monthly, null, null, null, "26")]
             public void Does_not_convert_supported(
                 string frequency,
-                int? minutes, 
-                int? hours, 
-                string? weekday, 
+                int? minutes,
+                int? hours,
+                string? weekday,
                 string? monthDay)
             {
                 // Arrange 
                 var testInterval = ImmutableList.Create(new Interval(hours, minutes, weekday, monthDay) as IInterval);
-                
+
                 // Act
                 var cloudInterval = frequency.ToCloudCompatible(testInterval);
 

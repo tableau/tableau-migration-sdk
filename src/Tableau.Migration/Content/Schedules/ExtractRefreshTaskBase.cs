@@ -50,7 +50,7 @@ namespace Tableau.Migration.Content.Schedules
                 new ContentReferenceStub(
                     extractRefreshId,
                     string.Empty,
-                    new (extractRefreshId.ToString())))
+                    new(extractRefreshId.ToString())))
         {
             Type = type;
             ContentType = contentType;
@@ -67,7 +67,7 @@ namespace Tableau.Migration.Content.Schedules
             CancellationToken cancel)
             where TResponse : ITableauServerResponse
             where TExtractRefreshType : class, IExtractRefreshType
-            where TExtractRefreshTask: IExtractRefreshTask<TSchedule>
+            where TExtractRefreshTask : IExtractRefreshTask<TSchedule>
         {
             var items = responseItemFactory(response).ExceptNulls().ToImmutableArray();
             var tasks = ImmutableArray.CreateBuilder<TExtractRefreshTask>(items.Length);
@@ -76,7 +76,7 @@ namespace Tableau.Migration.Content.Schedules
             {
                 var contentType = item.GetContentType();
 
-                if(contentType is ExtractRefreshContentType.Unknown)
+                if (contentType is ExtractRefreshContentType.Unknown)
                 {
                     logger.LogWarning(localizer[SharedResourceKeys.UnknownExtractRefreshContentTypeWarning], item.Id);
                     continue;
@@ -91,7 +91,7 @@ namespace Tableau.Migration.Content.Schedules
                  * 
                  * We similarly filter out those extract refresh tasks.
                  */
-                if(contentReference is not null)
+                if (contentReference is not null)
                 {
                     tasks.Add(await modelFactory(item, contentReference, cancel).ConfigureAwait(false));
                 }

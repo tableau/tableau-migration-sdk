@@ -71,7 +71,7 @@ namespace Tableau.Migration
         /// <param name="services">The service collection to register services with.</param>
         /// <param name="userOptions">The configuration options to initialize the SDK with.</param>
         /// <returns>The same service collection as the <paramref name="services"/> parameter.</returns>
-        public static IServiceCollection AddTableauMigrationSdk(this IServiceCollection services, 
+        public static IServiceCollection AddTableauMigrationSdk(this IServiceCollection services,
             IConfiguration? userOptions = null)
         {
             services.AddHttpServices();

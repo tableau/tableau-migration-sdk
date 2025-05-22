@@ -21,12 +21,8 @@ using Tableau.Migration.Content;
 namespace Tableau.Migration.Api.Rest.Models.Requests
 {
     /// <summary>
-    /// <para>
     /// Class representing an update site request.
-    /// </para>
-    /// <para>
     /// See <see href="https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_site.htm#update_site">Tableau API Reference</see> for documentation.
-    /// </para>
     /// </summary>
     [XmlType(XmlTypeName)]
     public class UpdateSiteRequest : TableauServerRequest

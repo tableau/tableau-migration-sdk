@@ -35,7 +35,7 @@ namespace Tableau.Migration.Tests.Unit.Api.Publishing
 
             protected override ICustomViewPublisher Publisher => CustomViewPublisher;
 
-            public CustomViewPublisherTest() : base(RestUrlPrefixes.CustomViews)
+            public CustomViewPublisherTest() : base(RestUrlKeywords.CustomViews)
             {
                 CustomViewPublisher = CreateService<CustomViewPublisher>();
             }

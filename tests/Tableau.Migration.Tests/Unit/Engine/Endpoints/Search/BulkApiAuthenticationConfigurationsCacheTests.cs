@@ -46,7 +46,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints.Search
                 _mockApiClient = Freeze<Mock<IAuthenticationConfigurationsApiClient>>();
                 _mockApiClient.Setup(x => x.GetAllAsync(AuthenticationConfigurationsApiClient.MAX_CONFIGURATIONS, Cancel))
                     .ReturnsAsync(() => Result<IImmutableList<IAuthenticationConfiguration>>.Succeeded(AuthenticationConfigurations.ToImmutableArray()));
-                
+
                 var mockEndpoint = Create<Mock<IDestinationApiEndpoint>>();
                 mockEndpoint.SetupGet(x => x.SiteApi.AuthenticationConfigurations).Returns(_mockApiClient.Object);
 

@@ -136,7 +136,7 @@ namespace Tableau.Migration.Api.Simulation.Rest.Net
             Func<TableauData, TRequest, TResponse> buildResponse,
             IEnumerable<(string Key, Regex ValuePattern)>? queryStringPatterns = null,
             bool requiresAuthentication = true)
-                where TRequest: TableauServerRequest
+                where TRequest : TableauServerRequest
                 where TResponse : TableauServerResponse, new()
                     => simulator.SetupRestPost(
                         urlPattern,

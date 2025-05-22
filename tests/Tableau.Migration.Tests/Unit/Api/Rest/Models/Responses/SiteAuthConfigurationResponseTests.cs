@@ -31,7 +31,7 @@ namespace Tableau.Migration.Tests.Unit.Api.Rest.Models.Responses
                 var expectedResponse = Create<SiteAuthConfigurationsResponse>();
 
                 var itemsXml = new StringBuilder();
-                foreach(var item in expectedResponse.Items)
+                foreach (var item in expectedResponse.Items)
                 {
                     itemsXml.AppendLine($@"<siteAuthConfiguration 
                         authSetting=""{item.AuthSetting}""
@@ -50,7 +50,7 @@ namespace Tableau.Migration.Tests.Unit.Api.Rest.Models.Responses
 
                 var deserialized = Serializer.DeserializeFromXml<SiteAuthConfigurationsResponse>(xml);
                 Assert.NotNull(deserialized);
-                Assert.Equal(expectedResponse.Items, deserialized.Items, 
+                Assert.Equal(expectedResponse.Items, deserialized.Items,
                 (SiteAuthConfigurationsResponse.SiteAuthConfigurationType a, SiteAuthConfigurationsResponse.SiteAuthConfigurationType b) =>
                 {
                     return a.AuthSetting == b.AuthSetting &&

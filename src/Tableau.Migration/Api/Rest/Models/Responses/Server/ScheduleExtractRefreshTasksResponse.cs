@@ -37,7 +37,7 @@ namespace Tableau.Migration.Api.Rest.Models.Responses.Server
         /// Class representing the extract type in the response.
         /// </summary>
         public class ExtractType
-        {            
+        {
             /// <summary>
             /// Gets or sets the id for the extract.
             /// </summary>

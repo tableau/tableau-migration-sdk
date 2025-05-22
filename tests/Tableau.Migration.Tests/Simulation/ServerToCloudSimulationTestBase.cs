@@ -923,11 +923,11 @@ namespace Tableau.Migration.Tests.Simulation
                 workbookSubscription.User = new() { Id = user.Id, Name = user.Name };
                 workbookSubscription.Content = new() { Id = workbook.Id, Type = "workbook" };
                 subscriptions.Add(workbookSubscription);
-                
+
                 var schedule = SourceApi.Data.Schedules.PickRandom();
                 workbookSubscription.Schedule = new() { Id = schedule.Id, Name = schedule.Name };
 
-                foreach(var view in workbook.Views)
+                foreach (var view in workbook.Views)
                 {
                     var viewSubscription = Create<Server.GetSubscriptionsResponse.SubscriptionType>();
 

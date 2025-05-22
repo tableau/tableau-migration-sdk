@@ -21,12 +21,8 @@ using System.Xml.Serialization;
 namespace Tableau.Migration.Api.Rest.Models.Responses
 {
     /// <summary>
-    /// <para>
     /// Class representing a project creation response.
-    /// </para>
-    /// <para>
     /// See <see href="https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_projects.htm#create_project">Tableau API Reference</see> for documentation
-    /// </para>
     /// </summary>
     [XmlType(XmlTypeName)]
     public class CreateProjectResponse : TableauServerResponse<CreateProjectResponse.ProjectType>

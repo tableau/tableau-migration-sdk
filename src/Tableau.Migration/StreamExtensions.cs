@@ -61,7 +61,7 @@ namespace Tableau.Migration
             try
             {
                 var bytes = new byte[ZIP_LEAD_BYTES.Length];
-                
+
                 stream.Seek(0, SeekOrigin.Begin);
                 stream.ReadExactly(bytes, 0, bytes.Length);
                 stream.Seek(0, SeekOrigin.Begin);

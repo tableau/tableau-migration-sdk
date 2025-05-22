@@ -18,6 +18,7 @@
 using System;
 using System.Linq;
 using Tableau.Migration.Engine.Hooks;
+using Tableau.Migration.Content;
 using Xunit;
 
 namespace Tableau.Migration.Tests.Unit.Engine.Hooks
@@ -30,10 +31,12 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks
             public void Initializes()
             {
                 var services = Create<IServiceProvider>();
-                
-                var r = InitializeMigrationHookResult.Succeeded(services);
+                var session = Create<IServerSession>();
+
+                var r = InitializeMigrationHookResult.Succeeded(services, session);
 
                 Assert.Same(services, r.ScopedServices);
+                Assert.Same(session, r.DestinationServerSession);
             }
         }
 
@@ -43,32 +46,38 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks
             public void SetsFailure()
             {
                 var services = Create<IServiceProvider>();
+                var session = Create<IServerSession>();
 
                 var errors = CreateMany<Exception>().ToArray();
 
-                IInitializeMigrationHookResult r = InitializeMigrationHookResult.Succeeded(services);
+                IInitializeMigrationHookResult r = InitializeMigrationHookResult.Succeeded(services, session);
                 r = r.ToFailure(errors);
 
                 r.AssertFailure();
 
                 Assert.Equal(errors, r.Errors);
+                Assert.Same(services, r.ScopedServices);
+                Assert.Same(session, r.DestinationServerSession);
             }
 
             [Fact]
             public void AppendsErrors()
             {
                 var services = Create<IServiceProvider>();
+                var session = Create<IServerSession>();
 
                 var errors1 = CreateMany<Exception>().ToArray();
                 var errors2 = CreateMany<Exception>().ToArray();
 
-                IInitializeMigrationHookResult r = InitializeMigrationHookResult.Succeeded(services);
+                IInitializeMigrationHookResult r = InitializeMigrationHookResult.Succeeded(services, session);
                 r = r.ToFailure(errors1);
                 r = r.ToFailure(errors2);
 
                 r.AssertFailure();
 
                 Assert.Equal(errors1.Concat(errors2), r.Errors);
+                Assert.Same(services, r.ScopedServices);
+                Assert.Same(session, r.DestinationServerSession);
             }
         }
     }

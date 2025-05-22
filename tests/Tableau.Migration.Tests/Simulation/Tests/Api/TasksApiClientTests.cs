@@ -215,7 +215,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
                         start,
                         null,
                         [interval]));
-                
+
                 var options = new CreateExtractRefreshTaskOptions(
                     ExtractRefreshType.FullRefresh,
                     ExtractRefreshContentType.Workbook,
@@ -223,8 +223,8 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
                     schedule);
 
                 Assert.DoesNotContain(
-                    Api.Data.CloudExtractRefreshTasks, 
-                    cert => 
+                    Api.Data.CloudExtractRefreshTasks,
+                    cert =>
                         cert.ExtractRefresh!.Workbook is not null &&
                         cert.ExtractRefresh!.Workbook.Id == workbook.Id);
 
@@ -269,7 +269,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
                         start,
                         null,
                         [interval]));
-                
+
                 var options = new CreateExtractRefreshTaskOptions(
                     ExtractRefreshType.ServerIncrementalRefresh,
                     ExtractRefreshContentType.DataSource,
@@ -277,8 +277,8 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
                     schedule);
 
                 Assert.DoesNotContain(
-                    Api.Data.CloudExtractRefreshTasks, 
-                    cert => 
+                    Api.Data.CloudExtractRefreshTasks,
+                    cert =>
                         cert.ExtractRefresh!.DataSource is not null &&
                         cert.ExtractRefresh!.DataSource.Id == datasource.Id);
 

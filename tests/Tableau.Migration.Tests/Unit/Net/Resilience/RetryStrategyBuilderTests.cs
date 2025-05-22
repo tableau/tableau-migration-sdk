@@ -59,15 +59,15 @@ namespace Tableau.Migration.Tests.Unit.Net.Resilience
                 Assert.True(await GetPredicateResultAsync(strategyOptions, ex: new HttpRequestException()));
                 Assert.True(await GetPredicateResultAsync(strategyOptions, ex: new TimeoutRejectedException()));
                 Assert.True(await GetPredicateResultAsync(strategyOptions, ex: new RateLimiterRejectedException()));
-                
+
                 //Non-transient exceptions
                 Assert.False(await GetPredicateResultAsync(strategyOptions, ex: new Exception()));
                 Assert.False(await GetPredicateResultAsync(strategyOptions, ex: new OperationCanceledException()));
 
                 var resilienceOptions = Options.Network.Resilience;
-                if(resilienceOptions.RetryOverrideResponseCodes.IsNullOrEmpty())
+                if (resilienceOptions.RetryOverrideResponseCodes.IsNullOrEmpty())
                 {
-                    foreach(var retryCode in resilienceOptions.RetryOverrideResponseCodes)
+                    foreach (var retryCode in resilienceOptions.RetryOverrideResponseCodes)
                     {
                         Assert.True(await GetPredicateResultAsync(strategyOptions, (HttpStatusCode)retryCode));
                     }
@@ -101,12 +101,12 @@ namespace Tableau.Migration.Tests.Unit.Net.Resilience
             private async ValueTask AssertDelayGeneratorAsync(RetryStrategyOptions<HttpResponseMessage> strategyOptions)
             {
                 var resilienceOptions = Options.Network.Resilience;
-                if(!resilienceOptions.RetryIntervals.Any())
+                if (!resilienceOptions.RetryIntervals.Any())
                 {
                     return;
                 }
 
-                for(int i = 0; i < resilienceOptions.RetryIntervals.Length; i++)
+                for (int i = 0; i < resilienceOptions.RetryIntervals.Length; i++)
                 {
                     var interval = resilienceOptions.RetryIntervals[i];
                     Assert.Equal(interval, await GetDelayAsync(strategyOptions, i));

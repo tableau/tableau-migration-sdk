@@ -40,7 +40,7 @@ namespace Tableau.Migration.Tests.Unit.Paging
 
                 var pager = new MemoryPager<IUser>(collection, pageSize);
 
-                for(int i = 0; i < count / pageSize + 1; i++)
+                for (int i = 0; i < count / pageSize + 1; i++)
                 {
                     var pageResult = await pager.NextPageAsync(Cancel);
 

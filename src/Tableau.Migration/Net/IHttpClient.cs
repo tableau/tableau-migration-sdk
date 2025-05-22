@@ -24,7 +24,7 @@ namespace Tableau.Migration.Net
 {
     /// <summary>
     /// Interface wrapper of <see cref="HttpClient"/> for testability.
-    /// https://learn.microsoft.com/en-us/dotnet/core/extensions/dependency-injection-guidelines#general-idisposable-guidelines
+    /// See <see href="https://learn.microsoft.com/en-us/dotnet/core/extensions/dependency-injection-guidelines#general-idisposable-guidelines">Tableau API Reference</see> for documentation.
     /// </summary>
     public interface IHttpClient
     {

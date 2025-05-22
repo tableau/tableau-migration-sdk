@@ -24,6 +24,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Tableau.Migration.Api.Rest;
 using Tableau.Migration.Config;
 using Tableau.Migration.Resources;
 using static Tableau.Migration.Net.NetworkTraceRedactor;
@@ -255,10 +256,10 @@ namespace Tableau.Migration.Net
             for (int i = 0; i < segments.Length; i++)
             {
                 // Check if this is a workbooks RestAPI
-                if (string.Equals(segments[i], "workbooks", StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(segments[i], RestUrlKeywords.Workbooks, StringComparison.OrdinalIgnoreCase))
                 {
                     // Check if this is a workbook download request. "contents" will always show up 2 after the "workbooks" in the URI.
-                    if (i + 2 < segments.Length && string.Equals(segments[i + 2], "content", StringComparison.OrdinalIgnoreCase))
+                    if (i + 2 < segments.Length && string.Equals(segments[i + 2], RestUrlKeywords.Content, StringComparison.OrdinalIgnoreCase))
                     {
                         return true;
                     }

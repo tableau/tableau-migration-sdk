@@ -36,6 +36,30 @@ namespace Tableau.Migration.Tests.Unit.Content
                 };
                 Assert.Throws<ArgumentException>(() => new ServerSessionSettings(response));
             }
+
+            [Fact]
+            public void SetsDisableSubscriptions()
+            {
+                var response = new ServerSessionResponse.SessionType.SiteType()
+                {
+                    ExtractEncryptionMode = "enforced",
+                    DisableSubscriptions = true
+                };
+                var settings = new ServerSessionSettings(response);
+                Assert.True(settings.DisableSubscriptions);
+            }
+
+            [Fact]
+            public void SetsDisableSubscriptionsToFalse()
+            {
+                var response = new ServerSessionResponse.SessionType.SiteType()
+                {
+                    ExtractEncryptionMode = "enforced",
+                    DisableSubscriptions = false
+                };
+                var settings = new ServerSessionSettings(response);
+                Assert.False(settings.DisableSubscriptions);
+            }
         }
     }
 }

@@ -18,12 +18,8 @@
 namespace Tableau.Migration.Api.Rest.Models.Types
 {
     /// <summary>
-    /// <para>
     /// Class containing data source file type constants.
-    /// </para>
-    /// <para>
     /// See <see href="https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_data_sources.htm#publish_data_source">Tableau API Reference</see> for documentation.
-    /// </para>
     /// </summary>
     public class DataSourceFileTypes : StringEnum<DataSourceFileTypes>
     {

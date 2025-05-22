@@ -114,7 +114,7 @@ namespace Tableau.Migration.Content.Search
                 }
                 // No cached results. Retry individual search.
                 cachedResult = await individualSearchAsync(search, cancel).ConfigureAwait(false);
-                
+
                 // Checks the individual search result.
                 if (cachedResult is null)
                 {

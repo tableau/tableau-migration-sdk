@@ -24,9 +24,12 @@
         </tr>
         <tr>
             <td><code>ContentTypes.BatchSize</code></td>
-            <td>Defines the page size of each list request. See <a
-                    href="https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_concepts_paging.htm">Tableau
-                    REST API Paginating Results</a> for details.</td>
+            <td>
+                Defines the page size of each list request. See <a href="https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_concepts_paging.htm">
+                    Tableau
+                    REST API Paginating Results
+                </a> for details.
+            </td>
             <td><code>100</code></td>
             <td>
                 <code>MigrationSDK__ContentTypes__&lt;array-index&gt;__&lt;type-key&gt;__BatchSize</code>
@@ -34,8 +37,10 @@
         </tr>
         <tr>
             <td><code>ContentTypes.BatchPublishingEnabled</code></td>
-            <td>Selects the mode to publish a given content type. <br /><b>Important:</b> This option is available only
-                for Users.</td>
+            <td>
+                Selects the mode to publish a given content type. <br /><b>Important:</b> This option is available only
+                for Users.
+            </td>
             <td><code>false</code></td>
             <td>
                 <code>MigrationSDK__ContentTypes__&lt;array-index&gt;__&lt;type-key&gt;__BatchPublishingEnabled</code>
@@ -43,11 +48,24 @@
         </tr>
         <tr>
             <td><code>ContentTypes.IncludeExtractEnabled</code></td>
-            <td>Determines whether to include extracts. Default: enabled.<br /><b>Important:</b> This option is
-                available only for Workbooks.</td>
-            <td><code>false</code></td>
+            <td>
+                Determines whether to include extracts. Default: enabled.<br /><b>Important:</b> This option is
+                available only for Workbooks.
+            </td>
+            <td><code>true</code></td>
             <td>
                 <code>MigrationSDK__ContentTypes__&lt;array-index&gt;__&lt;type-key&gt;__IncludeExtractEnabled</code>
+            </td>
+        </tr>
+        <tr>
+            <td><code>ContentTypes.OverwriteGroupUsersEnabled</code></td>
+            <td>
+                Determines whether to overwrite group users. Default: enabled.<br /><b>Important:</b> This option is
+                available only for Groups.
+            </td>
+            <td><code>true</code></td>
+            <td>
+                <code>MigrationSDK__ContentTypes__&lt;array-index&gt;__&lt;type-key&gt;__OverwriteGroupUsersEnabled</code>
             </td>
         </tr>
     </tbody>

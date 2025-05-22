@@ -54,14 +54,14 @@ namespace Tableau.Migration.Interop
                     {
                         return typeof(IUser);
                     }
-                    
+
                     return constraints.First();
                 })
                 .ToArray();
 
             return generic.MakeGenericType(genericTypes);
         }
-        
+
         private static bool IsPropertyMethod(MethodInfo method)
             => method.Name.StartsWith("get_") || method.Name.StartsWith("set_");
 
@@ -83,7 +83,7 @@ namespace Tableau.Migration.Interop
         /// <returns>The method names.</returns>
         public static IEnumerable<string> GetMethods(Type type)
         {
-            if(type.ContainsGenericParameters)
+            if (type.ContainsGenericParameters)
             {
                 return GetMethods(MakeSampleGenericType(type));
             }
@@ -150,7 +150,7 @@ namespace Tableau.Migration.Interop
         /// </summary>
         /// <typeparam name="T">The enum type.</typeparam>
         /// <returns>Tuples with all the names and values.</returns>
-        public static IEnumerable<Tuple<string, object>> GetEnum<T>() 
+        public static IEnumerable<Tuple<string, object>> GetEnum<T>()
         {
             var enumType = typeof(T);
             if (enumType.BaseType == typeof(Enum))
@@ -165,9 +165,9 @@ namespace Tableau.Migration.Interop
                     yield return new(name, underlyingValue);
                 }
             }
-            else if(enumType.BaseType == typeof(StringEnum<T>))
+            else if (enumType.BaseType == typeof(StringEnum<T>))
             {
-                foreach(var field in enumType.GetFields(BindingFlags.Public | BindingFlags.Static))
+                foreach (var field in enumType.GetFields(BindingFlags.Public | BindingFlags.Static))
                 {
                     if (field is null || !field.IsLiteral || field.IsInitOnly)
                         continue;

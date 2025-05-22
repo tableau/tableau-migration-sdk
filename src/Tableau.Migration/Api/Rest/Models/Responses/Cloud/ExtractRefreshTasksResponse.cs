@@ -22,7 +22,7 @@ namespace Tableau.Migration.Api.Rest.Models.Responses.Cloud
 {
     /// <summary>
     /// Class representing a cloud extract refresh tasks response.
-    /// https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref.htm#tableau-cloud-request3
+    /// See <see href="https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref.htm#tableau-cloud-request3">Tableau API Reference</see> for documentation.
     /// </summary>
     [XmlType(XmlTypeName)]
     public class ExtractRefreshTasksResponse : TableauServerListResponse<ExtractRefreshTasksResponse.TaskType>

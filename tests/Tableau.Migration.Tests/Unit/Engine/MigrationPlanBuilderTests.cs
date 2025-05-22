@@ -28,9 +28,9 @@ using Tableau.Migration.Content.Schedules.Cloud;
 using Tableau.Migration.Engine;
 using Tableau.Migration.Engine.Endpoints;
 using Tableau.Migration.Engine.Hooks;
-using Tableau.Migration.Engine.Hooks.ActionCompleted;
 using Tableau.Migration.Engine.Hooks.Filters;
 using Tableau.Migration.Engine.Hooks.Filters.Default;
+using Tableau.Migration.Engine.Hooks.InitializeMigration.Default;
 using Tableau.Migration.Engine.Hooks.Mappings;
 using Tableau.Migration.Engine.Hooks.PostPublish.Default;
 using Tableau.Migration.Engine.Hooks.Transformers;
@@ -105,7 +105,9 @@ namespace Tableau.Migration.Tests.Unit.Engine
                 MockHookBuilder.Verify(x => x.Add(It.IsAny<Func<IServiceProvider, ProjectPostPublishHook>>()), Times.Once);
                 MockHookBuilder.Verify(x => x.Add(It.IsAny<Func<IServiceProvider, CustomViewDefaultUsersPostPublishHook>>()), Times.Once);
                 MockHookBuilder.Verify(x => x.Add(typeof(EmbeddedCredentialsItemPostPublishHook<,>), It.IsAny<IEnumerable<Type[]>>()), Times.Once);
-                MockHookBuilder.Verify(x => x.Add(It.IsAny<Func<IServiceProvider, SubscriptionsEnabledActionCompletedHook>>()), Times.Once);
+                MockHookBuilder.Verify(x => x.Add(It.IsAny<Func<IServiceProvider, SubscriptionsPreflightCheck>>()), Times.Once);
+                MockHookBuilder.Verify(x => x.Add(It.IsAny<Func<IServiceProvider, EmbeddedCredentialsPreflightCheck>>()), Times.Once);
+
             }
 
             protected void AssertDefaultServerToCloudExtensions()

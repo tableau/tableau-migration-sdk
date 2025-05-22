@@ -21,15 +21,11 @@ using Tableau.Migration.Api.Models;
 namespace Tableau.Migration.Api.Rest.Models.Requests
 {
     /// <summary>
-    /// <para>
     /// Class representing an update connection request.
-    /// </para>
-    /// <para>
     /// See Tableau API Reference 
     /// <see href="https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_data_sources.htm#update_data_source_connection">data sources</see> and 
     /// <see href="https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_workbooks_and_views.htm#update_workbook_connection">workbooks</see> 
     /// documentation for details.
-    /// </para>
     /// </summary>
     [XmlType(XmlTypeName)]
     public class UpdateConnectionRequest : TableauServerRequest

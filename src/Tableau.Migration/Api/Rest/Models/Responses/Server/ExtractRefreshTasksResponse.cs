@@ -22,7 +22,7 @@ namespace Tableau.Migration.Api.Rest.Models.Responses.Server
 {
     /// <summary>
     /// Class representing a server extract refresh tasks response.
-    /// https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref.htm#tableau-server-request3
+    /// See <see href="https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref.htm#tableau-server-request3">Tableau API Reference</see> for documentation.
     /// </summary>
     [XmlType(XmlTypeName)]
     public class ExtractRefreshTasksResponse : TableauServerListResponse<ExtractRefreshTasksResponse.TaskType>

@@ -21,12 +21,8 @@ using System.Xml.Serialization;
 namespace Tableau.Migration.Api.Rest.Models.Responses
 {
     /// <summary>
-    /// <para>
     /// Class representing a server session response.
-    /// </para>
-    /// <para>
     /// See <see href="https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_server.htm#get-current-server-session">Tableau API Reference</see> for documentation
-    /// </para>
     /// </summary>
     [XmlType(XmlTypeName)]
     public class ServerSessionResponse : TableauServerResponse<ServerSessionResponse.SessionType>
@@ -82,6 +78,12 @@ namespace Tableau.Migration.Api.Rest.Models.Responses
                 /// </summary>
                 [XmlAttribute("extractEncryptionMode")]
                 public string? ExtractEncryptionMode { get; set; }
+
+                /// <summary>
+                /// Gets or sets whether subscriptions are disabled for the response.
+                /// </summary>
+                [XmlAttribute("disableSubscriptions")]
+                public bool DisableSubscriptions { get; set; }
             }
 
             /// <summary>

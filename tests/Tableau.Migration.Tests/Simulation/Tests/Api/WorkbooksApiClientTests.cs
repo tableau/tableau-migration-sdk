@@ -16,10 +16,8 @@
 //
 
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Moq;
 using Tableau.Migration.Api;
@@ -28,7 +26,6 @@ using Tableau.Migration.Api.Rest.Models.Responses;
 using Tableau.Migration.Api.Rest.Models.Types;
 using Tableau.Migration.Api.Simulation;
 using Tableau.Migration.Content;
-using Tableau.Migration.Content.Files;
 using Tableau.Migration.Net;
 using Xunit;
 

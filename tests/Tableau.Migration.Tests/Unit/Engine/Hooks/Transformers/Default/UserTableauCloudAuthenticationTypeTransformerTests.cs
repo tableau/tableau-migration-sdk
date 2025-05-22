@@ -34,7 +34,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
         public class ExecuteAsync : OptionsHookTestBase<UserAuthenticationTypeTransformerOptions>
         {
             private readonly Mock<IDestinationAuthenticationConfigurationsCache> MockDestinationCache;
-            
+
             private List<IAuthenticationConfiguration> AuthenticationConfigurations { get; set; }
 
             public ExecuteAsync()

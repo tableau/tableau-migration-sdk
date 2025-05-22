@@ -52,7 +52,7 @@ namespace Tableau.Migration.Engine.Manifest
         {
             ContentType = type;
 
-            foreach(var status in Enum.GetValues<MigrationManifestEntryStatus>())
+            foreach (var status in Enum.GetValues<MigrationManifestEntryStatus>())
             {
                 _statusTotals[status] = 0;
             }

@@ -29,7 +29,7 @@ namespace Tableau.Migration.PythonGenerator.Config.Hints
         {
             var ns = type.ContainingNamespace.ToDisplayString();
             var nsHint = Namespaces.FirstOrDefault(nh => string.Equals(nh.Namespace, ns, StringComparison.Ordinal));
-            if(nsHint is null)
+            if (nsHint is null)
             {
                 return null;
             }

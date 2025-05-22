@@ -15,9 +15,9 @@
 //  limitations under the License.
 //
 
+using System.Collections.Concurrent;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using System.Collections.Concurrent;
 using Tableau.Migration;
 using Tableau.Migration.Api;
 using Tableau.Migration.Content;

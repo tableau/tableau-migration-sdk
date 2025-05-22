@@ -15,10 +15,10 @@
 //  limitations under the License.
 //
 
-using System.IO;
 using System;
-using Tableau.Migration.Content;
+using System.IO;
 using Tableau.Migration.Api.Rest.Models.Types;
+using Tableau.Migration.Content;
 
 namespace Tableau.Migration.Api.Models
 {

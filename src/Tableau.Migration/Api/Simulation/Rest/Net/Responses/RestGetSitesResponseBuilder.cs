@@ -41,12 +41,12 @@ namespace Tableau.Migration.Api.Simulation.Rest.Net.Responses
 
             return Task.FromResult(
                 BuildErrorResponse(
-                    request, 
+                    request,
                     new StaticRestErrorBuilder(
-                        HttpStatusCode.Forbidden, 
-                        69, 
-                        string.Empty, 
-                        string.Empty)));   
+                        HttpStatusCode.Forbidden,
+                        69,
+                        string.Empty,
+                        string.Empty)));
         }
     }
 }

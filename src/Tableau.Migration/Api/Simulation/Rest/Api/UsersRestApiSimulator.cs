@@ -17,6 +17,7 @@
 
 using System;
 using System.Linq;
+using Tableau.Migration.Api.Rest;
 using Tableau.Migration.Api.Rest.Models.Requests;
 using Tableau.Migration.Api.Rest.Models.Responses;
 using Tableau.Migration.Api.Simulation.Rest.Net;
@@ -74,12 +75,12 @@ namespace Tableau.Migration.Api.Simulation.Rest.Api
         /// <param name="simulator">A response simulator to setup with REST API methods.</param>
         public UsersRestApiSimulator(TableauApiResponseSimulator simulator)
         {
-            QueryUsers = simulator.SetupRestPagedList<UsersResponse, UsersResponse.UserType>(SiteUrl("users"), d => d.Users);
+            QueryUsers = simulator.SetupRestPagedList<UsersResponse, UsersResponse.UserType>(SiteUrl(RestUrlKeywords.Users), d => d.Users);
 
             QueryUserGroups = simulator.SetupRestPagedList<GroupsResponse, GroupsResponse.GroupType>(
-                SiteEntityUrl("users", "groups"), (d, r) =>
+                SiteEntityUrl(RestUrlKeywords.Users, RestUrlKeywords.Groups), (d, r) =>
                 {
-                    var userId = r.GetIdAfterSegment("users");
+                    var userId = r.GetIdAfterSegment(RestUrlKeywords.Users);
 
                     if (userId is null || !d.UserGroups.ContainsKey(userId.Value))
                     {
@@ -92,16 +93,16 @@ namespace Tableau.Migration.Api.Simulation.Rest.Api
                 });
 
             ImportUsersToSite = simulator.SetupRestPost<ImportJobResponse, ImportJobResponse.ImportJobType>(
-                SiteUrl("users/import"),
+                SiteUrl($"{RestUrlKeywords.Users}/{RestUrlKeywords.Import}"),
                 new RestUserImportResponseBuilder(simulator.Data, simulator.Serializer));
 
-            AddUserToSite = simulator.SetupRestPost(SiteUrl("users"), new RestUserAddResponseBuilder(simulator.Data, simulator.Serializer));
+            AddUserToSite = simulator.SetupRestPost(SiteUrl(RestUrlKeywords.Users), new RestUserAddResponseBuilder(simulator.Data, simulator.Serializer));
 
             UpdateUser = simulator.SetupRestPut(
-                SiteEntityUrl("users"),
+                SiteEntityUrl(RestUrlKeywords.Users),
                 new RestUserUpdateResponseBuilder(simulator.Data, simulator.Serializer, (d, _) => d.Users));
 
-            RetrieveUserSavedCredentials = simulator.SetupRestPost(SiteEntityUrl("users", "retrieveSavedCreds"),
+            RetrieveUserSavedCredentials = simulator.SetupRestPost(SiteEntityUrl(RestUrlKeywords.Users, RestUrlKeywords.RetrieveSavedCreds),
                 (data, request) =>
                 {
                     var userId = request.GetRequestIdFromUri(hasSuffix: true);
@@ -113,7 +114,7 @@ namespace Tableau.Migration.Api.Simulation.Rest.Api
                     return response;
                 });
 
-            UploadUserSavedCredentials = simulator.SetupRestPut(SiteEntityUrl("users", "uploadSavedCreds"),
+            UploadUserSavedCredentials = simulator.SetupRestPut(SiteEntityUrl(RestUrlKeywords.Users, RestUrlKeywords.UploadSavedCreds),
                 new EmptyRestResponseBuilder(simulator.Data, simulator.Serializer,
                 (data, request) =>
                 {

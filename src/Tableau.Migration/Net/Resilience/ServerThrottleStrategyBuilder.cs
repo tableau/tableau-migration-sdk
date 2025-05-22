@@ -41,7 +41,7 @@ namespace Tableau.Migration.Net.Resilience
         private TimeSpan DelayGenerator(RetryDelayGeneratorArguments<HttpResponseMessage> args, ResilienceOptions resilienceOptions)
         {
             //Obey the server Retry-After header value.
-            if(args.Outcome.Result is not null)
+            if (args.Outcome.Result is not null)
             {
                 var retryAfter = args.Outcome.Result.Headers.RetryAfter;
                 if (retryAfter is not null)

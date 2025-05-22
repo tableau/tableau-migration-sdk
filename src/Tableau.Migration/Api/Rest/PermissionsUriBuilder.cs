@@ -23,7 +23,7 @@ namespace Tableau.Migration.Api.Rest
 {
     internal class PermissionsUriBuilder : ContentItemUriBuilderBase, IPermissionsUriBuilder
     {
-        public PermissionsUriBuilder(string prefix, string suffix = "permissions")
+        public PermissionsUriBuilder(string prefix, string suffix = RestUrlKeywords.Permissions)
             : base(prefix, suffix)
         { }
 

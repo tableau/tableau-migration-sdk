@@ -15,7 +15,7 @@
 //  limitations under the License.
 //
 
-﻿namespace Tableau.Migration.TestApplication.Hooks
+namespace Tableau.Migration.TestApplication.Hooks
 {
     public sealed class TestTableauCloudUsernameOptions
     {
@@ -23,7 +23,7 @@
         /// Email to override with
         /// </summary>
         public string BaseOverrideMailAddress { get; set; } = string.Empty;
-        
+
         /// <summary>
         /// Should the email address be overridden even if it already exists. Default is false.
         /// </summary>

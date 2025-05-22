@@ -45,12 +45,12 @@ namespace Tableau.Migration.Tests.Unit.Api.Search
 
             protected override ApiContentCache<TestContentType> CreateCache()
                 => new Mock<ApiContentCache<TestContentType>>(
-                    MockSitesApiClient.Object, 
-                    MockConfigReader.Object, 
-                    InnerCache) 
-                    { 
-                        CallBase = true 
-                    }
+                    MockSitesApiClient.Object,
+                    MockConfigReader.Object,
+                    InnerCache)
+                {
+                    CallBase = true
+                }
                     .Object;
         }
 

@@ -32,7 +32,7 @@ namespace Tableau.Migration.PythonGenerator.Writers
 
         public IndentingStringBuilder StringBuilder { get; }
 
-        private GeneratedPythonSegment(string path, IndentingStringBuilder stringBuilder, string? tailContent) 
+        private GeneratedPythonSegment(string path, IndentingStringBuilder stringBuilder, string? tailContent)
         {
             _path = path;
             StringBuilder = stringBuilder;
@@ -50,22 +50,22 @@ namespace Tableau.Migration.PythonGenerator.Writers
             string? tailContent = null;
 
             var regionStartIndex = text.IndexOf(BEGIN_REGION);
-            if(regionStartIndex == -1)
+            if (regionStartIndex == -1)
             {
                 sb.NonIndentingBuilder.Append(text);
             }
             else
             {
-                if(regionStartIndex > 0)
+                if (regionStartIndex > 0)
                 {
                     sb.NonIndentingBuilder.Append(text.Substring(0, regionStartIndex));
                 }
 
                 var regionEndIndex = text.IndexOf(END_REGION, regionStartIndex);
-                if(regionEndIndex != -1)
+                if (regionEndIndex != -1)
                 {
                     var tailIndex = regionEndIndex + END_REGION.Length;
-                    if(tailIndex < text.Length - 1)
+                    if (tailIndex < text.Length - 1)
                     {
                         tailContent = text.Substring(tailIndex).TrimStart();
                     }

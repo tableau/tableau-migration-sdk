@@ -36,9 +36,9 @@ namespace Tableau.Migration.Tests.Unit.Engine.Options
             {
                 _mockServices = new(AutoFixture);
                 _mockServices.Setup(x => x.GetService(typeof(TestPlanOptions)))
-                    .Returns(null);
+                    .Returns((object?)null);
                 _mockServices.Setup(x => x.GetService(typeof(IOptions<TestPlanOptions>)))
-                    .Returns(null);
+                    .Returns((object?)null);
 
                 _mockPlanOptions = Freeze<Mock<IMigrationPlanOptionsCollection>>();
                 _mockPlanOptions.Setup(x => x.Get<It.IsAnyType>(It.IsAny<IServiceProvider>()))

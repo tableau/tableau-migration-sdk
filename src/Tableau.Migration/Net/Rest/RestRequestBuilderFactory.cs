@@ -15,7 +15,6 @@
 //  limitations under the License.
 //
 
-using System;
 using Tableau.Migration.Api;
 
 namespace Tableau.Migration.Net.Rest
@@ -52,7 +51,7 @@ namespace Tableau.Migration.Net.Rest
             else
             {
                 var apiVersion = GetApiVersion();
-                if(apiVersion is not null)
+                if (apiVersion is not null)
                 {
                     builder.WithApiVersion(apiVersion);
                 }

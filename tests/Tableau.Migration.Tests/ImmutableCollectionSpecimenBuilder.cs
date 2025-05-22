@@ -36,7 +36,7 @@ namespace Tableau.Migration.Tests
 
         public object Create(object request, ISpecimenContext context)
         {
-            if(!(request is Type t) || !t.IsGenericType)
+            if (!(request is Type t) || !t.IsGenericType)
             {
                 return new NoSpecimen();
             }
@@ -44,7 +44,7 @@ namespace Tableau.Migration.Tests
             var typeArguments = t.GetGenericArguments();
             var genericType = t.GetGenericTypeDefinition();
 
-            if(genericType == typeof(ImmutableList<>) || genericType == typeof(IImmutableList<>))
+            if (genericType == typeof(ImmutableList<>) || genericType == typeof(IImmutableList<>))
             {
                 dynamic list = context.Resolve(typeof(List<>).MakeGenericType(typeArguments));
                 return ImmutableList.ToImmutableList(list);

@@ -37,7 +37,7 @@ namespace Tableau.Migration.Content
 
             var site = Guard.AgainstNull(response.Item.Site, () => response.Item.Site);
 
-            Site = new ContentReferenceStub(Guard.AgainstDefaultValue(site.Id, () => response.Item.Site.Id), 
+            Site = new ContentReferenceStub(Guard.AgainstDefaultValue(site.Id, () => response.Item.Site.Id),
                 Guard.AgainstNull(site.ContentUrl, () => response.Item.Site.ContentUrl),
                 new(Guard.AgainstNullEmptyOrWhiteSpace(site.Name, () => response.Item.Site.Name)));
 
@@ -46,7 +46,7 @@ namespace Tableau.Migration.Content
             var adminLevel = SiteRoleMapping.GetAdministratorLevel(siteRole);
             IsAdministrator = !AdministratorLevels.IsAMatch(adminLevel, AdministratorLevels.None);
 
-            if(IsAdministrator)
+            if (IsAdministrator)
             {
                 Settings = new ServerSessionSettings(response.Item.Site);
             }

@@ -57,7 +57,11 @@ namespace Tableau.Migration.PythonGenerator
         }
 
         public static PythonTypeReference ForGenericType(ITypeSymbol genericType)
-            => new(genericType.Name, null, ConversionMode.WrapGeneric);
+            => genericType.TypeKind switch
+            {
+                TypeKind.TypeParameter => new(genericType.Name, null, ConversionMode.WrapGeneric),
+                _ => ForDotNetType(genericType)
+            };
 
         public static PythonTypeReference ForDotNetType(ITypeSymbol dotNetType)
         {

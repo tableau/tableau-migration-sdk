@@ -32,10 +32,10 @@ namespace Tableau.Migration.Api
         IPagedListApiClient<IFlow>,
         IPullApiClient<IFlow, IPublishableFlow>,
         IPublishApiClient<IPublishableFlow, IFlow>
-        /*IOwnershipApiClient,
-        ITagsContentApiClient,
-        IPermissionsContentApiClient,
-        */
+    /*IOwnershipApiClient,
+    ITagsContentApiClient,
+    IPermissionsContentApiClient,
+    */
     {
         /// <summary>
         /// Gets all prep flows in the current site.

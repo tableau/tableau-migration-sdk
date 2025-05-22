@@ -366,7 +366,7 @@ namespace Tableau.Migration.Tests.Unit.Content.Files
 
                 MockFile.Verify(x => x.OpenWriteAsync(Cancel), Times.Once);
             }
-            
+
             [Fact]
             public async Task PersistsXmlDisposeTwiceNoErrors()
             {
@@ -380,7 +380,7 @@ namespace Tableau.Migration.Tests.Unit.Content.Files
                     .ReturnsAsync(mockFileStream.Object);
 
                 var editor = await TableauFileEditor.OpenAsync(MockFile.Object, MemoryStreamManager, Cancel);
-                
+
                 await editor.GetXmlStream().XmlContent.WriteAsync(Constants.DefaultEncoding.GetBytes(OUTPUT_XML));
                 await editor.DisposeAsync();
                 await editor.DisposeAsync();

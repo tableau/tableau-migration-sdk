@@ -35,22 +35,22 @@ namespace Tableau.Migration.Api.Simulation.Rest.Net.Responses
         { }
 
         protected override ValueTask<(CreateExtractRefreshTaskResponse Response, HttpStatusCode ResponseCode)> BuildResponseAsync(
-            HttpRequestMessage request, 
+            HttpRequestMessage request,
             CancellationToken cancel)
         {
             if (request?.Content is null)
             {
                 return BuildEmptyErrorResponseAsync(
-                    HttpStatusCode.BadRequest, 
-                    0, 
-                    "Request or content cannot be null.", 
+                    HttpStatusCode.BadRequest,
+                    0,
+                    "Request or content cannot be null.",
                     "");
             }
-            
+
             var createRequest = request.GetTableauServerRequest<CreateExtractRefreshTaskRequest>();
             var extractRefresh = createRequest?.ExtractRefresh;
             var schedule = createRequest?.Schedule;
-            
+
             if (extractRefresh is null)
             {
                 return BuildEmptyErrorResponseAsync(
@@ -82,19 +82,19 @@ namespace Tableau.Migration.Api.Simulation.Rest.Net.Responses
                 Data.Workbooks.SingleOrDefault(w => w.Id == extractRefresh.Workbook.Id) is null)
             {
                 return BuildEmptyErrorResponseAsync(
-                    HttpStatusCode.NotFound, 
-                    0, 
-                    $"The workbook with ID {extractRefresh.Workbook.Id} could not be found.", 
-                    "");    
+                    HttpStatusCode.NotFound,
+                    0,
+                    $"The workbook with ID {extractRefresh.Workbook.Id} could not be found.",
+                    "");
             }
             else if (extractRefresh.DataSource is not null &&
                 Data.DataSources.SingleOrDefault(w => w.Id == extractRefresh.DataSource.Id) is null)
             {
                 return BuildEmptyErrorResponseAsync(
-                    HttpStatusCode.NotFound, 
-                    0, 
-                    $"The data source with ID {extractRefresh.DataSource.Id} could not be found.", 
-                    "");    
+                    HttpStatusCode.NotFound,
+                    0,
+                    $"The data source with ID {extractRefresh.DataSource.Id} could not be found.",
+                    "");
             }
 
             if (schedule is null)
@@ -137,19 +137,19 @@ namespace Tableau.Migration.Api.Simulation.Rest.Net.Responses
                     {
                         Frequency = schedule.Frequency,
                         FrequencyDetails = new ExtractRefreshTasksResponse.TaskType.ExtractRefreshType.ScheduleType.FrequencyDetailsType
-                        { 
+                        {
                             Start = schedule.FrequencyDetails.Start,
                             End = schedule.FrequencyDetails.End,
                             Intervals = schedule
                                 .FrequencyDetails
                                 .Intervals
                                 .Select(interval => new ExtractRefreshTasksResponse.TaskType.ExtractRefreshType.ScheduleType.FrequencyDetailsType.IntervalType
-                                    { 
-                                        Hours = interval.Hours,
-                                        Minutes = interval.Minutes,
-                                        MonthDay = interval.MonthDay,
-                                        WeekDay = interval.WeekDay
-                                    })
+                                {
+                                    Hours = interval.Hours,
+                                    Minutes = interval.Minutes,
+                                    MonthDay = interval.MonthDay,
+                                    WeekDay = interval.WeekDay
+                                })
                                 .ToArray()
                         }
                     }

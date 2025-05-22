@@ -22,6 +22,7 @@ using Tableau.Migration.Net.Rest.Fields;
 using Tableau.Migration.Net.Rest.Filtering;
 using Tableau.Migration.Net.Rest.Paging;
 using Tableau.Migration.Net.Rest.Sorting;
+using Tableau.Migration.Api.Rest;
 
 namespace Tableau.Migration.Net.Rest
 {
@@ -147,12 +148,11 @@ namespace Tableau.Migration.Net.Rest
         protected override void BuildPath(List<string> segments)
         {
             const string API_SEGMENT = "api";
-            const string SITES_SEGMENT = "sites";
 
-            if (!segments.Contains(SITES_SEGMENT, StringComparer.OrdinalIgnoreCase))
+            if (!segments.Contains(RestUrlKeywords.Sites, StringComparer.OrdinalIgnoreCase))
             {
                 if (_siteId is not null)
-                    segments.InsertRange(0, new[] { SITES_SEGMENT, _siteId });
+                    segments.InsertRange(0, new[] { RestUrlKeywords.Sites, _siteId });
             }
 
             if (!segments.Contains(API_SEGMENT, StringComparer.OrdinalIgnoreCase))

@@ -42,6 +42,6 @@ namespace Tableau.Migration.Content.Schedules.Server
         /// <summary>
         /// Gets the schedule's updated timestamp.
         /// </summary>
-        string? UpdatedAt { get; }       
+        string? UpdatedAt { get; }
     }
 }

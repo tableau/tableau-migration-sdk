@@ -36,9 +36,9 @@ namespace Tableau.Migration.Content.Schedules
         { }
 
         internal Interval(
-            int? hours = null, 
-            int? minutes = null, 
-            string? weekDay = null, 
+            int? hours = null,
+            int? minutes = null,
+            string? weekDay = null,
             string? monthDay = null)
         {
             Hours = hours;

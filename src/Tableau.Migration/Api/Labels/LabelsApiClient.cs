@@ -24,6 +24,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Tableau.Migration.Api.Models;
+using Tableau.Migration.Api.Rest;
 using Tableau.Migration.Api.Rest.Models;
 using Tableau.Migration.Api.Rest.Models.Requests;
 using Tableau.Migration.Api.Rest.Models.Responses;
@@ -54,9 +55,9 @@ namespace Tableau.Migration.Api.Labels
             IEnumerable<string>? categories = null)
         {
             var requestUrl = categories == null || !categories.Any()
-                ? RestRequestBuilderFactory.CreateUri($"labels")
+                ? RestRequestBuilderFactory.CreateUri(RestUrlKeywords.Labels)
                 : RestRequestBuilderFactory
-                    .CreateUri($"labels")
+                    .CreateUri(RestUrlKeywords.Labels)
                     .WithQuery("categories", GetCategoryListString(categories));
 
             var getResult = await requestUrl
@@ -143,7 +144,7 @@ namespace Tableau.Migration.Api.Labels
             CancellationToken cancel)
         {
             var updateResult = await RestRequestBuilderFactory
-              .CreateUri($"labels")
+              .CreateUri(RestUrlKeywords.Labels)
               .ForPutRequest()
               .WithXmlContent(new UpdateLabelsRequest(contentItemId, contentItemType, label))
               .SendAsync<LabelsResponse>(cancel)

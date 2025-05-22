@@ -19,11 +19,11 @@ namespace DependencyInjection.ExampleApplication.Hooks.Mappings
         // retrieved from the service provider.
         public ProjectMapping(
             ISharedResourcesLocalizer localizer,
-            ILogger<ProjectMapping> logger) 
+            ILogger<ProjectMapping> logger)
                 : base(localizer, logger)
         {
             _logger = logger;
-            
+
             _logger.LogInformation("{Mapping} initialized: Instance ID = {Id}", nameof(ProjectMapping), InstanceId);
         }
 

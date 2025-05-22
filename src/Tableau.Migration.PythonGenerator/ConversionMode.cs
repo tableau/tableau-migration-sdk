@@ -34,7 +34,7 @@ namespace Tableau.Migration.PythonGenerator
         WrapMutableCollection,
 
         WrapArray,
-        
+
         WrapTimeOnly
     }
 }

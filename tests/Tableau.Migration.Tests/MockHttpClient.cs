@@ -158,7 +158,7 @@ namespace Tableau.Migration.Tests
             where TResponse : class
             => SetupSendAsync(mockResponse.Object);
 
-        public IHttpResponseMessage<TResponse> SetupResponse<TResponse>(Mock<IHttpResponseMessage<TResponse>> mockResponse, HttpRequestMessage? request = null, Action <HttpRequestMessage>? onRequestSent = null)
+        public IHttpResponseMessage<TResponse> SetupResponse<TResponse>(Mock<IHttpResponseMessage<TResponse>> mockResponse, HttpRequestMessage? request = null, Action<HttpRequestMessage>? onRequestSent = null)
            where TResponse : class
            => SetupSendAsync(mockResponse.Object, request, onRequestSent);
 

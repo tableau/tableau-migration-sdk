@@ -38,7 +38,7 @@ namespace Tableau.Migration.Api.Simulation.Rest.Api
     /// </summary>
     public sealed class ProjectsRestApiSimulator : PermissionsRestApiSimulatorBase<ProjectsResponse.ProjectType>
     {
-        private static readonly Regex _defaultProjectPermissionsRegex = SiteEntityUrl(RestUrlPrefixes.Projects, @"default-permissions/[\w\d-]+$");
+        private static readonly Regex _defaultProjectPermissionsRegex = SiteEntityUrl(RestUrlKeywords.Projects, @$"{RestUrlKeywords.DefaultPermissions}/[\w\d-]+$");
 
         /// <summary>
         /// Gets the simulated project create API method.
@@ -77,7 +77,7 @@ namespace Tableau.Migration.Api.Simulation.Rest.Api
         public ProjectsRestApiSimulator(TableauApiResponseSimulator simulator)
             : base(
                   simulator,
-                  RestUrlPrefixes.Projects,
+                  RestUrlKeywords.Projects,
                   (data) => data.Projects)
         {
             CreateProject = simulator.SetupRestPost<CreateProjectResponse, CreateProjectResponse.ProjectType>(
@@ -205,7 +205,7 @@ namespace Tableau.Migration.Api.Simulation.Rest.Api
 
             if (updateProjectRequest.ControllingPermissionsProjectId is not null)
             {
-                if(updateProjectRequest.ControllingPermissionsProjectId == string.Empty)
+                if (updateProjectRequest.ControllingPermissionsProjectId == string.Empty)
                 {
                     project.ControllingPermissionsProjectId = null;
                 }

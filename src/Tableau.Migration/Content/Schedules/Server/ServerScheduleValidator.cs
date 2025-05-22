@@ -41,7 +41,7 @@ namespace Tableau.Migration.Content.Schedules.Server
 
         /// <summary>
         /// Validates that the server schedule is valid based on the required of the "Create Server Schedule" RestAPI.
-        /// https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_jobs_tasks_and_schedules.htm#create_schedule
+        /// See <see href="https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_jobs_tasks_and_schedules.htm#create_schedule">Tableau API Reference</see> for documentation.
         /// </summary>
         /// <param name="schedule">Server schedule to validate.</param>
         public void Validate(IServerSchedule schedule)

@@ -20,12 +20,8 @@ using System.Xml.Serialization;
 namespace Tableau.Migration.Api.Rest.Models.Requests
 {
     /// <summary>
-    /// <para>
     /// Class representing a sign-in request.
-    /// </para>
-    /// <para>
     /// See <see href="https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_authentication.htm#sign_in">Tableau API Reference</see> for documentation
-    /// </para>
     /// </summary>
     [XmlType(XmlTypeName)]
     public class SignInRequest : TableauServerRequest

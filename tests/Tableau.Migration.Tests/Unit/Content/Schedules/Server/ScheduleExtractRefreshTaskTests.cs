@@ -47,7 +47,7 @@ namespace Tableau.Migration.Tests.Unit.Content.Schedules.Server
             // Arrange
             var response = Create<ScheduleExtractRefreshTasksResponse.ExtractType>();
             response.Id = default;
-            
+
             // Act & Assert
             Assert.Throws<ArgumentException>(() => new ScheduleExtractRefreshTask(response));
         }

@@ -20,10 +20,10 @@ classifiers = [
 license = "Apache-2.0"
 
 dependencies = [
-    "typing_extensions==4.12.2",
+    "typing_extensions==4.13.2",
     "cffi==1.17.1",
     "pycparser==2.22",
-    "pythonnet==3.0.4"
+    "pythonnet==3.0.5"
 ]
 
 # Get the version from Directory.Build.props file, which is where the nuget package version comes from.
@@ -45,7 +45,7 @@ docs = "sphinx-build -M markdown .\\Documentation\\ ..\\Documentation\\python\\ 
 detached = true
 
 dependencies = [
-  "ruff==0.7.3"
+  "ruff==0.11.10"
 ]
 
 [tool.hatch.envs.lint.scripts]
@@ -54,8 +54,8 @@ lint = "ruff check ."
 [tool.hatch.envs.test]
 dev-mode = false
 dependencies = [
-  "pytest>=8.3.3",
-  "pytest-cov>=6.0.0",
+  "pytest>=8.3.5",
+  "pytest-cov>=6.1.1",
   "pytest-env>=1.1.5"
 ]
 

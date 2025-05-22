@@ -37,7 +37,7 @@ namespace Tableau.Migration.Engine.Hooks.InitializeMigration.Default
 
         public override async Task<IInitializeMigrationHookResult?> ExecuteCheckAsync(IInitializeMigrationHookResult ctx, CancellationToken cancel)
         {
-            var capabilitySetResult = await _capabilityManager.SetMigrationCapabilityAsync(cancel).ConfigureAwait(false);
+            var capabilitySetResult = await _capabilityManager.SetMigrationCapabilityAsync(ctx.DestinationServerSession, cancel).ConfigureAwait(false);
 
             if (!capabilitySetResult.Success)
             {

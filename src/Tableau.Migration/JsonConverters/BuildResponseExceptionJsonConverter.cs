@@ -39,7 +39,7 @@ namespace Tableau.Migration.JsonConverters
             writer.WriteEndObject();
         }
 
-        
+
         public override BuildResponseException? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
             JsonReaderUtils.AssertStartObject(ref reader);
@@ -58,7 +58,7 @@ namespace Tableau.Migration.JsonConverters
 
                     reader.Read(); // Move to the property value.
 
-                    switch(propertyName)
+                    switch (propertyName)
                     {
                         case nameof(BuildResponseException.StatusCode):
                             var statusCodeStr = reader.GetString();
@@ -79,7 +79,7 @@ namespace Tableau.Migration.JsonConverters
                             detail = reader.GetString();
                             Guard.AgainstNull(detail, nameof(detail));
                             break;
-                        
+
                         default:
                             break;
                     }

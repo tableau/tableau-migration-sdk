@@ -184,8 +184,8 @@ $@"
 
             var freshConfig = context.GetCurrentConfiguration();
 
-            Assert.Equal(NetworkOptions.Defaults.FILE_CHUNK_SIZE_KB, freshConfig.Network.FileChunkSizeKB);            
-            
+            Assert.Equal(NetworkOptions.Defaults.FILE_CHUNK_SIZE_KB, freshConfig.Network.FileChunkSizeKB);
+
             Assert.Equal(ContentTypesOptions.Defaults.BATCH_SIZE, context.GetCurrentConfiguration<IUser>().BatchSize);
             Assert.Equal(ContentTypesOptions.Defaults.BATCH_SIZE, context.GetCurrentConfiguration<IDataSource>().BatchSize);
             Assert.Equal(ContentTypesOptions.Defaults.BATCH_SIZE, context.GetCurrentConfiguration<IServerExtractRefreshTask>().BatchSize);

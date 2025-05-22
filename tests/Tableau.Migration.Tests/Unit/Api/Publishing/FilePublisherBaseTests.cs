@@ -132,7 +132,7 @@ namespace Tableau.Migration.Tests.Unit.Api.Publishing
                     r =>
                     {
                         r.AssertHttpMethod(HttpMethod.Post);
-                        r.AssertSiteUri(SiteConnectionConfiguration, MockSessionProvider.Object, RestUrlPrefixes.FileUploads);
+                        r.AssertSiteUri(SiteConnectionConfiguration, MockSessionProvider.Object, RestUrlKeywords.FileUploads);
                     });
             }
 

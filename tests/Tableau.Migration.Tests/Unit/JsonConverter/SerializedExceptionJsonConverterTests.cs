@@ -87,7 +87,7 @@ namespace Tableau.Migration.Tests.Unit.JsonConverter
                 Assert.NotNull(result.Error);
                 Assert.Equal(ex.Error!.Message, result.Error.Message);
 
-                if(ex.Error is not UnknownException)
+                if (ex.Error is not UnknownException)
                 {
                     Assert.IsNotType<UnknownException>(result.Error); // Migration SDK Exception types should not rely on fall-back deserialization.
                 }

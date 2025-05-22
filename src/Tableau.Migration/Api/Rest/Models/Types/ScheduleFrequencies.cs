@@ -18,12 +18,8 @@
 namespace Tableau.Migration.Api.Rest.Models.Types
 {
     /// <summary>
-    /// <para>
     /// Class containing schedule frequency constants.
-    /// </para>
-    /// <para>
-    /// See https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_extract_and_encryption.htm#create_cloud_extract_refresh_task for documentation.
-    /// </para>
+    /// See <see href="https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_extract_and_encryption.htm#create_cloud_extract_refresh_task">Tableau API Reference</see> for documentation.
     /// </summary>
     public class ScheduleFrequencies : StringEnum<ScheduleFrequencies>
     {

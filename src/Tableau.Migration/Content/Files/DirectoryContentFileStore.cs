@@ -164,7 +164,7 @@ namespace Tableau.Migration.Content.Files
         {
             await CloseTableauFileEditorAsync(handle, cancel).ConfigureAwait(false);
             await DeleteAsync(handle.Path, cancel).ConfigureAwait(false);
-        } 
+        }
 
         #endregion
 

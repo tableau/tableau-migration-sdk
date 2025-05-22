@@ -18,7 +18,6 @@
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Tableau.Migration.Api.Rest.Models.Types;
 using Tableau.Migration.Content;
 using Tableau.Migration.Content.Schedules;
 using Tableau.Migration.Content.Schedules.Cloud;

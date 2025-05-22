@@ -15,7 +15,6 @@
 //  limitations under the License.
 //
 
-using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -47,7 +46,7 @@ namespace Tableau.Migration.TestApplication.Hooks
         }
 
         public async Task<IEnumerable<ContentMigrationItem<TContent>>?> ExecuteAsync(
-            IEnumerable<ContentMigrationItem<TContent>> ctx, 
+            IEnumerable<ContentMigrationItem<TContent>> ctx,
             CancellationToken cancel)
         {
             if (_skippedParentProject.IsEmpty)

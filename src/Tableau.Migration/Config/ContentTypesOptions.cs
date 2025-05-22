@@ -42,9 +42,14 @@ namespace Tableau.Migration.Config
             public const bool BATCH_PUBLISHING_ENABLED = false;
 
             /// <summary>
-            /// The default migration include extract flag
+            /// The default migration include extract flag.
             /// </summary>
             public const bool INCLUDE_EXTRACT_ENABLED = true;
+
+            /// <summary>
+            /// The default overwrite group users flag.
+            /// </summary>
+            public const bool OVERWRITE_GROUP_USERS = true;
         }
 
         /// <summary>
@@ -85,6 +90,19 @@ namespace Tableau.Migration.Config
             set => _includeExtractEnabled = value;
         }
         private bool? _includeExtractEnabled;
+
+        /// <summary>
+        /// Gets or sets the overwrite group users flag for supported types. Default: enabled.<br/>
+        /// <b>Important:</b> This option is only available to <see cref="Content.IGroup"/>.
+        /// For more details, check the configuration 
+        /// <seealso href="https://tableau.github.io/migration-sdk/articles/configuration.html#contenttypesoverwritegroupusersenabled">article</seealso>.
+        /// </summary>
+        public bool OverwriteGroupUsersEnabled
+        {
+            get => _overwriteGroupUsersEnabled ?? Defaults.OVERWRITE_GROUP_USERS;
+            set => _overwriteGroupUsersEnabled = value;
+        }
+        private bool? _overwriteGroupUsersEnabled;
 
         /// <summary>
         /// Checks if the content type in <see cref="Type"/> is valid.

@@ -51,7 +51,7 @@ namespace Csharp.ExampleApplication.Hooks.PostPublish
         {
             var capabilityToUpdate = PermissionsCapabilityNames.Write;
 
-            var removedCount = capabilities.RemoveWhere(c => 
+            var removedCount = capabilities.RemoveWhere(c =>
                 StringComparer.Equals(capabilityToUpdate, c.Name));
 
             if (removedCount == 0)
@@ -99,7 +99,7 @@ namespace Csharp.ExampleApplication.Hooks.PostPublish
 
             var permissions = permissionsResult.Value;
 
-            var hasUpdates = false; 
+            var hasUpdates = false;
 
             // Loop through the permission items to find/update the capabilities.
             foreach (var granteeCapability in permissions.GranteeCapabilities)

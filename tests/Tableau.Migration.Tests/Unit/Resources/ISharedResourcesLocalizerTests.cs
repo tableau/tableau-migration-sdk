@@ -15,7 +15,6 @@
 //  limitations under the License.
 //
 
-using System;
 using System.Linq;
 using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
@@ -115,5 +114,5 @@ namespace Tableau.Migration.Tests.Unit.Resources
         }
     }
 
-    
+
 }

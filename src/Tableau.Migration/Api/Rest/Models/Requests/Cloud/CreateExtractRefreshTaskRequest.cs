@@ -25,12 +25,8 @@ using CloudModels = Tableau.Migration.Api.Models.Cloud;
 namespace Tableau.Migration.Api.Rest.Models.Requests.Cloud
 {
     /// <summary>   
-    /// <para>
     /// Class representing a create extract refresh task request.
-    /// </para>
-    /// <para>
-    /// See https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref.htm#create_cloud_extract_refresh_task for documentation.
-    /// </para>
+    /// See <see href="https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref.htm#create_cloud_extract_refresh_task">REST API Reference</see> for documentation.
     /// </summary>
     [XmlType(XmlTypeName)]
     public class CreateExtractRefreshTaskRequest : TableauServerRequest
@@ -63,7 +59,7 @@ namespace Tableau.Migration.Api.Rest.Models.Requests.Cloud
         public CreateExtractRefreshTaskRequest(
             string type,
             ExtractRefreshContentType contentType,
-            Guid contentId, 
+            Guid contentId,
             ICloudSchedule schedule)
         {
             ExtractRefresh = new ExtractRefreshType(
@@ -82,8 +78,8 @@ namespace Tableau.Migration.Api.Rest.Models.Requests.Cloud
             CloudModels.ICreateExtractRefreshTaskOptions options)
             : this(
                   options.Type,
-                  options.ContentType, 
-                  options.ContentId, 
+                  options.ContentType,
+                  options.ContentId,
                   options.Schedule)
         { }
 

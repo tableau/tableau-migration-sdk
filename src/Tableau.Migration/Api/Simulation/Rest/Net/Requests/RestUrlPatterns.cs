@@ -17,6 +17,7 @@
 
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using Tableau.Migration.Api.Rest;
 using Tableau.Migration.Net;
 
 namespace Tableau.Migration.Api.Simulation.Rest.Net.Requests
@@ -68,13 +69,13 @@ namespace Tableau.Migration.Api.Simulation.Rest.Net.Requests
         {
             var trimmedSuffix = postEntitySuffix?.TrimPaths();
             trimmedSuffix = string.IsNullOrEmpty(trimmedSuffix) ? string.Empty : $"/{trimmedSuffix}";
-            var result = 
+            var result =
              SiteUrl($"""{postSitePreEntitySuffix.TrimPaths()}/{EntityId}{trimmedSuffix}""", useExperimental);
             return result;
         }
 
         public static Regex SiteEntityTagsUrl(string postSitePreEntitySuffix, string? postTagsSuffix = null)
-            => SiteEntityUrl(postSitePreEntitySuffix, $"tags/{postTagsSuffix}".TrimEnd('/'));
+            => SiteEntityUrl(postSitePreEntitySuffix, $"{RestUrlKeywords.Tags}/{postTagsSuffix}".TrimEnd('/'));
 
         public static Regex SiteEntityTagUrl(string postSitePreEntitySuffix)
             => SiteEntityTagsUrl(postSitePreEntitySuffix, new Regex(NamePattern, RegexOptions.IgnoreCase).ToString());

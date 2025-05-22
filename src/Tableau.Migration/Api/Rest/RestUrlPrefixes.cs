@@ -18,7 +18,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using Tableau.Migration.Content;
 
 namespace Tableau.Migration.Api.Rest
 {
@@ -26,37 +25,21 @@ namespace Tableau.Migration.Api.Rest
     {
         private static readonly IImmutableDictionary<Type, string> _urlPrefixesByType = new Dictionary<Type, string>(InheritedTypeComparer.Instance)
         {
-            [typeof(IDataSourcesApiClient)] = DataSources,
-            [typeof(IFlowsApiClient)] = Flows,
-            [typeof(IGroupsApiClient)] = Groups,
-            [typeof(IJobsApiClient)] = Jobs,
-            [typeof(ISchedulesApiClient)] = Schedules,
-            [typeof(IProjectsApiClient)] = Projects,
-            [typeof(ISitesApiClient)] = Sites,
-            [typeof(IUsersApiClient)] = Users,
-            [typeof(IViewsApiClient)] = Views,
-            [typeof(IWorkbooksApiClient)] = Workbooks,
-            [typeof(ITasksApiClient)] = Tasks,
-            [typeof(ICustomViewsApiClient)] = CustomViews,
-            [typeof(ISubscriptionsApiClient)] = Subscriptions
+            [typeof(IDataSourcesApiClient)] = RestUrlKeywords.DataSources,
+            [typeof(IFlowsApiClient)] = RestUrlKeywords.Flows,
+            [typeof(IGroupsApiClient)] = RestUrlKeywords.Groups,
+            [typeof(IJobsApiClient)] = RestUrlKeywords.Jobs,
+            [typeof(ISchedulesApiClient)] = RestUrlKeywords.Schedules,
+            [typeof(IProjectsApiClient)] = RestUrlKeywords.Projects,
+            [typeof(ISitesApiClient)] = RestUrlKeywords.Sites,
+            [typeof(IUsersApiClient)] = RestUrlKeywords.Users,
+            [typeof(IViewsApiClient)] = RestUrlKeywords.Views,
+            [typeof(IWorkbooksApiClient)] = RestUrlKeywords.Workbooks,
+            [typeof(ITasksApiClient)] = RestUrlKeywords.Tasks,
+            [typeof(ICustomViewsApiClient)] = RestUrlKeywords.CustomViews,
+            [typeof(ISubscriptionsApiClient)] = RestUrlKeywords.Subscriptions
         }
         .ToImmutableDictionary(InheritedTypeComparer.Instance);
-
-        public const string Content = "content";
-        public const string DataSources = "datasources";
-        public const string FileUploads = "fileUploads";
-        public const string Flows = "flows";
-        public const string Groups = "groups";
-        public const string Jobs = "jobs";
-        public const string Projects = "projects";
-        public const string Sites = "sites";
-        public const string Users = "users";
-        public const string Views = "views";
-        public const string Workbooks = "workbooks";
-        public const string Schedules = "schedules";
-        public const string Tasks = "tasks";
-        public const string CustomViews = "customviews";
-        public const string Subscriptions = "subscriptions";
 
         public static string GetUrlPrefix<TApiClient>()
             where TApiClient : IContentApiClient

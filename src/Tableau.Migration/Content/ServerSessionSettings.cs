@@ -24,9 +24,13 @@ namespace Tableau.Migration.Content
         /// <inheritdoc />
         public string ExtractEncryptionMode { get; }
 
+        /// <inheritdoc />
+        public bool DisableSubscriptions { get; }
+
         public ServerSessionSettings(ServerSessionResponse.SessionType.SiteType response)
         {
             ExtractEncryptionMode = Guard.AgainstNullEmptyOrWhiteSpace(response.ExtractEncryptionMode, () => response.ExtractEncryptionMode);
+            DisableSubscriptions = response.DisableSubscriptions;
         }
     }
 }

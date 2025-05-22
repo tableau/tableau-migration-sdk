@@ -102,7 +102,7 @@ namespace Tableau.Migration.Api
         public async Task<IAsyncDisposableResult<FileDownload>> DownloadFlowAsync(Guid flowId, CancellationToken cancel)
         {
             var downloadResult = await RestRequestBuilderFactory
-                .CreateUri($"{UrlPrefix}/{flowId.ToUrlSegment()}/{RestUrlPrefixes.Content}")
+                .CreateUri($"{UrlPrefix}/{flowId.ToUrlSegment()}/{RestUrlKeywords.Content}")
                 .ForGetRequest()
                 .DownloadAsync(cancel)
                 .ConfigureAwait(false);

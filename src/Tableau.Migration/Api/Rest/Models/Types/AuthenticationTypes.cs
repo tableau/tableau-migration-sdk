@@ -18,12 +18,8 @@
 namespace Tableau.Migration.Api.Rest.Models.Types
 {
     /// <summary>
-    /// <para>
     /// Class containing authentication type constants.
-    /// </para>
-    /// <para>
     /// See <see href="https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_users_and_groups.htm#add_user_to_site">Tableau API Reference</see> for documentation.
-    /// </para>
     /// </summary>
     public class AuthenticationTypes : StringEnum<AuthenticationTypes>
     {

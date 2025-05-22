@@ -66,7 +66,7 @@ namespace Tableau.Migration.Engine.Hooks.Transformers.Default
                     continue;
                 }
 
-                user.User = destinationUser;                
+                user.User = destinationUser;
             }
 
             LogMissingUsers(sourceGroup.Name, missingUsers);

@@ -19,11 +19,11 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using Moq;
 using Tableau.Migration.Content;
 using Tableau.Migration.Engine;
 using Tableau.Migration.Engine.Hooks.Filters;
-using Microsoft.Extensions.Logging;
-using Moq;
 using Xunit;
 
 namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Filters

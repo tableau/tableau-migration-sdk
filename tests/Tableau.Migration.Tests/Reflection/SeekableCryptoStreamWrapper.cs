@@ -24,7 +24,7 @@ namespace Tableau.Migration.Tests.Reflection
     {
         public Stream InnerStream => GetFieldValue<Stream>("_innerStream");
 
-        public SeekableCryptoStreamWrapper(SeekableCryptoStream @object) 
+        public SeekableCryptoStreamWrapper(SeekableCryptoStream @object)
             : base(@object)
         { }
     }

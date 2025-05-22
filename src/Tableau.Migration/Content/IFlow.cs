@@ -20,8 +20,8 @@ namespace Tableau.Migration.Content
     /// <summary>
     /// Interface for a prep flow content item.
     /// </summary>
-    public interface IFlow : 
-        IContentReference, 
+    public interface IFlow :
+        IContentReference,
         IPublishedContent,
         IDescriptionContent,
         IWithTags,

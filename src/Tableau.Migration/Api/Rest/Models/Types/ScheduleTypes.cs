@@ -18,12 +18,8 @@
 namespace Tableau.Migration.Api.Rest.Models.Types
 {
     /// <summary>
-    /// <para>
     /// Class containing schedule type constants.
-    /// </para>
-    /// <para>
-    /// See https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_jobs_tasks_and_schedules.htm#create_schedule for documentation.
-    /// </para>
+    /// See <see href="https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_jobs_tasks_and_schedules.htm#create_schedule">Tableau API Reference</see> for documentation.
     /// </summary>
     public class ScheduleTypes : StringEnum<ScheduleTypes>
     {

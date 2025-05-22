@@ -16,7 +16,6 @@
 //
 
 using System;
-using Tableau.Migration.Api;
 
 namespace Tableau.Migration.TestApplication.Config
 {

@@ -15,6 +15,7 @@
 //  limitations under the License.
 //
 
+using Tableau.Migration.Api.Rest;
 using Tableau.Migration.Api.Rest.Models.Responses;
 using Tableau.Migration.Api.Simulation.Rest.Net;
 using Tableau.Migration.Net.Simulation;
@@ -39,7 +40,7 @@ namespace Tableau.Migration.Api.Simulation.Rest.Api
         /// <param name="simulator">A response simulator to setup with REST API methods.</param>
         public JobsRestApiSimulator(TableauApiResponseSimulator simulator)
         {
-            QueryJob = simulator.SetupRestGetById<JobResponse, JobResponse.JobType>(SiteEntityUrl("jobs"), d => d.Jobs);
+            QueryJob = simulator.SetupRestGetById<JobResponse, JobResponse.JobType>(SiteEntityUrl(RestUrlKeywords.Jobs), d => d.Jobs);
         }
     }
 }

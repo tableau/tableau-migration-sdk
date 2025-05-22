@@ -128,12 +128,12 @@ namespace Tableau.Migration
         /// <param name="pathSeparator">The separator to use between segments in the location path.</param>
         /// <returns>The newly created <see cref="ContentLocation"/>.</returns>
         public static ContentLocation FromPath(
-            string contentLocationPath, 
+            string contentLocationPath,
             string pathSeparator = Constants.PathSeparator)
             => new(
                 contentLocationPath
                     .Split(
-                        pathSeparator, 
+                        pathSeparator,
                         StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
                     .ToImmutableArray(),
                 pathSeparator);
@@ -156,7 +156,7 @@ namespace Tableau.Migration
         public static ContentLocation ForContentType(Type contentType, params IEnumerable<string> pathSegments)
         {
             string pathSeparator;
-            switch(contentType)
+            switch (contentType)
             {
                 case Type t when t == typeof(IUser) || t == typeof(IGroup):
                     pathSeparator = Constants.DomainNameSeparator;

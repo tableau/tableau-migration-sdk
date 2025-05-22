@@ -34,7 +34,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints.Search
         {
             public List<TestContentType> ItemLoadedCalls { get; } = new();
 
-            public TestBulkDestinationCache(IDestinationEndpoint endpoint, IConfigReader configReader, IMigrationManifestEditor manifest) 
+            public TestBulkDestinationCache(IDestinationEndpoint endpoint, IConfigReader configReader, IMigrationManifestEditor manifest)
                 : base(endpoint, configReader, manifest)
             { }
 
