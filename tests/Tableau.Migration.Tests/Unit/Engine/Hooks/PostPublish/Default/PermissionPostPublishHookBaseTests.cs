@@ -44,7 +44,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.PostPublish.Default
                 return ctx.ToTask();
             }
 
-            public Guid? PublicGetDestinationProjectId(TResult result) 
+            public Guid? PublicGetDestinationProjectId(TResult result)
                 => GetDestinationProjectId(result);
 
             public async Task<bool> PublicParentProjectLockedAsync(ContentItemPostPublishContext<TPublish, TResult> ctx, CancellationToken cancel)
@@ -165,7 +165,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.PostPublish.Default
             public async Task ProjectIgnoresWithoutNestedAsync()
             {
                 var proj = Create<IProject>();
-                
+
                 Assert.NotNull(proj.Container);
                 var parentId = proj.Container.Id;
 

@@ -37,7 +37,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.PostPublish.Default
 {
     public class ChildsItemMigrationCompletedHookTests
     {
-        public class ChildItemsPermissionsContentType : TestContentType, 
+        public class ChildItemsPermissionsContentType : TestContentType,
             IChildPermissionsContent, IPermissionsContent, IContainerContent
         {
             public ChildItemsPermissionsContentType(IContentReference container, IEnumerable<IContentReference> childItems)

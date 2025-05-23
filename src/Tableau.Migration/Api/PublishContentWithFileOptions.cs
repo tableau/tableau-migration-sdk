@@ -15,9 +15,7 @@
 //  limitations under the License.
 //
 
-using System;
 using System.IO;
-using Tableau.Migration.Api;
 
 //
 //  Copyright (c) 2025, Salesforce, Inc.
@@ -37,8 +35,6 @@ using Tableau.Migration.Api;
 //
 
 using Tableau.Migration.Api.Models;
-using Tableau.Migration.Api.Rest.Models.Types;
-using Tableau.Migration.Content;
 
 namespace Tableau.Migration.Api
 {
@@ -56,7 +52,7 @@ namespace Tableau.Migration.Api
         public PublishContentWithFileOptions(
             Stream file,
             string fileName,
-            string fileType) 
+            string fileType)
         {
             File = file;
             FileName = fileName;

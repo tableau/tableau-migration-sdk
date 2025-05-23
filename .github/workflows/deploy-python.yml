@@ -1,0 +1,97 @@
+# This workflow will publish a package to a Pypi Repository
+name: Deploy Python Package
+
+on:
+  workflow_call:
+    secrets:
+      PYPI_PUBLISH_USER_PASS:
+        required: true
+    inputs:
+      python-version:
+        description: "The python version to use to publish the package."
+        required: true
+        type: string
+      runs-on-config:
+        description: "The OS that runs this workflow."
+        required: true
+        type: string
+      build-config:
+        description: "The build configuration to use. Usually Release or Debug."
+        required: true
+        type: string
+      publish-environment:
+        description: "The github environment that has the variables and secrets."
+        required: true
+        type: string
+      continue-on-error:
+        description: "Whether to continue on error for this deployment"
+        required: true
+        type: boolean
+
+env:
+  PYPI_PUBLISH_USER: ${{ vars.PYPI_PUBLISH_USER }}
+  PYPI_PUBLISH_USER_PASS: ${{ secrets.PYPI_PUBLISH_USER_PASS }}
+  PYPI_PACKAGE_REPOSITORY: ${{ vars.PYPI_PACKAGE_REPOSITORY }}
+
+jobs:
+  deploy-python-package:
+    name: Deploy Python Package with ${{ inputs.build-config }} configuration via ${{ inputs.publish-environment }}
+    environment:
+      name: ${{ inputs.publish-environment }}
+    runs-on: ${{ inputs.runs-on-config }}
+    continue-on-error: ${{ inputs.continue-on-error }}
+    steps:
+      - name: Check we have all required github environment variables
+        shell: pwsh
+        run: |
+          if ($env:PYPI_PUBLISH_USER_PASS -eq $null) {
+            throw "PYPI_PUBLISH_USER_PASS is not set"
+          }
+          if ($env:PYPI_PUBLISH_USER -eq $null) {
+            throw "PYPI_PUBLISH_USER is not set"
+          }
+          if ($env:PYPI_PACKAGE_REPOSITORY -eq $null) {
+            throw "PYPI_PACKAGE_REPOSITORY is not set"
+          }
+
+      # Checkout the repository
+      - uses: actions/checkout@v4
+
+      # Setup Python environment
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        # Only setup python if the runs-on-config is not self-hosted.
+        # Self-hosted runners already have python installed.
+        # This workflow needs to run in github on self-hosted runners to have access to artifactory.
+        # When running on a local machine via act, runs-on-config should be set to something other than self-hosted.
+        if: ${{ inputs.runs-on-config != 'self-hosted' }}
+        with:
+          python-version: ${{ inputs.python-version }}
+          cache: "pip" # caching pip dependencies
+
+      # Install dependencies
+      # TODO: [W-18497996: CI/CD Improvements: deploy-python should run via ...pdated more easily | Work](https://gus.lightning.force.com/lightning/r/ADM_Work__c/a07EE00002EIZBPYA5/view)
+      - name: Install dependencies
+        shell: pwsh
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install hatch twine>=6.1.0
+
+      # Download python package artifact
+      - name: Download Python Package Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: pypi-package
+          path: ./dist
+
+      # Publish Python package
+      - name: Deploy Python Package
+        env:
+          # Twine uses env variables to set the username, password, and repository url.
+          TWINE_USERNAME: ${{ env.PYPI_PUBLISH_USER }}
+          TWINE_NON_INTERACTIVE: 1 # Do not interactively prompt for username/password if the required credentials are missing.
+          TWINE_PASSWORD: "${{ secrets.PYPI_PUBLISH_USER_PASS }}"
+          TWINE_REPOSITORY_URL: ${{ env.PYPI_PACKAGE_REPOSITORY }}
+
+        run: |
+          python -m twine upload dist/*

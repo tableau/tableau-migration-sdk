@@ -57,14 +57,14 @@ namespace Tableau.Migration.Engine.Endpoints.Search
             var manifestEntries = _manifest.Entries.GetOrCreatePartition<TContent>();
             if (manifestEntries.BySourceLocation.TryGetValue(sourceLocation, out var entry))
             {
-                if(entry.Destination is not null)
+                if (entry.Destination is not null)
                 {
                     return entry.Destination;
                 }
 
                 return await _destinationCache.ForLocationAsync(entry.MappedLocation, cancel).ConfigureAwait(false);
             }
-             
+
             return null;
         }
 

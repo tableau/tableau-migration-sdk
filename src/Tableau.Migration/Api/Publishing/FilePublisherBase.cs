@@ -93,7 +93,7 @@ namespace Tableau.Migration.Api.Publishing
             var fileName = string.IsNullOrWhiteSpace(options.FileName) ? Guid.NewGuid().ToString("N") : options.FileName;
             var uploadSessionId = initiateResult.Value.Item?.UploadSessionId ?? string.Empty;
             var boundary = Guid.NewGuid().ToString("N");
-            var uploadSessionUri = $"{RestUrlPrefixes.FileUploads}/{uploadSessionId}";
+            var uploadSessionUri = $"{RestUrlKeywords.FileUploads}/{uploadSessionId}";
 
             var chunkResults = await _httpStreamProcessor
                 .ProcessAsync<FileUploadResponse>(
@@ -133,7 +133,7 @@ namespace Tableau.Migration.Api.Publishing
         private async Task<IHttpResponseMessage<FileUploadResponse>> InitiateFileUpload(CancellationToken cancel)
         {
             return await RestRequestBuilderFactory
-                .CreateUri(RestUrlPrefixes.FileUploads)
+                .CreateUri(RestUrlKeywords.FileUploads)
                 .WithApiVersion(_sessionProvider.Version!.Value.RestApiVersion)
                 .WithSiteId(_sessionProvider.SiteId!.Value)
                 .ForPostRequest()

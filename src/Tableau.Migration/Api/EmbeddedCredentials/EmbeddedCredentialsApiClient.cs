@@ -20,6 +20,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Tableau.Migration.Api.Models;
+using Tableau.Migration.Api.Rest;
 using Tableau.Migration.Api.Rest.Models.Requests;
 using Tableau.Migration.Api.Rest.Models.Responses;
 using Tableau.Migration.Net;
@@ -59,7 +60,7 @@ namespace Tableau.Migration.Api.EmbeddedCredentials
             CancellationToken cancel)
         {
             return await _restRequestBuilderFactory
-                .CreateUri($"{_urlPrefix}/{contentItemId.ToUrlSegment()}/retrievekeychain")
+                .CreateUri($"{_urlPrefix}/{contentItemId.ToUrlSegment()}/{RestUrlKeywords.RetrieveKeychain}")
                 .ForPostRequest()
                 .WithXmlContent(new RetrieveKeychainRequest(destinationSiteInfo))
                 .SendAsync<RetrieveKeychainResponse>(cancel)
@@ -74,7 +75,7 @@ namespace Tableau.Migration.Api.EmbeddedCredentials
         public async Task<IResult> ApplyKeychainAsync(Guid contentItemId, IApplyKeychainOptions options, CancellationToken cancel)
         {
             return await _restRequestBuilderFactory
-                .CreateUri($"{_urlPrefix}/{contentItemId.ToUrlSegment()}/applykeychain")
+                .CreateUri($"{_urlPrefix}/{contentItemId.ToUrlSegment()}/{RestUrlKeywords.ApplyKeychain}")
                 .ForPutRequest()
                 .WithXmlContent(new ApplyKeychainRequest(options))
                 .SendAsync(cancel)

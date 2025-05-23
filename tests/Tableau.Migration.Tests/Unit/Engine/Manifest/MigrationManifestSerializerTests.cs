@@ -74,7 +74,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Manifest
         [Fact]
         public async Task ManifestSaveLoad_DifferentVersionAsync()
         {
-            var mockManifest = new Mock<MigrationManifest>(Guid.NewGuid(), Guid.NewGuid(), PipelineProfile.ServerToCloud, null) { CallBase = true };
+            var mockManifest = new Mock<MigrationManifest>(Guid.NewGuid(), Guid.NewGuid(), PipelineProfile.ServerToCloud, null!) { CallBase = true };
             mockManifest.Setup(m => m.ManifestVersion).Returns(1);
 
             var serializer = Create<MigrationManifestSerializer>();

@@ -34,7 +34,7 @@ namespace Tableau.Migration.Engine.Conversion
         public Task<TPublish> ConvertAsync(TPrepare sourceItem, CancellationToken cancel)
         {
             var publish = sourceItem as TPublish;
-            if(publish is null)
+            if (publish is null)
             {
                 throw new InvalidCastException($"Content item of preparation type {typeof(TPrepare)} cannot be converted to publish type {typeof(TPublish)}. Register a converter override in the pipeline.");
             }

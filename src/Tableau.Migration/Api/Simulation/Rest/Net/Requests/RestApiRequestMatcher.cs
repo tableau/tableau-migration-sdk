@@ -69,7 +69,7 @@ namespace Tableau.Migration.Api.Simulation.Rest.Net.Requests
 
             var restApiVersionGroup = restApiPathMatch.Groups[RestUrlPatterns.VersionGroupName];
             if (restApiVersionGroup is null
-                || (!decimal.TryParse(restApiVersionGroup.Value, out var restApiVersion) 
+                || (!decimal.TryParse(restApiVersionGroup.Value, out var restApiVersion)
                     && restApiVersionGroup.Value != ApiClient.EXPERIMENTAL_API_VERSION))
             {
                 return false;

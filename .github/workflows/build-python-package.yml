@@ -1,0 +1,95 @@
+# This workflow will build the python package
+name: Build Python Package
+
+on:
+  workflow_call:
+    inputs:
+      runs-on-config:
+        required: true
+        type: string
+      build-config:
+        required: true
+        type: string
+      beta-version:
+        required: true
+        type: string
+
+env:
+  WORKING_DIRECTORY: ./src/Python
+
+jobs:
+  build-python-package:
+    defaults:
+      run:
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+
+    runs-on: ${{ inputs.runs-on-config }}
+    name: Build Python Package with ${{ inputs.build-config }} configuration
+    steps:
+      # Checkout the repository
+      - uses: actions/checkout@v4
+
+      # Setup Python environment
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ vars.PYTHON_TEST_VERSIONS }}
+          cache: "pip" # caching pip dependencies
+
+      # Install dependencies
+      - name: Install dependencies
+        shell: pwsh
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install hatch
+
+      # Cache Hatch environments
+      - name: Cache Hatch environments
+        uses: actions/cache@v4
+        with:
+          # Default Hatch env location relative to working-directory.
+          path: ./.hatch
+          # Key depends on OS and python version, plus project/dependency files
+          key: ${{ runner.os }}-py${{ vars.PYTHON_TEST_VERSIONS }}-hatch-${{ hashFiles('./pyproject.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-py${{ vars.PYTHON_TEST_VERSIONS }}-hatch-
+
+      # Download the product artifact
+      - uses: actions/download-artifact@v4
+        with:
+          name: product-${{ inputs.build-config }}
+          path: ./src/Python/src/tableau_migration/bin/
+
+      # Set replaced version
+      - name: Set Replaced Version
+        if: ${{ inputs.beta-version != '' }}
+        shell: pwsh
+        run: hatch version '${{ inputs.beta-version }}'
+
+      # Build Python package
+      - name: Build Python Package
+        shell: pwsh
+        run: python -m hatch build
+
+      # Compress PyPI Package to be used in the create-release workflow.
+      - name: Compress PyPI Package
+        shell: pwsh
+        run: |
+          Compress-Archive -Path ./dist/* -DestinationPath ./tableau_migration-pypi.zip
+
+      # Upload PyPI artifact
+      - name: Upload Pypi Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pypi-package-bundle
+          path: ${{ env.WORKING_DIRECTORY }}/tableau_migration-pypi.zip
+          if-no-files-found: error
+
+      # Upload PyPI artifact
+      - name: Upload Pypi Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: pypi-package
+          path: ${{ env.WORKING_DIRECTORY }}/dist/*
+          if-no-files-found: error
+

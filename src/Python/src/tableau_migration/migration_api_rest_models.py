@@ -164,7 +164,7 @@ class PyPermissionsCapabilityNames(StrEnum):
     WRITE = "Write"
     
 class PySiteRoles(StrEnum):
-    """Class containing site role constants.  See https://help.tableau.com/current/server/en-us/users_site_roles.htm#site-role-capabilities-summary for documentation."""
+    """Class containing site role constants. See https://help.tableau.com/current/server/en-us/users_site_roles.htm#site-role-capabilities-summary for documentation."""
     
     """Gets the name of the Creator site role."""
     CREATOR = "Creator"

@@ -46,7 +46,7 @@ namespace Tableau.Migration.Tests.Unit.Api.Search
             {
                 var cache = Freeze<BulkApiContentReferenceCache<IUser>>();
                 var mockServices = Freeze<MockServiceProvider>();
-                
+
                 var factory = Create<ApiContentReferenceFinderFactory>();
 
                 var finder = factory.ForContentType<IUser>();

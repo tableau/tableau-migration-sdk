@@ -171,20 +171,20 @@ namespace Tableau.Migration.Api
 
         private static bool ContinueOnProjectCreationError(IProject projectToCreate, IResult createResult)
         {
-            if(createResult.Success || !createResult.Errors.Any())
+            if (createResult.Success || !createResult.Errors.Any())
             {
                 return false;
             }
 
             foreach (var e in createResult.Errors)
             {
-                if(e is not RestException re)
+                if (e is not RestException re)
                 {
                     return false;
                 }
 
                 // Name conflict is OK - it means the project already exists, and we should get/update.
-                if(RestErrorCodes.Equals(re.Code, RestErrorCodes.PROJECT_NAME_CONFLICT_ERROR_CODE))
+                if (RestErrorCodes.Equals(re.Code, RestErrorCodes.PROJECT_NAME_CONFLICT_ERROR_CODE))
                 {
                     continue;
                 }
@@ -193,7 +193,7 @@ namespace Tableau.Migration.Api
                  * but trying to overwrite it with creation gives an access error code instead of name conflict.
                  * We want to get/update the project so we can set the owner to reflect the source.
                  */
-                else if(RestErrorCodes.Equals(re.Code, RestErrorCodes.CREATE_PROJECT_FORBIDDEN) && 
+                else if (RestErrorCodes.Equals(re.Code, RestErrorCodes.CREATE_PROJECT_FORBIDDEN) &&
                     Constants.SystemProjectNames.Contains(projectToCreate.Name))
                 {
                     continue;

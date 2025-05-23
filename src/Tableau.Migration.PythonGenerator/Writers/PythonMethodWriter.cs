@@ -48,9 +48,9 @@ namespace Tableau.Migration.PythonGenerator.Writers
 
         public void Write(IndentingStringBuilder builder, PythonType type, PythonMethod method)
         {
-            var returnTypeName = method.ReturnType is null? "None" : ToPythonTypeDeclaration(type, method.ReturnType);
+            var returnTypeName = method.ReturnType is null ? "None" : ToPythonTypeDeclaration(type, method.ReturnType);
 
-            if(method.IsStatic)
+            if (method.IsStatic)
             {
                 builder.AppendLine("@classmethod");
             }
@@ -64,7 +64,7 @@ namespace Tableau.Migration.PythonGenerator.Writers
                 var dotNetInvoker = method.IsStatic ? type.DotNetType.Name : $"self.{PythonTypeWriter.DOTNET_OBJECT}";
                 var methodInvokeExpression = $"{dotNetInvoker}.{method.DotNetMethod.Name}({argInvocation})";
 
-                if(method.ReturnType is not null)
+                if (method.ReturnType is not null)
                 {
                     methodBuilder.AppendLine($"result = {methodInvokeExpression}");
                     var returnExpression = ToPythonType(method.ReturnType, "result");

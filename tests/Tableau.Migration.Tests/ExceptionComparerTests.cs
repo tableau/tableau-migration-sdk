@@ -17,7 +17,6 @@
 
 using System;
 using Xunit;
-using Tableau.Migration;
 
 namespace Tableau.Migration.Tests.Unit
 {

@@ -75,7 +75,7 @@ namespace Tableau.Migration.PythonGenerator.Generators
 
             var args = ImmutableArray.CreateBuilder<PythonArgDocstring>();
 
-            if(!ignoreArgs)
+            if (!ignoreArgs)
             {
                 var argEls = xml.DocumentElement?.GetElementsByTagName("param");
                 if (argEls is not null && argEls.Count > 0)

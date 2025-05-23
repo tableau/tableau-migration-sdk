@@ -36,7 +36,7 @@ namespace Tableau.Migration.Tests.Unit.Net
 
                 _options = new();
                 var mockConfig = Freeze<Mock<IConfigReader>>();
-                mockConfig.Setup(x => x.Get()).Returns(() => _options);                
+                mockConfig.Setup(x => x.Get()).Returns(() => _options);
             }
 
             [Fact]

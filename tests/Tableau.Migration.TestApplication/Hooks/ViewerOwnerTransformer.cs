@@ -63,7 +63,7 @@ namespace Tableau.Migration.TestApplication.Hooks
         {
             // At this point, the owner of the itemToTransform is already mapped, so we need to find it on the destination
             var owner = await _destinationContentReferenceFinder.FindByMappedLocationAsync(itemToTransform.Owner.Location, cancel) as IUser;
-            
+
             if (owner == null)
             {
                 // If owner is null, then the _destinationContentReferenceFinder either couldn't find the user, or it was a ContentReferenceStub that couldn't be turned into an IUser
@@ -74,7 +74,7 @@ namespace Tableau.Migration.TestApplication.Hooks
                     owner = ownerResult.Value;
                 }
             }
-            
+
             if (owner == null)
             {
                 throw new System.Exception($"Owner {itemToTransform.Owner.Location} for {typeof(TPublish).GetFormattedName()} named {itemToTransform.Location} could not be found.");

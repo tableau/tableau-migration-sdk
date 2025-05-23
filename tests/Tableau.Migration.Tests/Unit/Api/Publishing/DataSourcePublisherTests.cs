@@ -34,7 +34,7 @@ namespace Tableau.Migration.Tests.Unit.Api.Publishing
             protected override IDataSourcePublisher Publisher => DataSourcePublisher;
 
             public DataSourcePublisherTest()
-                : base(RestUrlPrefixes.DataSources)
+                : base(RestUrlKeywords.DataSources)
             {
                 DataSourcePublisher = CreateService<DataSourcePublisher>();
             }

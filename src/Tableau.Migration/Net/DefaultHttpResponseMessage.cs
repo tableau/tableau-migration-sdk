@@ -65,7 +65,7 @@ namespace Tableau.Migration.Net
                 ex.Data.Add("RequestMessage", RequestMessage?.ToSanitizedString());
                 throw;
             }
-            
+
             return this;
         }
 

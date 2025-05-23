@@ -23,13 +23,8 @@ using Tableau.Migration.Content;
 namespace Tableau.Migration.Api.Rest.Models.Requests
 {
     /// <summary>
-    /// <para>
     /// Class representing a update labels request.
-    /// </para>
-    /// <para>
-    /// See https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_metadata.htm#update_label_on_assets 
-    /// for documentation
-    /// </para>
+    /// See <see href="https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_metadata.htm#update_label_on_assets">REST API Reference</see> for documentation.
     /// </summary>
     [XmlType(XmlTypeName)]
     public class UpdateLabelsRequest : TableauServerRequest

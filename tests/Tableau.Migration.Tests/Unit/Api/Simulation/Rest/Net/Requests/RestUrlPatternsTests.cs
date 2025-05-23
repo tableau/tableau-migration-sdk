@@ -15,6 +15,7 @@
 //  limitations under the License.
 //
 
+using Tableau.Migration.Api.Rest;
 using Tableau.Migration.Api.Simulation.Rest.Net.Requests;
 using Xunit;
 
@@ -23,11 +24,11 @@ namespace Tableau.Migration.Tests.Unit.Api.Simulation.Rest.Net.Requests
     public class RestUrlPatternsTests
     {
         [Theory]
-        [InlineData("sites", "/api/9.9/sites")]
-        [InlineData("sites", "/api/9.9/sites/")]
-        [InlineData("sites", "/api/9.99/sites")]
-        [InlineData("sites", "/api/9.99/sites/")]
-        [InlineData("sites", "/api/exp/sites/", true)]
+        [InlineData(RestUrlKeywords.Sites, "/api/9.9/sites")]
+        [InlineData(RestUrlKeywords.Sites, "/api/9.9/sites/")]
+        [InlineData(RestUrlKeywords.Sites, "/api/9.99/sites")]
+        [InlineData(RestUrlKeywords.Sites, "/api/9.99/sites/")]
+        [InlineData(RestUrlKeywords.Sites, "/api/exp/sites/", true)]
         public void RestApiUrl(string suffix, string input, bool experimental = false)
         {
             Assert.Matches(RestUrlPatterns.RestApiUrl(suffix, useExperimental: experimental), input);
@@ -35,34 +36,34 @@ namespace Tableau.Migration.Tests.Unit.Api.Simulation.Rest.Net.Requests
         }
 
         [Theory]
-        [InlineData("sites", "/api/9.9/sites/14904aef-a798-4c7f-b178-2ad224a09b0e")]
-        [InlineData("sites", "/api/9.9/sites/14904aef-a798-4c7f-b178-2ad224a09b0e/")]
-        [InlineData("sites", "/api/9.99/sites/14904aef-a798-4c7f-b178-2ad224a09b0e")]
-        [InlineData("sites", "/api/9.99/sites/14904aef-a798-4c7f-b178-2ad224a09b0e/")]
+        [InlineData(RestUrlKeywords.Sites, "/api/9.9/sites/14904aef-a798-4c7f-b178-2ad224a09b0e")]
+        [InlineData(RestUrlKeywords.Sites, "/api/9.9/sites/14904aef-a798-4c7f-b178-2ad224a09b0e/")]
+        [InlineData(RestUrlKeywords.Sites, "/api/9.99/sites/14904aef-a798-4c7f-b178-2ad224a09b0e")]
+        [InlineData(RestUrlKeywords.Sites, "/api/9.99/sites/14904aef-a798-4c7f-b178-2ad224a09b0e/")]
         public void EntityUrl(string suffix, string input)
         {
             Assert.Matches(RestUrlPatterns.EntityUrl(suffix), input);
         }
 
         [Theory]
-        [InlineData("workbooks", "/api/9.9/sites/14904aef-a798-4c7f-b178-2ad224a09b0e/workbooks")]
-        [InlineData("workbooks", "/api/9.9/sites/14904aef-a798-4c7f-b178-2ad224a09b0e/workbooks/")]
-        [InlineData("workbooks", "/api/9.99/sites/14904aef-a798-4c7f-b178-2ad224a09b0e/workbooks")]
-        [InlineData("workbooks", "/api/9.99/sites/14904aef-a798-4c7f-b178-2ad224a09b0e/workbooks/")]
-        [InlineData("customviews", "/api/exp/sites/14904aef-a798-4c7f-b178-2ad224a09b0e/customviews", true)]
-        [InlineData("customviews", "/api/exp/sites/14904aef-a798-4c7f-b178-2ad224a09b0e/customviews/",true)]
+        [InlineData(RestUrlKeywords.Workbooks, "/api/9.9/sites/14904aef-a798-4c7f-b178-2ad224a09b0e/workbooks")]
+        [InlineData(RestUrlKeywords.Workbooks, "/api/9.9/sites/14904aef-a798-4c7f-b178-2ad224a09b0e/workbooks/")]
+        [InlineData(RestUrlKeywords.Workbooks, "/api/9.99/sites/14904aef-a798-4c7f-b178-2ad224a09b0e/workbooks")]
+        [InlineData(RestUrlKeywords.Workbooks, "/api/9.99/sites/14904aef-a798-4c7f-b178-2ad224a09b0e/workbooks/")]
+        [InlineData(RestUrlKeywords.CustomViews, "/api/exp/sites/14904aef-a798-4c7f-b178-2ad224a09b0e/customviews", true)]
+        [InlineData(RestUrlKeywords.CustomViews, "/api/exp/sites/14904aef-a798-4c7f-b178-2ad224a09b0e/customviews/", true)]
         public void SiteUrl(string suffix, string input, bool experimental = false)
         {
             Assert.Matches(RestUrlPatterns.SiteUrl(suffix, useExperimental: experimental), input);
         }
 
         [Theory]
-        [InlineData("workbooks", "/api/9.9/sites/14904aef-a798-4c7f-b178-2ad224a09b0e/workbooks/63c3dca3-6a85-4437-815a-5392b239d5b3")]
-        [InlineData("workbooks", "/api/9.9/sites/14904aef-a798-4c7f-b178-2ad224a09b0e/workbooks/63c3dca3-6a85-4437-815a-5392b239d5b3/")]
-        [InlineData("workbooks", "/api/9.99/sites/14904aef-a798-4c7f-b178-2ad224a09b0e/workbooks/63c3dca3-6a85-4437-815a-5392b239d5b3")]
-        [InlineData("workbooks", "/api/9.99/sites/14904aef-a798-4c7f-b178-2ad224a09b0e/workbooks/63c3dca3-6a85-4437-815a-5392b239d5b3/")]
-        [InlineData("customviews", "/api/exp/sites/14904aef-a798-4c7f-b178-2ad224a09b0e/customviews/63c3dca3-6a85-4437-815a-5392b239d5b3/", true)]
-        [InlineData("customviews", "/api/exp/sites/14904aef-a798-4c7f-b178-2ad224a09b0e/customviews/63c3dca3-6a85-4437-815a-5392b239d5b3", true)]
+        [InlineData(RestUrlKeywords.Workbooks, "/api/9.9/sites/14904aef-a798-4c7f-b178-2ad224a09b0e/workbooks/63c3dca3-6a85-4437-815a-5392b239d5b3")]
+        [InlineData(RestUrlKeywords.Workbooks, "/api/9.9/sites/14904aef-a798-4c7f-b178-2ad224a09b0e/workbooks/63c3dca3-6a85-4437-815a-5392b239d5b3/")]
+        [InlineData(RestUrlKeywords.Workbooks, "/api/9.99/sites/14904aef-a798-4c7f-b178-2ad224a09b0e/workbooks/63c3dca3-6a85-4437-815a-5392b239d5b3")]
+        [InlineData(RestUrlKeywords.Workbooks, "/api/9.99/sites/14904aef-a798-4c7f-b178-2ad224a09b0e/workbooks/63c3dca3-6a85-4437-815a-5392b239d5b3/")]
+        [InlineData(RestUrlKeywords.CustomViews, $"/api/exp/sites/14904aef-a798-4c7f-b178-2ad224a09b0e/customviews/63c3dca3-6a85-4437-815a-5392b239d5b3/", true)]
+        [InlineData(RestUrlKeywords.CustomViews, $"/api/exp/sites/14904aef-a798-4c7f-b178-2ad224a09b0e/customviews/63c3dca3-6a85-4437-815a-5392b239d5b3", true)]
         public void SiteEntityUrl(string suffix, string input, bool experimental = false)
         {
             Assert.Matches(RestUrlPatterns.SiteEntityUrl(suffix, useExperimental: experimental), input);

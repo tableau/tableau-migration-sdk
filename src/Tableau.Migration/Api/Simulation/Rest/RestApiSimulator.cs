@@ -16,6 +16,7 @@
 //
 
 using System.Linq;
+using Tableau.Migration.Api.Rest;
 using Tableau.Migration.Api.Rest.Models;
 using Tableau.Migration.Api.Rest.Models.Responses;
 using Tableau.Migration.Api.Simulation.Rest.Api;
@@ -169,10 +170,10 @@ namespace Tableau.Migration.Api.Simulation.Rest
             Views = new(simulator);
             CustomViews = new(simulator);
 
-            QueryServerInfo = simulator.SetupRestGet<ServerInfoResponse, ServerInfoResponse.ServerInfoType>(RestApiUrl("serverinfo"), d => d.ServerInfo, requiresAuthentication: false);
+            QueryServerInfo = simulator.SetupRestGet<ServerInfoResponse, ServerInfoResponse.ServerInfoType>(RestApiUrl(RestUrlKeywords.ServerInfo), d => d.ServerInfo, requiresAuthentication: false);
             GetCurrentServerSession = simulator.SetupRestGet<ServerSessionResponse, ServerSessionResponse.SessionType>(RestApiUrl("sessions/current"), BuildCurrentSession);
             QuerySites = simulator.SetupRestGet(
-                RestApiUrl($"sites"),
+                RestApiUrl(RestUrlKeywords.Sites),
                 new RestGetSitesResponseBuilder(simulator.Data, simulator.Serializer));
         }
     }

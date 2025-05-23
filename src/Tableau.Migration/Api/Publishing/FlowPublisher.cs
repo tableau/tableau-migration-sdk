@@ -39,15 +39,15 @@ namespace Tableau.Migration.Api.Publishing
             IServerSessionProvider sessionProvider,
             ILoggerFactory loggerFactory,
             ISharedResourcesLocalizer sharedResourcesLocalizer,
-            IHttpStreamProcessor httpStreamProcessor) 
+            IHttpStreamProcessor httpStreamProcessor)
             : base(
-                  restRequestBuilderFactory, 
-                  finderFactory, 
-                  sessionProvider, 
-                  loggerFactory, 
-                  sharedResourcesLocalizer, 
-                  httpStreamProcessor, 
-                  RestUrlPrefixes.Flows)
+                  restRequestBuilderFactory,
+                  finderFactory,
+                  sessionProvider,
+                  loggerFactory,
+                  sharedResourcesLocalizer,
+                  httpStreamProcessor,
+                  RestUrlKeywords.Flows)
         { }
 
         protected override CommitFlowPublishRequest BuildCommitRequest(IPublishFlowOptions options)

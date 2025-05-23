@@ -28,15 +28,6 @@ namespace Tableau.Migration.Tests.Unit.Content
         public class Ctor : AutoFixtureTestBase
         {
             [Fact]
-            public void NullId()
-            {
-                var mockResponse = Create<Mock<IFlowType>>();
-                mockResponse.SetupGet(x => x.Id).Returns(null);
-
-                Assert.Throws<ArgumentException>(() => new Flow(mockResponse.Object, Create<IContentReference>(), Create<IContentReference>()));
-            }
-
-            [Fact]
             public void EmptyId()
             {
                 var mockResponse = Create<Mock<IFlowType>>();

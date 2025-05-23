@@ -15,14 +15,13 @@
 //  limitations under the License.
 //
 
-using System;
 using Tableau.Migration.Config;
 using Xunit;
 
 namespace Tableau.Migration.Tests.Unit.Config
 {
     public class MigrationSdkOptionsTests
-    {      
+    {
         public class MigrationParallelism
         {
             [Fact]

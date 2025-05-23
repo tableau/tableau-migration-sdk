@@ -63,7 +63,7 @@ namespace Tableau.Migration.PythonGenerator.Writers
         {
             var dotnetPropValue = $"{dotNetPropRef}.{property.DotNetProperty.Name}";
             var pythonPropValue = $"{PY_OBJ}.{property.Name}";
-            
+
             if (property.IsStatic)
             {
                 pythonPropValue = $"{PY_OBJ}.get_{property.Name}()";
@@ -76,86 +76,86 @@ namespace Tableau.Migration.PythonGenerator.Writers
                 case ConversionMode.WrapImmutableCollection:
                 case ConversionMode.WrapMutableCollection:
                 case ConversionMode.WrapArray:
-                {
-                    builder.AppendLine($"assert len({dotnetPropValue}) != 0");
-                    builder.AppendLine($"assert len({pythonPropValue}) == len({dotnetPropValue})");
-                    builder.AppendLine();
-
-                    builder.AppendLine("# create test data");
-
-                    var dotnetType = property.DotNetPropertyType;
-
-                    var element = dotnetType switch
                     {
-                        INamedTypeSymbol dotnetNameType => dotnetNameType.TypeArguments.First().Name,
-                        IArrayTypeSymbol dotnetArrayType => dotnetArrayType.ElementType.Name,
-                        _ => throw new InvalidOperationException($"{dotnetType} is not supported.")
-                    };
+                        builder.AppendLine($"assert len({dotnetPropValue}) != 0");
+                        builder.AppendLine($"assert len({pythonPropValue}) == len({dotnetPropValue})");
+                        builder.AppendLine();
 
-                    builder.AppendLine($"dotnetCollection = DotnetList[{element}]()");
+                        builder.AppendLine("# create test data");
 
-                    for (var i = 1; i < 3; i++)
-                    {
-                        builder = builder.AppendLine($"dotnetCollection.Add(self.create({element}))");
+                        var dotnetType = property.DotNetPropertyType;
+
+                        var element = dotnetType switch
+                        {
+                            INamedTypeSymbol dotnetNameType => dotnetNameType.TypeArguments.First().Name,
+                            IArrayTypeSymbol dotnetArrayType => dotnetArrayType.ElementType.Name,
+                            _ => throw new InvalidOperationException($"{dotnetType} is not supported.")
+                        };
+
+                        builder.AppendLine($"dotnetCollection = DotnetList[{element}]()");
+
+                        for (var i = 1; i < 3; i++)
+                        {
+                            builder = builder.AppendLine($"dotnetCollection.Add(self.create({element}))");
+                        }
+
+                        var collectionWrapExp = ToPythonType(typeRef, "dotnetCollection");
+                        builder.AppendLine($"testCollection = {collectionWrapExp}");
+                        builder.AppendLine();
+
+                        builder.AppendLine("# set property to new test value");
+
+                        if (property.IsStatic)
+                        {
+                            builder.AppendLine($"{PY_OBJ}.set_{property.Name}(testCollection)");
+                        }
+                        else
+                        {
+                            builder.AppendLine($"{pythonPropValue} = testCollection");
+                        }
+                        builder.AppendLine();
+
+                        builder.AppendLine("# assert value");
+                        builder.AppendLine($"assert len({pythonPropValue}) == len(testCollection)");
+
+                        break;
                     }
-
-                    var collectionWrapExp = ToPythonType(typeRef, "dotnetCollection");
-                    builder.AppendLine($"testCollection = {collectionWrapExp}");
-                    builder.AppendLine();
-
-                    builder.AppendLine("# set property to new test value");
-                    
-                    if (property.IsStatic)
-                    {
-                        builder.AppendLine($"{PY_OBJ}.set_{property.Name}(testCollection)");
-                    }
-                    else
-                    {
-                        builder.AppendLine($"{pythonPropValue} = testCollection");
-                    }
-                    builder.AppendLine();
-
-                    builder.AppendLine("# assert value");
-                    builder.AppendLine($"assert len({pythonPropValue}) == len(testCollection)");
-
-                    break;
-                }
                 default:
-                {
-                    builder.AppendLine();
-
-                    builder.AppendLine("# create test data");
-
-                    var dotnetType = (INamedTypeSymbol)property.DotNetPropertyType;
-
-                    if (!dotnetType.IsGenericType)
                     {
-                        builder.AppendLine($"testValue = self.create({dotnetType.Name})");
-                    }
-                    else
-                    {
-                        var args = string.Join(", ", dotnetType.TypeArguments.Select(x => x.Name));
-                        builder.AppendLine($"testValue = self.create({dotnetType.OriginalDefinition.Name}[{args}])");
-                    }
+                        builder.AppendLine();
 
-                    builder.AppendLine();
+                        builder.AppendLine("# create test data");
 
-                    var wrapExp = ToPythonType(typeRef, "testValue");
-                    builder.AppendLine("# set property to new test value");
-                    if(property.IsStatic)
-                    {
-                        builder.AppendLine($"{PY_OBJ}.set_{property.Name}({wrapExp})");
-                    }
-                    else
-                    {
-                        builder.AppendLine($"{pythonPropValue} = {wrapExp}");
-                    }
-                    builder.AppendLine();
+                        var dotnetType = (INamedTypeSymbol)property.DotNetPropertyType;
 
-                    builder.AppendLine("# assert value");
-                    builder.AppendLine($"assert {pythonPropValue} == {wrapExp}");
-                    break;
-                }
+                        if (!dotnetType.IsGenericType)
+                        {
+                            builder.AppendLine($"testValue = self.create({dotnetType.Name})");
+                        }
+                        else
+                        {
+                            var args = string.Join(", ", dotnetType.TypeArguments.Select(x => x.Name));
+                            builder.AppendLine($"testValue = self.create({dotnetType.OriginalDefinition.Name}[{args}])");
+                        }
+
+                        builder.AppendLine();
+
+                        var wrapExp = ToPythonType(typeRef, "testValue");
+                        builder.AppendLine("# set property to new test value");
+                        if (property.IsStatic)
+                        {
+                            builder.AppendLine($"{PY_OBJ}.set_{property.Name}({wrapExp})");
+                        }
+                        else
+                        {
+                            builder.AppendLine($"{pythonPropValue} = {wrapExp}");
+                        }
+                        builder.AppendLine();
+
+                        builder.AppendLine("# assert value");
+                        builder.AppendLine($"assert {pythonPropValue} == {wrapExp}");
+                        break;
+                    }
             }
         }
 

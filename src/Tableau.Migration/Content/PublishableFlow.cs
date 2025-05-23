@@ -15,8 +15,8 @@
 //  limitations under the License.
 //
 
-using System.Threading.Tasks;
 using System;
+using System.Threading.Tasks;
 using Tableau.Migration.Content.Files;
 
 namespace Tableau.Migration.Content

@@ -15,7 +15,6 @@
 //  limitations under the License.
 //
 
-using System.Linq;
 using System;
 using System.Xml.Serialization;
 
@@ -34,7 +33,7 @@ namespace Tableau.Migration.Api.Rest.Models.Responses
         [XmlArray("encryptedKeychainList")]
         [XmlArrayItem("encryptedKeychain", typeof(string))]
         public string[] EncryptedKeychains { get; set; } = Array.Empty<string>();
-        
+
         /// <summary>
         /// Gets or sets the associated user luids for the response.
         /// </summary>

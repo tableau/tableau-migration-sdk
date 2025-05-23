@@ -25,7 +25,7 @@ namespace Tableau.Migration.Engine.Endpoints.Search
     /// <see cref="IContentReferenceFinderFactory"/> implementation that finds destination references
     /// from the migration manifest.
     /// </summary>
-    public class ManifestDestinationContentReferenceFinderFactory 
+    public class ManifestDestinationContentReferenceFinderFactory
         : IDestinationContentReferenceFinderFactory
     {
         private readonly IServiceProvider _services;

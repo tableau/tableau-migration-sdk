@@ -4,11 +4,17 @@
 		<Nullable>enable</Nullable>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-		<Version>5.1.1</Version>
+		<Version>5.2.0</Version>
 		<Authors>Salesforce, Inc.</Authors>
 		<Company>Salesforce, Inc.</Company>
 		<Copyright>Copyright (c) 2025, Salesforce, Inc. and its licensors</Copyright>
 	    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
-		<AvaloniaVersion>11.1.0</AvaloniaVersion>
+		<AvaloniaVersion>11.3.0</AvaloniaVersion>
+    
+		<!-- 
+		This enabled packages.lock.json files, which is the resolved dependency graph.
+		Enabling this speeds up builds as the dependency graph is not re-resolved every time.
+		-->
+		<RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
 	</PropertyGroup>
 </Project>

@@ -21,6 +21,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Tableau.Migration.Config;
+using Tableau.Migration.Content;
 using Tableau.Migration.Engine.Hooks;
 using Tableau.Migration.Resources;
 
@@ -63,14 +64,8 @@ namespace Tableau.Migration.Engine.Actions
             _localizer = localizer;
         }
 
-        private async ValueTask<IResult> ManageSettingsAsync(CancellationToken cancel)
+        private async ValueTask<(IResult Result, IServerSession? Session)> ManageSettingsAsync(CancellationToken cancel)
         {
-            if (!_options.ValidateSettings)
-            {
-                _logger.LogDebug(_localizer[SharedResourceKeys.SiteSettingsSkippedDisabledLogMessage]);
-                return Result.Succeeded();
-            }
-
             // Get the source and destination settings to compare concurrently.
             var sourceSessionTask = _migration.Source.GetSessionAsync(cancel);
             var destinationSessionTask = _migration.Destination.GetSessionAsync(cancel);
@@ -82,17 +77,23 @@ namespace Tableau.Migration.Engine.Actions
 
             if (!sourceSessionResult.Success || !destinationSessionResult.Success)
             {
-                return new ResultBuilder().Add(sourceSessionResult, destinationSessionResult).Build();
+                return (new ResultBuilder().Add(sourceSessionResult, destinationSessionResult).Build(), null);
             }
 
             // Find if we have access to validate settings.
             var sourceSession = sourceSessionResult.Value;
             var destinationSession = destinationSessionResult.Value;
+            
+            if (!_options.ValidateSettings)
+            {
+                _logger.LogDebug(_localizer[SharedResourceKeys.SiteSettingsSkippedDisabledLogMessage]);
+                return (Result.Succeeded(), destinationSession);
+            }
 
             if (!sourceSession.IsAdministrator || !destinationSession.IsAdministrator)
             {
                 _logger.LogDebug(_localizer[SharedResourceKeys.SiteSettingsSkippedNoAccessLogMessage]);
-                return Result.Succeeded();
+                return (Result.Succeeded(), destinationSession);
             }
 
             /* We currently don't update settings for the user because
@@ -102,7 +103,7 @@ namespace Tableau.Migration.Engine.Actions
              * If/when that gets addressed we can update the destination setting automatically.
              */
 
-            return Result.Succeeded();
+            return (Result.Succeeded(), destinationSession);
         }
 
         /// <inheritdoc />
@@ -113,15 +114,15 @@ namespace Tableau.Migration.Engine.Actions
 
             var preflightResultBuilder = new ResultBuilder();
 
-            var settingsResult = await ManageSettingsAsync(cancel).ConfigureAwait(false);
+            var (settingsResult, destinationSession) = await ManageSettingsAsync(cancel).ConfigureAwait(false);
 
-            if (!settingsResult.Success)
+            if (!settingsResult.Success || destinationSession == null)
             {
                 return MigrationActionResult.FromResult(settingsResult);
             }
 
             // Call user-registered initializer last so the hook can rely that all engine initialization/validation is complete.
-            IInitializeMigrationHookResult initResult = InitializeMigrationHookResult.Succeeded(_services);
+            IInitializeMigrationHookResult initResult = InitializeMigrationHookResult.Succeeded(_services, destinationSession);
 
             initResult = await _hooks.ExecuteAsync<IInitializeMigrationHook, IInitializeMigrationHookResult>(initResult, cancel).ConfigureAwait(false);
 

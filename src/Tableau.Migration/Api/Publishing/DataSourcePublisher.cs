@@ -47,7 +47,7 @@ namespace Tableau.Migration.Api.Publishing
                   loggerFactory,
                   sharedResourcesLocalizer,
                   httpStreamProcessor,
-                  RestUrlPrefixes.DataSources)
+                  RestUrlKeywords.DataSources)
         { }
 
         protected override CommitDataSourcePublishRequest BuildCommitRequest(IPublishDataSourceOptions options)

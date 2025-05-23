@@ -27,8 +27,8 @@ namespace Tableau.Migration.Tests.Unit
         {
             protected string CreateFilePath(string? extension)
                 => Path.Combine(
-                    Path.GetTempPath(), 
-                    Create<string>(), 
+                    Path.GetTempPath(),
+                    Create<string>(),
                     CreateFileName(extension));
 
             protected string CreateFileName(string? extension)

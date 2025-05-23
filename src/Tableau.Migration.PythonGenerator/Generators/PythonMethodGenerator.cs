@@ -47,7 +47,7 @@ namespace Tableau.Migration.PythonGenerator.Generators
 
         private PythonTypeReference? GetPythonReturnType(IMethodSymbol dotNetMethod)
         {
-            if(dotNetMethod.ReturnsVoid)
+            if (dotNetMethod.ReturnsVoid)
             {
                 return null;
             }
@@ -59,7 +59,7 @@ namespace Tableau.Migration.PythonGenerator.Generators
         {
             var results = ImmutableArray.CreateBuilder<PythonMethodArgument>();
 
-            foreach(var dotNetParam in dotNetMethod.Parameters)
+            foreach (var dotNetParam in dotNetMethod.Parameters)
             {
                 var pyArgument = new PythonMethodArgument(dotNetParam.Name.ToSnakeCase(), ToPythonType(dotNetParam.Type));
                 results.Add(pyArgument);
@@ -79,7 +79,7 @@ namespace Tableau.Migration.PythonGenerator.Generators
                     continue;
                 }
 
-                if(dotNetMethod.MethodKind is not MethodKind.Ordinary || IGNORED_METHODS.Contains(dotNetMethod.Name))
+                if (dotNetMethod.MethodKind is not MethodKind.Ordinary || IGNORED_METHODS.Contains(dotNetMethod.Name))
                 {
                     continue;
                 }

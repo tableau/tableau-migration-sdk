@@ -44,6 +44,8 @@ namespace Tableau.Migration.Content
         /// <inheritdoc />
         public string ExtractEncryptionMode { get; set; }
 
+        public bool DisableSubscriptions { get; }
+
         public Site(SiteResponse response)
         {
             var site = Guard.AgainstNull(response.Item, () => response.Item);
@@ -52,6 +54,7 @@ namespace Tableau.Migration.Content
             Name = Guard.AgainstNullEmptyOrWhiteSpace(site.Name, () => response.Item.Name);
             ContentUrl = Guard.AgainstNull(site.ContentUrl, () => response.Item.ContentUrl);
             ExtractEncryptionMode = Guard.AgainstNullEmptyOrWhiteSpace(site.ExtractEncryptionMode, () => response.Item.ExtractEncryptionMode);
+            DisableSubscriptions = response.Item.DisableSubscriptions;
         }
     }
 }

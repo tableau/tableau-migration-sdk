@@ -1,273 +1,301 @@
-# This workflow will build a .NET project
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
 name: SDK Workflow
 
 on:
-    # On Push
-    push:
-        branches:
-            - main
-            - 'release/**'
-            - 'staging/**'
-            - 'feature/**' 
-        paths-ignore:
-            - README.md
-            - '**/README.md'
-            - .gitignore
-            - '**/.gitignore'
-            - 'CODEOWNERS'
-    
-    # On Pull Request
-    pull_request:
-        # The default trigger for Pull Requests are:
-        # - opened
-        # - synchronize
-        # - reopened
-        # Ref: https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#pull_request
-        types: [opened, synchronize, reopened, ready_for_review]
-        paths-ignore:
-            - README.md
-            - '**/README.md'
-            - .gitignore
-            - '**/.gitignore'
-            - 'CODEOWNERS'
+  # On Push
+  push:
+    branches:
+      - main
+      - "release/**"
+      - "staging/**"
+      - "feature/**"
+    paths-ignore:
+      - README.md
+      - "**/README.md"
+      - .gitignore
+      - "**/.gitignore"
+      - "CODEOWNERS"
 
-    # When started manually
-    workflow_dispatch:
-        inputs:
-            publish-release:
-                description: 'Publish Release'
-                required: false
-                default: 'No Publishing'
-                type: choice
-                options:
-                    - No Publishing
-                    - Beta-Internal
-                    - Beta
-                    - Prod-Internal
-                    - Prod
-            publish-docs:
-                description: 'Publish Documentation to Github Pages'
-                required: false
-                default: false
-                type: boolean
+  # On Pull Request
+  pull_request:
+    # The default trigger for Pull Requests are:
+    # - opened
+    # - synchronize
+    # - reopened
+    # Ref: https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#pull_request
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths-ignore:
+      - README.md
+      - "**/README.md"
+      - .gitignore
+      - "**/.gitignore"
+      - "CODEOWNERS"
+
+  # When started manually
+  workflow_dispatch:
+    inputs:
+      release-type:
+        description: |
+          Release Type (beta, prod).
+          Beta: Package version will include beta tag
+          Production: Package version will use the current version
+        required: true
+        default: Beta
+        type: choice
+        options:
+          - Beta
+          - Production
+      intent-beta-to-prod:
+        description: Intent to deploy beta to production.
+        required: true
+        default: false
+        type: boolean
+
+env:
+  DOTNET_NOLOGO: "true"
 
 jobs:
-    # Define version job
-    define-version:
-        runs-on: ubuntu-latest
-        outputs:
-            beta-version: ${{ steps.set-beta-version.outputs.betaversion }}
-            code-version: ${{ steps.get-version.outputs.codeversion }}
-        if: github.event.pull_request.draft == false
-        steps:
-            - uses: actions/checkout@v4
-            - name: Set Beta Version
-              id: set-beta-version
-              if: ${{ inputs.publish-release != 'Prod' && inputs.publish-release != 'Prod-Internal' }}
-              run: |
-                  # Gets the current version from Directory.Build.props. Example: 0.2.0
-                  majorminorbuild=$(grep -oP '<Version>\K[^<]*' Directory.Build.props)
-                  # Generate the beta sdk version using the format: currentversion-beta{workflow run number}.post{workflow run attempt}
-                  # Examples: 0.2.0-beta1141.post1
-                  sdkversion="$majorminorbuild-beta${{ github.run_number }}.post${{ github.run_attempt }}"
-                  echo "betaversion=$sdkversion" >> "$GITHUB_OUTPUT"
-            - name: Get Version
-              id: get-version
-              if: ${{ inputs.publish-release == 'Prod' || inputs.publish-release == 'Prod-Internal' }}
-              run: |
-                  # Gets the current version from Directory.Build.props. Example: 0.2.0
-                  majorminorbuild=$(grep -oP '<Version>\K[^<]*' Directory.Build.props)
-                  echo "codeversion=$majorminorbuild" >> "$GITHUB_OUTPUT"
-  
-    # Build and test .NET project
-    dotnet-build:
-        needs: [ define-version ]
-        uses: ./.github/workflows/dotnet-build.yml
-        with:
-            beta-version: ${{ needs.define-version.outputs.beta-version }}
+  # Define version job
+  define-version:
+    name: Define Versions
+    runs-on: ${{ vars.BASE_OS }}
+    outputs:
+      beta-version: ${{ steps.get-beta-version.outputs.betaversion }}
+      code-version: ${{ steps.get-prod-version.outputs.codeversion }}
+    if: github.event.pull_request.draft == false
+    steps:
+      - uses: actions/checkout@v4
+      - name: Get Beta Version
+        id: get-beta-version
+        shell: bash
+        # If input release-type is not Production, then we are building a beta version
+        # release-type Production can only be set when starting manually
+        if: ${{ inputs.release-type != 'Production' }}
+        run: |
+          # Gets the current version from Directory.Build.props. Example: 0.2.0
+          majorminorbuild=$(grep -oP '<Version>\K[^<]*' Directory.Build.props)
 
-    dotnet-test:
-        needs: [ define-version ]
-        uses: ./.github/workflows/dotnet-test.yml
+          # Generate the beta sdk version using the format: currentversion-beta{workflow run number}.post{workflow run attempt}
 
-    python-test:
-        needs: [ dotnet-build ]
-        uses: ./.github/workflows/python-test.yml
+          if [[ -n "$ACT" ]]; then
+            # Act is running - use a timestamp for uniqueness
+            # Examples: 0.2.0-beta1746551814.post1
+            echo "ACT is running, using timestamp as run_number"
+            timestamp=$(date +%s)
+            sdkversion="$majorminorbuild-beta${timestamp}.post${{ github.run_attempt }}"
+          else
+            # GitHub Actions is running
+            # Examples: 0.2.0-beta1141.post1
+            sdkversion="$majorminorbuild-beta${{ github.run_number }}.post${{ github.run_attempt }}"
+          fi
 
-    python-example-test:
-        needs: [ dotnet-build ]
-        uses: ./.github/workflows/python-example-test.yml
+          echo "betaversion=$sdkversion" >> "$GITHUB_OUTPUT"
 
-    # Publish .NET packages
-    dotnet-publish-package-internal-dryrun:
-        needs: [ define-version, dotnet-build ]
-        uses: ./.github/workflows/dotnet-package.yml
-        secrets: inherit
-        with:
-            published-os: ${{ vars.PUBLISH_OS }}
-            runs-on-config: ${{ vars.PUBLISH_PACKAGE_OS }}
-            build-config: ${{ vars.PUBLISH_CONFIGURATION }}
-            publish-environment: internal-dryrun
-            package-version: ${{ needs.define-version.outputs.beta-version }}
-    
-    dotnet-publish-package-public-dryrun:
-        needs: [ define-version, dotnet-build ]
-        uses: ./.github/workflows/dotnet-package.yml
-        secrets: inherit
-        with:
-            published-os: ${{ vars.PUBLISH_OS }}
-            runs-on-config: ${{ vars.PUBLISH_OS }}
-            build-config: ${{ vars.PUBLISH_CONFIGURATION }}
-            publish-environment: public-dryrun
-            package-version: ${{ needs.define-version.outputs.beta-version }}
+      - name: Get Prod Version
+        id: get-prod-version
+        # If input release-type is prod, then we are building a prod version
+        if: ${{ inputs.release-type == 'Production' }}
+        run: |
+          # Gets the current version from Directory.Build.props. Example: 0.2.0
+          majorminorbuild=$(grep -oP '<Version>\K[^<]*' Directory.Build.props)
+          echo "codeversion=$majorminorbuild" >> "$GITHUB_OUTPUT"
 
-    # Publish Python packages
-    python-publish-package-internal-dryrun:
-        needs: [ define-version, dotnet-build ]
-        uses: ./.github/workflows/python-package.yml
-        secrets: inherit
-        with:
-            runs-on-config: ${{ vars.PUBLISH_PACKAGE_OS }}
-            build-config: ${{ vars.PUBLISH_CONFIGURATION }}
-            publish-environment: internal-dryrun
-            beta-version: ${{ needs.define-version.outputs.beta-version }}
-    
-    python-publish-package-public-dryrun:
-        needs: [ define-version, dotnet-build ]
-        uses: ./.github/workflows/python-package.yml
-        secrets: inherit
-        with:
-            runs-on-config: ${{ vars.PUBLISH_OS }}
-            build-config: ${{ vars.PUBLISH_CONFIGURATION }}
-            publish-environment: public-dryrun
-            beta-version: ${{ needs.define-version.outputs.beta-version }}
-            publish-artifact: true
+  # Build .NET
+  build-dotnet:
+    name: Build .NET
+    needs: [define-version]
+    uses: ./.github/workflows/build-dotnet.yml
+    with:
+      runs-on-config: ${{ vars.BASE_OS }}
+      beta-version: ${{ needs.define-version.outputs.beta-version }}
 
-    # Publish documentation
-    publish-docs-dry-run:
-        needs: [ dotnet-test, dotnet-publish-package-internal-dryrun, dotnet-publish-package-public-dryrun, python-publish-package-internal-dryrun, python-publish-package-public-dryrun ]
-        uses: ./.github/workflows/publishdocs-dryrun.yml
-        if: ${{ (inputs.publish-release != 'Prod' && inputs.publish-release != 'Prod-Internal' && inputs.publish-docs == false) || (github.ref != 'refs/heads/main' && !startsWith(github.ref, 'refs/heads/release/') && !startsWith(github.ref, 'refs/tags/release/')) }}
-        with:
-            runs-on-config: ${{ vars.DOCS_OS }}
-            build-config: ${{ vars.PUBLISH_CONFIGURATION }}
-            python-version: ${{ vars.PYTHON_PUBLISH_DOCS_VERSION }}
-    
-    publish-docs:
-        needs: [ dotnet-test, python-test, dotnet-publish-package-internal-dryrun, dotnet-publish-package-public-dryrun, python-publish-package-internal-dryrun, python-publish-package-public-dryrun ]
-        uses: ./.github/workflows/publishdocs.yml
-        if: ${{ (inputs.publish-release == 'Prod' || inputs.publish-docs == true) && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/') || startsWith(github.ref, 'refs/tags/release/')) }}
-        with:
-            runs-on-config: ${{ vars.DOCS_OS }}
-            build-config: ${{ vars.PUBLISH_CONFIGURATION }}
-            python-version: ${{ vars.PYTHON_PUBLISH_DOCS_VERSION }}
+  # Build documentation
+  build-docs:
+    name: Build Docs
+    needs: [define-version]
+    uses: ./.github/workflows/build-docs.yml
+    with:
+      runs-on-config: ${{ vars.DOCS_OS }}
+      python-version: ${{ vars.PYTHON_PUBLISH_DOCS_VERSION }}
 
-    # Create release
-    create-release-from-dry-run:
-        needs: [ define-version, publish-docs-dry-run, dotnet-publish-package-internal-dryrun, dotnet-publish-package-public-dryrun, python-publish-package-internal-dryrun, python-publish-package-public-dryrun ]
-        uses: ./.github/workflows/create-release.yml
-        if: ${{ inputs.publish-release == 'Prod' || inputs.publish-release == 'Prod-Internal' || inputs.publish-release == 'Beta' }}
-        with:
-            runs-on-config: ${{ vars.PUBLISH_OS }}
-            release-version: ${{ needs.define-version.outputs.beta-version != '' && needs.define-version.outputs.beta-version || needs.define-version.outputs.code-version }}
-            is-pre-release: ${{ inputs.publish-release != 'Prod' && inputs.publish-release != 'Prod-Internal' }}
-    
-    create-release:
-        needs: [ define-version, publish-docs, dotnet-publish-package-internal-dryrun, dotnet-publish-package-public-dryrun, python-publish-package-internal-dryrun, python-publish-package-public-dryrun ]
-        uses: ./.github/workflows/create-release.yml
-        if: ${{ inputs.publish-release == 'Prod' || inputs.publish-release == 'Prod-Internal' || inputs.publish-release == 'Beta' || inputs.publish-release == 'Beta-Internal' }}
-        with:
-            runs-on-config: ${{ vars.PUBLISH_OS }}
-            release-version: ${{ needs.define-version.outputs.beta-version != '' && needs.define-version.outputs.beta-version || needs.define-version.outputs.code-version }}
-            is-pre-release: ${{ inputs.publish-release != 'Prod' && inputs.publish-release != 'Prod-Internal' }}
+  build-python-package:
+    name: Build Python
+    needs: [define-version, build-dotnet]
+    uses: ./.github/workflows/build-python-package.yml
+    with:
+      beta-version: ${{ needs.define-version.outputs.beta-version }}
+      runs-on-config: ${{ vars.BASE_OS }}
+      build-config: ${{ vars.PUBLISH_CONFIGURATION }}
 
-    # Publish .NET packages (Beta and Prod)
-    dotnet-publish-package-internal-beta:
-        needs: [ dotnet-test, python-test, dotnet-publish-package-internal-dryrun, dotnet-publish-package-public-dryrun, python-publish-package-internal-dryrun, python-publish-package-public-dryrun ]
-        uses: ./.github/workflows/dotnet-package.yml
-        secrets: inherit
-        if: ${{ inputs.publish-release == 'Beta' || inputs.publish-release == 'Beta-Internal' }}
-        with:
-            published-os: ${{ vars.PUBLISH_OS }}
-            runs-on-config: ${{ vars.PUBLISH_PACKAGE_OS }}
-            build-config: ${{ vars.PUBLISH_CONFIGURATION }}
-            publish-environment: internal-beta
-    
-    dotnet-publish-package-public-beta:
-        needs: [ dotnet-test, python-test, dotnet-publish-package-internal-dryrun, dotnet-publish-package-public-dryrun, python-publish-package-internal-dryrun, python-publish-package-public-dryrun ]
-        uses: ./.github/workflows/dotnet-package.yml
-        secrets: inherit
-        if: ${{ inputs.publish-release == 'Beta' }}
-        with:
-            published-os: ${{ vars.PUBLISH_OS }}
-            runs-on-config: ${{ vars.PUBLISH_OS }}
-            build-config: ${{ vars.PUBLISH_CONFIGURATION }}
-            publish-environment: public-beta
-    
-    dotnet-publish-package-internal-prod:
-        needs: [ dotnet-test, python-test, dotnet-publish-package-internal-dryrun, dotnet-publish-package-public-dryrun, python-publish-package-internal-dryrun, python-publish-package-public-dryrun ]
-        uses: ./.github/workflows/dotnet-package.yml
-        secrets: inherit
-        if: ${{ (inputs.publish-release == 'Prod' || inputs.publish-release == 'Prod-Internal') && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/') || startsWith(github.ref, 'refs/tags/release/')) }}
-        with:
-            published-os: ${{ vars.PUBLISH_OS }}
-            runs-on-config: ${{ vars.PUBLISH_PACKAGE_OS }}
-            build-config: ${{ vars.PUBLISH_CONFIGURATION }}
-            publish-environment: internal-prod
-    
-    dotnet-publish-package-public-prod:
-        needs: [ dotnet-test, python-test, dotnet-publish-package-internal-dryrun, dotnet-publish-package-public-dryrun, python-publish-package-internal-dryrun, python-publish-package-public-dryrun ]
-        uses: ./.github/workflows/dotnet-package.yml
-        secrets: inherit
-        if: ${{ inputs.publish-release == 'Prod' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/') || startsWith(github.ref, 'refs/tags/release/')) }}
-        with:
-            published-os: ${{ vars.PUBLISH_OS }}
-            runs-on-config: ${{ vars.PUBLISH_OS }}
-            build-config: ${{ vars.PUBLISH_CONFIGURATION }}
-            publish-environment: public-prod
+  # Lint
+  lint-python:
+    name: Lint
+    needs: [define-version]
+    uses: ./.github/workflows/lint-python.yml
+    with:
+      working-directory: ./src/Python
 
-    # Publish Python packages (Beta and Prod)
-    python-publish-package-internal-beta:
-        needs: [ define-version, dotnet-test, python-test, dotnet-publish-package-internal-dryrun, dotnet-publish-package-public-dryrun, python-publish-package-internal-dryrun, python-publish-package-public-dryrun ]
-        uses: ./.github/workflows/python-package.yml
-        secrets: inherit
-        if: ${{ inputs.publish-release == 'Beta' || inputs.publish-release == 'Beta-Internal' }}
-        with:
-            runs-on-config: ${{ vars.PUBLISH_PACKAGE_OS }}
-            build-config: ${{ vars.PUBLISH_CONFIGURATION }}
-            publish-environment: internal-beta
-            beta-version: ${{ needs.define-version.outputs.beta-version }}
-    
-    python-publish-package-public-beta:
-        needs: [ define-version, dotnet-test, python-test, dotnet-publish-package-internal-dryrun, dotnet-publish-package-public-dryrun, python-publish-package-internal-dryrun, python-publish-package-public-dryrun ]
-        uses: ./.github/workflows/python-package.yml
-        secrets: inherit
-        if: ${{ inputs.publish-release == 'Beta' }}
-        with:
-            runs-on-config: ${{ vars.PUBLISH_OS }}
-            build-config: ${{ vars.PUBLISH_CONFIGURATION }}
-            publish-environment: public-beta
-            beta-version: ${{ needs.define-version.outputs.beta-version }}
-    
-    python-publish-package-internal-prod:
-        needs: [ define-version, dotnet-test, python-test, dotnet-publish-package-internal-dryrun, dotnet-publish-package-public-dryrun, python-publish-package-internal-dryrun, python-publish-package-public-dryrun ]
-        uses: ./.github/workflows/python-package.yml
-        secrets: inherit
-        if: ${{ (inputs.publish-release == 'Prod' || inputs.publish-release == 'Prod-Internal') && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/') || startsWith(github.ref, 'refs/tags/release/')) }}
-        with:
-            runs-on-config: ${{ vars.PUBLISH_PACKAGE_OS }}
-            build-config: ${{ vars.PUBLISH_CONFIGURATION }}
-            publish-environment: internal-prod
-            beta-version: ${{ needs.define-version.outputs.beta-version }}
-    
-    python-publish-package-public-prod:
-        needs: [ define-version, dotnet-test, python-test, dotnet-publish-package-internal-dryrun, dotnet-publish-package-public-dryrun, python-publish-package-internal-dryrun, python-publish-package-public-dryrun ]
-        uses: ./.github/workflows/python-package.yml
-        secrets: inherit
-        if: ${{ inputs.publish-release == 'Prod' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/') || startsWith(github.ref, 'refs/tags/release/')) }}
-        with:
-            runs-on-config: ${{ vars.PUBLISH_OS }}
-            build-config: ${{ vars.PUBLISH_CONFIGURATION }}
-            publish-environment: public-prod
-            beta-version: ${{ needs.define-version.outputs.beta-version }}
+  lint-python-examples-test:
+    name: Lint
+    needs: [define-version]
+    uses: ./.github/workflows/lint-python.yml
+    with:
+      working-directory: ./tests/Python.ExampleApplication.Tests
+
+  # Test
+  test-dotnet:
+    name: Test
+    needs: [build-dotnet]
+    uses: ./.github/workflows/test-dotnet.yml
+
+  test-python:
+    name: Test
+    needs: [build-dotnet]
+    uses: ./.github/workflows/test-python.yml
+    with:
+      working-directory: ./src/Python
+      test-name: "python-test"
+
+  test-python-examples-test:
+    name: Test
+    needs: [build-dotnet]
+    uses: ./.github/workflows/test-python.yml
+    with:
+      working-directory: ./tests/Python.ExampleApplication.Tests
+      test-name: "python-example-test"
+
+  # Deployments
+  deploy-to-dev:
+    name: Deploy to Development
+    # Runs on:
+    # 1. Any push event to the configured branches.
+    # OR
+    # 2. A manual dispatch ('workflow_dispatch') if:
+    #    - The 'release-type' input is 'Beta'.
+    #    - AND The 'intent-beta-to-prod' input is false.
+    if: (github.event_name == 'push') || (github.event_name == 'workflow_dispatch' && inputs.release-type == 'Beta' && !inputs.intent-beta-to-prod)
+    needs:
+      - define-version
+      - build-dotnet
+      - build-python-package
+      - build-docs
+      - lint-python
+      - lint-python-examples-test
+      - test-dotnet
+      - test-python
+      - test-python-examples-test
+    uses: ./.github/workflows/deploy-all.yml
+    secrets: inherit
+
+    with:
+      publish-environment: development
+      build-config: ${{ vars.PUBLISH_CONFIGURATION }}
+      dotnet-continue-on-error: true
+      python-continue-on-error: true
+      create-release: false
+      release-version: ""
+      deploy-docs: false
+
+  # Staging environment is configured in GitHub
+  # Staging is a artifactory repository
+  deploy-to-staging:
+    name: Deploy to Staging
+    # Runs only on manual dispatch ('workflow_dispatch') if:
+    # - The 'release-type' input is 'Production'.
+    # OR
+    # - The 'intent-beta-to-prod' input is true.
+    # This excludes manual "Beta" runs where 'intent-beta-to-prod' is false.
+    # (Same as evaluate-goto-production)
+    if: github.event_name == 'workflow_dispatch' && (inputs.release-type == 'Production' || inputs.intent-beta-to-prod)
+    needs:
+      - define-version
+      - build-dotnet
+      - build-python-package
+      - build-docs
+      - lint-python
+      - lint-python-examples-test
+      - test-dotnet
+      - test-python
+      - test-python-examples-test
+    uses: ./.github/workflows/deploy-all.yml
+    secrets: inherit
+
+    with:
+      publish-environment: staging
+      build-config: ${{ vars.PUBLISH_CONFIGURATION }}
+      dotnet-continue-on-error: true
+      python-continue-on-error: true
+      create-release: false
+      release-version: ""
+      deploy-docs: false
+
+  # Evaluate Go-To-Production Readiness
+  evaluate-goto-production:
+    name: Evaluate Go-To-Production Readiness
+    runs-on: ${{ vars.BASE_OS }}
+    # Runs only on manual dispatch ('workflow_dispatch') if:
+    # - The 'release-type' input is 'Production'.
+    # OR
+    # - The 'intent-beta-to-prod' input is true.
+    # This excludes manual "Beta" runs where 'intent-beta-to-prod' is false.
+    # (deploy-to-staging)
+    if: github.event_name == 'workflow_dispatch' && (inputs.release-type == 'Production' || inputs.intent-beta-to-prod)
+    # Shares the same dependencies as deploy-to-staging to run in parallel
+    needs:
+      - define-version
+      - build-dotnet
+      - build-python-package
+      - build-docs
+      - lint-python
+      - lint-python-examples-test
+      - test-dotnet
+      - test-python
+      - test-python-examples-test
+    outputs:
+      deploy_to_prod: ${{ steps.check_readiness.outputs.can_deploy }}
+    steps:
+      - name: Evaluate Production Deployment Readiness
+        id: check_readiness
+        run: |
+          deploy_flag=false
+          echo "Evaluating production deployment expectations"
+          echo "Event name: ${{ github.event_name }}"
+          echo "Release type: ${{ inputs.release-type }}"
+          echo "Intent beta to prod: ${{ inputs.intent-beta-to-prod }}"
+
+          # Check if workflow was manually triggered
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+              echo "✓ Workflow was manually triggered"
+              
+              if [[ "${{ inputs.release-type }}" == "Production" ]]; then
+                  echo "✓ Release type is Production - deployment allowed"
+                  deploy_flag=true
+              elif [[ "${{ inputs.intent-beta-to-prod }}" == "true" ]]; then
+                  # This branch is taken if release-type is not Production but intent-beta-to-prod is true
+                  echo "✓ Beta release with intent to promote to production - deployment allowed"
+                  deploy_flag=true
+              else
+                  echo "✗ Neither production release type nor beta-to-prod intent - deployment blocked"
+                  # deploy_flag remains false
+              fi
+          else
+              echo "✗ Workflow was not manually triggered - deployment blocked"
+          fi
+          echo "can_deploy=$deploy_flag" >> "$GITHUB_OUTPUT"
+
+  deploy-to-production:
+    name: Deploy to Production
+    # Depends on successful staging deployment and positive evaluation
+    needs: [define-version, evaluate-goto-production, deploy-to-staging]
+    # We calculate the if condition in the evaluate-goto-production job
+    # It wasn't working as expected, so we're doing it here instead.
+    if: ${{ github.event_name == 'workflow_dispatch' && needs.evaluate-goto-production.outputs.deploy_to_prod == 'true' }}
+    uses: ./.github/workflows/deploy-all.yml
+    secrets: inherit
+    with:
+      publish-environment: production
+      build-config: ${{ vars.PUBLISH_CONFIGURATION }}
+      dotnet-continue-on-error: false
+      python-continue-on-error: false
+      create-release: true
+      release-version: ${{ needs.define-version.outputs.beta-version != '' && needs.define-version.outputs.beta-version || needs.define-version.outputs.code-version }}
+      deploy-docs: true

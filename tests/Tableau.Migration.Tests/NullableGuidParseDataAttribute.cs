@@ -26,7 +26,7 @@ namespace Tableau.Migration.Tests
         { }
 
         protected override object?[] CreateArguments(string? value)
-            => Guid.TryParse(value, out var guidValue) 
+            => Guid.TryParse(value, out var guidValue)
                 ? new object?[] { value, guidValue }
                 : new object?[] { value, null };
     }

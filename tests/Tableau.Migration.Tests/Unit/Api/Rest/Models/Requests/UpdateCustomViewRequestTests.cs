@@ -120,7 +120,7 @@ namespace Tableau.Migration.Tests.Unit.Api.Rest.Models.Requests
                 Assert.Null(req.CustomView.Name);
                 Assert.False(req.CustomView.Owner.IdSpecified);
             }
-            
+
             [Fact]
             public void InitializesWithNulls()
             {
@@ -129,7 +129,7 @@ namespace Tableau.Migration.Tests.Unit.Api.Rest.Models.Requests
                 Assert.Null(req.CustomView.Name);
                 Assert.False(req.CustomView.Owner.IdSpecified);
             }
-            
+
             [Fact]
             public void InitializesWithEmpty()
             {
@@ -138,7 +138,7 @@ namespace Tableau.Migration.Tests.Unit.Api.Rest.Models.Requests
                 Assert.Null(req.CustomView.Name);
                 Assert.False(req.CustomView.Owner.IdSpecified);
             }
-            
+
             [Fact]
             public void InitializesWithValues()
             {

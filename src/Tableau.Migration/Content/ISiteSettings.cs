@@ -26,5 +26,10 @@ namespace Tableau.Migration.Content
         /// Gets the site's extract encryption mode.
         /// </summary>
         string ExtractEncryptionMode { get; }
+
+        /// <summary>
+        /// Gets whether subscriptions are disabled.
+        /// </summary>
+        bool DisableSubscriptions { get; }
     }
 }

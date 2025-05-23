@@ -18,9 +18,9 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Tableau.Migration.Api.Rest.Models;
 using Tableau.Migration.Content;
-using Microsoft.Extensions.Logging;
 using Tableau.Migration.Resources;
 
 namespace Tableau.Migration.Engine.Hooks.Transformers.Default
@@ -37,7 +37,7 @@ namespace Tableau.Migration.Engine.Hooks.Transformers.Default
         /// </summary>        
         public UserTableauCloudSiteRoleTransformer(
             ISharedResourcesLocalizer localizer,
-            ILogger<UserTableauCloudSiteRoleTransformer> logger) 
+            ILogger<UserTableauCloudSiteRoleTransformer> logger)
                 : base(localizer, logger)
         { }
 

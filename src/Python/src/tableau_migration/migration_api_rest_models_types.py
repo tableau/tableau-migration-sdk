@@ -20,7 +20,7 @@
 from migration_enum import StrEnum # noqa: E402, F401
 
 class PyAuthenticationTypes(StrEnum):
-    """Class containing authentication type constants.  See https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_users_and_groups.htm#add_user_to_site for documentation."""
+    """Class containing authentication type constants. See https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_users_and_groups.htm#add_user_to_site for documentation."""
     
     """Gets the name of the server default authentication type."""
     SERVER_DEFAULT = "ServerDefault"
@@ -35,7 +35,7 @@ class PyAuthenticationTypes(StrEnum):
     TABLEAU_ID_WITH_MFA = "TableauIDWithMFA"
     
 class PyDataSourceFileTypes(StrEnum):
-    """Class containing data source file type constants.  See https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_data_sources.htm#publish_data_source for documentation."""
+    """Class containing data source file type constants. See https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_data_sources.htm#publish_data_source for documentation."""
     
     """Gets the name of the Hyper data source file type."""
     HYPER = "hyper"
@@ -50,7 +50,7 @@ class PyDataSourceFileTypes(StrEnum):
     TDE = "tde"
     
 class PyWorkbookFileTypes(StrEnum):
-    """Class containing workbook file type constants.  See https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_publishing.htm#publish_workbook for documentation."""
+    """Class containing workbook file type constants. See https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_publishing.htm#publish_workbook for documentation."""
     
     """Gets the name of the twb workbook file type."""
     TWB = "twb"

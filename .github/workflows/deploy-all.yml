@@ -1,0 +1,97 @@
+# This workflow will deploy the dotnet, python, and docs to a publish environment
+name: Deploy All
+
+on:
+  workflow_call:
+    secrets:
+      NUGET_PUBLISH_API_KEY:
+        required: true
+      PYPI_PUBLISH_USER_PASS:
+        required: true
+    inputs:
+      build-config:
+        description: 'The build configuration to use. Usually Release or Debug.'
+        required: true
+        type: string
+      publish-environment:
+        description: 'The github environment that has the variables and secrets.'
+        required: true
+        type: string
+      dotnet-continue-on-error: 
+        description: 'Whether to continue on error for the dotnet deployment.'
+        required: true
+        type: boolean    
+      python-continue-on-error: 
+        description: 'Whether to continue on error for the python deployment.'
+        required: true
+        type: boolean
+      create-release:
+        description: 'Whether to create a release.'
+        required: true
+        type: boolean
+      release-version:
+        description: 'The version of the release. Not used if create-release is false.'
+        required: true
+        type: string
+      deploy-docs:
+        description: 'Whether to deploy the docs.'
+        required: true
+        type: boolean
+
+env:
+  DOTNET_NOLOGO: 'true'
+
+jobs:
+  deploy-dotnet:
+    name: Deploy dotnet to ${{ inputs.publish-environment }}
+    # This job only runs when the workflow is started manually
+    uses: ./.github/workflows/deploy-dotnet.yml
+    secrets: inherit
+    with:
+      runs-on-config: ${{ vars.PUBLISH_PACKAGE_OS }} # This has to be self-hosted to get to artifactory
+      build-config: ${{ vars.PUBLISH_CONFIGURATION }}
+      publish-environment: ${{ inputs.publish-environment }}
+      continue-on-error: ${{ inputs.dotnet-continue-on-error }}
+
+  deploy-python:
+    name: Deploy python to ${{ inputs.publish-environment }}
+    # This job only runs when the workflow is started manually
+    uses: ./.github/workflows/deploy-python.yml
+    secrets: inherit
+    with:
+      runs-on-config: ${{ vars.PUBLISH_PACKAGE_OS }} # This has to be self-hosted to get to artifactory
+      build-config: ${{ vars.PUBLISH_CONFIGURATION }}
+      publish-environment: ${{ inputs.publish-environment }}
+      python-version: ${{ vars.PYTHON_TEST_VERSIONS }}
+      continue-on-error: ${{ inputs.python-continue-on-error }}
+
+  # The goal was to have the least amount of copied code between the workflows, 
+  # but also have environment protections in GitHub.
+  # By making all this 1 file, we can call from the main sdk-workflow.yml file and protect the entire
+  # workflow via the environment protections in GitHub.
+  # However, this also means that when we call this file with create-release: false and deploy-docs: false, like we do for the 
+  # staging job in sdk-workflow.yml, this job will always show up skipped, which is true, but can be confusing.
+  #
+  # We could create two seperate deploy-all.yml files, one that has create-release and deploy-docs and one that doesn't, but
+  # that would mean that we would have to duplicate the code between the two files.
+  #
+  # So, we're going to keep this 1 file and accept that when create-release and deploy-docs is false, the skipped message will
+  # be shown in the UI.
+  create-release:
+    name: Create a Release
+    if: ${{ inputs.create-release }}
+    uses: ./.github/workflows/create-release.yml
+    secrets: inherit
+    with:
+      runs-on-config: ${{ vars.PUBLISH_OS }}
+      release-version: ${{ inputs.release-version }}
+      publish-environment: ${{ inputs.publish-environment }}
+
+  deploy-docs:
+    name: Deploy Docs
+    if: ${{ inputs.deploy-docs }}
+    uses: ./.github/workflows/deploy-docs.yml
+    secrets: inherit
+    with:
+      runs-on-config: ${{ vars.PUBLISH_OS }}
+      publish-environment: ${{ inputs.publish-environment }}

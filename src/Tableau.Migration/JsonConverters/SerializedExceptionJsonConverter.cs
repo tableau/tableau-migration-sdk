@@ -80,7 +80,7 @@ namespace Tableau.Migration.JsonConverters
 
                 Type? exceptionType = null;
                 Type? originalExceptionType = null;
-                if(exceptionNamespace.StartsWith("System"))
+                if (exceptionNamespace.StartsWith("System"))
                 {
                     if (exceptionNamespace == "System")
                     {

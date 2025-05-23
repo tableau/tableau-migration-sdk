@@ -44,7 +44,7 @@ namespace Tableau.Migration.Net.Resilience
             if (args.Outcome.Exception is null)
             {
                 var response = args.Outcome.Result;
-                if(response is null)
+                if (response is null)
                 {
                     return false;
                 }
@@ -67,7 +67,7 @@ namespace Tableau.Migration.Net.Resilience
         {
             var resilienceOptions = options.Network.Resilience;
 
-            if(!resilienceOptions.RetryEnabled || !resilienceOptions.RetryIntervals.Any())
+            if (!resilienceOptions.RetryEnabled || !resilienceOptions.RetryIntervals.Any())
             {
                 return;
             }
@@ -82,7 +82,7 @@ namespace Tableau.Migration.Net.Resilience
                         resilienceOptions.RetryIntervals[args.AttemptNumber] : resilienceOptions.RetryIntervals[^1];
 
                     return ValueTask.FromResult<TimeSpan?>(interval);
-                }                 
+                }
             });
         }
     }

@@ -21,6 +21,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Tableau.Migration.Api.Rest;
 using Tableau.Migration.Api.Rest.Models.Responses;
 using Tableau.Migration.Content;
 using Tableau.Migration.Net.Rest;
@@ -42,8 +43,8 @@ namespace Tableau.Migration.Api
         public AuthenticationConfigurationsApiClient(
             IRestRequestBuilderFactory restRequestBuilderFactory,
             IServerSessionProvider sessionProvider,
-            ILoggerFactory loggerFactory, 
-            ISharedResourcesLocalizer sharedResourcesLocalizer) 
+            ILoggerFactory loggerFactory,
+            ISharedResourcesLocalizer sharedResourcesLocalizer)
             : base(restRequestBuilderFactory, loggerFactory, sharedResourcesLocalizer)
         {
             _sessionProvider = sessionProvider;
@@ -53,16 +54,16 @@ namespace Tableau.Migration.Api
 
         public async Task<IResult<IImmutableList<IAuthenticationConfiguration>>> GetAuthenticationConfigurationsAsync(CancellationToken cancel)
         {
-            if(!AssertInstanceType(TableauInstanceType.Cloud, _sessionProvider.InstanceType, throwOnFailure: false))
+            if (!AssertInstanceType(TableauInstanceType.Cloud, _sessionProvider.InstanceType, throwOnFailure: false))
             {
                 return Result<IImmutableList<IAuthenticationConfiguration>>.Succeeded(ImmutableArray<IAuthenticationConfiguration>.Empty);
             }
 
             var result = await RestRequestBuilderFactory
-                .CreateUri("/site-auth-configurations")
+                .CreateUri($"/{RestUrlKeywords.SiteAuthConfigs}")
                 .ForGetRequest()
                 .SendAsync<SiteAuthConfigurationsResponse>(cancel)
-                .ToResultAsync(r => (IImmutableList<IAuthenticationConfiguration>)r.Items.Select(i => (IAuthenticationConfiguration)new AuthenticationConfiguration(i)).ToImmutableArray(), 
+                .ToResultAsync(r => (IImmutableList<IAuthenticationConfiguration>)r.Items.Select(i => (IAuthenticationConfiguration)new AuthenticationConfiguration(i)).ToImmutableArray(),
                     SharedResourcesLocalizer)
                 .ConfigureAwait(false);
 
@@ -73,7 +74,7 @@ namespace Tableau.Migration.Api
             => new MemoryPager<IAuthenticationConfiguration>(async (c) =>
             {
                 var result = await GetAuthenticationConfigurationsAsync(c).ConfigureAwait(false);
-                if(!result.Success)
+                if (!result.Success)
                 {
                     return result.CastFailure<IReadOnlyCollection<IAuthenticationConfiguration>>();
                 }

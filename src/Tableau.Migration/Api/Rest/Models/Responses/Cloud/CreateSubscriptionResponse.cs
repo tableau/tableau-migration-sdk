@@ -23,7 +23,7 @@ namespace Tableau.Migration.Api.Rest.Models.Responses.Cloud
 {
     /// <summary>
     /// Class representing a subscription creation response.
-    /// https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_subscriptions.htm#tableau-cloud-request
+    /// See <see href="https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_subscriptions.htm#tableau-cloud-request">Tableau API Reference</see> for documentation.
     /// </summary>
     [XmlType(XmlTypeName)]
     public class CreateSubscriptionResponse : TableauServerResponse<CreateSubscriptionResponse.SubscriptionType>

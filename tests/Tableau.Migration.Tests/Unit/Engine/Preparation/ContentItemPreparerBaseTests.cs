@@ -90,7 +90,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Preparation
         {
             public TestPreparer(IFixture fixture,
                 IMigrationPipeline pipeline,
-                IContentTransformerRunner transformerRunner, 
+                IContentTransformerRunner transformerRunner,
                 IDestinationContentReferenceFinderFactory destinationFinderFactory,
                 ISharedResourcesLocalizer localizer)
                 : base(fixture, pipeline, transformerRunner, destinationFinderFactory, localizer)
@@ -428,7 +428,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Preparation
                 var result = await preparer.PrepareAsync(Item, Cancel);
 
                 result.AssertSuccess();
-                
+
                 MockPipeline.Verify(x => x.GetItemConverter<TestFileContentType, TestPublishType>(), Times.Once);
                 mockConverter.Verify(x => x.ConvertAsync(preparer.PullResult.Value!, Cancel), Times.Once);
 
@@ -447,9 +447,9 @@ namespace Tableau.Migration.Tests.Unit.Engine.Preparation
                     .Returns(mockConverter.Object);
 
                 var preparer = Create<TestPreparer<TestFileContentType, TestFileContentType, TestPublishType>>();
-                
+
                 var thrown = await Assert.ThrowsAsync<Exception>(() => preparer.PrepareAsync(Item, Cancel));
-                
+
                 Assert.Same(ex, thrown);
                 Assert.True(preparer.PullResult.Value!.IsDisposed);
 

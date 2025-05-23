@@ -27,7 +27,6 @@ using Tableau.Migration.Api.Rest.Models.Responses;
 using Tableau.Migration.Config;
 using Tableau.Migration.Net.Rest;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Tableau.Migration.Tests.Unit.Api
 {
@@ -99,7 +98,7 @@ namespace Tableau.Migration.Tests.Unit.Api
         }
 
         public class WaitForJobAsync : JobsApiClientTest
-        { 
+        {
             [Fact]
             public async Task Returns_success()
             {
@@ -181,7 +180,7 @@ namespace Tableau.Migration.Tests.Unit.Api
 
                 // Check that delay was called at most 2 times. mockJobTimeout / mockPollRate = 2ish
                 // It might be less if the load on the system is a lot, then millisecond timeouts are too fast
-                MockTaskDelayer.Verify(d => d.DelayAsync(mockJobPullRate, Cancel), Times.AtMost(2)); 
+                MockTaskDelayer.Verify(d => d.DelayAsync(mockJobPullRate, Cancel), Times.AtMost(2));
             }
 
             [Fact]

@@ -24,7 +24,7 @@ namespace Tableau.Migration.Tests.Unit
         where TOptions : class, new()
     {
         protected readonly Mock<IMigrationPlanOptionsProvider<TOptions>> MockOptionsProvider;
-        
+
         protected TOptions Options { get; set; }
 
         public OptionsHookTestBase()

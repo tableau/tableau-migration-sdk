@@ -16,6 +16,7 @@
 //
 
 using System;
+using Tableau.Migration.Api.Rest;
 
 namespace Tableau.Migration.Content.Permissions
 {
@@ -25,8 +26,8 @@ namespace Tableau.Migration.Content.Permissions
         {
             return granteeType switch
             {
-                GranteeType.User => "users",
-                GranteeType.Group => "groups",
+                GranteeType.User => RestUrlKeywords.Users,
+                GranteeType.Group => RestUrlKeywords.Groups,
                 _ => throw new NotSupportedException($"Could not determine URL segment for {granteeType}.")
             };
         }

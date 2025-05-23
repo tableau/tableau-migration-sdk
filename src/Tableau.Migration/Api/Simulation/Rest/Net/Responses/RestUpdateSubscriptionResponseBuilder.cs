@@ -20,6 +20,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Tableau.Migration.Api.Rest;
 using Tableau.Migration.Api.Rest.Models.Requests.Cloud;
 using Tableau.Migration.Api.Rest.Models.Responses.Cloud;
 using Tableau.Migration.Api.Simulation.Rest.Net.Requests;
@@ -37,32 +38,32 @@ namespace Tableau.Migration.Api.Simulation.Rest.Net.Responses
             HttpRequestMessage request,
             CancellationToken cancel)
         {
-            var id = request.GetIdAfterSegment("subscriptions");
+            var id = request.GetIdAfterSegment(RestUrlKeywords.Subscriptions);
             if (id is null)
             {
                 return BuildEmptyErrorResponseAsync(HttpStatusCode.BadRequest, 0, "Invalid subscription ID.", string.Empty);
             }
 
             var subscription = Data.CloudSubscriptions.SingleOrDefault(s => s.Id == id);
-            if(subscription is null)
+            if (subscription is null)
             {
                 return BuildEmptyErrorResponseAsync(HttpStatusCode.NotFound, 025, "Subscription not found.", string.Empty);
             }
 
             var update = request.GetTableauServerRequest<UpdateSubscriptionRequest>();
-            if(update is null)
+            if (update is null)
             {
                 return BuildEmptyErrorResponseAsync(HttpStatusCode.BadRequest, 0, "Invalid request.", string.Empty);
             }
 
-            if(update.Subscription is not null)
+            if (update.Subscription is not null)
             {
-                if(update.Subscription.Subject is not null)
+                if (update.Subscription.Subject is not null)
                 {
                     subscription.Subject = update.Subscription.Subject;
                 }
 
-                if(update.Subscription.AttachImageSpecified)
+                if (update.Subscription.AttachImageSpecified)
                 {
                     subscription.AttachImage = update.Subscription.AttachImage;
                 }
@@ -92,12 +93,12 @@ namespace Tableau.Migration.Api.Simulation.Rest.Net.Responses
                     subscription.Message = update.Subscription.Message;
                 }
 
-                if(update.Subscription.Content is not null)
+                if (update.Subscription.Content is not null)
                 {
                     subscription.Content = new(update.Subscription.Content);
                 }
 
-                if(update.Subscription.User is not null)
+                if (update.Subscription.User is not null)
                 {
                     var user = Data.Users.SingleOrDefault(u => u.Id == update.Subscription.User.Id);
                     if (user is null)
@@ -109,7 +110,7 @@ namespace Tableau.Migration.Api.Simulation.Rest.Net.Responses
                 }
             }
 
-            if(update.Schedule is not null)
+            if (update.Schedule is not null)
             {
                 subscription.Schedule = new()
                 {

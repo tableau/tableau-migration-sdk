@@ -29,7 +29,7 @@ namespace Tableau.Migration.TestApplication.Hooks
     class RemoveMissingDestinationUsersFromGroupsTransformer : ContentTransformerBase<IPublishableGroup>
     {
         private readonly IDestinationContentReferenceFinder<IUser> _destinationUserContentReferenceFinder;
-        
+
         public RemoveMissingDestinationUsersFromGroupsTransformer(
             ISharedResourcesLocalizer localizer,
             ILogger<RemoveMissingDestinationUsersFromGroupsTransformer> logger,
@@ -40,7 +40,7 @@ namespace Tableau.Migration.TestApplication.Hooks
         }
 
         public override async Task<IPublishableGroup?> TransformAsync(
-            IPublishableGroup itemToTransform, 
+            IPublishableGroup itemToTransform,
             CancellationToken cancel)
         {
             var updatedUsersList = new List<IGroupUser>();

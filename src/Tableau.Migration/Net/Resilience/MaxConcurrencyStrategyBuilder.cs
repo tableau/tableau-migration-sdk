@@ -28,7 +28,7 @@ namespace Tableau.Migration.Net.Resilience
         /// <inheritdoc />
         public void Build(ResiliencePipelineBuilder<HttpResponseMessage> pipelineBuilder, MigrationSdkOptions options, ref Action? onPipelineDisposed)
         {
-            if(options.Network.Resilience.ConcurrentRequestsLimitEnabled)
+            if (options.Network.Resilience.ConcurrentRequestsLimitEnabled)
             {
                 pipelineBuilder.AddConcurrencyLimiter(new()
                 {

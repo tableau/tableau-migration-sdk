@@ -63,7 +63,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             public async Task MultipleAuthTypes()
             {
                 var users = AutoFixture.CreateMany<IUser>();
-                foreach(var u in users)
+                foreach (var u in users)
                 {
                     u.Authentication = UserAuthenticationType.ForConfigurationId(Guid.NewGuid());
                 }

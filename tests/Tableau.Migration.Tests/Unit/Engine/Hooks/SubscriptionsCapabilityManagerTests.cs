@@ -16,20 +16,14 @@
 //
 
 using System;
-using System.Collections.Immutable;
-using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using AutoFixture;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Tableau.Migration.Api.Rest;
 using Tableau.Migration.Content;
-using Tableau.Migration.Content.Schedules;
-using Tableau.Migration.Content.Schedules.Cloud;
+using Tableau.Migration.Engine;
 using Tableau.Migration.Engine.Endpoints;
 using Tableau.Migration.Engine.Hooks;
-using Tableau.Migration.Paging;
 using Tableau.Migration.Resources;
 using Xunit;
 
@@ -38,107 +32,62 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks
     public class SubscriptionsCapabilityManagerTests : AutoFixtureTestBase
     {
         internal readonly SubscriptionsCapabilityManager SubscriptionsCapabilityManager;
-        internal readonly MigrationCapabilities MigrationCapabilities = new();
-        internal readonly Mock<IScheduleValidator<ICloudSchedule>> MockScheduleValidator = new();
-        internal readonly Mock<IDestinationApiEndpoint> MockDestinationEndpoint = new();
+        internal readonly Mock<MigrationCapabilities> MockMigrationCapabilities;
+        internal readonly Mock<IDestinationEndpoint> MockDestinationEndpoint = new();
         internal readonly Mock<ISharedResourcesLocalizer> MockLocalizer = new();
         internal readonly Mock<ILogger<SubscriptionsCapabilityManager>> MockLogger = new();
+        internal readonly Mock<IMigration> MockMigration;
 
         public SubscriptionsCapabilityManagerTests()
         {
+            MockMigrationCapabilities = new Mock<MigrationCapabilities> { CallBase = true };
+            MockMigration = new Mock<IMigration>();
+                
             SubscriptionsCapabilityManager = new SubscriptionsCapabilityManager(
-                MockDestinationEndpoint.Object, MockScheduleValidator.Object, MigrationCapabilities,
-                MockLocalizer.Object, MockLogger.Object);
-        }
-
-        protected void SetupDeleteCloudSubscription()
-        {
-            MockDestinationEndpoint.Setup(de
-                => de.DeleteAsync<ICloudSubscription>(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult((IResult)Result.Succeeded()));
-        }
-
-        protected void SetupCreateSubscriptionSuccess(ICloudSubscription subscription)
-        {
-            MockDestinationEndpoint.Setup(de
-                => de.PublishAsync<ICloudSubscription, ICloudSubscription>(
-                    It.IsAny<ICloudSubscription>(), It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult((IResult<ICloudSubscription>)Result<ICloudSubscription>.Succeeded(subscription)));
-        }
-
-        protected void SetupCreateSubscriptionFailure(Exception exception)
-        {
-            MockDestinationEndpoint.Setup(de
-                => de.PublishAsync<ICloudSubscription, ICloudSubscription>(
-                    It.IsAny<ICloudSubscription>(), It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult((IResult<ICloudSubscription>)Result<ICloudSubscription>.Failed(exception)));
-        }
-
-        protected void SetupDestinationPager(ImmutableArray<IWorkbook> workbooks)
-        {
-            MockDestinationEndpoint.Setup(de => de.GetPager<IWorkbook>(It.IsAny<int>()))
-                .Returns((int pageSize) => new MemoryPager<IWorkbook>(workbooks, pageSize));
-        }
-
-        private void SetupScheduleValidator()
-        {
-            MockScheduleValidator.Setup(sv => sv.Validate(It.IsAny<ICloudSchedule>())).Verifiable();
+                MockDestinationEndpoint.Object,
+                MockMigrationCapabilities.Object,
+                MockLocalizer.Object,
+                MockLogger.Object,
+                MockMigration.Object);
         }
 
         public class SetMigrationCapabilityAsync : SubscriptionsCapabilityManagerTests
         {
             [Fact]
-            public async Task True_when_subscriptions_enabled()
+            public async Task Subscriptions_enabled_when_disable_subscriptions_is_false()
             {
-                var workbooks = AutoFixture.CreateMany<IWorkbook>().ToImmutableArray();
-                var subscription = AutoFixture.Create<ICloudSubscription>();
+                // Arrange
+                var session = Create<IServerSession>();
+                var settings = Create<ISiteSettings>();
+                Mock.Get(settings).SetupGet(s => s.DisableSubscriptions).Returns(false);
+                Mock.Get(session).SetupGet(s => s.Settings).Returns(settings);
+                MockMigration.Setup(m => m.Destination.GetSessionAsync(It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(Result<IServerSession>.Succeeded(session));
 
-                SetupScheduleValidator();
+                // Act
+                var result = await SubscriptionsCapabilityManager.SetMigrationCapabilityAsync(session, CancellationToken.None);
 
-                SetupDestinationPager(workbooks);
-
-                SetupCreateSubscriptionSuccess(subscription);
-
-                SetupDeleteCloudSubscription();
-
-                var result = await SubscriptionsCapabilityManager.SetMigrationCapabilityAsync(new CancellationToken());
-
-                Assert.NotNull(result);
-                Assert.Empty(MigrationCapabilities.ContentTypesDisabledAtDestination);
-                Assert.DoesNotContain(typeof(IServerSubscription), MigrationCapabilities.ContentTypesDisabledAtDestination);
-
+                // Assert
+                Assert.True(result.Success);
+                Assert.Empty(MockMigrationCapabilities.Object.ContentTypesDisabledAtDestination);
             }
 
             [Fact]
-            public async Task False_when_subscriptions_disabled()
+            public async Task Subscriptions_disabled_when_disable_subscriptions_is_true()
             {
-                var workbooks = AutoFixture.CreateMany<IWorkbook>().ToImmutableArray();
-                var subscription = AutoFixture.Create<ICloudSubscription>();
+                // Arrange
+                var session = Create<IServerSession>();
+                MockMigration.Setup(m => m.Destination.GetSessionAsync(It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(Result<IServerSession>.Succeeded(session));
 
-                SetupScheduleValidator();
+                // Act
+                var result = await SubscriptionsCapabilityManager.SetMigrationCapabilityAsync(session, CancellationToken.None);
 
-                SetupDestinationPager(workbooks);
-
-                var error = new RestException(
-                    HttpMethod.Post,
-                    new Uri("http://dummy/uri"),
-                    Guid.NewGuid().ToString(),
-                    new Migration.Api.Rest.Models.Error() { Code = RestErrorCodes.GENERIC_CREATE_SUBSCRIPTION_ERROR },
-                    string.Empty,
-                    "Subscriptions not enabled");
-
-                SetupCreateSubscriptionFailure(error);
-
-                SetupDeleteCloudSubscription();
-
-                var result = await SubscriptionsCapabilityManager.SetMigrationCapabilityAsync(new CancellationToken());
-
-                Assert.NotNull(result);
-                Assert.NotEmpty(MigrationCapabilities.ContentTypesDisabledAtDestination);
-                Assert.Contains(typeof(IServerSubscription), MigrationCapabilities.ContentTypesDisabledAtDestination);
-
+                // Assert
+                Assert.True(result.Success);
+                Assert.Single(MockMigrationCapabilities.Object.ContentTypesDisabledAtDestination);
+                Assert.Contains(typeof(ISubscription<>), MockMigrationCapabilities.Object.ContentTypesDisabledAtDestination);
             }
-
         }
     }
 }

@@ -21,12 +21,8 @@ using System.Xml.Serialization;
 namespace Tableau.Migration.Api.Rest.Models.Requests
 {
     /// <summary>
-    /// <para>
     /// Class representing an update custom view request.
-    /// </para>
-    /// <para>
     /// See <see href="https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_workbooks_and_views.htm#update_custom_view">Tableau API Reference</see> for documentation.
-    /// </para>
     /// </summary>
     [XmlType(XmlTypeName)]
     public class UpdateCustomViewRequest : TableauServerRequest
@@ -49,7 +45,7 @@ namespace Tableau.Migration.Api.Rest.Models.Requests
                 newOwnerId != Guid.Empty)
             {
                 CustomView.Owner.Id = newOwnerId.Value;
-            }   
+            }
 
             if (!string.IsNullOrWhiteSpace(newName))
             {

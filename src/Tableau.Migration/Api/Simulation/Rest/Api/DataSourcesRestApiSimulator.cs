@@ -79,7 +79,7 @@ namespace Tableau.Migration.Api.Simulation.Rest.Api
         /// </summary>
         /// <param name="simulator">A response simulator to setup with REST API methods.</param>
         public DataSourcesRestApiSimulator(TableauApiResponseSimulator simulator)
-            : base(simulator, RestUrlPrefixes.DataSources,
+            : base(simulator, RestUrlKeywords.DataSources,
                   data => data.DataSources, data => data.DataSourceKeychains)
         {
             QueryDataSource = simulator.SetupRestGet<DataSourceResponse, DataSourceResponse.DataSourceType>(
@@ -91,12 +91,12 @@ namespace Tableau.Migration.Api.Simulation.Rest.Api
                  (data) => data.DataSources.Select(dataSource => new DataSourcesResponse.DataSourceType(dataSource)).ToList());
 
             CommitDataSourceUpload = simulator.SetupRestPost(
-                SiteUrl("datasources"),
+                SiteUrl(RestUrlKeywords.DataSources),
                 new RestCommitDataSourceUploadResponseBuilder(simulator.Data, simulator.Serializer),
                 SiteCommitFileUploadQueryString("datasourceType"));
 
             DownloadDataSource = simulator.SetupRestDownloadById(
-                SiteEntityUrl(ContentTypeUrlPrefix, "content"),
+                SiteEntityUrl(ContentTypeUrlPrefix, RestUrlKeywords.Content),
                 (data) => data.DataSourceFiles, 4);
 
             UpdateDataSource = simulator.SetupRestPut<UpdateDataSourceResponse, UpdateDataSourceResponse.DataSourceType>(
@@ -104,11 +104,11 @@ namespace Tableau.Migration.Api.Simulation.Rest.Api
                 BuildUpdateDataSourceDelegate());
 
             QueryDataSourceConnections = simulator.SetupRestGetList<ConnectionsResponse, ConnectionsResponse.ConnectionType>(
-                SiteEntityUrl(ContentTypeUrlPrefix, "connections"),
+                SiteEntityUrl(ContentTypeUrlPrefix, RestUrlKeywords.Connections),
                 BuildListConnectionsDelegate());
 
             UpdateConnectionAsync = simulator.SetupRestPut(
-                SiteEntityUrl(ContentTypeUrlPrefix, $"connections/{new Regex(GuidPattern, RegexOptions.IgnoreCase)}"),
+                SiteEntityUrl(ContentTypeUrlPrefix, $"{RestUrlKeywords.Connections}/{new Regex(GuidPattern, RegexOptions.IgnoreCase)}"),
                 new RestUpdateConnectionResponseBuilder<SimulatedDataSourceData>(
                     simulator.Data,
                     simulator.Data.DataSourceFiles,

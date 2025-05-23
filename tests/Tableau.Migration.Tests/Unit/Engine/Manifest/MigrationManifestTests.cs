@@ -133,13 +133,13 @@ namespace Tableau.Migration.Tests.Unit.Engine.Manifest
                 var planId = Guid.NewGuid();
                 var migrationId = Guid.NewGuid();
 
-                var mockEntryCollection = new Mock<MigrationManifestEntryCollection>(null);
+                var mockEntryCollection = new Mock<MigrationManifestEntryCollection>(null!);
                 mockEntryCollection.Setup(c => c.Equals(It.IsAny<IMigrationManifestEntryCollection?>())).Returns(true);
 
-                var mockManifest1 = new Mock<MigrationManifest>(planId, migrationId, PipelineProfile.ServerToCloud, null);
+                var mockManifest1 = new Mock<MigrationManifest>(planId, migrationId, PipelineProfile.ServerToCloud, null!);
                 mockManifest1.Setup(m => m.Entries).Returns(mockEntryCollection.Object);
 
-                var mockManifest2 = new Mock<MigrationManifest>(planId, migrationId, PipelineProfile.ServerToCloud, null);
+                var mockManifest2 = new Mock<MigrationManifest>(planId, migrationId, PipelineProfile.ServerToCloud, null!);
                 mockManifest2.Setup(m => m.Entries).Returns(mockEntryCollection.Object);
 
 
@@ -161,14 +161,14 @@ namespace Tableau.Migration.Tests.Unit.Engine.Manifest
                 var planId = Guid.NewGuid();
                 var migrationId = Guid.NewGuid();
 
-                var mockEntryCollection = new Mock<MigrationManifestEntryCollection>(null);
+                var mockEntryCollection = new Mock<MigrationManifestEntryCollection>(null!);
                 mockEntryCollection.Setup(c => c.Equals(It.IsAny<IMigrationManifestEntryCollection?>())).Returns(true);
 
-                var mockManifest1 = new Mock<MigrationManifest>(planId, migrationId, PipelineProfile.ServerToCloud, null);
+                var mockManifest1 = new Mock<MigrationManifest>(planId, migrationId, PipelineProfile.ServerToCloud, null!);
                 mockManifest1.Setup(m => m.Entries).Returns(mockEntryCollection.Object);
                 mockManifest1.Setup(m => m.ManifestVersion).Returns(1);
 
-                var mockManifest2 = new Mock<MigrationManifest>(planId, migrationId, PipelineProfile.ServerToCloud, null);
+                var mockManifest2 = new Mock<MigrationManifest>(planId, migrationId, PipelineProfile.ServerToCloud, null!);
                 mockManifest2.Setup(m => m.Entries).Returns(mockEntryCollection.Object);
                 mockManifest1.Setup(m => m.ManifestVersion).Returns(2);
 
@@ -188,13 +188,13 @@ namespace Tableau.Migration.Tests.Unit.Engine.Manifest
                 var planId = Guid.NewGuid();
                 var migrationId = Guid.NewGuid();
 
-                var mockEntryCollection = new Mock<MigrationManifestEntryCollection>(null);
+                var mockEntryCollection = new Mock<MigrationManifestEntryCollection>(null!);
                 mockEntryCollection.Setup(c => c.Equals(It.IsAny<IMigrationManifestEntryCollection?>())).Returns(false);
 
-                var mockManifest1 = new Mock<MigrationManifest>(planId, migrationId, PipelineProfile.ServerToCloud, null);
+                var mockManifest1 = new Mock<MigrationManifest>(planId, migrationId, PipelineProfile.ServerToCloud, null!);
                 mockManifest1.Setup(m => m.Entries).Returns(mockEntryCollection.Object);
 
-                var mockManifest2 = new Mock<MigrationManifest>(planId, migrationId, PipelineProfile.ServerToCloud, null);
+                var mockManifest2 = new Mock<MigrationManifest>(planId, migrationId, PipelineProfile.ServerToCloud, null!);
                 mockManifest2.Setup(m => m.Entries).Returns(mockEntryCollection.Object);
 
                 Assert.False(mockManifest1.Object.Equals(mockManifest2.Object));
@@ -213,13 +213,13 @@ namespace Tableau.Migration.Tests.Unit.Engine.Manifest
             {
                 var migrationId = Guid.NewGuid();
 
-                var mockEntryCollection = new Mock<MigrationManifestEntryCollection>(null);
+                var mockEntryCollection = new Mock<MigrationManifestEntryCollection>(null!);
                 mockEntryCollection.Setup(c => c.Equals(It.IsAny<IMigrationManifestEntryCollection?>())).Returns(true);
 
-                var mockManifest1 = new Mock<MigrationManifest>(Guid.NewGuid(), migrationId, PipelineProfile.ServerToCloud, null);
+                var mockManifest1 = new Mock<MigrationManifest>(Guid.NewGuid(), migrationId, PipelineProfile.ServerToCloud, null!);
                 mockManifest1.Setup(m => m.Entries).Returns(mockEntryCollection.Object);
 
-                var mockManifest2 = new Mock<MigrationManifest>(Guid.NewGuid(), migrationId, PipelineProfile.ServerToCloud, null);
+                var mockManifest2 = new Mock<MigrationManifest>(Guid.NewGuid(), migrationId, PipelineProfile.ServerToCloud, null!);
                 mockManifest2.Setup(m => m.Entries).Returns(mockEntryCollection.Object);
 
 
@@ -241,13 +241,13 @@ namespace Tableau.Migration.Tests.Unit.Engine.Manifest
             {
                 var planId = Guid.NewGuid();
 
-                var mockEntryCollection = new Mock<MigrationManifestEntryCollection>(null);
+                var mockEntryCollection = new Mock<MigrationManifestEntryCollection>(null!);
                 mockEntryCollection.Setup(c => c.Equals(It.IsAny<IMigrationManifestEntryCollection?>())).Returns(true);
 
-                var mockManifest1 = new Mock<MigrationManifest>(planId, Guid.NewGuid(), PipelineProfile.ServerToCloud, null);
+                var mockManifest1 = new Mock<MigrationManifest>(planId, Guid.NewGuid(), PipelineProfile.ServerToCloud, null!);
                 mockManifest1.Setup(m => m.Entries).Returns(mockEntryCollection.Object);
 
-                var mockManifest2 = new Mock<MigrationManifest>(planId, Guid.NewGuid(), PipelineProfile.ServerToCloud, null);
+                var mockManifest2 = new Mock<MigrationManifest>(planId, Guid.NewGuid(), PipelineProfile.ServerToCloud, null!);
                 mockManifest2.Setup(m => m.Entries).Returns(mockEntryCollection.Object);
 
 
@@ -269,13 +269,13 @@ namespace Tableau.Migration.Tests.Unit.Engine.Manifest
                 var planId = Guid.NewGuid();
                 var migrationId = Guid.NewGuid();
 
-                var mockEntryCollection = new Mock<MigrationManifestEntryCollection>(null);
+                var mockEntryCollection = new Mock<MigrationManifestEntryCollection>(null!);
                 mockEntryCollection.Setup(c => c.Equals(It.IsAny<IMigrationManifestEntryCollection?>())).Returns(true);
 
-                var mockManifest1 = new Mock<MigrationManifest>(planId, migrationId, PipelineProfile.ServerToCloud, null);
+                var mockManifest1 = new Mock<MigrationManifest>(planId, migrationId, PipelineProfile.ServerToCloud, null!);
                 mockManifest1.Setup(m => m.Entries).Returns(mockEntryCollection.Object);
 
-                var mockManifest2 = new Mock<MigrationManifest>(planId, migrationId, PipelineProfile.ServerToServer, null);
+                var mockManifest2 = new Mock<MigrationManifest>(planId, migrationId, PipelineProfile.ServerToServer, null!);
                 mockManifest2.Setup(m => m.Entries).Returns(mockEntryCollection.Object);
 
 

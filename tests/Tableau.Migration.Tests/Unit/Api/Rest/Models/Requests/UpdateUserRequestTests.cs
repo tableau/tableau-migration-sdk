@@ -33,7 +33,7 @@ namespace Tableau.Migration.Tests.Unit.Api.Rest.Models.Requests
 
                 Assert.NotNull(r.User);
                 Assert.Equal("siteRole", r.User.SiteRole);
-                
+
                 Assert.Null(r.User.FullName);
                 Assert.Null(r.User.Email);
                 Assert.Null(r.User.Password);

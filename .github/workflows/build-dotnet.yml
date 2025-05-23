@@ -1,0 +1,139 @@
+# This workflow will build a .NET project
+name: Build .NET
+
+on:
+  workflow_call:
+    inputs:
+      beta-version:
+        required: true
+        type: string
+      runs-on-config:
+        required: true
+        type: string
+
+env:
+  MIGRATIONSDK_BUILD_DOCS: "no"
+  VERSION_REPLACE_ARGS: ""
+  DOTNET_NOLOGO: "true"
+  SHOULD_PUBLISH: "false" # Setting env variable here to be set later. See "Check Publish Condition Details" job.
+
+jobs:
+  build-dotnet:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ${{ fromJSON(vars.BUILD_OS) }} # This is only here so we can verify building works on every OS.
+        config: ${{ fromJSON(vars.BUILD_CONFIGURATIONS) }}
+
+    runs-on: ${{ inputs.runs-on-config }}
+    name: Build .NET (${{ matrix.os }}, ${{ matrix.config }})
+    steps:
+      ## SETUP
+
+      # Checkout the repository
+      - uses: actions/checkout@v4
+
+      # Setup .NET environment
+      - uses: ./.github/actions/setup-dotnet
+
+      # Cache NuGet packages based on the lock file
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      # Explicitly restore dependencies using the lock file
+      - name: Restore Dependencies
+        run: dotnet restore '${{ vars.BUILD_SOLUTION }}' --locked-mode
+
+      # Set replaced version for Windows
+      - name: Set Replaced Version Windows
+        if: ${{ runner.os == 'Windows' &&  inputs.beta-version != '' }}
+        run: echo "VERSION_REPLACE_ARGS=-p:Version='${{ inputs.beta-version }}'" | Out-File -FilePath $env:GITHUB_ENV -Append # no need for -Encoding utf8
+
+      # Set replaced version for non-Windows
+      - name: Set Replaced Version Not Windows
+        if: ${{ runner.os != 'Windows' &&  inputs.beta-version != '' }}
+        run: echo "VERSION_REPLACE_ARGS=-p:Version='${{ inputs.beta-version }}'" >> $GITHUB_ENV
+
+      ## BUILD
+
+      # Build the .NET library
+      - name: Build .NET (${{ matrix.os }}, ${{ matrix.config }})
+        run: dotnet build '${{ vars.BUILD_SOLUTION }}' -c ${{ matrix.config }} ${{ env.VERSION_REPLACE_ARGS }} --no-restore
+
+      ## PUBLISH
+
+      # Check Publish Condition Details
+      # The publish condition checks if BUILD_OS and PUBLISH_OS are the same and if the config is Release.
+      # The reason for this is because we only need to "build" the library once as the dotnet binaries can run on any OS.
+      # If we were to publish them for every OS, we would have duplicates. To prevent this, we only publish if the OS and config are the same.
+      # We build on every OS so verify that it works, but we only use the output of a single OS.
+      #
+      # NOTE: This is done here because the condition is not evaluated correctly in the if statement if it's run in act.
+      - name: Check Publish Condition Details
+        run: |
+          echo "Condition should be: ${{ matrix.os == vars.PUBLISH_OS && matrix.config == 'Release' }}"
+          echo "--- Debug Values ---"
+          echo "Matrix OS: |${{ matrix.os }}|"
+          echo "Publish OS Var: |${{ vars.PUBLISH_OS }}|"
+          echo "Matrix Config: |${{ matrix.config }}|"
+          echo "--- Debug Comparisons ---"
+          echo "OS Comparison Result: ${{ matrix.os == vars.PUBLISH_OS }}"
+          echo "Config Comparison Result: ${{ matrix.config == 'Release' }}"
+          echo "SHOULD_PUBLISH=${{ matrix.os == vars.PUBLISH_OS && matrix.config == 'Release' }}" >> $GITHUB_ENV
+
+      # Publish the .NET library
+      - name: Publish .NET Library ${{ matrix.config }}
+        if: ${{ env.SHOULD_PUBLISH == 'true' }}
+        run: dotnet publish --no-build -p:DebugType=None -p:DebugSymbols=false -c ${{ matrix.config }} -f ${{ vars.PYTHON_NETPACKAGE_FRAMEWORK }} -o './src/Python/src/tableau_migration/bin/' '${{ vars.BUILD_PROJECT }}'
+
+      # Publish the .NET tests
+      - name: Publish .NET Tests ${{ matrix.config }}
+        if: ${{ env.SHOULD_PUBLISH == 'true' }}
+        run: dotnet publish --no-build -p:DebugType=None -p:DebugSymbols=false -c ${{ matrix.config }} -f ${{ vars.PYTHON_NETPACKAGE_FRAMEWORK }} -o './dist/tests/' './tests/Tableau.Migration.Tests/Tableau.Migration.Tests.csproj'
+
+      ## UPLOAD
+
+      # Upload product artifacts
+      - name: Upload product artifacts for python library
+        if: ${{ env.SHOULD_PUBLISH == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: product-${{ matrix.config }}
+          path: "./src/Python/src/tableau_migration/bin/**"
+          retention-days: 15 # This is not required to stick around very long as it's not pushed to production.
+
+      # Upload test artifacts
+      # TODO: [W-18497981: CI/CD Improvements: Python tests should test final package | Work](https://gus.lightning.force.com/lightning/r/ADM_Work__c/a07EE00002EIUwKYAX/view)
+      - name: Upload Tests Artifacts
+        if: ${{ env.SHOULD_PUBLISH == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: tests-${{ matrix.config }}
+          path: "./dist/tests/**"
+          retention-days: 15 # This is not required to stick around very long as it's not pushed to production.
+
+      # Upload NuGet package artifact
+      - name: Upload NuGet Artifact
+        if: ${{ env.SHOULD_PUBLISH == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuget-package
+          path: "./src/${{ vars.NUGET_PACKAGE_FOLDER }}/bin/${{ matrix.config }}/*.nupkg"
+          if-no-files-found: error
+
+      # Upload build output for tests
+      - name: Upload Build Output
+        if: ${{ env.SHOULD_PUBLISH == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-output-${{ matrix.config }}
+          path: |
+            **/bin/${{ matrix.config }}/**
+            **/obj/${{ matrix.config }}/**
+          if-no-files-found: error
+          retention-days: 15 # This is not required to stick around very long as it's not pushed to production.

@@ -178,3 +178,7 @@ The Migration SDK uses [two methods](hooks/index.md#hook-execution-flow) to publ
 This configuration only applies to the 'Bulk process'. Each batch publish REST API call returns a Job ID (see the [Tableau REST API Query Job](https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_jobs_tasks_and_schedules.htm#query_job) for details). The SDK uses this ID to determine job status. The following table describes the related settings.
 
 [!include[](~/includes/configuration/sdk_opts_jobs.html)]
+
+### [Preflight](xref:Tableau.Migration.Config.PreflightOptions)
+
+[!include[](~/includes/configuration/sdk_opts_preflight.html)]

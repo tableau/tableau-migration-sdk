@@ -24,7 +24,7 @@ using Moq;
 namespace Tableau.Migration.Tests
 {
     public class TestLogger : TestLogger<string>
-    { 
+    {
     }
 
     public class TestLogger<TCategoryName> : Mock<ILogger<TCategoryName>>, ILogger<TCategoryName>

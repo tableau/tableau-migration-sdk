@@ -63,7 +63,7 @@ namespace Tableau.Migration
             where TReturn : IResult
         {
             var result = await resource.DisposeOnThrowAsync(asyncFunction).ConfigureAwait(false);
-            if(!result.Success)
+            if (!result.Success)
             {
                 await resource.DisposeIfNeededAsync().ConfigureAwait(false);
             }

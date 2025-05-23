@@ -32,9 +32,9 @@ namespace Tableau.Migration.Api.Simulation.Rest.Net.Responses
     {
         private readonly Func<TableauData, HttpRequestMessage, (TResponse Response, HttpStatusCode ResponseCode)> _buildResponse;
 
-        public RestRequestResponseBuilder(TableauData data, IHttpContentSerializer serializer, 
+        public RestRequestResponseBuilder(TableauData data, IHttpContentSerializer serializer,
             Func<TableauData, HttpRequestMessage, (TResponse Response, HttpStatusCode ResponseCode)> buildResponse,
-            bool requiresAuthentication) 
+            bool requiresAuthentication)
             : base(data, serializer, requiresAuthentication)
         {
             _buildResponse = buildResponse;
@@ -73,7 +73,7 @@ namespace Tableau.Migration.Api.Simulation.Rest.Net.Responses
             return (TableauData data, HttpRequestMessage request) =>
             {
                 var typedRequest = request.GetTableauServerRequest<TRequest>();
-                if(typedRequest is null)
+                if (typedRequest is null)
                 {
                     return BuildEmptyErrorResponse(HttpStatusCode.BadRequest, 0, $"Request must be of the type {nameof(TRequest)} and not null", string.Empty);
                 }

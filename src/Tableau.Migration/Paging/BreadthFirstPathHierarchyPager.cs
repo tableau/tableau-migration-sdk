@@ -135,17 +135,17 @@ namespace Tableau.Migration.Paging
                     _currentLevel = nextLevels.First();
                     _currentLevelPage = DEFAULT_PAGE;
                 }
-                else 
+                else
                 {
                     lastPage = true;
                 }
             }
 
             return PagedResult<TContent>.Succeeded(
-                levelPage, 
-                _currentPage++, 
-                _pageSize, 
-                _totalCount, 
+                levelPage,
+                _currentPage++,
+                _pageSize,
+                _totalCount,
                 lastPage);
         }
     }

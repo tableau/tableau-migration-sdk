@@ -27,7 +27,7 @@ namespace Tableau.Migration.Net.Resilience
          * https://github.com/dotnet/extensions/blob/v8.1.0/src/Libraries/Microsoft.Extensions.Http.Resilience/Internal/ResilienceKeys.cs
          * due to the value being internal.
          */
-        internal static readonly ResiliencePropertyKey<HttpRequestMessage> REQUEST_CONTEXT_KEY 
+        internal static readonly ResiliencePropertyKey<HttpRequestMessage> REQUEST_CONTEXT_KEY
             = new("Resilience.Http.RequestMessage");
 
         internal static HttpRequestMessage GetRequest(this ResilienceContext ctx)

@@ -21,12 +21,8 @@ using System.Xml.Serialization;
 namespace Tableau.Migration.Api.Rest.Models.Responses
 {
     /// <summary>
-    /// <para>
     /// Class representing a sign-in response.
-    /// </para>
-    /// <para>
-    /// See <see href="https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_authentication.htm#sign_in">Tableau API Reference</see> for documentation
-    /// </para>
+    /// See <see href="https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_authentication.htm#sign_in">Tableau API Reference</see> for documentation.
     /// </summary>
     [XmlType(XmlTypeName)]
     public class SignInResponse : TableauServerResponse<SignInResponse.CredentialsType>

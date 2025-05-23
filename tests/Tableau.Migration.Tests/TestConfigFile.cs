@@ -50,13 +50,13 @@ namespace Tableau.Migration.Tests
             return file;
         }
 
-        public async Task<string> ReadAsync(CancellationToken cancel) 
+        public async Task<string> ReadAsync(CancellationToken cancel)
             => await File.ReadAllTextAsync(FilePath, Constants.DefaultEncoding, cancel).ConfigureAwait(false);
 
-        public async Task WriteAsync(string content, CancellationToken cancel) 
+        public async Task WriteAsync(string content, CancellationToken cancel)
             => await File.WriteAllTextAsync(FilePath, content, Constants.DefaultEncoding, cancel).ConfigureAwait(false);
 
-        public async Task WriteAsync(dynamic content, CancellationToken cancel) 
+        public async Task WriteAsync(dynamic content, CancellationToken cancel)
             => await WriteAsync(JsonSerializer.Serialize(content), cancel).ConfigureAwait(false);
 
         public async Task EditAsync(Action<JsonNode> edit, CancellationToken cancel)

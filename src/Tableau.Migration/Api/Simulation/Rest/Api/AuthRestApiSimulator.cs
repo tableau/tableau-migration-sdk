@@ -15,6 +15,7 @@
 //  limitations under the License.
 //
 
+using Tableau.Migration.Api.Rest;
 using Tableau.Migration.Api.Rest.Models.Responses;
 using Tableau.Migration.Api.Simulation.Rest.Net;
 using Tableau.Migration.Api.Simulation.Rest.Net.Responses;
@@ -45,8 +46,8 @@ namespace Tableau.Migration.Api.Simulation.Rest.Api
         /// <param name="simulator">A response simulator to setup with REST API methods.</param>
         public AuthRestApiSimulator(TableauApiResponseSimulator simulator)
         {
-            SignIn = simulator.SetupRestPost<SignInResponse, SignInResponse.CredentialsType>(RestApiUrl("auth/signin"), d => d.SignIn, requiresAuthentication: false);
-            SignOut = simulator.SetupRestPost(RestApiUrl("auth/signout"), new EmptyRestResponseBuilder(simulator.Data, simulator.Serializer, false));
+            SignIn = simulator.SetupRestPost<SignInResponse, SignInResponse.CredentialsType>(RestApiUrl($"{RestUrlKeywords.Auth}/{RestUrlKeywords.SignIn}"), d => d.SignIn, requiresAuthentication: false);
+            SignOut = simulator.SetupRestPost(RestApiUrl($"{RestUrlKeywords.Auth}/{RestUrlKeywords.SignOut}"), new EmptyRestResponseBuilder(simulator.Data, simulator.Serializer, false));
         }
     }
 }

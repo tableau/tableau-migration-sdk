@@ -41,7 +41,7 @@ namespace Tableau.Migration.Content.Schedules.Cloud
 
         /// <summary>
         /// Validates that the cloud schedule is valid based on the required of the "Create Cloud Extract Refresh Task" RestAPI.
-        /// https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_extract_and_encryption.htm#create_cloud_extract_refresh_task
+        /// See <see href="https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_extract_and_encryption.htm#create_cloud_extract_refresh_task">Tableau API Reference</see> for documentation.
         /// </summary>
         /// <param name="schedule">Cloud schedule to validate.</param>
         public void Validate(ICloudSchedule schedule)

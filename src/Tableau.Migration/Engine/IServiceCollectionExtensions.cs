@@ -31,7 +31,6 @@ using Tableau.Migration.Engine.Conversion.Subscriptions;
 using Tableau.Migration.Engine.Endpoints;
 using Tableau.Migration.Engine.Endpoints.Search;
 using Tableau.Migration.Engine.Hooks;
-using Tableau.Migration.Engine.Hooks.ActionCompleted;
 using Tableau.Migration.Engine.Hooks.Filters;
 using Tableau.Migration.Engine.Hooks.Filters.Default;
 using Tableau.Migration.Engine.Hooks.InitializeMigration.Default;
@@ -168,7 +167,8 @@ namespace Tableau.Migration.Engine
 
         private static IServiceCollection AddDefaultPreflightHookServices(this IServiceCollection services) => services
             .AddScoped<PreflightCheck>()
-            .AddScoped<EmbeddedCredentialsPreflightCheck>();
+            .AddScoped<EmbeddedCredentialsPreflightCheck>()
+            .AddScoped<SubscriptionsPreflightCheck>();
 
         private static IServiceCollection AddDefaultFilterServices(this IServiceCollection services) => services
             .AddScoped(typeof(PreviouslyMigratedFilter<>))
@@ -194,8 +194,7 @@ namespace Tableau.Migration.Engine
             .AddScoped<CustomViewDefaultUserReferencesTransformer>()
             .AddScoped<SubscriptionTransformer>();
 
-        private static IServiceCollection AddDefaultActionCompletedHookServices(this IServiceCollection services) => services
-            .AddScoped<SubscriptionsEnabledActionCompletedHook>();
+        private static IServiceCollection AddDefaultActionCompletedHookServices(this IServiceCollection services) => services;
 
         private static IServiceCollection AddDefaultPostPublishHookServices(this IServiceCollection services) => services
             .AddScoped(typeof(OwnerItemPostPublishHook<,>))

@@ -46,7 +46,7 @@ namespace Tableau.Migration.Net.Resilience
             // - Group "(datasources|workbooks)": Only for datasources or workbooks
             // - Second ".*": Matches "datasource-id" or "workbook-id".
             // - "{1}": Exactly one match. 
-            (HttpMethod.Get, new Regex($@"^.+(\/({RestUrlPrefixes.DataSources}|{RestUrlPrefixes.Workbooks})\/.+\/{RestUrlPrefixes.Content}){{1}}$", RegexOptions.Compiled | RegexOptions.Singleline | RegexOptions.IgnoreCase)),
+            (HttpMethod.Get, new Regex($@"^.+(\/({RestUrlKeywords.DataSources}|{RestUrlKeywords.Workbooks})\/.+\/{RestUrlKeywords.Content}){{1}}$", RegexOptions.Compiled | RegexOptions.Singleline | RegexOptions.IgnoreCase)),
             
             // Regex to capture the file upload content AbsolutePath:
             // - PUT /api/api-version/sites/site-id/fileUploads/upload-session-id
@@ -58,7 +58,7 @@ namespace Tableau.Migration.Net.Resilience
             // - "\/": Escaped Slash
             // - Second ".*": Matching the  session GUID.
             // - "{1}": Exactly one match. 
-            (HttpMethod.Put, new Regex($@"^.+(\/({RestUrlPrefixes.FileUploads})\/.+){{1}}$", RegexOptions.Compiled | RegexOptions.Singleline | RegexOptions.IgnoreCase)),
+            (HttpMethod.Put, new Regex($@"^.+(\/({RestUrlKeywords.FileUploads})\/.+){{1}}$", RegexOptions.Compiled | RegexOptions.Singleline | RegexOptions.IgnoreCase)),
         };
 
         private static bool IsFileTransferRequest(HttpRequestMessage httpRequest)

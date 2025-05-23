@@ -23,6 +23,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Moq;
 using Tableau.Migration.Api;
+using Tableau.Migration.Api.Rest;
 using Tableau.Migration.Api.Rest.Models.Responses;
 using Tableau.Migration.Config;
 using Tableau.Migration.Content;
@@ -160,7 +161,7 @@ namespace Tableau.Migration.Tests.Unit.Api
                 Assert.Same(exception, resultError);
 
                 var request = MockHttpClient.AssertSingleRequest();
-                request.AssertRelativeUri($"/api/{TableauServerVersion.RestApiVersion}/sites/{SiteId}/datasources/{dataSourceId}/content?includeExtract=True");
+                request.AssertRelativeUri($"/api/{TableauServerVersion.RestApiVersion}/sites/{SiteId}/{RestUrlKeywords.DataSources}/{dataSourceId}/{RestUrlKeywords.Content}?includeExtract=True");
             }
 
             [Fact]
@@ -179,7 +180,7 @@ namespace Tableau.Migration.Tests.Unit.Api
                 Assert.Single(result.Errors);
 
                 var request = MockHttpClient.AssertSingleRequest();
-                request.AssertRelativeUri($"/api/{TableauServerVersion.RestApiVersion}/sites/{SiteId}/datasources/{dataSourceId}/content?includeExtract=True");
+                request.AssertRelativeUri($"/api/{TableauServerVersion.RestApiVersion}/sites/{SiteId}/datasources/{dataSourceId}/{RestUrlKeywords.Content}?includeExtract=True");
             }
 
             [Fact]
@@ -198,7 +199,7 @@ namespace Tableau.Migration.Tests.Unit.Api
                 Assert.NotNull(result.Value);
 
                 var request = MockHttpClient.AssertSingleRequest();
-                request.AssertRelativeUri($"/api/{TableauServerVersion.RestApiVersion}/sites/{SiteId}/datasources/{dataSourceId}/content?includeExtract=True");
+                request.AssertRelativeUri($"/api/{TableauServerVersion.RestApiVersion}/sites/{SiteId}/datasources/{dataSourceId}/{RestUrlKeywords.Content}?includeExtract=True");
             }
         }
 

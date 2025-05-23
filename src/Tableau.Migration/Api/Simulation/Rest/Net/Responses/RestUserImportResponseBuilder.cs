@@ -58,7 +58,7 @@ namespace Tableau.Migration.Api.Simulation.Rest.Net.Responses
                 }
             }
 
-            foreach(var user in result)
+            foreach (var user in result)
             {
                 data.AddUser(user);
             }
@@ -72,7 +72,7 @@ namespace Tableau.Migration.Api.Simulation.Rest.Net.Responses
             var adminLevel = columnData[4];
             var publishingCapability = columnData[5];
             var email = columnData[6];
-            
+
             if (!bool.TryParse(publishingCapability, out bool canPublish))
             {
                 throw new ArgumentException(

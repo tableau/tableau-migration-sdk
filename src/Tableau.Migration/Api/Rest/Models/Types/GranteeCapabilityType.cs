@@ -54,7 +54,8 @@ namespace Tableau.Migration.Api.Rest.Models.Types
                         };
                         break;
                     }
-            };
+            }
+            ;
 
             Capabilities = granteeCapability
                 .Capabilities

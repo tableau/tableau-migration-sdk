@@ -66,15 +66,15 @@ namespace Tableau.Migration.Api.Simulation.Rest.Api
             ContentTypeUrlPrefix = contentTypeUrlPrefix;
 
             CreatePermissions = simulator.SetupRestPut(
-                SiteEntityUrl(ContentTypeUrlPrefix, "permissions"),
+                SiteEntityUrl(ContentTypeUrlPrefix, RestUrlKeywords.Permissions),
                 new RestPermissionsCreateResponseBuilder<TContent>(simulator.Data, simulator.Serializer, ContentTypeUrlPrefix, getContent));
 
             QueryPermissions = simulator.SetupRestGet(
-                SiteEntityUrl(ContentTypeUrlPrefix, "permissions"),
+                SiteEntityUrl(ContentTypeUrlPrefix, RestUrlKeywords.Permissions),
                 new RestPermissionsGetResponseBuilder<TContent>(simulator.Data, simulator.Serializer, ContentTypeUrlPrefix, getContent));
 
             ReplacePermissions = simulator.SetupRestPost(
-                SiteEntityUrl(ContentTypeUrlPrefix, "permissions"),
+                SiteEntityUrl(ContentTypeUrlPrefix, RestUrlKeywords.Permissions),
                 new RestPermissionsCreateResponseBuilder<TContent>(simulator.Data, simulator.Serializer, ContentTypeUrlPrefix, getContent));
         }
     }

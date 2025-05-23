@@ -40,9 +40,9 @@ namespace Tableau.Migration.Engine.Endpoints.Search
         /// <param name="configReader">The configuration reader.</param>
         /// <param name="manifest">The migration manifest.</param>
         public BulkDestinationProjectCache(
-            IDestinationEndpoint endpoint, 
-            IConfigReader configReader, 
-            IMigrationManifestEditor manifest) 
+            IDestinationEndpoint endpoint,
+            IConfigReader configReader,
+            IMigrationManifestEditor manifest)
             : base(endpoint, configReader, manifest)
         {
             _projectContentPermissionModeCache = new();

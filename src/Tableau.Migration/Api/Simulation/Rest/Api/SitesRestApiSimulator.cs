@@ -19,6 +19,7 @@ using System;
 using System.Linq;
 using System.Net.Http;
 using System.Text.RegularExpressions;
+using Tableau.Migration.Api.Rest;
 using Tableau.Migration.Api.Rest.Models.Requests;
 using Tableau.Migration.Api.Rest.Models.Responses;
 using Tableau.Migration.Api.Simulation.Rest.Net;
@@ -64,7 +65,7 @@ namespace Tableau.Migration.Api.Simulation.Rest.Api
 
         private static SiteResponse.SiteType? UpdateSiteFromRequest(TableauData data, HttpRequestMessage request)
         {
-            var id = request.GetIdAfterSegment("sites");
+            var id = request.GetIdAfterSegment(RestUrlKeywords.Sites);
             if (id is null)
             {
                 throw new InvalidOperationException("Site ID should not be null");

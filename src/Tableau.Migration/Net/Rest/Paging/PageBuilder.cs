@@ -21,12 +21,8 @@ using System.Linq;
 namespace Tableau.Migration.Net.Rest.Paging
 {
     /// <summary>
-    /// <para>
     /// Class that can build REST API field query strings.
-    /// </para>
-    /// <para>
     /// See <see href="https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_concepts_fields.htm">Tableau API Reference</see> for more details.
-    /// </para>
     /// </summary>
     internal sealed class PageBuilder : RestQueryBuilderBase<Page>, IPageBuilder
     {

@@ -1,6 +1,9 @@
 name: Setup .NET
 description: 'Setup .NET'
 
+env:
+  DOTNET_NOLOGO: 'true'
+
 runs:
   using: "composite"
   steps:

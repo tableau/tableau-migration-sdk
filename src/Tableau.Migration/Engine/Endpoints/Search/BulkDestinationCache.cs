@@ -44,7 +44,7 @@ namespace Tableau.Migration.Engine.Endpoints.Search
         /// <param name="manifest">A migration manifest.</param>
         public BulkDestinationCache(
             IDestinationEndpoint endpoint,
-            IConfigReader configReader, 
+            IConfigReader configReader,
             IMigrationManifestEditor manifest)
             : base((endpoint as IDestinationApiEndpoint)?.SiteApi, configReader)
         {

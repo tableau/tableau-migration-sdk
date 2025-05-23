@@ -23,13 +23,9 @@ using System.Xml.Serialization;
 namespace Tableau.Migration.Api.Rest.Models.Requests
 {
     /// <summary>
-    /// <para>
     /// Class representing an upload saved credentials request.
-    /// </para>
-    /// <para>
     /// See <see href="https://help.tableau.com/current/api/rest_api/en-us/REST/">Tableau API Reference</see> 
     /// for documentation.
-    /// </para>
     /// </summary>
     [XmlType(XmlTypeName)]
     public class UploadUserSavedCredentialsRequest : TableauServerRequest
@@ -38,7 +34,7 @@ namespace Tableau.Migration.Api.Rest.Models.Requests
         /// The default parameterless constructor.
         /// </summary>
         public UploadUserSavedCredentialsRequest() { }
-        
+
         /// <summary>
         /// Creates a new <see cref="UploadUserSavedCredentialsRequest"/> object.
         /// </summary>
@@ -46,7 +42,7 @@ namespace Tableau.Migration.Api.Rest.Models.Requests
         {
             EncryptedKeychains = encryptedKeychains.ToArray();
         }
-        
+
         /// <summary>
         /// Gets or sets the encrypted keychains for the request.
         /// </summary>

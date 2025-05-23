@@ -18,12 +18,8 @@
 namespace Tableau.Migration.Api.Rest.Models
 {
     /// <summary>
-    /// <para>
     /// Class containing site role constants.
-    /// </para>
-    /// <para>
     /// See <see href="https://help.tableau.com/current/server/en-us/users_site_roles.htm#site-role-capabilities-summary">Tableau API Reference</see> for documentation.
-    /// </para>
     /// </summary>
     public class SiteRoles : StringEnum<SiteRoles>
     {

@@ -44,7 +44,7 @@ namespace Tableau.Migration.Api.Rest.Models.Responses
     public interface IExtractRefreshType<TWorkbook, TDataSource> : IExtractRefreshType
         where TWorkbook : IRestIdentifiable
         where TDataSource : IRestIdentifiable
-    { 
+    {
         /// <summary>
         /// Gets or sets the workbook for the response.
         /// </summary>

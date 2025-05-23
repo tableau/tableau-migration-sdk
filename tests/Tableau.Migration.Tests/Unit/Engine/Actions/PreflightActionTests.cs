@@ -98,8 +98,8 @@ namespace Tableau.Migration.Tests.Unit.Engine.Actions
                 result.AssertSuccess();
                 Assert.True(result.PerformNextAction);
 
-                MockSource.Verify(x => x.GetSessionAsync(Cancel), Times.Never);
-                MockDestination.Verify(x => x.GetSessionAsync(Cancel), Times.Never);
+                MockSource.Verify(x => x.GetSessionAsync(Cancel), Times.Once);
+                MockDestination.Verify(x => x.GetSessionAsync(Cancel), Times.Once);
 
                 MockLogger.VerifyWarnings(Times.Never);
 

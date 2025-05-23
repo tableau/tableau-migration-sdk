@@ -32,17 +32,17 @@ namespace Tableau.Migration.PythonGenerator
         public IEnumerable<PythonTypeReference> GetAllTypeReferences()
         {
             //Top-level Dotnet type ref
-            if(!DotNetType.IsAnyEnum())
+            if (!DotNetType.IsAnyEnum())
             {
                 yield return new PythonTypeReference(DotNetType.Name, ImportModule: DotNetType.ContainingNamespace.ToDisplayString(), ConversionMode.Wrap);
             }
 
-            foreach(var t in InheritedTypes)
+            foreach (var t in InheritedTypes)
             {
                 yield return t;
             }
 
-            foreach(var m in GetMemberTypeReferences())
+            foreach (var m in GetMemberTypeReferences())
             {
                 yield return m;
             }
@@ -71,12 +71,12 @@ namespace Tableau.Migration.PythonGenerator
 
         public bool Equals(PythonTypeReference? other)
         {
-            if(other is null)
+            if (other is null)
             {
                 return false;
             }
 
-            if(!string.Equals(Name, other.Name, System.StringComparison.Ordinal))
+            if (!string.Equals(Name, other.Name, System.StringComparison.Ordinal))
             {
                 return false;
             }

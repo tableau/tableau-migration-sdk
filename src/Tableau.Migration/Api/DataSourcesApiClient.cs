@@ -179,7 +179,7 @@ namespace Tableau.Migration.Api
             CancellationToken cancel)
         {
             var downloadResult = await RestRequestBuilderFactory
-                .CreateUri($"{UrlPrefix}/{dataSourceId.ToUrlSegment()}/{RestUrlPrefixes.Content}")
+                .CreateUri($"{UrlPrefix}/{dataSourceId.ToUrlSegment()}/{RestUrlKeywords.Content}")
                 .WithQuery("includeExtract", _configReader.Get<IDataSource>().IncludeExtractEnabled.ToString())
                 .ForGetRequest()
                 .DownloadAsync(cancel)

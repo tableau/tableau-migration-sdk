@@ -23,6 +23,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Tableau.Migration.Api.EmbeddedCredentials;
 using Tableau.Migration.Api.Permissions;
+using Tableau.Migration.Api.Rest;
 using Tableau.Migration.Api.Rest.Models.Requests;
 using Tableau.Migration.Api.Rest.Models.Responses;
 using Tableau.Migration.Api.Tags;
@@ -271,7 +272,7 @@ namespace Tableau.Migration.Api
                 return Result.Succeeded();
 
             var signOutResult = await RestRequestBuilderFactory
-                .CreateUri("/auth/signout")
+                .CreateUri($"/{RestUrlKeywords.Auth}/{RestUrlKeywords.SignOut}")
                 .WithSiteId(null)
                 .ForPostRequest()
                 .SendAsync(cancel)

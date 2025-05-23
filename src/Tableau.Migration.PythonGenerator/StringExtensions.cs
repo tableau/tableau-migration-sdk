@@ -25,7 +25,7 @@ namespace Tableau.Migration.PythonGenerator
         [return: NotNullIfNotNull(nameof(s))]
         public static string? ToSnakeCase(this string? s)
         {
-            if(string.IsNullOrEmpty(s))
+            if (string.IsNullOrEmpty(s))
             {
                 return s;
             }

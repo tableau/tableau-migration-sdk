@@ -30,7 +30,7 @@ namespace Tableau.Migration.PythonGenerator.Writers.Imports
         public ImportedModule(string name, HashSet<string> typeNames)
         {
             Name = name;
-            Types = typeNames.Select(tn=> new ImportedType(tn)).ToHashSet();
+            Types = typeNames.Select(tn => new ImportedType(tn)).ToHashSet();
         }
 
         public ImportedModule(string name, ImportedType type)

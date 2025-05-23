@@ -65,7 +65,7 @@ namespace Tableau.Migration.Engine.Preparation
             {
                 _destinationApi = destinationApi;
             }
-            
+
             _configReader = configReader;
             _destinationExtractRefreshTasksCache = new(
                 async cancel =>
@@ -90,7 +90,7 @@ namespace Tableau.Migration.Engine.Preparation
 
         /// <inheritdoc />
         protected override async Task<IResult<ICloudExtractRefreshTask>> TransformAsync(
-            ICloudExtractRefreshTask publishItem, 
+            ICloudExtractRefreshTask publishItem,
             CancellationToken cancel)
         {
             var result = await base.TransformAsync(publishItem, cancel).ConfigureAwait(false);
@@ -142,7 +142,7 @@ namespace Tableau.Migration.Engine.Preparation
                             .SiteApi
                             .CloudTasks
                             .DeleteExtractRefreshTaskAsync(
-                                item.Id, 
+                                item.Id,
                                 cancel)
                             .ConfigureAwait(false);
                     })

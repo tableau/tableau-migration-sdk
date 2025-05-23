@@ -30,7 +30,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints.Search
     {
         public class LoadStoreAsync : BulkDestinationCacheTest<BulkDestinationProjectCache, IProject>
         {
-            public LoadStoreAsync() 
+            public LoadStoreAsync()
             {
             }
 
@@ -51,7 +51,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints.Search
 
                 EndpointContent = mockProjects.Select(m => m.Object).ToList();
                 ContentTypesOptions.BatchSize = EndpointContent.Count;
-                
+
                 var item = EndpointContent[1];
 
                 var result = await Cache.ForLocationAsync(item.Location, Cancel);

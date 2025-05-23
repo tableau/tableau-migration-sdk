@@ -1,0 +1,36 @@
+# This file is used to test github actions locally using act (https://github.com/nektos/act?tab=readme-ov-file)
+
+# Github repository scoped variables.
+ACT="true"   # Used to let actions know they're being run locally.
+BUILD_CONFIGURATIONS="[\"Release\"]"
+BASE_OS="ubuntu-latest"
+BUILD_OS="[\"ubuntu-latest\"]"
+BUILD_PROJECT="./src/Tableau.Migration/Tableau.Migration.csproj" 
+NUGET_PACKAGE_FOLDER="Tableau.Migration" 
+PUBLISH_OS="ubuntu-latest"
+DOCS_OS="ubuntu-latest"
+PYTHON_NETPACKAGE_FRAMEWORK="net8.0" 
+PYTHON_PUBLISH_DOCS_VERSION="3.11"
+PUBLISH_CONFIGURATION="Release"
+PUBLISH_PACKAGE_OS="ubuntu-latest"
+
+# These are github environment scoped variables.
+# Development
+NUGET_PACKAGE_REPOSITORY="https://artifactory.dev.tableautools.com/artifactory/api/nuget/pqt-tuk/Tableau.Migration"
+PYPI_PUBLISH_USER="svc_cmt"
+PYPI_PACKAGE_REPOSITORY="https://artifactory.dev.tableautools.com/artifactory/api/pypi/tab-pypi-local-tuk/"
+
+# Staging
+#NUGET_PACKAGE_REPOSITORY="https://artifactory.prod.tableautools.com/artifactory/api/nuget/power-tools-nuget-local/Tableau.Migration"
+#PYPI_PUBLISH_USER="svc_cmt"
+#PYPI_PACKAGE_REPOSITORY="https://artifactory.prod.tableautools.com/artifactory/api/pypi/tabpypi"
+
+# Public Test
+# NUGET_PACKAGE_REPOSITORY="https://apiint.nugettest.org/v3/index.json"
+# PYPI_PACKAGE_REPOSITORY="https://test.pypi.org/legacy/"
+# PYPI_PUBLISH_USER="__token__"
+
+# Public Prod
+# NUGET_PACKAGE_REPOSITORY="https://api.nuget.org/v3/index.json"
+# PYPI_PACKAGE_REPOSITORY="https://upload.pypi.org/legacy/"
+# PYPI_PUBLISH_USER="__token__"

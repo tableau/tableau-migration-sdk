@@ -21,13 +21,9 @@ using System.Xml.Serialization;
 namespace Tableau.Migration.Api.Rest.Models.Requests
 {
     /// <summary>
-    /// <para>
     /// Class representing a get labels request.
-    /// </para>
-    /// <para>
     /// See <see href="https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_metadata.htm#get_labels_on_assets">Tableau API Reference</see> 
     /// for documentation.
-    /// </para>
     /// </summary>
     [XmlType(XmlTypeName)]
     public class GetLabelsRequest : TableauServerRequest

@@ -68,7 +68,7 @@ namespace Tableau.Migration
 
         public virtual RecyclableMemoryStream GetStream(ReadOnlySpan<byte> buffer) => Inner.GetStream(buffer);
 
-        public virtual RecyclableMemoryStream GetStream(string? tag, ReadOnlySpan<byte> buffer) => Inner.GetStream(tag,  buffer);
+        public virtual RecyclableMemoryStream GetStream(string? tag, ReadOnlySpan<byte> buffer) => Inner.GetStream(tag, buffer);
 
         #endregion
     }

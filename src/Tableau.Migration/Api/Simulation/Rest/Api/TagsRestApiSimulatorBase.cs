@@ -65,11 +65,11 @@ namespace Tableau.Migration.Api.Simulation.Rest.Api
             : base(simulator, contentTypeUrlPrefix, getContent)
         {
             AddTags = simulator.SetupRestPutList<AddTagsResponse, AddTagsResponse.TagType>(
-                SiteEntityUrl(ContentTypeUrlPrefix, "tags"),
+                SiteEntityUrl(ContentTypeUrlPrefix, RestUrlKeywords.Tags),
                 BuildAddTagsDelegate(getContent));
 
             RemoveTags = simulator.SetupRestDelete(
-                SiteEntityUrl(ContentTypeUrlPrefix, $"tags/{new Regex(NamePattern, RegexOptions.IgnoreCase)}"),
+                SiteEntityUrl(ContentTypeUrlPrefix, $"{RestUrlKeywords.Tags}/{new Regex(NamePattern, RegexOptions.IgnoreCase)}"),
                 new RestDeleteResponseBuilder(simulator.Data,
                 BuildDeleteTagsDelegate(getContent),
                 simulator.Serializer));

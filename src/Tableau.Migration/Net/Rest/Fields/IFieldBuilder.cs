@@ -20,12 +20,8 @@ using System.Collections.Generic;
 namespace Tableau.Migration.Net.Rest.Fields
 {
     /// <summary>
-    /// <para>
     /// Interface for a class that can build REST API field query strings.
-    /// </para>
-    /// <para>
     /// See <see href="https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_concepts_fields.htm">Tableau API Reference</see> for more details.
-    /// </para>
     /// </summary>
     public interface IFieldBuilder
     {

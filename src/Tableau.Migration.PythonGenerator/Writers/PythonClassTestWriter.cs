@@ -21,17 +21,17 @@ namespace Tableau.Migration.PythonGenerator.Writers
 {
     internal class PythonClassTestWriter : IPythonClassTestWriter
     {
-        private readonly IPythonPropertyTestWriter _propertyTestWriter;        
+        private readonly IPythonPropertyTestWriter _propertyTestWriter;
         private readonly IPythonConstructorTestWriter _constructorTestWriter;
 
         public PythonClassTestWriter(
             IPythonConstructorTestWriter constructorTestWriter,
             IPythonPropertyTestWriter propertyTestWriter)
         {
-            _propertyTestWriter = propertyTestWriter;            
+            _propertyTestWriter = propertyTestWriter;
             _constructorTestWriter = constructorTestWriter;
         }
-        
+
         public void Write(IndentingStringBuilder builder, PythonType type)
         {
             if (!type.Properties.Any() & !type.Methods.Any())
@@ -43,7 +43,7 @@ namespace Tableau.Migration.PythonGenerator.Writers
             classBuilder.AppendLine();
 
             if (!type.EnumValues.Any())
-            {              
+            {
                 _constructorTestWriter.Write(classBuilder, type);
 
                 foreach (var property in type.Properties)

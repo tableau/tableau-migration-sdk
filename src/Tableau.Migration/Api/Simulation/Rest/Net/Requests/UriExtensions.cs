@@ -20,6 +20,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text.RegularExpressions;
+using Tableau.Migration.Api.Rest;
 using Tableau.Migration.Net;
 using Tableau.Migration.Net.Rest;
 using Tableau.Migration.Net.Rest.Filtering;
@@ -55,9 +56,9 @@ namespace Tableau.Migration.Api.Simulation.Rest.Net.Requests
                 ? id : Guid.Empty;
         }
 
-        public static Guid? GetSiteIdFromUrl(this Uri? uri) => GetIdAfterSegment(uri, "sites");
+        public static Guid? GetSiteIdFromUrl(this Uri? uri) => GetIdAfterSegment(uri, RestUrlKeywords.Sites);
 
-        public static Guid? GetProjectIdFromUrl(this Uri? uri) => GetIdAfterSegment(uri, "projects");
+        public static Guid? GetProjectIdFromUrl(this Uri? uri) => GetIdAfterSegment(uri, RestUrlKeywords.Projects);
 
         public static Guid? GetIdAfterSegment(this Uri? uri, string segmentBeforeId)
         {
@@ -83,7 +84,7 @@ namespace Tableau.Migration.Api.Simulation.Rest.Net.Requests
         }
 
         public static bool IsDefaultPermissionsRequest(this Uri? uri)
-            => _comparer.Equals("default-permissions", uri.GetSegment(6));
+            => _comparer.Equals(RestUrlKeywords.DefaultPermissions, uri.GetSegment(6));
 
         public static string ParseDefaultPermissionsContentType(this Uri? uri)
         {

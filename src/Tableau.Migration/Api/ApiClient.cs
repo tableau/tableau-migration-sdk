@@ -106,7 +106,7 @@ namespace Tableau.Migration.Api
         private async Task<IResult<ISignInResult>> GetSignInResultAsync(CancellationToken cancel)
         {
             var signInResult = await RestRequestBuilderFactory
-                .CreateUri("/auth/signin")
+                .CreateUri($"{RestUrlKeywords.Auth}/{RestUrlKeywords.SignIn}")
                 .WithSiteId(null)
                 .ForPostRequest()
                 .WithXmlContent(new SignInRequest(_siteConnectionConfiguration))
@@ -124,7 +124,7 @@ namespace Tableau.Migration.Api
             const string MINIMUM_API_VERSION = "3.17"; // Tableau Server 2022.3
 
             var sitesResult = await RestRequestBuilderFactory
-                .CreateUri("/sites")
+                .CreateUri(RestUrlKeywords.Sites)
                 .WithApiVersion(_sessionProvider.Version?.RestApiVersion ?? MINIMUM_API_VERSION)
                 .WithPage(1, 1)
                 .WithSiteId(null)
@@ -154,7 +154,7 @@ namespace Tableau.Migration.Api
             const string MINIMUM_API_VERSION = "2.4"; // Tableau Server 9.3
 
             var serverInfoResult = await RestRequestBuilderFactory
-                .CreateUri("/serverinfo")
+                .CreateUri(RestUrlKeywords.ServerInfo)
                 .WithApiVersion(_sessionProvider.Version?.RestApiVersion ?? MINIMUM_API_VERSION)
                 .WithSiteId(null)
                 .ForGetRequest()
@@ -172,7 +172,7 @@ namespace Tableau.Migration.Api
         public async Task<IResult<IServerSession>> GetCurrentServerSessionAsync(CancellationToken cancel)
         {
             var serverSessionResult = await RestRequestBuilderFactory
-                .CreateUri("/sessions/current")
+                .CreateUri($"/{RestUrlKeywords.Sessions}/{RestUrlKeywords.Current}")
                 .WithSiteId(null)
                 .ForGetRequest()
                 .SendAsync<ServerSessionResponse>(cancel)

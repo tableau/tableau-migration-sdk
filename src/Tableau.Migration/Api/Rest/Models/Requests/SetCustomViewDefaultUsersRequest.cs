@@ -25,14 +25,8 @@ using Tableau.Migration.Content;
 namespace Tableau.Migration.Api.Rest.Models.Requests
 {
     /// <summary>
-    /// <para>
     /// Class representing a set custom view as default for users request.
-    /// </para>
-    /// <para>
-    /// See Tableau API Reference
-    /// <see href="https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_workbooks_and_views.htm#set_custom_view_as_default_for_users"></see> 
-    /// documentation for details.
-    /// </para>
+    /// See <see href="https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_workbooks_and_views.htm#set_custom_view_as_default_for_users">Tableau API Reference</see> for details.
     /// </summary>
     [XmlType(XmlTypeName)]
     public class SetCustomViewDefaultUsersRequest : TableauServerRequest

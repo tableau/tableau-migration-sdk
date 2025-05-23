@@ -1,0 +1,96 @@
+name: Test Python Workflow
+
+on:
+  workflow_call:
+    inputs:
+      working-directory:
+        required: true
+        type: string
+      test-name:
+        required: true
+        type: string
+
+env:
+  DOTNET_NOLOGO: "true"
+  MIG_SDK_PYTHON_BUILD: ${{ vars.MIG_SDK_PYTHON_BUILD }}
+
+jobs:
+  test-python:
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ${{ fromJSON(vars.BUILD_OS) }}
+        config: ${{ fromJSON(vars.BUILD_CONFIGURATIONS) }}
+
+    runs-on: ${{ matrix.os }}
+    name: Test Python ${{ inputs.test-name }} (${{ matrix.os }}, ${{ matrix.config }})
+    steps:
+      # Checkout the repository
+      - uses: actions/checkout@v4
+
+      # Setup .NET environment
+      - uses: ./.github/actions/setup-dotnet
+
+      # Restore Tools (i.e. report generator)
+      - name: Restore .NET Tools
+        run: dotnet tool restore
+
+      # Setup Python environment
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ vars.PYTHON_TEST_VERSIONS }}
+          cache: "pip" # caching pip dependencies
+
+      # Cache Hatch environments
+      - name: Cache Hatch environments
+        uses: actions/cache@v4
+        with:
+          # Default Hatch env location relative to working-directory.
+          path: ./.hatch
+          # Key depends on OS and python version, plus project/dependency files
+          key: ${{ runner.os }}-py${{ vars.PYTHON_TEST_VERSIONS }}-hatch-${{ hashFiles('./pyproject.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-py${{ vars.PYTHON_TEST_VERSIONS }}-hatch-
+
+      # Install dependencies
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install hatch
+
+      # Download the published test artifacts
+      # This step is only needed when builing the main python project, but it left in this
+      # reuseable workflow for simplicity.
+      # TODO: [W-18497981: CI/CD Improvements: Python tests should test final package | Work](https://gus.lightning.force.com/lightning/r/ADM_Work__c/a07EE00002EIUwKYAX/view)
+      - uses: actions/download-artifact@v4
+        with:
+          name: tests-${{ matrix.config }}
+          path: ./src/Python/src/tableau_migration/bin/
+
+      # Test with pytest
+      - name: Test with pytest
+        run: python -m hatch --data-dir=.hatch --cache-dir=.hatch_cache run test:testcov
+
+      # Build code coverage reports
+      - name: Build Coverage Summary
+        run: dotnet reportgenerator -reports:"./TestResults/coverage*.xml" -targetdir:"./TestResults/coverage-reports" -reporttypes:"Html;MarkdownSummaryGithub"
+
+      # Create job summary
+      - name: Set Job Summary
+        run: cat "./TestResults/coverage-reports/SummaryGithub.md" >> $GITHUB_STEP_SUMMARY
+        shell: bash
+
+      # Upload test results
+      - name: Upload Test Results
+        # Use always() to always run this step to publish test results when there are test failures
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.test-name }}-results-${{ matrix.os }}-${{ matrix.config }}
+          path: ${{ inputs.working-directory }}/TestResults
+          if-no-files-found: error

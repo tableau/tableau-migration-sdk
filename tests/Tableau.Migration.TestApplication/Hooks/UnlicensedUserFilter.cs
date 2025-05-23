@@ -15,18 +15,11 @@
 //  limitations under the License.
 //
 
-using System;
-using System.Collections.Generic;
-using System.DirectoryServices;
-using System.Linq;
+using Microsoft.Extensions.Logging;
 using Tableau.Migration.Api.Rest.Models;
 using Tableau.Migration.Content;
 using Tableau.Migration.Engine;
 using Tableau.Migration.Engine.Hooks.Filters;
-using Tableau.Migration.TestApplication.Config;
-using System.Runtime.InteropServices;
-using Microsoft.Extensions.Logging;
-using Polly;
 using Tableau.Migration.Resources;
 
 namespace Tableau.Migration.TestApplication.Hooks
@@ -35,7 +28,7 @@ namespace Tableau.Migration.TestApplication.Hooks
     {
         public UnlicensedUserFilter(
             ISharedResourcesLocalizer localizer,
-            ILogger<UnlicensedUserFilter> logger) 
+            ILogger<UnlicensedUserFilter> logger)
                 : base(localizer, logger) { }
 
         public override bool ShouldMigrate(ContentMigrationItem<IUser> item)

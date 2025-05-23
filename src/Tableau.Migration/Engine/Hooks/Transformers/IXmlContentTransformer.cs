@@ -56,13 +56,13 @@ namespace Tableau.Migration.Engine.Hooks.Transformers
             {
                 return ctx;
             }
-            
+
             //We expect the item preparer to finalize/dispose the file stream.
             var xmlStream = await ctx.File.GetXmlStreamAsync(cancel).ConfigureAwait(false);
             var xml = await xmlStream.GetXmlAsync(cancel).ConfigureAwait(false);
 
             await TransformAsync(ctx, xml, cancel).ConfigureAwait(false);
-            
+
             return ctx;
         }
     }

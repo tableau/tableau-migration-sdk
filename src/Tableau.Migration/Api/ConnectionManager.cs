@@ -23,6 +23,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Tableau.Migration.Api.Models;
+using Tableau.Migration.Api.Rest;
 using Tableau.Migration.Api.Rest.Models.Requests;
 using Tableau.Migration.Api.Rest.Models.Responses;
 using Tableau.Migration.Content;
@@ -47,7 +48,7 @@ namespace Tableau.Migration.Api
             CancellationToken cancel)
         {
             var getResult = await RestRequestBuilderFactory
-                .CreateUri($"{urlPrefix}/{contentItemId.ToUrlSegment()}/connections")
+                .CreateUri($"{urlPrefix}/{contentItemId.ToUrlSegment()}/{RestUrlKeywords.Connections}")
                 .ForGetRequest()
                 .SendAsync<ConnectionsResponse>(cancel)
                 .ToResultAsync((response) =>
@@ -76,7 +77,7 @@ namespace Tableau.Migration.Api
             CancellationToken cancel)
         {
             var updateResult = await RestRequestBuilderFactory
-                .CreateUri($"{urlPrefix}/{contentItemId.ToUrlSegment()}/connections/{connectionId.ToUrlSegment()}")
+                .CreateUri($"{urlPrefix}/{contentItemId.ToUrlSegment()}/{RestUrlKeywords.Connections}/{connectionId.ToUrlSegment()}")
                 .ForPutRequest()
                 .WithXmlContent(new UpdateConnectionRequest(options))
                 .SendAsync<ConnectionResponse>(cancel)

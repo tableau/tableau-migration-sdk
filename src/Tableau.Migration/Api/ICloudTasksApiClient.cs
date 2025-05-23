@@ -27,7 +27,7 @@ namespace Tableau.Migration.Api
     /// <summary>
     /// Interface for API client Cloud tasks operations.
     /// </summary>
-    public interface ICloudTasksApiClient : 
+    public interface ICloudTasksApiClient :
         IContentApiClient,
         IPublishApiClient<ICloudExtractRefreshTask>
     {

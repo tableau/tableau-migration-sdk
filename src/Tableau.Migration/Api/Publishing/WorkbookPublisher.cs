@@ -47,7 +47,7 @@ namespace Tableau.Migration.Api.Publishing
                   loggerFactory,
                   sharedResourcesLocalizer,
                   httpStreamProcessor,
-                  RestUrlPrefixes.Workbooks)
+                  RestUrlKeywords.Workbooks)
         { }
 
         protected override CommitWorkbookPublishRequest BuildCommitRequest(IPublishWorkbookOptions options)

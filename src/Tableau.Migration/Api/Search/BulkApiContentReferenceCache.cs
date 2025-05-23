@@ -83,7 +83,7 @@ namespace Tableau.Migration.Api.Search
                 return Enumerable.Empty<ContentReferenceStub>();
             }
 
-            foreach (var item in listResult.Value) 
+            foreach (var item in listResult.Value)
             {
                 ItemLoaded(item);
             }

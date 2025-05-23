@@ -2,3 +2,13 @@
 # Enable pycodestyle (`E`) and Pyflakes (`F`) codes by default.
 select = ["E", "F"]
 ignore = ["E501"]
+
+[tool.hatch.envs.lint]
+detached = true
+
+dependencies = [
+  "ruff==0.11.10"
+]
+
+[tool.hatch.envs.lint.scripts]
+lint = "ruff check ." 

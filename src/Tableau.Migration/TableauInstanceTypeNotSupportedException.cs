@@ -51,7 +51,7 @@ namespace Tableau.Migration
         public bool Equals(TableauInstanceTypeNotSupportedException? other)
         {
             var baseEquals = this.BaseExceptionEquals(other);
-            if(baseEquals is not null)
+            if (baseEquals is not null)
             {
                 return baseEquals.Value;
             }

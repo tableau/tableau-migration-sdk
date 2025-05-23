@@ -34,8 +34,8 @@ namespace Tableau.Migration.ManifestExplorer.Views
         {
             InitializeComponent();
 
-            this.WhenActivated(action => action(ViewModel!.OpenFileDialog.RegisterHandler(OpenFileAsync)));
-            this.WhenActivated(action => action(ViewModel!.ShowExceptionListDialog.RegisterHandler(ShowExceptionListDialogAsync)));
+            this.WhenActivated(action => action(ViewModel!.OpenFileDialog.RegisterHandler(ctx => OpenFileAsync((InteractionContext<MainViewModel, IStorageFile?>)ctx))));
+            this.WhenActivated(action => action(ViewModel!.ShowExceptionListDialog.RegisterHandler(ctx => ShowExceptionListDialogAsync((InteractionContext<IReadOnlyList<Exception>, Unit>)ctx))));
         }
 
         private async Task OpenFileAsync(InteractionContext<MainViewModel, IStorageFile?> ctx)

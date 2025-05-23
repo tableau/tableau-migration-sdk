@@ -21,7 +21,7 @@ namespace Tableau.Migration.Api.Rest.Models.Types
     /// Class containing custom view file type constants.    
     /// </summary>
     public class CustomViewFileTypes : StringEnum<CustomViewFileTypes>
-    {        
+    {
         /// <summary>
         /// Gets the name of the Tde custom view file type.
         /// </summary>

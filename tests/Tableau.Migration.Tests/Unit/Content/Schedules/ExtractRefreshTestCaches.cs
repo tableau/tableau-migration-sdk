@@ -38,7 +38,7 @@ namespace Tableau.Migration.Tests.Unit.Content.Schedules
         private readonly Mock<IContentReferenceFinder<IServerSchedule>> _mockServerScheduleFinder;
         private readonly Mock<IContentReferenceFinder<IWorkbook>> _mockWorkbookFinder;
 
-        public ExtractRefreshTestCaches(IFixture fixture, 
+        public ExtractRefreshTestCaches(IFixture fixture,
             Mock<IContentReferenceFinder<IDataSource>> mockDataSourceFinder, Mock<IContentReferenceFinder<IWorkbook>> mockWorkbookFinder,
             Mock<IContentReferenceFinder<IServerSchedule>> mockServerScheduleFinder, Mock<IContentCache<IServerSchedule>> mockServerScheduleCache)
         {

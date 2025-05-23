@@ -21,12 +21,8 @@ using System.Xml.Serialization;
 namespace Tableau.Migration.Api.Rest.Models.Requests
 {
     /// <summary>
-    /// <para>
     /// Class representing an update project request.
-    /// </para>
-    /// <para>
     /// See <see href="https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_projects.htm#update_project">Tableau API Reference</see> for documentation.
-    /// </para>
     /// </summary>
     [XmlType(XmlTypeName)]
     public class UpdateProjectRequest : TableauServerRequest

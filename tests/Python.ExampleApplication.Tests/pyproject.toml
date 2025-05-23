@@ -13,9 +13,9 @@ classifiers = [
 ]
 
 dependencies = [
-    "pytest>=8.3.3",
+    "pytest>=8.3.5",
     "pythonnet==3.0.5",
-    "typing_extensions==4.12.2"
+    "typing_extensions==4.13.2"
 ]
 
 [tool.hatch.build]
@@ -25,6 +25,7 @@ exclude = [
     "pytest.ini",
     "Python.pyproj"
 ]
+packages = ["tests"]
 
 [tool.ruff]
 # Enable pycodestyle (`E`) and Pyflakes (`F`) codes by default.
@@ -38,15 +39,22 @@ convention = "google"
 [tool.hatch.envs.test]
 dev-mode = false
 dependencies = [
-  "pytest>=8.3.3",
-  "pytest-cov>=6.0.0",
+  "pytest>=8.3.5",
+  "pytest-cov>=6.1.1",
   "pytest-env>=1.1.5",
   "pythonnet==3.0.5",
-  "typing_extensions==4.12.2"
+  "typing_extensions==4.13.2"
 ]
 
 [[tool.hatch.envs.test.matrix]]
 python = ["3.9", "3.10", "3.11", "3.12"]
+
+[tool.hatch.envs.lint]
+detached = true
+
+dependencies = [
+  "ruff==0.11.10"
+]
 
 [tool.hatch.envs.lint.scripts]
 lint = "ruff check ." 

@@ -53,7 +53,7 @@ namespace Tableau.Migration.Tests.Unit.Api.Rest.Models
 
                 Assert.NotNull(deserialized);
                 Assert.Null(deserialized.Error);
-                
+
                 Assert.Equal(expected.EncryptedKeychainList, deserialized.EncryptedKeychainList);
                 Assert.Equal(expected.AssociatedUserLuidList, deserialized.AssociatedUserLuidList);
             }

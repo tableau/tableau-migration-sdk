@@ -15,7 +15,6 @@
 //  limitations under the License.
 //
 
-using System.Linq;
 using Tableau.Migration.Api.Models;
 using Tableau.Migration.Api.Rest.Models.Requests;
 using Xunit;

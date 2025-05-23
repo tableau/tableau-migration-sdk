@@ -28,7 +28,7 @@ namespace Tableau.Migration.Api.Models
         /// Gets the source user ID.
         /// </summary>
         Guid SourceUserId { get; }
-        
+
         /// <summary>
         /// Gets the destination user ID.
         /// </summary>

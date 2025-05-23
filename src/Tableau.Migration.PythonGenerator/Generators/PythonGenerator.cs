@@ -37,9 +37,9 @@ namespace Tableau.Migration.PythonGenerator.Generators
 
             var pyTypes = new List<PythonType>(dotNetTypes.Count());
 
-            foreach(var dotnetType in dotNetTypes)
+            foreach (var dotnetType in dotNetTypes)
             {
-                var pyType = _typeGenerator.Generate(dotNetTypeNames,dotnetType);
+                var pyType = _typeGenerator.Generate(dotNetTypeNames, dotnetType);
                 pyTypes.Add(pyType);
             }
 

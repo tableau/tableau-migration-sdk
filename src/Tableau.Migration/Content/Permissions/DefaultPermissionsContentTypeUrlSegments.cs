@@ -15,6 +15,8 @@
 //  limitations under the License.
 //
 
+using Tableau.Migration.Api.Rest;
+
 namespace Tableau.Migration.Content.Permissions
 {
     /// <summary>
@@ -33,31 +35,31 @@ namespace Tableau.Migration.Content.Permissions
         /// <summary>
         /// Gets the workbook content type URL path segment.
         /// </summary>
-        public const string Workbooks = "workbooks";
+        public const string Workbooks = RestUrlKeywords.Workbooks;
 
         /// <summary>
         /// Gets the data source content type URL path segment.
         /// </summary>
-        public const string DataSources = "datasources";
+        public const string DataSources = RestUrlKeywords.DataSources;
 
         /// <summary>
         /// Gets the flow content type URL path segment.
         /// </summary>
-        public const string Flows = "flows";
+        public const string Flows = RestUrlKeywords.Flows;
 
         /// <summary>
         /// Gets the database content type URL path segment.
         /// </summary>
-        public const string Databases = "databases";
+        public const string Databases = RestUrlKeywords.Databases;
 
         /// <summary>
         /// Gets the table content type URL path segment.
         /// </summary>
-        public const string Tables = "tables";
+        public const string Tables = RestUrlKeywords.Tables;
 
         /// <summary>
         /// Gets the virtual connections content type URL path segment.
         /// </summary>
-        public const string VirtualConnections = "virtualconnections";
+        public const string VirtualConnections = RestUrlKeywords.VirtualConnections;
     }
 }

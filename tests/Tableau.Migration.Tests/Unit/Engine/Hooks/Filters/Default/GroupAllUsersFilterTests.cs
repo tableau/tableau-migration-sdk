@@ -17,8 +17,8 @@
 
 using System.Collections.Immutable;
 using System.Linq;
-using Moq;
 using Microsoft.Extensions.Logging;
+using Moq;
 using Tableau.Migration.Content;
 using Tableau.Migration.Engine;
 using Tableau.Migration.Engine.Hooks.Filters;

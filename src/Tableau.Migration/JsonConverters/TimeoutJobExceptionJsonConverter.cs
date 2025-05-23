@@ -59,7 +59,7 @@ namespace Tableau.Migration.JsonConverters
                     {
                         job = JsonSerializer.Deserialize<IJob>(ref reader, options);
                     }
-                    else if(propertyName == "Message")
+                    else if (propertyName == "Message")
                     {
                         message = reader.GetString();
                     }

@@ -79,7 +79,7 @@ namespace Tableau.Migration.Api.Simulation.Rest.Api
         /// </summary>
         /// <param name="simulator">A response simulator to setup with REST API methods.</param>
         public WorkbooksRestApiSimulator(TableauApiResponseSimulator simulator)
-            : base(simulator, RestUrlPrefixes.Workbooks,
+            : base(simulator, RestUrlKeywords.Workbooks,
                   data => data.Workbooks, data => data.WorkbookKeychains)
         {
             QueryWorkbook = simulator.SetupRestGet<WorkbookResponse, WorkbookResponse.WorkbookType>(
@@ -101,7 +101,7 @@ namespace Tableau.Migration.Api.Simulation.Rest.Api
                 SiteCommitFileUploadQueryString("workbookType"));
 
             DownloadWorkbook = simulator.SetupRestDownloadById(
-                SiteEntityUrl(ContentTypeUrlPrefix, "content"),
+                SiteEntityUrl(ContentTypeUrlPrefix, RestUrlKeywords.Content),
                 (data) => data.WorkbookFiles, 4);
 
             UpdateWorkbook = simulator.SetupRestPut<UpdateWorkbookResponse, UpdateWorkbookResponse.WorkbookType>(
@@ -109,11 +109,11 @@ namespace Tableau.Migration.Api.Simulation.Rest.Api
                 BuildUpdateDelegate());
 
             QueryWorkbookConnections = simulator.SetupRestGetList<ConnectionsResponse, ConnectionsResponse.ConnectionType>(
-                SiteEntityUrl(ContentTypeUrlPrefix, "connections"),
+                SiteEntityUrl(ContentTypeUrlPrefix, RestUrlKeywords.Connections),
                 BuildListConnectionsDelegate());
 
             UpdateConnectionAsync = simulator.SetupRestPut(
-                SiteEntityUrl(ContentTypeUrlPrefix, $"connections/{new Regex(GuidPattern, RegexOptions.IgnoreCase)}"),
+                SiteEntityUrl(ContentTypeUrlPrefix, $"{RestUrlKeywords.Connections}/{new Regex(GuidPattern, RegexOptions.IgnoreCase)}"),
                 new RestUpdateConnectionResponseBuilder<SimulatedWorkbookData>(
                     simulator.Data,
                     simulator.Data.WorkbookFiles,
@@ -186,7 +186,7 @@ namespace Tableau.Migration.Api.Simulation.Rest.Api
                 {
                     workbook.Name = updateWorkbookRequest.Name;
                 }
-                
+
                 if (updateWorkbookRequest.Description is not null)
                 {
                     workbook.Description = updateWorkbookRequest.Description;

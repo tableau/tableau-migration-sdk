@@ -51,8 +51,8 @@ namespace Tableau.Migration.Api.Simulation.Rest.Net.Responses
             }
 
             var siteRole = SiteRoleMapping.GetSiteRole(
-                SiteRoleMapping.GetAdministratorLevel(addUserRequest?.SiteRole), 
-                SiteRoleMapping.GetLicenseLevel(addUserRequest?.SiteRole), 
+                SiteRoleMapping.GetAdministratorLevel(addUserRequest?.SiteRole),
+                SiteRoleMapping.GetLicenseLevel(addUserRequest?.SiteRole),
                 SiteRoleMapping.GetPublishingCapability(addUserRequest?.SiteRole));
 
             var user = new UsersResponse.UserType()

@@ -33,7 +33,7 @@ namespace Tableau.Migration.Api.Models
 
         ///<inheritdoc/>
         public string Description { get; }
-        
+
         ///<inheritdoc/>
         public bool ShowTabs { get; }
 
@@ -62,9 +62,9 @@ namespace Tableau.Migration.Api.Models
         /// <param name="file">The workbook file as a <see cref="Stream"/></param>
         /// <param name="fileType">The type of workbook file.</param>
         public PublishWorkbookOptions(
-            IPublishableWorkbook workbook, 
-            Stream file, 
-            string fileType = WorkbookFileTypes.Twbx) 
+            IPublishableWorkbook workbook,
+            Stream file,
+            string fileType = WorkbookFileTypes.Twbx)
                  : base(
                   file,
                   workbook.File.OriginalFileName,
@@ -75,7 +75,7 @@ namespace Tableau.Migration.Api.Models
             ShowTabs = workbook.ShowTabs;
             EncryptExtracts = workbook.EncryptExtracts;
             ThumbnailsUserId = workbook.ThumbnailsUserId;
-            ProjectId = ((IContainerContent)workbook).Container.Id;            
+            ProjectId = ((IContainerContent)workbook).Container.Id;
             HiddenViewNames = workbook.HiddenViewNames;
         }
     }

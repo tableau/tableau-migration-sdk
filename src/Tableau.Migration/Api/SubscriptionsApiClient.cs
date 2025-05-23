@@ -39,7 +39,7 @@ namespace Tableau.Migration.Api
     internal sealed class SubscriptionsApiClient : ContentApiClientBase, ISubscriptionsApiClient
     {
         private readonly IContentCacheFactory _contentCacheFactory;
-        private readonly IServerSessionProvider _sessionProvider;        
+        private readonly IServerSessionProvider _sessionProvider;
         private readonly ISchedulesApiClient _schedulesApiClient;
         private readonly IHttpContentSerializer _serializer;
 
@@ -52,7 +52,7 @@ namespace Tableau.Migration.Api
             ISharedResourcesLocalizer sharedResourcesLocalizer,
             IServerSessionProvider sessionProvider,
             IHttpContentSerializer serializer)
-            : base(restRequestBuilderFactory, finderFactory, loggerFactory, sharedResourcesLocalizer, RestUrlPrefixes.Subscriptions)
+            : base(restRequestBuilderFactory, finderFactory, loggerFactory, sharedResourcesLocalizer, RestUrlKeywords.Subscriptions)
         {
             _contentCacheFactory = contentCacheFactory;
             _sessionProvider = sessionProvider;

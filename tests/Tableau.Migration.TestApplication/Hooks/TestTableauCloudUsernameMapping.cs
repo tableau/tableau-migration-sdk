@@ -18,11 +18,11 @@
 using System.Net.Mail;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Tableau.Migration.Content;
 using Tableau.Migration.Engine.Hooks.Mappings;
 using Tableau.Migration.Engine.Hooks.Mappings.Default;
 using Tableau.Migration.Engine.Options;
-using Microsoft.Extensions.Logging;
 using Tableau.Migration.Resources;
 
 namespace Tableau.Migration.TestApplication.Hooks
@@ -45,7 +45,7 @@ namespace Tableau.Migration.TestApplication.Hooks
         public TestTableauCloudUsernameMapping(
             IMigrationPlanOptionsProvider<TestTableauCloudUsernameOptions> optionsProvider,
             ISharedResourcesLocalizer localizer,
-            ILogger<TestTableauCloudUsernameMapping> logger) 
+            ILogger<TestTableauCloudUsernameMapping> logger)
                 : base(localizer, logger)
         {
             _baseEmail = new MailAddress(optionsProvider.Get().BaseOverrideMailAddress);

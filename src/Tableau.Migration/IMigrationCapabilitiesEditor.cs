@@ -39,7 +39,7 @@ namespace Tableau.Migration
         /// Gets or sets the unique list of items that are disabled at the destination.
         /// </summary>
         new HashSet<Type> ContentTypesDisabledAtDestination { get; set; }
-     
+
         /// <summary>
         /// Creates a new instance of <see cref="IMigrationCapabilities"/> that is a copy of the current instance.
         /// </summary>

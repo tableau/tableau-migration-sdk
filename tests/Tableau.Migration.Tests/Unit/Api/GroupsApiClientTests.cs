@@ -42,9 +42,8 @@ namespace Tableau.Migration.Tests.Unit.Api
         {
             public GroupsApiClientTest()
             {
-                MockConfigReader
-                    .Setup(x => x.Get<IUser>())
-                    .Returns(new ContentTypesOptions());
+                MockConfigReader.Setup(x => x.Get<IUser>()).Returns(new ContentTypesOptions());
+                MockConfigReader.Setup(x => x.Get<IGroup>()).Returns(new ContentTypesOptions());
             }
             internal GroupsApiClient GroupsApiClient => GetApiClient<GroupsApiClient>();
         }
@@ -299,6 +298,14 @@ namespace Tableau.Migration.Tests.Unit.Api
                 MockHttpClient.SetupResponse(new MockHttpResponseMessage<AddUserResponse>(addResponse));
             }
 
+            private CreateGroupResponse SetupCreateGroupConflictResponse()
+            {
+                var createGroupResponse = new CreateGroupResponse() { Error = new Error { Code = RestErrorCodes.GROUP_NAME_CONFLICT_ERROR_CODE } };
+                MockHttpClient.SetupResponse(new MockHttpResponseMessage<CreateGroupResponse>(HttpStatusCode.Conflict, createGroupResponse));
+                return createGroupResponse;
+            }
+
+
             [Fact]
             public async Task Returns_success()
             {
@@ -332,15 +339,7 @@ namespace Tableau.Migration.Tests.Unit.Api
 
                 var existingGroup = CreateGroup();
 
-                var createGroupResponse = new CreateGroupResponse
-                {
-                    Error = new Error
-                    {
-                        Code = RestErrorCodes.GROUP_NAME_CONFLICT_ERROR_CODE
-                    }
-                };
-
-                MockHttpClient.SetupResponse(new MockHttpResponseMessage<CreateGroupResponse>(HttpStatusCode.Conflict, createGroupResponse));
+                SetupCreateGroupConflictResponse();
 
                 var getUsersResponse = AutoFixture.CreateResponse<UsersResponse>();
                 getUsersResponse.Items = Array.Empty<UsersResponse.UserType>();
@@ -377,15 +376,7 @@ namespace Tableau.Migration.Tests.Unit.Api
 
                 var existingGroup = CreateGroup();
 
-                var createGroupResponse = new CreateGroupResponse
-                {
-                    Error = new Error
-                    {
-                        Code = RestErrorCodes.GROUP_NAME_CONFLICT_ERROR_CODE
-                    }
-                };
-
-                MockHttpClient.SetupResponse(new MockHttpResponseMessage<CreateGroupResponse>(HttpStatusCode.Conflict, createGroupResponse));
+                SetupCreateGroupConflictResponse();
 
                 var getUsersResponse = AutoFixture.CreateResponse<UsersResponse>();
                 getUsersResponse.Items = CreateMany<UsersResponse.UserType>().ToArray();
@@ -415,6 +406,52 @@ namespace Tableau.Migration.Tests.Unit.Api
                 AssertGetGroupRequest(MockHttpClient.SentRequests[1], existingGroup.Domain, existingGroup.Name);
                 AssertAddUsersToGroup(MockHttpClient, existingGroup);
                 AssertRemoveUsersFromGroup(MockHttpClient, existingGroup.Id, getUsersResponse.Items);
+            }
+
+            [Fact]
+            public async Task Keeps_extra_users_when_overwrite_disabled()
+            {
+                SetupAddUsersToGroup();
+
+                var config = new ContentTypesOptions()
+                {
+                    OverwriteGroupUsersEnabled = false
+                };
+
+                MockConfigReader.Setup(x => x.Get<IGroup>()).Returns(config);
+
+                var existingGroup = CreateGroup();
+
+                SetupCreateGroupConflictResponse();
+
+                var getUsersResponse = AutoFixture.CreateResponse<UsersResponse>();
+                getUsersResponse.Items = CreateMany<UsersResponse.UserType>().ToArray();
+                getUsersResponse.Pagination = new() { PageNumber = 1, PageSize = int.MaxValue, TotalAvailable = getUsersResponse.Items.Length };
+
+                MockHttpClient.SetupResponse(new MockHttpResponseMessage<UsersResponse>(getUsersResponse));
+                MockHttpClient.SetupResponse(new MockHttpResponseMessage(HttpStatusCode.NoContent, new StringContent(string.Empty)));
+
+                var getGroupResponse = AutoFixture.CreateResponse<GroupsResponse>();
+                getGroupResponse.Items = new[]
+                {
+                    new GroupsResponse.GroupType
+                    {
+                        Id = existingGroup.Id,
+                        Domain = new() { Name = existingGroup.Domain },
+                        Name = existingGroup.Name
+                    }
+                };
+
+                MockHttpClient.SetupResponse(new MockHttpResponseMessage<GroupsResponse>(getGroupResponse));
+
+                var result = await GroupsApiClient.PublishAsync(existingGroup, Cancel);
+
+                Assert.True(result.Success);
+
+                await AssertCreateGroupRequestAsync(MockHttpClient.SentRequests[0], existingGroup);
+                AssertGetGroupRequest(MockHttpClient.SentRequests[1], existingGroup.Domain, existingGroup.Name);
+                AssertAddUsersToGroup(MockHttpClient, existingGroup);
+                AssertNoUserDeletes(MockHttpClient, existingGroup.Id, getUsersResponse.Items);
             }
 
             [Fact]
@@ -475,6 +512,16 @@ namespace Tableau.Migration.Tests.Unit.Api
                 {
                     var expectedUrl = $"/api/{TableauServerVersion.RestApiVersion}/sites/{SiteId}/groups/{groupId}/users/{u.Id}";
                     Assert.Single(http.SentRequests, r => r.Method == HttpMethod.Delete && r.HasRelativeUri(expectedUrl));
+                });
+            }
+
+            private void AssertNoUserDeletes(MockHttpClient http, Guid groupId, IEnumerable<UsersResponse.UserType> extraDestinationUsers)
+            {
+                Assert.All(extraDestinationUsers, u =>
+                {
+                    var expectedUrl = $"/api/{TableauServerVersion.RestApiVersion}/sites/{SiteId}/groups/{groupId}/users/{u.Id}";
+                    var deleteRequests = http.SentRequests.Where(r => r.Method == HttpMethod.Delete && r.HasRelativeUri(expectedUrl));
+                    Assert.Empty(deleteRequests);
                 });
             }
 

@@ -83,7 +83,7 @@ namespace Tableau.Migration.Tests.Unit.Content.Files
 
         public virtual async Task<ITableauFileEditor> GetTableauFileEditorAsync(IContentFileHandle handle,
             CancellationToken cancel)
-            => await _editors.GetOrAddAsync<string, ITableauFileEditor>(handle.Path, async (path) => 
+            => await _editors.GetOrAddAsync<string, ITableauFileEditor>(handle.Path, async (path) =>
                 await TableauFileEditor.OpenAsync(handle, _memoryStreamManager, cancel).ConfigureAwait(false)).ConfigureAwait(false);
 
         public virtual async Task CloseTableauFileEditorAsync(IContentFileHandle handle, CancellationToken cancel)

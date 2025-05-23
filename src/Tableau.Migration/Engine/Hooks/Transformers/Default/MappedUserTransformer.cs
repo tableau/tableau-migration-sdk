@@ -53,7 +53,7 @@ namespace Tableau.Migration.Engine.Hooks.Transformers.Default
         public async Task<IContentReference?> ExecuteAsync(IContentReference ctx, CancellationToken cancel)
         {
             //Unable to map system user, as its info is hidden from APIs except for owner references.
-            if(ctx.Location == Constants.SystemUserLocation)
+            if (ctx.Location == Constants.SystemUserLocation)
             {
                 return null;
             }

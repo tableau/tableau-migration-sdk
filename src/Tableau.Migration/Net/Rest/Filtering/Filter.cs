@@ -22,12 +22,8 @@ using System.Collections.Generic;
 namespace Tableau.Migration.Net.Rest.Filtering
 {
     /// <summary>
-    /// <para>
-    /// Class representing a REST API filter
-    /// </para>
-    /// <para>
+    /// Class representing a REST API filter.
     /// See <see href="https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_concepts_filtering_and_sorting.htm#filtering">Tableau API Reference</see> for more details.
-    /// </para>
     /// </summary>
     public class Filter
     {

@@ -125,7 +125,7 @@ namespace Tableau.Migration.Tests.Unit
         }
 
         public class IsAMatch
-        { 
+        {
             [Theory]
             [StringEnumData<TestStringEnum>]
             public void True(string value)

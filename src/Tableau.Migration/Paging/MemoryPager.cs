@@ -53,10 +53,10 @@ namespace Tableau.Migration.Paging
 
         public async Task<IPagedResult<TItem>> NextPageAsync(CancellationToken cancel)
         {
-            if(_items is null)
+            if (_items is null)
             {
                 var getResult = await _getItems(cancel).ConfigureAwait(false);
-                if(!getResult.Success)
+                if (!getResult.Success)
                 {
                     return PagedResult<TItem>.Failed(getResult.Errors);
                 }

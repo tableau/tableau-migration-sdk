@@ -57,7 +57,7 @@ namespace Tableau.Migration.Tests.Unit.Net.Resilience
                 Assert.False(await GetHandleResponseAsync(strategyOptions, HttpStatusCode.OK));
             }
 
-            private async ValueTask<TimeSpan?> GetDelayAsync(RetryStrategyOptions<HttpResponseMessage> strategyOptions, 
+            private async ValueTask<TimeSpan?> GetDelayAsync(RetryStrategyOptions<HttpResponseMessage> strategyOptions,
                 RetryConditionHeaderValue? retryHeader = null, int attemptNumber = 1)
             {
                 Assert.NotNull(strategyOptions.DelayGenerator);
@@ -66,7 +66,7 @@ namespace Tableau.Migration.Tests.Unit.Net.Resilience
                 try
                 {
                     var response = new HttpResponseMessage(HttpStatusCode.TooManyRequests);
-                    if(retryHeader is not null)
+                    if (retryHeader is not null)
                     {
                         response.Headers.RetryAfter = retryHeader;
                     }
@@ -91,13 +91,13 @@ namespace Tableau.Migration.Tests.Unit.Net.Resilience
                 Assert.Equal(targetDate - UtcNow, await GetDelayAsync(strategyOptions, new(targetDate)));
 
                 var resilienceOptions = Options.Network.Resilience;
-                if(!resilienceOptions.ServerThrottleRetryIntervals.Any())
+                if (!resilienceOptions.ServerThrottleRetryIntervals.Any())
                 {
                     Assert.Equal(ServerThrottleStrategyBuilder.DEFAULT_RETRY_INTERVAL_FALLBACK, await GetDelayAsync(strategyOptions));
                 }
                 else
                 {
-                    for(var i = 0; i < resilienceOptions.ServerThrottleRetryIntervals.Length; i++)
+                    for (var i = 0; i < resilienceOptions.ServerThrottleRetryIntervals.Length; i++)
                     {
                         var interval = resilienceOptions.ServerThrottleRetryIntervals[i];
                         Assert.Equal(interval, await GetDelayAsync(strategyOptions, attemptNumber: i));

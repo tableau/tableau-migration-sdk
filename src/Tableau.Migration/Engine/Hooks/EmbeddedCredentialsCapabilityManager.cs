@@ -44,21 +44,23 @@ namespace Tableau.Migration.Engine.Hooks
         }
 
         /// <inheritdoc/>
-        public override bool IsMigrationCapabilityDisabled() => CapabilitiesEditor.EmbeddedCredentialsDisabled;
-
-        /// <inheritdoc/>
-        public override async Task<IResult> SetMigrationCapabilityAsync(CancellationToken cancel)
+        public override async Task<IResult> SetMigrationCapabilityAsync(IServerSession destinationServerSession, CancellationToken cancel)
         {
-            // Get the destination info which needs to be passed to the source for retrieving the keychain.
-            var destinationSiteInfoResult = await GetDestinationSiteInfoAsync(cancel).ConfigureAwait(false);
-
-            if (!destinationSiteInfoResult.Success)
+            if (_destinationConfig == null)
             {
-                return Result.Failed(destinationSiteInfoResult.Errors);
+                var configNullError = new InvalidOperationException(Localizer[SharedResourceKeys.DestinationEndpointNotAnApiMsg]);
+
+                return (IResult<IDestinationSiteInfo>)Result.FromErrors([configNullError]);
             }
+            
+            // Get the destination info which needs to be passed to the source for retrieving the keychain.
+            var destinationSiteInfo = new DestinationSiteInfo(
+                _destinationConfig.SiteConnectionConfiguration.SiteContentUrl,
+                destinationServerSession.Site.Id,
+                _destinationConfig.SiteConnectionConfiguration.ServerUrl.AbsoluteUri);
 
             // Retrieve a fake keychain so we can check the error code
-            var retrieveKeyChainResult = await RetrieveKeychainAsync(destinationSiteInfoResult.Value, cancel).ConfigureAwait(false);
+            var retrieveKeyChainResult = await RetrieveKeychainAsync(destinationSiteInfo, cancel).ConfigureAwait(false);
 
             // No error code means embedded creds work. This should never happen as we're getting a fake keychain.
             if (retrieveKeyChainResult.Success)
@@ -79,34 +81,6 @@ namespace Tableau.Migration.Engine.Hooks
             }
 
             return Result.Succeeded();
-        }
-
-        private async Task<IResult<IDestinationSiteInfo>> GetDestinationSiteInfoAsync(CancellationToken cancel)
-        {
-            if (_destinationConfig == null)
-            {
-                var configNullError = new InvalidOperationException(Localizer[SharedResourceKeys.DestinationEndpointNotAnApiMsg]);
-
-                return (IResult<IDestinationSiteInfo>)Result.FromErrors([configNullError]);
-            }
-
-            var sessionInfoResult = await _migration
-                .Destination
-                .GetSessionAsync(cancel)
-                .ConfigureAwait(false);
-
-            if (!sessionInfoResult.Success)
-            {
-                return sessionInfoResult.CastFailure<IDestinationSiteInfo>();
-            }
-
-            var connectionConfig = _destinationConfig.SiteConnectionConfiguration;
-
-            return Result<IDestinationSiteInfo>.Succeeded(
-                new DestinationSiteInfo(
-                    connectionConfig.SiteContentUrl,
-                    sessionInfoResult.Value.Site.Id,
-                    connectionConfig.ServerUrl.AbsoluteUri));
         }
 
         /// <summary>

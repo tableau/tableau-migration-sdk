@@ -43,7 +43,7 @@ namespace Tableau.Migration.Api.Rest.Models.Responses
             /// </summary>
             [XmlAttribute("success")]
             public bool Success { get; set; }
-            
+
             /// <summary>
             /// Gets or sets the error for the response.
             /// </summary>
@@ -55,7 +55,7 @@ namespace Tableau.Migration.Api.Rest.Models.Responses
             /// </summary>
             [XmlElement("user")]
             public UserType? User { get; set; }
-            
+
             /// <summary>
             /// Class representing a REST API user response.
             /// </summary>

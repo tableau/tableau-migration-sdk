@@ -29,7 +29,7 @@ namespace Tableau.Migration.PythonGenerator.Writers
         private readonly IPythonMethodWriter _methodWriter;
         private readonly IPythonEnumValueWriter _enumValueWriter;
 
-        public PythonTypeWriter(IPythonDocstringWriter docWriter, 
+        public PythonTypeWriter(IPythonDocstringWriter docWriter,
             IPythonPropertyWriter propertyWriter,
             IPythonMethodWriter methodWriter,
             IPythonEnumValueWriter enumValueWriter)
@@ -42,7 +42,7 @@ namespace Tableau.Migration.PythonGenerator.Writers
 
         private static string ToParamName(string dotNetTypeName)
         {
-            if(dotNetTypeName.StartsWith("I"))
+            if (dotNetTypeName.StartsWith("I"))
                 dotNetTypeName = dotNetTypeName.Substring(1);
 
             return dotNetTypeName.ToSnakeCase();
@@ -58,9 +58,9 @@ namespace Tableau.Migration.PythonGenerator.Writers
                 _docWriter.Write(classBuilder, type.Documentation);
                 classBuilder.AppendLine();
 
-                if(type.EnumValues.Any())
+                if (type.EnumValues.Any())
                 {
-                    foreach(var enumValue in type.EnumValues)
+                    foreach (var enumValue in type.EnumValues)
                     {
                         _enumValueWriter.Write(classBuilder, type, enumValue);
                     }

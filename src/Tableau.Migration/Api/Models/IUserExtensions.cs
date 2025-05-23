@@ -28,7 +28,7 @@ namespace Tableau.Migration.Api.Models
         /// <summary>
         /// Converts the User object into a comma separated string to be used with the user_import call.
         /// The order of elements is important. 
-        /// See https://help.tableau.com/current/server/en-us/csvguidelines.htm for guidelines.
+        /// See <see href="https://help.tableau.com/current/server/en-us/csvguidelines.htm">REST API Reference</see> for documentation.
         /// </summary>
         internal static void AppendCsvLine(this IUser user, StringBuilder builder)
         {

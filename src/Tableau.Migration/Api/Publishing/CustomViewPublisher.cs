@@ -50,7 +50,7 @@ namespace Tableau.Migration.Api
               loggerFactory,
               sharedResourcesLocalizer,
               httpStreamProcessor,
-              RestUrlPrefixes.CustomViews)
+              RestUrlKeywords.CustomViews)
         { }
 
         protected override CommitCustomViewPublishRequest BuildCommitRequest(IPublishCustomViewOptions options)

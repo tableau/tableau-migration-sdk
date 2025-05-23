@@ -35,7 +35,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers
         {
             public TestUserTransformer(
                 ISharedResourcesLocalizer localizer,
-                ILogger<TestUserTransformer> logger) 
+                ILogger<TestUserTransformer> logger)
                     : base(localizer, logger) { }
 
             public override Task<IUser?> TransformAsync(IUser itemToTransform, CancellationToken cancel)
@@ -49,7 +49,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers
             where TContent : IContentReference
         {
             public GenericTransformer(
-                ISharedResourcesLocalizer localizer, 
+                ISharedResourcesLocalizer localizer,
                 ILogger<GenericTransformer<TContent>> logger) : base(localizer, logger) { }
 
             public override Task<TContent?> TransformAsync(TContent itemToTransform, CancellationToken cancel)

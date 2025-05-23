@@ -80,7 +80,7 @@ namespace Tableau.Migration.Tests
         public static JsonNode? GetArrayItemByPath(this JsonNode node, string path, int index, [DoesNotReturnIf(true)] bool throwIfNotFound, char pathDelimiter = '.')
         {
             var foundNode = node.GetByPath(path, throwIfNotFound, pathDelimiter);
-            
+
             var arrayNode = foundNode?.AsArray();
 
             if (arrayNode is null)

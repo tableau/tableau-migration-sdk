@@ -58,7 +58,7 @@ namespace Tableau.Migration.Content.Files
         /// <param name="archive">The zip archive to use to manipulate the file, or null to consider the file as a single XML file.</param>
         /// <param name="disposalCancel">A cancellation token to obey, and to use when the editor is disposed.</param>
         public TableauFileEditor(
-            IContentFileHandle fileStoreFile, 
+            IContentFileHandle fileStoreFile,
             RecyclableMemoryStream content,
             ZipArchive? archive,
             CancellationToken disposalCancel)
@@ -80,7 +80,7 @@ namespace Tableau.Migration.Content.Files
                 _ => false
             };
         }
-         
+
         /// <inheritdoc />
         public ITableauFileXmlStream GetXmlStream()
         {

@@ -173,5 +173,13 @@ UpgradeLog.htm
 *.*.json
 src/Documentation/python
 
+# But DO track lock files
+!packages.lock.json
+!**/packages.lock.json
+
+.vars
+.secrets
+
 # Public repo ignores
 .github/pull_request_template.md
+

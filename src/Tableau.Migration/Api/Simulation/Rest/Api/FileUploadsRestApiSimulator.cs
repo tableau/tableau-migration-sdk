@@ -15,6 +15,7 @@
 //  limitations under the License.
 //
 
+using Tableau.Migration.Api.Rest;
 using Tableau.Migration.Api.Simulation.Rest.Net;
 using Tableau.Migration.Api.Simulation.Rest.Net.Responses;
 using Tableau.Migration.Net.Simulation;
@@ -44,11 +45,11 @@ namespace Tableau.Migration.Api.Simulation.Rest.Api
         public FileUploadsRestApiSimulator(TableauApiResponseSimulator simulator)
         {
             InitiateFileUpload = simulator.SetupRestPost(
-               SiteUrl("fileUploads"),
+               SiteUrl(RestUrlKeywords.FileUploads),
                new RestInitiateFileUploadResponseBuilder(simulator.Data, simulator.Serializer));
 
             UpdateFileUpload = simulator.SetupRestPut(
-               SiteUrl($"fileUploads/{GuidPattern}"),
+               SiteUrl($"{RestUrlKeywords.FileUploads}/{GuidPattern}"),
                new RestUpdateFileUploadResponseBuilder(simulator.Data, simulator.Serializer));
         }
     }

@@ -84,14 +84,14 @@ namespace Tableau.Migration.Api
             try
             {
                 // Another thread refreshed the token while we waited for the refresh lock.
-                if(!string.Equals(previousToken, _token, StringComparison.Ordinal))
+                if (!string.Equals(previousToken, _token, StringComparison.Ordinal))
                 {
                     return;
                 }
 
                 var newTokenResult = await RefreshRequestedAsync.Invoke(cancel).ConfigureAwait(false);
-                
-                if(newTokenResult.Success)
+
+                if (newTokenResult.Success)
                 {
                     _token = newTokenResult.Value;
                 }

@@ -42,14 +42,14 @@ namespace Tableau.Migration.Api.Rest.Models
         }
 
         protected override async Task<IPagedResult<IContentReference>> GetPageAsync(
-            int pageNumber, 
-            int pageSize, 
+            int pageNumber,
+            int pageSize,
             CancellationToken cancel)
             => await _apiClient
                 .GetCustomViewDefaultUsersAsync(
-                    _customViewId, 
-                    pageNumber, 
-                    pageSize, 
+                    _customViewId,
+                    pageNumber,
+                    pageSize,
                     cancel)
                 .ConfigureAwait(false);
     }

@@ -335,11 +335,11 @@ namespace Tableau.Migration.Api
         internal static bool? DetectZipFileFromContentType(this IHttpResponseMessage response)
         {
             var contentType = response.Content.Headers.ContentType;
-            if(contentType.IsOctetStream())
+            if (contentType.IsOctetStream())
             {
                 return true;
             }
-            else if(contentType.IsXml())
+            else if (contentType.IsXml())
             {
                 return false;
             }

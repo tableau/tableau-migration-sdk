@@ -22,13 +22,8 @@ using Tableau.Migration.Api.Models;
 namespace Tableau.Migration.Api.Rest.Models.Requests
 {
     /// <summary>
-    /// <para>
     /// Class representing a retrieve saved creds request.
-    /// </para>
-    /// <para>
-    /// See <see href="https://help.tableau.com/current/api/rest_api/en-us/REST/">Tableau API Reference</see> 
-    /// for documentation.
-    /// </para>
+    /// See <see href="https://help.tableau.com/current/api/rest_api/en-us/REST/">Tableau API Reference</see> for documentation.
     /// </summary>
     [XmlType(XmlTypeName)]
     public class RetrieveUserSavedCredentialsRequest : TableauServerRequest

@@ -18,22 +18,26 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Tableau.Migration.Content;
 
 namespace Tableau.Migration.Engine.Hooks
 {
     internal record InitializeMigrationHookResult : Result, IInitializeMigrationHookResult
     {
         public IServiceProvider ScopedServices { get; }
+        
+        public IServerSession DestinationServerSession { get; }
 
-        protected InitializeMigrationHookResult(bool success, IServiceProvider scopedServices, params IEnumerable<Exception> errors)
+        protected InitializeMigrationHookResult(bool success, IServiceProvider scopedServices, IServerSession serverSession, params IEnumerable<Exception> errors)
             : base(success, errors)
         {
             ScopedServices = scopedServices;
+            DestinationServerSession = serverSession;
         }
 
-        public static InitializeMigrationHookResult Succeeded(IServiceProvider scopedServices) => new(true, scopedServices);
+        public static InitializeMigrationHookResult Succeeded(IServiceProvider scopedServices, IServerSession serverSession) => new(true, scopedServices, serverSession);
 
         public IInitializeMigrationHookResult ToFailure(params IEnumerable<Exception> errors)
-            => new InitializeMigrationHookResult(false, ScopedServices, Errors.Concat(errors));
+            => new InitializeMigrationHookResult(false, ScopedServices, DestinationServerSession, Errors.Concat(errors));
     }
 }

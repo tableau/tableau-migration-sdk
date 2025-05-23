@@ -22,7 +22,7 @@ namespace Tableau.Migration.ManifestExplorer.ViewModels
 {
     internal sealed class DesignExceptionListDialogViewModel : ExceptionListDialogViewModel
     {
-        public DesignExceptionListDialogViewModel() 
+        public DesignExceptionListDialogViewModel()
             : base(BuildDesignExceptions())
         { }
 

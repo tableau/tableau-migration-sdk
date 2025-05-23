@@ -42,7 +42,7 @@ namespace Tableau.Migration.Api.Simulation.Rest.Net.Responses
             if (request?.Content is null)
                 return BuildEmptyErrorResponseAsync(HttpStatusCode.BadRequest, 0, "Request or content cannot be null.", "");
 
-            var customViewId = request.GetIdAfterSegment(RestUrlPrefixes.CustomViews);
+            var customViewId = request.GetIdAfterSegment(RestUrlKeywords.CustomViews);
             var usersToAdd = request.GetTableauServerRequest<SetCustomViewDefaultUsersRequest>()?.Users;
 
             if (usersToAdd is null || customViewId is null)

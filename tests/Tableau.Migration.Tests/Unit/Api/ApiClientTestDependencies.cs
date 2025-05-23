@@ -180,7 +180,7 @@ namespace Tableau.Migration.Tests.Unit.Api
         #region - API Client Creation Factory Methods -
 
         public TApiClient CreateClient<TApiClient>()
-            where TApiClient: notnull
+            where TApiClient : notnull
             => this.GetRequiredService<TApiClient>();
 
         #endregion

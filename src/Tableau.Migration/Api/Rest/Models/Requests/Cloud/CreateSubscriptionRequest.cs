@@ -28,12 +28,8 @@ using CloudModels = Tableau.Migration.Api.Models.Cloud;
 namespace Tableau.Migration.Api.Rest.Models.Requests.Cloud
 {
     /// <summary>   
-    /// <para>
     /// Class representing a create extract refresh task request.
-    /// </para>
-    /// <para>
-    /// See https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_subscriptions.htm#tableau-cloud-request for documentation.
-    /// </para>
+    /// See <see href="https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_subscriptions.htm#tableau-cloud-request">REST API Reference</see> for documentation.
     /// </summary>
     [XmlType(XmlTypeName)]
     public class CreateSubscriptionRequest : TableauServerRequest

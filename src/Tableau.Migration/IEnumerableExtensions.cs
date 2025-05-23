@@ -97,7 +97,7 @@ namespace Tableau.Migration
             where TResult : class
             => items.ExceptNulls().Select(selector).ExceptNulls();
 
-        
+
         #endregion
     }
 }

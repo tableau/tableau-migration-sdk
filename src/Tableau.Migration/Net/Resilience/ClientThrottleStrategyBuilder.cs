@@ -39,7 +39,7 @@ namespace Tableau.Migration.Net.Resilience
                 {
                     return RateLimitPartition.GetSlidingWindowLimiter(method, m =>
                     {
-                        if(m == HttpMethod.Get)
+                        if (m == HttpMethod.Get)
                         {
                             return new SlidingWindowRateLimiterOptions
                             {

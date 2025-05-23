@@ -48,7 +48,7 @@ namespace Tableau.Migration.Api.Rest.Models.Responses
             /// </summary>
             [XmlAttribute("name")]
             public string? Name { get; set; }
-            
+
             /// <summary>
             /// Gets or sets the description for the response.
             /// </summary>

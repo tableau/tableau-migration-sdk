@@ -74,7 +74,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests
 
                     var sourceWorkbook = contentType != "workbook" ? null : SourceApi.Data.Workbooks.Single(w => w.Id == sourceSubscription.Content.Id);
                     var destinationWorkbook = sourceWorkbook is null ? null : CloudDestinationApi.Data.Workbooks.Single(w => w.Name == sourceWorkbook.Name);
-                    
+
                     var sourceView = contentType != "view" ? null : SourceApi.Data.Views.Single(w => w.Id == sourceSubscription.Content.Id);
                     var destinationView = sourceView is null ? null : CloudDestinationApi.Data.Views.Single(w => w.Name == sourceView.Name);
 

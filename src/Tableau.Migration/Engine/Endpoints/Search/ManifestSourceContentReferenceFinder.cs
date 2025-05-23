@@ -29,7 +29,7 @@ namespace Tableau.Migration.Engine.Endpoints.Search
     /// from the migration manifest.
     /// </summary>
     /// <typeparam name="TContent">The content type.</typeparam>
-    public class ManifestSourceContentReferenceFinder<TContent> 
+    public class ManifestSourceContentReferenceFinder<TContent>
         : ISourceContentReferenceFinder<TContent>
         where TContent : class, IContentReference
     {

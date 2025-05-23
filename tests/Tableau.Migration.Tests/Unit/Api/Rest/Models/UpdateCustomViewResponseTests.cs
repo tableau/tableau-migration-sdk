@@ -48,7 +48,7 @@ namespace Tableau.Migration.Tests.Unit.Api.Rest.Models
                 Assert.NotNull(deserialized.Item);
 
                 AssertCustomView(expectedCustomView, deserialized.Item);
-                
+
                 static void AssertCustomView(UpdateCustomViewResponse.CustomViewResponseType expected, UpdateCustomViewResponse.CustomViewResponseType actual)
                 {
                     Assert.Equal(expected.Id, actual.Id);

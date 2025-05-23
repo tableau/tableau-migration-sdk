@@ -58,10 +58,10 @@ namespace Tableau.Migration.Api.Simulation
         /// <param name="defaultSignedInUser">Default signed in user to user. If none is provided, the simulated server will have no users.</param>
         /// <param name="defaultDomain">The default domain of the site.</param>
         public TableauApiSimulator(
-            Uri serverUrl, 
+            Uri serverUrl,
             IHttpContentSerializer serializer,
             bool isTableauServer,
-            UsersResponse.UserType? defaultSignedInUser = null, 
+            UsersResponse.UserType? defaultSignedInUser = null,
             string defaultDomain = Constants.LocalDomain)
         {
             ServerUrl = serverUrl;

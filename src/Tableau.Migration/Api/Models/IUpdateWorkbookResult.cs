@@ -33,7 +33,7 @@ namespace Tableau.Migration.Api.Models
         /// Gets the name of the workbook.
         /// </summary>
         string Name { get; }
-        
+
         /// <summary>
         /// Gets the description of the workbook.
         /// </summary>

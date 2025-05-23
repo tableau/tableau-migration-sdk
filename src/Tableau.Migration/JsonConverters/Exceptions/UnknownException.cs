@@ -16,7 +16,6 @@
 //
 
 using System;
-using Tableau.Migration.Content.Schedules;
 
 namespace Tableau.Migration.JsonConverters.Exceptions
 {

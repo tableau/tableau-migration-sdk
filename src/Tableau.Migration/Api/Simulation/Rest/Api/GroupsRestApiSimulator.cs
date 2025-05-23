@@ -19,6 +19,7 @@ using System;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using Tableau.Migration.Api.Rest;
 using Tableau.Migration.Api.Rest.Models.Responses;
 using Tableau.Migration.Api.Simulation.Rest.Net;
 using Tableau.Migration.Api.Simulation.Rest.Net.Requests;
@@ -65,7 +66,7 @@ namespace Tableau.Migration.Api.Simulation.Rest.Api
         /// <param name="simulator">A response simulator to setup with REST API methods.</param>
         public GroupsRestApiSimulator(TableauApiResponseSimulator simulator)
         {
-            QueryGroups = simulator.SetupRestPagedList<GroupsResponse, GroupsResponse.GroupType>(SiteUrl("groups"),
+            QueryGroups = simulator.SetupRestPagedList<GroupsResponse, GroupsResponse.GroupType>(SiteUrl(RestUrlKeywords.Groups),
                 (data, request) =>
                 {
                     var filters = request.ParseFilters();
@@ -91,10 +92,10 @@ namespace Tableau.Migration.Api.Simulation.Rest.Api
                 });
 
             QueryGroupUsers = simulator.SetupRestPagedList<UsersResponse, UsersResponse.UserType>(
-                 SiteEntityUrl("groups", "users"),
+                 SiteEntityUrl(RestUrlKeywords.Groups, RestUrlKeywords.Users),
                  (data, request) =>
                  {
-                     var groupId = request.GetIdAfterSegment("groups");
+                     var groupId = request.GetIdAfterSegment(RestUrlKeywords.Groups);
                      if (groupId is null || !data.GroupUsers.ContainsKey(groupId.Value))
                      {
                          return Array.Empty<UsersResponse.UserType>().ToList();
@@ -106,21 +107,21 @@ namespace Tableau.Migration.Api.Simulation.Rest.Api
                  });
 
             AddUserToGroup = simulator.SetupRestPost<AddUserResponse, AddUserResponse.UserType>(
-                SiteEntityUrl("groups", "users"),
+                SiteEntityUrl(RestUrlKeywords.Groups, RestUrlKeywords.Users),
                 new RestUserAddToGroupResponseBuilder(simulator.Data, simulator.Serializer));
 
             RemoveUserFromGroup = simulator.SetupRestDelete(
-                SiteEntityUrl("groups", $"users/{GuidPattern}"),
+                SiteEntityUrl(RestUrlKeywords.Groups, $"{RestUrlKeywords.Users}/{GuidPattern}"),
                 new RestDeleteResponseBuilder(simulator.Data, DeleteGroupUser, simulator.Serializer));
 
             AddGroup = simulator.SetupRestPost<CreateGroupResponse, CreateGroupResponse.GroupType>(
-                SiteUrl("groups"),
+                SiteUrl(RestUrlKeywords.Groups),
                 new RestGroupAddResponseBuilder(simulator.Data, simulator.Serializer));
         }
 
         private HttpStatusCode DeleteGroupUser(TableauData data, HttpRequestMessage request)
         {
-            var groupId = request.GetIdAfterSegment("groups");
+            var groupId = request.GetIdAfterSegment(RestUrlKeywords.Groups);
             var userIdText = request.GetLastSegment();
             if (groupId is null || !Guid.TryParse(userIdText, out var userId))
             {

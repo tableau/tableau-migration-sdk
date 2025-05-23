@@ -30,12 +30,12 @@ namespace Tableau.Migration.Tests.Unit.Content.Files
         public class ResolveRelativePath : AutoFixtureTestBase
         {
             [Theory]
-            [InlineData(typeof(IDataSource), "data-sources", "orig.tdsx", "data-source-", "tdsx")]
-            [InlineData(typeof(IDataSource), "data-sources", "orig.tds", "data-source-", "tds")]
-            [InlineData(typeof(IWorkbook), "workbooks", "orig.twbx", "workbook-", "twbx")]
-            [InlineData(typeof(IWorkbook), "workbooks", "orig.twb", "workbook-", "twb")]
-            [InlineData(typeof(IFlow), "flows", "orig.tflx", "flow-", "tflx")]
-            [InlineData(typeof(IFlow), "flows", "orig.tfl", "flow-", "tfl")]
+            [InlineData(typeof(IDataSource), ContentTypeDirectoryNames.DataSources, "orig.tdsx", ContentTypeFilePrefixes.DataSource, "tdsx")]
+            [InlineData(typeof(IDataSource), ContentTypeDirectoryNames.DataSources, "orig.tds", ContentTypeFilePrefixes.DataSource, "tds")]
+            [InlineData(typeof(IWorkbook), ContentTypeDirectoryNames.Workbooks, "orig.twbx", ContentTypeFilePrefixes.Workbook, "twbx")]
+            [InlineData(typeof(IWorkbook), ContentTypeDirectoryNames.Workbooks, "orig.twb", ContentTypeFilePrefixes.Workbook, "twb")]
+            [InlineData(typeof(IFlow), ContentTypeDirectoryNames.Flows, "orig.tflx", ContentTypeFilePrefixes.Flow, "tflx")]
+            [InlineData(typeof(IFlow), ContentTypeDirectoryNames.Flows, "orig.tfl", ContentTypeFilePrefixes.Flow, "tfl")]
             public void SupportedContentTypesGenerateExpectedPath(Type t, string dir, string originalFileName,
                 string expectedPrefix, string expectedExtension)
             {
@@ -45,7 +45,7 @@ namespace Tableau.Migration.Tests.Unit.Content.Files
 
                 var result = r.ResolveRelativePath(item, originalFileName);
 
-                Assert.Equal(Path.Combine(dir, $"{expectedPrefix}{item.Id:N}.{expectedExtension}"), result);
+                Assert.Equal(Path.Combine(dir, $"{expectedPrefix}-{item.Id:N}.{expectedExtension}"), result);
             }
 
             private static bool IsFileContentInterface(Type t, object? criteria)

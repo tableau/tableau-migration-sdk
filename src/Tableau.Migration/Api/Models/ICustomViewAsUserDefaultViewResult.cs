@@ -15,9 +15,6 @@
 //  limitations under the License.
 //
 
-using System.Collections.Immutable;
-using Tableau.Migration.Api.Rest;
-
 namespace Tableau.Migration.Api.Models
 {
     /// <summary>

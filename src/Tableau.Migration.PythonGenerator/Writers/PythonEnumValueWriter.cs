@@ -31,7 +31,7 @@ namespace Tableau.Migration.PythonGenerator.Writers
             _docWriter.Write(builder, enumValue.Documentation);
 
             string enumValueToken;
-            if(enumValue.Value is string)
+            if (enumValue.Value is string)
             {
                 enumValueToken = $"\"{enumValue.Value}\"";
             }
