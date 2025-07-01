@@ -17,7 +17,7 @@ A clear and concise description of what you want to happen.
 A clear and concise description of any alternative solutions or features you've considered.
 
 **Language**
-Is the feature language specific. If so, please mention which one of these you are using
+Is the feature language specific? If so, please mention which one of these you are using
 - Python
 - C#
 
