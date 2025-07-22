@@ -15,7 +15,7 @@
 //  limitations under the License.
 //
 
-using System.IO;
+using Tableau.Migration.Content.Files;
 
 namespace Tableau.Migration.Api.Models
 {
@@ -25,17 +25,17 @@ namespace Tableau.Migration.Api.Models
     public interface IPublishFileOptions
     {
         /// <summary>
-        /// Get the file content stream.
+        /// Get the file content to publish.
         /// </summary>
-        Stream File { get; }
+        IContentFileHandle File { get; }
 
         /// <summary>
-        /// Gets the name of the file.
+        /// Gets the name of the file to publish.
         /// </summary>
         string FileName { get; }
 
         /// <summary>
-        /// Gets the type of the file.
+        /// Gets the type of the file to publish.
         /// </summary>
         string FileType { get; }
     }

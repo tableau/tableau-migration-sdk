@@ -16,6 +16,7 @@
 //
 
 using System;
+using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Moq;
 using Tableau.Migration.Content.Search;
@@ -23,9 +24,9 @@ using Xunit;
 
 namespace Tableau.Migration.Tests.Unit.Content.Search
 {
-    public class CachedContentReferenceFinderTests
+    public sealed class CachedContentReferenceFinderTests
     {
-        public class CachedContentReferenceFinderTest : AutoFixtureTestBase
+        public abstract class CachedContentReferenceFinderTest : AutoFixtureTestBase
         {
             protected readonly Mock<IContentReferenceCache> MockCache;
             protected readonly CachedContentReferenceFinder<TestContentType> Finder;
@@ -37,7 +38,7 @@ namespace Tableau.Migration.Tests.Unit.Content.Search
             }
         }
 
-        public class FindByIdAsync : CachedContentReferenceFinderTest
+        public sealed class FindByIdAsync : CachedContentReferenceFinderTest
         {
             [Fact]
             public async Task CallsCacheAsync()
@@ -52,6 +53,22 @@ namespace Tableau.Migration.Tests.Unit.Content.Search
 
                 Assert.Same(cacheResult, result);
                 MockCache.Verify(x => x.ForIdAsync(id, Cancel), Times.Once);
+            }
+        }
+
+        public sealed class FindAllAsync : CachedContentReferenceFinderTest
+        {
+            [Fact]
+            public async Task FindsAllAsync()
+            {
+                IImmutableList<IContentReference> cacheResult = CreateMany<IContentReference>().ToImmutableArray();
+                MockCache.Setup(x => x.GetAllAsync(Cancel))
+                    .ReturnsAsync(cacheResult);
+
+                var result = await Finder.FindAllAsync(Cancel);
+
+                Assert.Same(cacheResult, result);
+                MockCache.Verify(x => x.GetAllAsync(Cancel), Times.Once);
             }
         }
     }

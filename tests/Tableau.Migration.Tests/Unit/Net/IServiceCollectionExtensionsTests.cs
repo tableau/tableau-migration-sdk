@@ -23,6 +23,7 @@ using Tableau.Migration.Api;
 using Tableau.Migration.Config;
 using Tableau.Migration.Net;
 using Tableau.Migration.Net.Handlers;
+using Tableau.Migration.Net.Logging;
 using Tableau.Migration.Net.Resilience;
 using Tableau.Migration.Net.Rest;
 using Xunit;
@@ -49,8 +50,8 @@ namespace Tableau.Migration.Tests.Unit.Net
                 await AssertServiceAsync<IConfigReader, ConfigReader>(ServiceLifetime.Singleton);
                 await AssertServiceAsync<IUserAgentProvider, UserAgentProvider>(ServiceLifetime.Singleton);
                 await AssertServiceAsync<IHttpContentSerializer, HttpContentSerializer>(ServiceLifetime.Singleton);
-                await AssertServiceAsync<INetworkTraceRedactor, NetworkTraceRedactor>(ServiceLifetime.Singleton);
-                await AssertServiceAsync<INetworkTraceLogger, NetworkTraceLogger>(ServiceLifetime.Transient);
+                await AssertServiceAsync<IHttpContentRedactor, HttpContentRedactor>(ServiceLifetime.Singleton);
+                await AssertServiceAsync<IHttpActivityLogger, HttpActivityLogger>(ServiceLifetime.Transient);
                 await AssertServiceAsync<UserAgentHeaderHttpHandler>(ServiceLifetime.Transient);
                 await AssertServiceAsync<RequestCorrelationIdHeaderHttpHandler>(ServiceLifetime.Transient);
                 await AssertServiceAsync<AuthenticationHttpHandler>(ServiceLifetime.Transient);

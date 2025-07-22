@@ -19,13 +19,14 @@ using System;
 using System.Threading.Tasks;
 using AutoFixture;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Moq;
 using Tableau.Migration.Api;
 using Tableau.Migration.Content;
 using Tableau.Migration.Content.Files;
 using Tableau.Migration.Content.Search;
 using Tableau.Migration.Engine.Endpoints;
+using Tableau.Migration.Engine.Endpoints.Caching;
+using Tableau.Migration.Engine.Endpoints.ContentClients;
 using Tableau.Migration.Paging;
 using Tableau.Migration.Resources;
 using Xunit;
@@ -48,9 +49,8 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints
                 ITableauApiEndpointConfiguration config,
                 IContentReferenceFinderFactory finderFactory,
                 IContentFileStore fileStore,
-                ILoggerFactory loggerFactory,
                 ISharedResourcesLocalizer localizer)
-                : base(serviceScopeFactory, config, finderFactory, fileStore, loggerFactory, localizer)
+                : base(serviceScopeFactory, config, finderFactory, fileStore, localizer)
             { }
         }
 
@@ -64,7 +64,6 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints
                     Create<ITableauApiEndpointConfiguration>(),
                     Create<IContentReferenceFinderFactory>(),
                     Create<IContentFileStore>(),
-                    Create<ILoggerFactory>(),
                     Create<ISharedResourcesLocalizer>()
                 );
             }
@@ -91,10 +90,9 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints
                 var config = Create<ITableauApiEndpointConfiguration>();
                 var mockFinderFactory = Create<IContentReferenceFinderFactory>();
                 var mockFileStore = Create<IContentFileStore>();
-                var mockLoggerFactory = Create<ILoggerFactory>();
                 var mockLocalizer = Create<ISharedResourcesLocalizer>();
 
-                var endpoint = new TestApiEndpoint(serviceScopeFactory, config, mockFinderFactory, mockFileStore, mockLoggerFactory, mockLocalizer);
+                var endpoint = new TestApiEndpoint(serviceScopeFactory, config, mockFinderFactory, mockFileStore, mockLocalizer);
 
                 Assert.Same(apiClient, endpoint.ServerApi);
             }
@@ -114,10 +112,9 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints
                 var config = Create<ITableauApiEndpointConfiguration>();
                 var mockFinderFactory = Create<IContentReferenceFinderFactory>();
                 var mockFileStore = Create<IContentFileStore>();
-                var mockLoggerFactory = Create<ILoggerFactory>();
                 var mockLocalizer = Create<ISharedResourcesLocalizer>();
 
-                var endpoint = new TestApiEndpoint(serviceScopeFactory, config, mockFinderFactory, mockFileStore, mockLoggerFactory, mockLocalizer);
+                var endpoint = new TestApiEndpoint(serviceScopeFactory, config, mockFinderFactory, mockFileStore, mockLocalizer);
 
                 Assert.Same(mockFileStore, endpoint.EndpointScope.ServiceProvider.GetService<IContentFileStore>());
             }
@@ -198,7 +195,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints
         public class GetPager : TableauApiEndpointBaseTest
         {
             [Fact]
-            public async Task GetsPager()
+            public async Task GetsPagerAsync()
             {
                 await Endpoint.InitializeAsync(Cancel);
 
@@ -232,6 +229,82 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints
 
                 Assert.Same(apiResult, result);
                 MockServerApi.Verify(x => x.GetCurrentServerSessionAsync(Cancel), Times.Once);
+            }
+        }
+
+        #endregion
+
+        #region - GetEndpointCache -
+
+        public sealed class GetEndpointCache : TableauApiEndpointBaseTest
+        {
+            private IEndpointViewCache? _viewCache;
+
+            protected override void SetupServices(IServiceCollection services)
+            {
+                _viewCache = Create<IEndpointViewCache>();
+                services.AddSingleton(_viewCache);
+            }
+
+            [Fact]
+            public async Task GetsCacheFromEndpointScopeAsync()
+            {
+                await Endpoint.InitializeAsync(Cancel);
+
+                var result = Endpoint.GetEndpointCache<IEndpointViewCache, Guid, IView>();
+
+                Assert.NotNull(_viewCache);
+                Assert.Same(_viewCache, result);
+            }
+        }
+
+        #endregion
+
+        #region - GetContentClient -
+
+        public sealed class GetContentClient : TableauApiEndpointBaseTest
+        {
+            private IWorkbooksContentClient? _contentClient;
+
+            protected override void SetupServices(IServiceCollection services)
+            {
+                _contentClient = Create<IWorkbooksContentClient>();
+                services.AddSingleton(_contentClient);
+            }
+
+            [Fact]
+            public async Task GetsClientFromEndpointScopeAsync()
+            {
+                await Endpoint.InitializeAsync(Cancel);
+
+                var result = Endpoint.GetContentClient<IWorkbooksContentClient, IWorkbook>();
+
+                Assert.NotNull(_contentClient);
+                Assert.Same(_contentClient, result);
+            }
+        }
+
+        #endregion
+
+        #region - GetCurrentSiteAsync -
+
+        public class GetCurrentSiteAsync : TableauApiEndpointBaseTest
+        {
+            [Fact]
+            public async Task GetsCurrentSiteAsync()
+            {
+                await Endpoint.InitializeAsync(Cancel);
+
+                var site = Create<ISite>();
+                var apiResult = Result<ISite>.Succeeded(site);
+
+                MockSiteApi.Setup(x => x.GetCurrentSiteAsync(Cancel))
+                    .ReturnsAsync(apiResult);
+
+                var result = await Endpoint.GetCurrentSiteAsync(Cancel);
+
+                Assert.Same(apiResult, result);
+                MockSiteApi.Verify(x => x.GetCurrentSiteAsync(Cancel), Times.Once);
             }
         }
 

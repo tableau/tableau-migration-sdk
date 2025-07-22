@@ -50,63 +50,73 @@ class PyMigrationPipelineContentType():
     
     @classmethod
     def get_groups(cls) -> Self:
-        """Gets the groups MigrationPipelineContentType."""
+        """Gets the group MigrationPipelineContentType."""
         return None if MigrationPipelineContentType.Groups is None else PyMigrationPipelineContentType(MigrationPipelineContentType.Groups)
     
     @classmethod
+    def get_group_sets(cls) -> Self:
+        """Gets the group set MigrationPipelineContentType."""
+        return None if MigrationPipelineContentType.GroupSets is None else PyMigrationPipelineContentType(MigrationPipelineContentType.GroupSets)
+    
+    @classmethod
     def get_projects(cls) -> Self:
-        """Gets the projects MigrationPipelineContentType."""
+        """Gets the project MigrationPipelineContentType."""
         return None if MigrationPipelineContentType.Projects is None else PyMigrationPipelineContentType(MigrationPipelineContentType.Projects)
     
     @classmethod
     def get_data_sources(cls) -> Self:
-        """Gets the data sources MigrationPipelineContentType."""
+        """Gets the data source MigrationPipelineContentType."""
         return None if MigrationPipelineContentType.DataSources is None else PyMigrationPipelineContentType(MigrationPipelineContentType.DataSources)
     
     @classmethod
     def get_workbooks(cls) -> Self:
-        """Gets the workbooks MigrationPipelineContentType."""
+        """Gets the workbook MigrationPipelineContentType."""
         return None if MigrationPipelineContentType.Workbooks is None else PyMigrationPipelineContentType(MigrationPipelineContentType.Workbooks)
     
     @classmethod
     def get_views(cls) -> Self:
-        """Gets the views MigrationPipelineContentType."""
+        """Gets the view MigrationPipelineContentType."""
         return None if MigrationPipelineContentType.Views is None else PyMigrationPipelineContentType(MigrationPipelineContentType.Views)
     
     @classmethod
     def get_server_to_server_extract_refresh_tasks(cls) -> Self:
-        """Gets the Server to Server extract refresh tasks MigrationPipelineContentType."""
+        """Gets the server to server extract refresh task MigrationPipelineContentType."""
         return None if MigrationPipelineContentType.ServerToServerExtractRefreshTasks is None else PyMigrationPipelineContentType(MigrationPipelineContentType.ServerToServerExtractRefreshTasks)
     
     @classmethod
     def get_server_to_cloud_extract_refresh_tasks(cls) -> Self:
-        """Gets the Server to Cloud extract refresh tasks MigrationPipelineContentType."""
+        """Gets the server to cloud extract refresh task MigrationPipelineContentType."""
         return None if MigrationPipelineContentType.ServerToCloudExtractRefreshTasks is None else PyMigrationPipelineContentType(MigrationPipelineContentType.ServerToCloudExtractRefreshTasks)
     
     @classmethod
     def get_cloud_to_cloud_extract_refresh_tasks(cls) -> Self:
-        """Gets the Cloud to Cloud extract refresh tasks MigrationPipelineContentType."""
+        """Gets the cloud to cloud extract refresh task MigrationPipelineContentType."""
         return None if MigrationPipelineContentType.CloudToCloudExtractRefreshTasks is None else PyMigrationPipelineContentType(MigrationPipelineContentType.CloudToCloudExtractRefreshTasks)
     
     @classmethod
     def get_custom_views(cls) -> Self:
-        """Gets the custom views MigrationPipelineContentType."""
+        """Gets the custom view MigrationPipelineContentType."""
         return None if MigrationPipelineContentType.CustomViews is None else PyMigrationPipelineContentType(MigrationPipelineContentType.CustomViews)
     
     @classmethod
     def get_server_to_server_subscriptions(cls) -> Self:
-        """Gets the Server to Server subscriptions MigrationPipelineContentType."""
+        """Gets the server to server subscription MigrationPipelineContentType."""
         return None if MigrationPipelineContentType.ServerToServerSubscriptions is None else PyMigrationPipelineContentType(MigrationPipelineContentType.ServerToServerSubscriptions)
     
     @classmethod
     def get_server_to_cloud_subscriptions(cls) -> Self:
-        """Gets the Server to Cloud subscriptions MigrationPipelineContentType."""
+        """Gets the server to cloud subscription MigrationPipelineContentType."""
         return None if MigrationPipelineContentType.ServerToCloudSubscriptions is None else PyMigrationPipelineContentType(MigrationPipelineContentType.ServerToCloudSubscriptions)
     
     @classmethod
     def get_cloud_to_cloud_subscriptions(cls) -> Self:
-        """Gets the Cloud to Cloud subscriptions MigrationPipelineContentType."""
+        """Gets the cloud to cloud subscription MigrationPipelineContentType."""
         return None if MigrationPipelineContentType.CloudToCloudSubscriptions is None else PyMigrationPipelineContentType(MigrationPipelineContentType.CloudToCloudSubscriptions)
+    
+    @classmethod
+    def get_favorites(cls) -> Self:
+        """Gets the favorite MigrationPipelineContentType."""
+        return None if MigrationPipelineContentType.Favorites is None else PyMigrationPipelineContentType(MigrationPipelineContentType.Favorites)
     
     @property
     def content_type(self) -> System.Type:

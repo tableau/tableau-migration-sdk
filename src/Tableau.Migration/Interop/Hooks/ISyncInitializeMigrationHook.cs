@@ -15,7 +15,7 @@
 //  limitations under the License.
 //
 
-using Tableau.Migration.Engine.Hooks;
+using Tableau.Migration.Engine.Hooks.InitializeMigration;
 
 namespace Tableau.Migration.Interop.Hooks
 {

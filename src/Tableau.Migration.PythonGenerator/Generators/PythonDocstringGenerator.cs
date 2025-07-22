@@ -84,7 +84,7 @@ namespace Tableau.Migration.PythonGenerator.Generators
                     {
                         var arg = argEls[i];
                         var name = arg?.Attributes?["name"]?.Value?.ToSnakeCase();
-                        if (arg is null || name is null)
+                        if (arg is null || name is null || name == "cancel")
                         {
                             continue;
                         }

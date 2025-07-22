@@ -151,7 +151,7 @@
     <value>File encryption is disabled and should be re-enabled for production migrations.</value>
   </data>
   <data name="GroupUsersTransformerCannotAddUserWarning" xml:space="preserve">
-    <value>Could not add a user to the destination Group {GroupName}. Reason: Could not find the destination user(s) for for Username(s) {UserNames}.</value>
+    <value>Could not add a user to the destination group {GroupName}. Reason: Could not find the destination user(s) {UserNames}. Ensure the user mapping is correct.</value>
   </data>
   <data name="CustomViewDefaultUsersTransformerNoUserRefsDebugMessage" xml:space="preserve">
     <value>Could not add a user to the Custom View {CustomViewName}'s default users list. Reason: Could not find the destination user(s) for Username(s) {UserNames}.</value>
@@ -165,17 +165,20 @@
   <data name="MigrationItemErrorLogMessage" xml:space="preserve">
     <value>An error occurred migrating {ContentType} item "{SourcePath}". Error: {Exception}. Data: {Data}</value>
   </data>
-  <data name="NetworkTraceExceptionLogMessage" xml:space="preserve">
-    <value>HTTP {Method} {RequestUri} failed. Error: "{ErrorMessage}". Correlation ID: {RequestId}. Details: {Details}. </value>
+  <data name="HttpActivityExceptionLogMessage" xml:space="preserve">
+    <value>HTTP {Method} {RequestUri} failed. Error: "{ErrorMessage}". Correlation ID: {RequestId}. Duration: {Duration}ms. Details: {Details}. </value>
   </data>
-  <data name="NetworkTraceLogMessage" xml:space="preserve">
-    <value>HTTP {Method} {RequestUri} responded {ResponseStatus}. Correlation ID: {RequestId}. Details: {Details}.</value>
+  <data name="HttpActivityLogMessage" xml:space="preserve">
+    <value>HTTP {Method} {RequestUri} responded {ResponseStatus}. Correlation ID: {RequestId}. Duration: {Duration}ms. Details: {Details}.</value>
   </data>
-  <data name="NetworkTraceNotDisplayedDetails" xml:space="preserve">
+  <data name="HttpActivityNotDisplayedText" xml:space="preserve">
     <value>&lt;Not Displayed&gt;</value>
   </data>
-  <data name="NetworkTraceTooLargeDetails" xml:space="preserve">
+  <data name="HttpContentTooLargeText" xml:space="preserve">
     <value>&lt;Content Too Large&gt;</value>
+  </data>
+  <data name="HttpActivityEmptyText" xml:space="preserve">
+    <value>&lt;Empty&gt;</value>
   </data>
   <data name="NullValue" xml:space="preserve">
     <value>null</value>
@@ -197,19 +200,19 @@ Code: {3}
 Summary: {4}
 Detail: {5}</value>
   </data>
-  <data name="SectionException" xml:space="preserve">
+  <data name="HttpExceptionSectionName" xml:space="preserve">
     <value># Exception</value>
   </data>
-  <data name="SectionRequestContent" xml:space="preserve">
+  <data name="HttpRequestContentSectionName" xml:space="preserve">
     <value># Request Content</value>
   </data>
-  <data name="SectionRequestHeaders" xml:space="preserve">
+  <data name="HttpRequestHeadersSectionName" xml:space="preserve">
     <value># Request Headers</value>
   </data>
-  <data name="SectionResponseContent" xml:space="preserve">
+  <data name="HttpResponseContentSectionName" xml:space="preserve">
     <value># Response Content</value>
   </data>
-  <data name="SectionResponseHeaders" xml:space="preserve">
+  <data name="HttpResponseHeadersSectionName" xml:space="preserve">
     <value># Response Headers</value>
   </data>
   <data name="SiteSettingsSkippedDisabledLogMessage" xml:space="preserve">
@@ -444,7 +447,7 @@ Owner with ID {OwnerID}: {owner}</value>
   </data>
   <data name="MigrationDisabledWarning" xml:space="preserve">
     <value>{0} migration was disabled. Reason: {1} </value>
-  </data>	
+  </data>
   <data name="DummySubscriptionMessage" xml:space="preserve">
     <value>This is a dummy subscription created by the Migration SDK. You can safely delete it.</value>
   </data>
@@ -454,8 +457,8 @@ Owner with ID {OwnerID}: {owner}</value>
   <data name="ContentTypeDisabledWarning" xml:space="preserve">
     <value>Skipping migration of {ContentType} since it is disabled.</value>
   </data>
-  <data name="SubscriptionsDisabledReason" xml:space="preserve">
-    <value>Subscriptions are disabled at the destination.</value>
+  <data name="ContentTypeDisabledReason" xml:space="preserve">
+    <value>{ContentType} are disabled at the {Endpoints}. {ContentType} will not be migrated.</value>
   </data>
   <data name="HasManagedOAuthCredentialsWarning" xml:space="preserve">
     <value>Embedded Managed OAuth Credentials migration is not supported. They will be converted to saved credentials for {0} {1} at {2}. The connection IDs are {3}.</value>
@@ -468,5 +471,23 @@ Owner with ID {OwnerID}: {owner}</value>
   </data>
   <data name="EmbeddedCredsDisabledReason" xml:space="preserve">
     <value>Embedded Credential migration is disabled. Follow the pre-migration steps from documentation to set them up first.</value>
+  </data>
+  <data name="FavoriteSkippedMissingContentWarning" xml:space="preserve">
+    <value>Skipping favorite for {ContentType} with ID {ContentId} because the {RequiredContentType} content item was not found.</value>
+  </data>
+  <data name="FavoriteContentTypeNotSupportedWarning" xml:space="preserve">
+    <value>Skipping favorite with label {Label} because the favorite content type {ContentType} is not supported.</value>
+  </data>
+  <data name="HttpActivityRequestLogMessage" xml:space="preserve">
+    <value>HTTP {Method} {RequestUri} request started. Correlation ID: {RequestId}.</value>
+  </data>
+  <data name="GroupReferenceNotFoundMessage" xml:space="preserve">
+    <value>The group with ID {GroupId} was not found for {ContentType} {ContentName}.</value>
+  </data>
+  <data name="GroupReferenceNotFoundException" xml:space="preserve">
+    <value>The group with ID {0} was not found.</value>
+  </data>
+  <data name="GroupSetGroupsTransformerMissingGroupsException" xml:space="preserve">
+    <value>Could not add a group to the destination group set {0}. Reason: Could not find the destination group(s) {1}. Ensure the group mapping is correct.</value>
   </data>
 </root>

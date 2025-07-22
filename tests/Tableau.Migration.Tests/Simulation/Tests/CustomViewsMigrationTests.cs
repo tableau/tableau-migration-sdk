@@ -18,7 +18,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
 using Tableau.Migration.Api.Rest.Models.Responses;
 using Tableau.Migration.Content;
 using Tableau.Migration.Engine.Manifest;
@@ -49,16 +48,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests
                 var sourceCustomViews = PrepareSourceCustomViewsData();
 
                 //Migrate
-                var plan = ServiceProvider.GetRequiredService<IMigrationPlanBuilder>()
-                    .FromSource(SourceEndpointConfig)
-                    .ToDestination(CloudDestinationEndpointConfig)
-                    .ForServerToCloud()
-                    .WithTableauIdAuthenticationType()
-                    .WithTableauCloudUsernames("test.com")
-                    .Build();
-
-                var migrator = ServiceProvider.GetRequiredService<IMigrator>();
-                var result = await migrator.ExecuteAsync(plan, Cancel);
+                var result = await RunMigrationWithTableauIdAuthAsync();
 
                 //Assert - all custom views should be migrated.
 

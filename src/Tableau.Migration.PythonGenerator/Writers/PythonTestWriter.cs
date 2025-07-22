@@ -26,6 +26,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.Extensions.Options;
 using Tableau.Migration.PythonGenerator.Config;
 using Tableau.Migration.PythonGenerator.Writers.Imports;
+
 using Py = Tableau.Migration.PythonGenerator.Keywords.Python;
 
 namespace Tableau.Migration.PythonGenerator.Writers
@@ -148,18 +149,18 @@ namespace Tableau.Migration.PythonGenerator.Writers
                 .ThenBy(x => x.Name)
                 .ToImmutableArray();
 
-            using (var testDataBuilder = builder.AppendLineAndIndent("_generated_class_data = ["))
+            using (var testDataBuilder = builder.AppendLineAndIndent("_generated_class_data = {"))
             {
                 for (int i = 0; i < testClassTypes.Length; i++)
                 {
                     var type = testClassTypes[i];
                     var suffix = i == testClassTypes.Length - 1 ? string.Empty : ",";
 
-                    testDataBuilder.AppendLine($"({type.Name}, {BuildExcludedMemberList(pyTypeCache, type)}){suffix}");
+                    testDataBuilder.AppendLine($"{type.Name}: ({type.Name}, {BuildExcludedMemberList(pyTypeCache, type)}, []){suffix}");
                 }
             }
 
-            builder.AppendLine("]");
+            builder.AppendLine("}");
             builder.AppendLine();
         }
 
@@ -195,7 +196,7 @@ namespace Tableau.Migration.PythonGenerator.Writers
             WriteEnumCompletenessTestData(segment.StringBuilder, pyTypeCache);
         }
 
-        private async ValueTask WriteClassMemberTests(PythonTypeCache pyTypeCache, CancellationToken cancel)
+        private async ValueTask WriteClassMemberTestsAsync(PythonTypeCache pyTypeCache, CancellationToken cancel)
         {
             var typesToTest = pyTypeCache
                            .Types
@@ -262,10 +263,11 @@ namespace Tableau.Migration.PythonGenerator.Writers
             }
             builder.AppendLine();
         }
+
         public async ValueTask WriteAsync(PythonTypeCache pyTypeCache, CancellationToken cancel)
         {
             await WriteWrapperCompletenessTestDataAsync(pyTypeCache, cancel);
-            await WriteClassMemberTests(pyTypeCache, cancel);
+            await WriteClassMemberTestsAsync(pyTypeCache, cancel);
         }
     }
 }

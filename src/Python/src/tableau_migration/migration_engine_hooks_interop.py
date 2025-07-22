@@ -21,14 +21,14 @@ from typing import Callable, Generic, get_args, TypeVar, Union
 from uuid import uuid4
 
 from migration_engine_actions import PyMigrationActionResult
-from migration_engine_hooks_results import PyInitializeMigrationHookResult
+from migration_engine_hooks_initializemigration import PyInitializeMigrationHookResult
 from migration_engine_migrators_batch import PyContentBatchMigrationResult
 
 from System import IServiceProvider
 from System.Threading.Tasks import Task
 from Tableau.Migration.Engine.Actions import IMigrationActionResult
 from Tableau.Migration.Engine.Migrators.Batch import IContentBatchMigrationResult
-from Tableau.Migration.Engine.Hooks import IInitializeMigrationHookResult
+from Tableau.Migration.Engine.Hooks.InitializeMigration import IInitializeMigrationHookResult
 from Tableau.Migration.Interop.Hooks import ISyncContentBatchMigrationCompletedHook, ISyncInitializeMigrationHook, ISyncMigrationActionCompletedHook
 
 TContent = TypeVar("TContent")

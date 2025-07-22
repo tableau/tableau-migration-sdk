@@ -78,7 +78,7 @@ class PyContentFilterBuilder():
         return self._content_filters_builder.ByContentType()
 
 
-    def build(self) -> Self:
+    def build(self) -> PyMigrationHookFactoryCollection:
         """Builds an immutable collection from the currently added filters.
 
         Returns:

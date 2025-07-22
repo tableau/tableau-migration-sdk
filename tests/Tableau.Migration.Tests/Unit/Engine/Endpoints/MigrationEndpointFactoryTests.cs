@@ -18,7 +18,6 @@
 using System;
 using AutoFixture;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Moq;
 using Tableau.Migration.Api;
 using Tableau.Migration.Content.Files;
@@ -51,7 +50,6 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints
                     Create<ManifestSourceContentReferenceFinderFactory>(),
                     Create<ManifestDestinationContentReferenceFinderFactory>(),
                     Create<IContentFileStore>(),
-                    Create<ILoggerFactory>(),
                     Create<ISharedResourcesLocalizer>()
                 );
             }

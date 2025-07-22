@@ -30,7 +30,6 @@ When sdk-workflow is started manually:
 - Tests and linting are run
 - Packages are automatically deployed to the **staging** environment
 
-
 ## Overview
 
 The workflows are organized hierarchically with a main workflow orchestrating various specialized workflows:
@@ -65,6 +64,110 @@ The SDK supports the following deployment environments:
 - **Development**: Automatic deployment on pushes or beta manual triggers
 - **Staging**: Manual deployment with Production release type or beta-to-production intent
 - **Production**: Manual deployment after approval from staging with proper release flags
+
+## .NET Version Support and Updates
+
+### Current Requirements
+
+The Migration SDK workflows support and test multiple .NET versions:
+
+- **Build/Deployment**: Requires .NET 9.0.x (as specified in `global.json`)
+- **Runtime Compatibility**: Supports .NET 8.0+ and .NET 9.0+ for end users
+- **Testing**: Runs compatibility tests on both .NET 8.0.x and .NET 9.0.x via matrix strategy
+
+### GitHub Actions Configuration
+
+The workflows use centralized version management:
+
+- **Build Version**: Set via `DOTNET_BUILD_VERSION: '9.0.x'` in `sdk-workflow.yml`
+- **Test Matrix**: Set via `BUILD_DOTNET_VERSIONS` variable (e.g., `['8.0.x', '9.0.x']`) used by both `test-dotnet.yml` and `test-python.yml`
+- **Version Mismatch Handling**: Uses `DOTNET_ROLL_FORWARD: LatestMajor` during package restore
+
+### Updating for New .NET Versions
+
+When a new major version of .NET is released, update these workflow files:
+
+#### Required Updates
+
+1. **`global.json`** - Update the SDK version to the latest LTS or Current version
+2. **`sdk-workflow.yml`** - Update `DOTNET_BUILD_VERSION` environment variable
+3. **Workflow Variables** - Update `BUILD_DOTNET_VERSIONS` variable to include new version (e.g., `['8.0.x', '9.0.x', '10.0.x']`), in test-dotnet and test-python.
+4. **Project files** - Add new target framework monikers where appropriate
+
+#### Example for .NET 10 (when released)
+
+```yaml
+# In sdk-workflow.yml
+env:
+  DOTNET_BUILD_VERSION: '10.0.x'  # Update build version
+```
+
+```json
+// In global.json
+{
+  "sdk": {
+    "version": "10.0.100",  // Update to latest SDK
+    "rollForward": "latestMajor"
+  }
+}
+```
+
+Workflow Variables:
+
+- Update `BUILD_DOTNET_VERSIONS` to `['8.0.x', '9.0.x', '10.0.x']`
+
+### Compatibility Testing Strategy
+
+The workflows use several strategies to ensure .NET version compatibility:
+
+- **Matrix Testing**: Tests run on multiple .NET versions simultaneously using framework targeting:
+  - **.NET 8 Matrix**: Installs both .NET 8 and .NET 9 SDKs, tests solution with `--framework net8.0` targeting
+  - **.NET 9 Matrix**: Installs .NET 9 SDK, tests solution with `--framework net9.0` targeting
+- **Cross-Platform**: Tests run on Windows, macOS, and Linux runners
+- **Version Rollforward**: Uses `DOTNET_ROLL_FORWARD: LatestMajor` to handle version mismatches during package restore
+- **Artifact Compatibility**: Build artifacts use the build version but are tested against all matrix versions
+- **Clean Environment**: Each test run starts with a completely clean .NET environment using two steps: first the `clean-dotnet` action removes all existing .NET installations, then `setup-dotnet` installs the target version. This eliminates conflicts with global.json or other version requirements across all platforms.
+
+#### .NET Version-Specific Testing
+
+**.NET 8.0.x Matrix Behavior:**
+
+- ✅ Clean .NET installation and install .NET 8 runtime
+- ✅ Install .NET 9 SDK for build compatibility (global.json requirements)
+- ✅ Restore dependencies and tools (using .NET 9 SDK)
+- ✅ Test solution with `--framework net8.0` targeting (tests .NET 8 assemblies)
+- ✅ Collect code coverage with XPlat Code Coverage
+- ✅ Generate coverage reports with reportgenerator
+- ✅ Upload test results and coverage artifacts
+
+**.NET 9.0.x Matrix Behavior:**
+
+- ✅ Clean .NET installation and install .NET 9 SDK
+- ✅ Restore dependencies and tools
+- ✅ Test solution with `--framework net9.0` targeting (tests .NET 9 assemblies)
+- ✅ Collect code coverage with XPlat Code Coverage
+- ✅ Generate coverage reports with reportgenerator
+- ✅ Upload test results and coverage artifacts
+
+This approach ensures both versions get **full testing capabilities** while verifying true **runtime compatibility** through framework targeting.
+
+## Custom Actions
+
+The workflows use several custom actions located in `.github/actions/`:
+
+### setup-dotnet
+
+Standard .NET SDK setup with verification and caching.
+
+### clean-dotnet
+
+Removes all existing .NET installations from the system across all platforms:
+
+- **Linux**: Removes via `apt-get purge` and deletes installation directories (`/usr/share/dotnet`, `/etc/dotnet`, `~/.dotnet`)
+- **macOS**: Removes installation directories (`/usr/local/share/dotnet`, `~/.dotnet`) and brew packages
+- **Windows**: Uses PowerShell to uninstall packages and remove directories (`C:\Program Files\dotnet`, etc.)
+
+This action only performs cleanup and does not install any .NET versions. Use in combination with `setup-dotnet` for a clean installation environment.
 
 ## Testing with Act
 
@@ -144,14 +247,4 @@ For a more user-friendly experience, you can use the [GitHub Local Actions VS Co
 4. Configure your environment variables and secrets in the extension interface
    - From the steps above, after creating local .vars and .secrets file, Use "Locate Variable File" and "Locate Secret File" to find them. More details here: https://sanjulaganepola.github.io/github-local-actions-docs/usage/settings/
    - Once you've added your local .vars and .secrets file, remember to CHECK THE BOX or else it won't pick it up.
-5. You need to add in a artifacts-server-path field under Options (This is for the upload parts. Go to  `Settings` -> `Options` -> `+` -> `artifact-server-path` and define a temp folder (D:\temp) 
-6. Run the workflow and view the results directly in VS Code
-
-### Limitations
-
-When testing with Act:
-
-1. GitHub environment variables and secrets need to be manually defined in `.vars` and `.secrets` files or via CLI arguments
-2. Some GitHub-specific features like environment protection rules won't work locally
-3. Act detects when it's running and uses a timestamp instead of run numbers for versioning
-4. **Environment Support**: Act has limited support for GitHub's environment concept. Workflows that transition between different deployment environments (development → staging → production) are particularly challenging to test locally, as Act does not fully simulate GitHub's environment-specific variable scoping. For example, workflows that depend on different variable values in staging versus production environments may not behave as expected during local testing, since the same variables are used across all simulated environments.
+5. You need to add in a artifacts-server-path field under Options (This is for the upload parts. Go to  `Settings` -> `Options` -> `

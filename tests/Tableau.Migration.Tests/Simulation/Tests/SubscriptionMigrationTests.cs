@@ -18,7 +18,6 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
 using Tableau.Migration.Api.Rest.Models.Responses.Server;
 using Tableau.Migration.Content;
 using Tableau.Migration.Engine.Manifest;
@@ -40,16 +39,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests
                 var sourceSubscriptions = PrepareSourceSubscriptionsData();
 
                 //Migrate
-                var plan = ServiceProvider.GetRequiredService<IMigrationPlanBuilder>()
-                    .FromSource(SourceEndpointConfig)
-                    .ToDestination(CloudDestinationEndpointConfig)
-                    .ForServerToCloud()
-                    .WithTableauIdAuthenticationType()
-                    .WithTableauCloudUsernames("test.com")
-                    .Build();
-
-                var migrator = ServiceProvider.GetRequiredService<IMigrator>();
-                var result = await migrator.ExecuteAsync(plan, Cancel);
+                var result = await RunMigrationWithTableauIdAuthAsync();
 
                 //Assert - all subscriptions should be migrated.
 
@@ -73,10 +63,10 @@ namespace Tableau.Migration.Tests.Simulation.Tests
                     var contentType = sourceSubscription.Content.Type ?? string.Empty;
 
                     var sourceWorkbook = contentType != "workbook" ? null : SourceApi.Data.Workbooks.Single(w => w.Id == sourceSubscription.Content.Id);
-                    var destinationWorkbook = sourceWorkbook is null ? null : CloudDestinationApi.Data.Workbooks.Single(w => w.Name == sourceWorkbook.Name);
+                    var destinationWorkbook = sourceWorkbook is null ? null : CloudDestinationApi.Data.Workbooks.Single(w => string.Equals(w.Name, sourceWorkbook.Name, StringComparison.OrdinalIgnoreCase));
 
                     var sourceView = contentType != "view" ? null : SourceApi.Data.Views.Single(w => w.Id == sourceSubscription.Content.Id);
-                    var destinationView = sourceView is null ? null : CloudDestinationApi.Data.Views.Single(w => w.Name == sourceView.Name);
+                    var destinationView = sourceView is null ? null : CloudDestinationApi.Data.Views.Single(w => string.Equals(w.Name, sourceView.Name, StringComparison.OrdinalIgnoreCase));
 
                     // Get destination subscription
                     var destinationSubscription = Assert.Single(CloudDestinationApi.Data.CloudSubscriptions, sub =>

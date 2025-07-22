@@ -21,20 +21,15 @@ using Tableau.Migration.Api.Rest.Models;
 namespace Tableau.Migration.Content.Permissions
 {
     /// <summary>
-    /// The interface for content permissions responses.
+    /// Interface for the permission information of a content item.
     /// </summary>
-    public interface IPermissions
+    public interface IPermissions : IPermissionSet
     {
         /// <summary>
-        /// The collection of Grantee Capabilities for this content item.
+        /// The ID of the parent content item that is determining permissions, such as a locked project.
+        /// The parent content can be one of the types in <see cref="ParentContentTypeNames"/>,
+        /// and will be null if the permissions are determined by the content item directly.
         /// </summary>
-        IGranteeCapability[] GranteeCapabilities { get; set; }
-
-        /// <summary>
-        /// The ID of the parent content item 
-        /// The parent content can be one of the types in 
-        /// <see cref="ParentContentTypeNames"/>.
-        /// </summary>
-        public Guid? ParentId { get; set; }
+        public Guid? ParentId { get; }
     }
 }

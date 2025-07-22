@@ -18,7 +18,6 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
 using Tableau.Migration.Api.Rest.Models.Responses.Server;
 using Tableau.Migration.Api.Rest.Models.Types;
 using Tableau.Migration.Content.Schedules.Server;
@@ -51,16 +50,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests
                 var sourceExtractRefreshTasks = PrepareSourceExtractRefreshTasksData();
 
                 //Migrate
-                var plan = ServiceProvider.GetRequiredService<IMigrationPlanBuilder>()
-                    .FromSource(SourceEndpointConfig)
-                    .ToDestination(CloudDestinationEndpointConfig)
-                    .ForServerToCloud()
-                    .WithTableauIdAuthenticationType()
-                    .WithTableauCloudUsernames("test.com")
-                    .Build();
-
-                var migrator = ServiceProvider.GetRequiredService<IMigrator>();
-                var result = await migrator.ExecuteAsync(plan, Cancel);
+                var result = await RunMigrationWithTableauIdAuthAsync();
 
                 //Assert - all extract refresh tasks should be migrated.
 

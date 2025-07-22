@@ -18,7 +18,6 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
 using Tableau.Migration.Api.Rest.Models;
 using Tableau.Migration.Api.Rest.Models.Responses;
 using Tableau.Migration.Content;
@@ -50,16 +49,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests
                 var sourceDataSources = PrepareSourceDataSourceData();
 
                 //Migrate
-                var plan = ServiceProvider.GetRequiredService<IMigrationPlanBuilder>()
-                    .FromSource(SourceEndpointConfig)
-                    .ToDestination(CloudDestinationEndpointConfig)
-                    .ForServerToCloud()
-                    .WithTableauIdAuthenticationType()
-                    .WithTableauCloudUsernames("test.com")
-                    .Build();
-
-                var migrator = ServiceProvider.GetRequiredService<IMigrator>();
-                var result = await migrator.ExecuteAsync(plan, Cancel);
+                var result = await RunMigrationWithTableauIdAuthAsync();
 
                 //Assert - all projects should be migrated.
 
@@ -123,22 +113,14 @@ namespace Tableau.Migration.Tests.Simulation.Tests
                 });
 
                 //Migrate
-                var planBuilder = ServiceProvider.GetRequiredService<IMigrationPlanBuilder>()
-                    .FromSource(SourceEndpointConfig)
-                    .ToDestination(CloudDestinationEndpointConfig)
-                    .ForServerToCloud()
-                    .WithTableauIdAuthenticationType()
-                    .WithTableauCloudUsernames("test.com");
+                var planBuilder = CreateMigrationPlanBuilderWithTableauIdAuth();
 
                 planBuilder.Mappings.Add<IDataSource>(ds =>
                 {
                     return ds.MapTo(new(destinationOnlyProject.Name!, ds.MappedLocation.Name));
                 });
 
-                var plan = planBuilder.Build();
-
-                var migrator = ServiceProvider.GetRequiredService<IMigrator>();
-                var result = await migrator.ExecuteAsync(plan, Cancel);
+                var result = await RunMigrationAsync(planBuilder);
 
                 //Assert - all data sources should be migrated.
                 Assert.All(result.Manifest.Entries.ForContentType<IDataSource>(), e => Assert.Equal(MigrationManifestEntryStatus.Migrated, e.Status));

@@ -32,9 +32,9 @@ using Tableau.Migration.Resources;
 namespace Tableau.Migration.Engine.Hooks.Transformers.Default
 {
     /// <summary>
-    /// Transformer that maps the users or groups from a given permission.
+    /// Default <see cref="IPermissionsTransformer"/> that maps grantees (e.g. users and groups) and performs standard capability filtering.
     /// </summary>
-    public class PermissionsTransformer : IPermissionsTransformer
+    public class PermissionsTransformer : ContentTransformerBase<IPermissionSet>, IPermissionsTransformer
     {
         private readonly IDestinationContentReferenceFinder<IUser> _userContentFinder;
         private readonly IDestinationContentReferenceFinder<IGroup> _groupContentFinder;
@@ -50,12 +50,12 @@ namespace Tableau.Migration.Engine.Hooks.Transformers.Default
         /// Creates a new <see cref="PermissionsTransformer"/> object.
         /// </summary>
         /// <param name="destinationFinderFactory">The destination finder factory.</param>
-        /// <param name="logger">Default logger.</param>
-        /// <param name="localizer">A string localizer.</param>
+        /// <param name="localizer"><inheritdoc /></param>
+        /// <param name="logger"><inheritdoc /></param>
         public PermissionsTransformer(
             IDestinationContentReferenceFinderFactory destinationFinderFactory,
-            ILogger<PermissionsTransformer> logger,
-            ISharedResourcesLocalizer localizer)
+            ISharedResourcesLocalizer localizer, ILogger<PermissionsTransformer> logger)
+            : base(localizer, logger)
         {
             _userContentFinder = destinationFinderFactory.ForDestinationContentType<IUser>();
             _groupContentFinder = destinationFinderFactory.ForDestinationContentType<IGroup>();
@@ -95,63 +95,48 @@ namespace Tableau.Migration.Engine.Hooks.Transformers.Default
         }
 
         /// <inheritdoc/>
-        public async Task<IImmutableList<IGranteeCapability>?> ExecuteAsync(
-            IImmutableList<IGranteeCapability> granteeCapabilities,
-            CancellationToken cancel)
+        public async override Task<IPermissionSet?> TransformAsync(IPermissionSet permissions, CancellationToken cancel)
         {
             var transformedGrantees = new List<IGranteeCapability>();
 
-            var groupsById = new HashSet<IGranteeCapability>(granteeCapabilities).GroupBy(c => c.GranteeId);
+            var groupsById = new HashSet<IGranteeCapability>(permissions.GranteeCapabilities).GroupBy(c => c.GranteeId);
 
             foreach (var group in groupsById)
             {
                 var granteeType = group.First().GranteeType;
 
-                var destinationGrantee = await GetDestinationGranteeAsync(
-                    group.Key,
-                    granteeType,
-                    cancel)
-                    .ConfigureAwait(false);
-
+                var destinationGrantee = await GetDestinationGranteeAsync(group.Key, granteeType, cancel).ConfigureAwait(false);
                 if (destinationGrantee is null)
                 {
                     _logger.LogWarning(_localizer.GetString(SharedResourceKeys.PermissionsTransformerGranteeNotFoundWarning), granteeType.ToString(), group.Key);
                     continue;
                 }
 
-                var destinationCapabilities = group
-                    .SelectMany(g => g.Capabilities)
+                var destinationCapabilities = group.SelectMany(g => g.Capabilities)
                     .Where(ShouldMigrateCapability)
                     .ResolveCapabilityModeConflicts();
 
-                //Capability resolution automatically happens here since this
-                //GranteeCapability constructor applies that logic.
-                var transformedGrantee = new GranteeCapability(
-                    granteeType,
-                    destinationGrantee.Id,
-                    destinationCapabilities);
-
+                /*
+                 * Capability resolution automatically happens here since this
+                 * GranteeCapability constructor applies that logic.
+                 */
+                var transformedGrantee = new GranteeCapability(granteeType, destinationGrantee.Id, destinationCapabilities);
                 transformedGrantees.Add(transformedGrantee);
             }
 
-            return transformedGrantees.ToImmutableArray();
+            permissions.GranteeCapabilities = transformedGrantees;
+
+            return permissions;
         }
 
-        private async Task<IContentReference?> GetDestinationGranteeAsync(
-            Guid groupKey,
-            GranteeType granteeType,
-            CancellationToken cancel)
+        private async Task<IContentReference?> GetDestinationGranteeAsync(Guid groupKey, GranteeType granteeType, CancellationToken cancel)
         {
-            if (granteeType is GranteeType.User)
+            return granteeType switch
             {
-                return await _userContentFinder
-                    .FindBySourceIdAsync(groupKey, cancel)
-                    .ConfigureAwait(false);
-            }
-
-            return await _groupContentFinder
-                .FindBySourceIdAsync(groupKey, cancel)
-                .ConfigureAwait(false);
+                GranteeType.Group => await _groupContentFinder.FindBySourceIdAsync(groupKey, cancel).ConfigureAwait(false),
+                GranteeType.User => await _userContentFinder.FindBySourceIdAsync(groupKey, cancel).ConfigureAwait(false),
+                _ => null
+            };
         }
     }
 }

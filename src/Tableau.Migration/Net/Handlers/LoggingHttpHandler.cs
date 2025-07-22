@@ -16,37 +16,45 @@
 //
 
 using System;
+using System.Diagnostics;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Tableau.Migration.Net.Logging;
 
 namespace Tableau.Migration.Net.Handlers
 {
-    internal class LoggingHttpHandler : DelegatingHandler
+    internal sealed class LoggingHttpHandler : DelegatingHandler
     {
-        private readonly INetworkTraceLogger _traceLogger;
+        private readonly IHttpActivityLogger _activityLogger;
 
-        public LoggingHttpHandler(INetworkTraceLogger traceLogger)
+        public LoggingHttpHandler(IHttpActivityLogger activityLogger)
         {
-            _traceLogger = traceLogger;
+            _activityLogger = activityLogger;
         }
 
-        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancel)
         {
+            var startTimestamp = Stopwatch.GetTimestamp();
+
+            _activityLogger.LogRequestStarted(request);
+
+            HttpResponseMessage response;
             try
             {
-                var response = await base.SendAsync(request, cancellationToken).ConfigureAwait(false);
-
-                await _traceLogger.WriteNetworkLogsAsync(request, response, cancellationToken).ConfigureAwait(false);
-
-                return response;
+                response = await base.SendAsync(request, cancel).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
-                await _traceLogger.WriteNetworkExceptionLogsAsync(request, ex, cancellationToken).ConfigureAwait(false);
+                await _activityLogger.LogExceptionAsync(request, ex, Stopwatch.GetElapsedTime(startTimestamp), cancel).ConfigureAwait(false);
 
                 throw;
             }
+
+            var duration = Stopwatch.GetElapsedTime(startTimestamp);
+            await _activityLogger.LogResponseAsync(request, response, duration, cancel).ConfigureAwait(false);
+
+            return response;
         }
     }
 }

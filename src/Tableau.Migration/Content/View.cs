@@ -27,6 +27,8 @@ namespace Tableau.Migration.Content
 
         public IContentReference ParentWorkbook { get; set; }
 
+        public IContentReference Container { get; set; }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="View"/> class.
         /// </summary>
@@ -41,6 +43,7 @@ namespace Tableau.Migration.Content
             Location = project.Location.Append(workbook.Name).Append(Name);
             Tags = view.Tags.ToTagList(t => new Tag(t));
             ParentWorkbook = workbook;
+            Container = project;
         }
 
         /// <summary>
@@ -60,6 +63,7 @@ namespace Tableau.Migration.Content
             Location = project.Location.Append(workbook.Name).Append(Name);
             Tags = response.Tags.ToTagList(t => new Tag(t));
             ParentWorkbook = workbook;
+            Container = project;
         }
     }
 }

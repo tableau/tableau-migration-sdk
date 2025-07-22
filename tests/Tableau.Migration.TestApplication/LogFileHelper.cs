@@ -31,6 +31,8 @@ namespace Tableau.Migration.TestApplication
 
         internal const string LOG_LINE_TEMPLATE = "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz}|{Level}|{ThreadId}|{SourceContext} -\t{Message:lj} {ActivityTags}{NewLine}{Exception}";
 
+        internal const string LOG_LINE_HTTP_TEMPLATE = "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz}|{Level}|{ThreadId}|{SourceContext}|{Method}|{RequestUri}|{ResponseStatus}{ErrorMessage}|{RequestId}|{Duration}ms|{Details:l}{NewLine}{Exception}";
+
         public static string GetFileNameTimeStamp()
             => Program.StartTime.ToString(FILENAME_TIMESTAMP_FORMAT);
 
@@ -42,7 +44,12 @@ namespace Tableau.Migration.TestApplication
         public static string GetLogFilePath(string? logFolderPath)
             => string.IsNullOrEmpty(logFolderPath)
                 ? throw new Exception($"The config value for {nameof(LogOptions)}.{nameof(LogOptions.FolderPath)} is null or empty.")
-                : Path.Join(logFolderPath, @$"{LOG_FILE_PREFIX}-{GetFileNameTimeStamp()}.log");
+                : Path.Join(logFolderPath, @$"{LOG_FILE_PREFIX}-general-{GetFileNameTimeStamp()}.log");
+
+        public static string GetHttpLogFilePath(string? logFolderPath)
+            => string.IsNullOrEmpty(logFolderPath)
+                ? throw new Exception($"The config value for {nameof(LogOptions)}.{nameof(LogOptions.FolderPath)} is null or empty.")
+                : Path.Join(logFolderPath, @$"{LOG_FILE_PREFIX}-http-{GetFileNameTimeStamp()}.log");
 
     }
 }

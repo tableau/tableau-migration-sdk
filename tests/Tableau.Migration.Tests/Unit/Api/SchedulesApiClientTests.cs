@@ -62,6 +62,7 @@ namespace Tableau.Migration.Tests.Unit.Api
                 MockHttpClient.SetupResponse(mockResponse);
 
                 var scheduleExtractRefreshTasksResponse = AutoFixture.CreateResponse<ScheduleExtractRefreshTasksResponse>();
+
                 var mockScheduleExtractRefreshTasksResponse = new MockHttpResponseMessage<ScheduleExtractRefreshTasksResponse>(
                     scheduleExtractRefreshTasksResponse);
 

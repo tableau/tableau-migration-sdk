@@ -6,8 +6,6 @@ on:
     branches:
       - main
       - "release/**"
-      - "staging/**"
-      - "feature/**"
     paths-ignore:
       - README.md
       - "**/README.md"
@@ -52,6 +50,8 @@ on:
 
 env:
   DOTNET_NOLOGO: "true"
+  # Centralized .NET version for building and deploying
+  DOTNET_BUILD_VERSION: '9.0.x'
 
 jobs:
   # Define version job
@@ -61,6 +61,7 @@ jobs:
     outputs:
       beta-version: ${{ steps.get-beta-version.outputs.betaversion }}
       code-version: ${{ steps.get-prod-version.outputs.codeversion }}
+      dotnet-build-version: ${{ steps.set-versions.outputs.dotnet-build-version }}
     if: github.event.pull_request.draft == false
     steps:
       - uses: actions/checkout@v4
@@ -99,6 +100,14 @@ jobs:
           majorminorbuild=$(grep -oP '<Version>\K[^<]*' Directory.Build.props)
           echo "codeversion=$majorminorbuild" >> "$GITHUB_OUTPUT"
 
+      # This step makes the env variable available DOTNET_BUILD_VERSION to reusable workflows
+      # GitHub Actions limitation: The 'env' context is not available in the 'with' section 
+      # when calling reusable workflows. This step converts env variables to job outputs 
+      # so they can be used by reusable workflows while maintaining centralized management.
+      - name: Set dotnet Build Version Output
+        id: set-versions
+        run: echo "dotnet-build-version=${{ env.DOTNET_BUILD_VERSION }}" >> "$GITHUB_OUTPUT"
+
   # Build .NET
   build-dotnet:
     name: Build .NET
@@ -107,6 +116,7 @@ jobs:
     with:
       runs-on-config: ${{ vars.BASE_OS }}
       beta-version: ${{ needs.define-version.outputs.beta-version }}
+      dotnet-sdk-version: ${{ needs.define-version.outputs.dotnet-build-version }}
 
   # Build documentation
   build-docs:
@@ -116,6 +126,7 @@ jobs:
     with:
       runs-on-config: ${{ vars.DOCS_OS }}
       python-version: ${{ vars.PYTHON_PUBLISH_DOCS_VERSION }}
+      dotnet-sdk-version: ${{ needs.define-version.outputs.dotnet-build-version }}
 
   build-python-package:
     name: Build Python
@@ -125,6 +136,7 @@ jobs:
       beta-version: ${{ needs.define-version.outputs.beta-version }}
       runs-on-config: ${{ vars.BASE_OS }}
       build-config: ${{ vars.PUBLISH_CONFIGURATION }}
+      dotnet-build-version: ${{ needs.define-version.outputs.dotnet-build-version }}
 
   # Lint
   lint-python:
@@ -144,24 +156,28 @@ jobs:
   # Test
   test-dotnet:
     name: Test
-    needs: [build-dotnet]
+    needs: [define-version,build-dotnet]
     uses: ./.github/workflows/test-dotnet.yml
+    with:
+      dotnet-build-version: ${{ needs.define-version.outputs.dotnet-build-version }}
 
   test-python:
     name: Test
-    needs: [build-dotnet]
+    needs: [define-version, build-dotnet]
     uses: ./.github/workflows/test-python.yml
     with:
       working-directory: ./src/Python
       test-name: "python-test"
+      dotnet-build-version: ${{ needs.define-version.outputs.dotnet-build-version }}
 
   test-python-examples-test:
     name: Test
-    needs: [build-dotnet]
+    needs: [define-version,build-dotnet]
     uses: ./.github/workflows/test-python.yml
     with:
       working-directory: ./tests/Python.ExampleApplication.Tests
       test-name: "python-example-test"
+      dotnet-build-version: ${{ needs.define-version.outputs.dotnet-build-version }}
 
   # Deployments
   deploy-to-dev:
@@ -194,6 +210,7 @@ jobs:
       create-release: false
       release-version: ""
       deploy-docs: false
+      dotnet-build-version: ${{ needs.define-version.outputs.dotnet-build-version }}
 
   # Staging environment is configured in GitHub
   # Staging is a artifactory repository
@@ -227,6 +244,7 @@ jobs:
       create-release: false
       release-version: ""
       deploy-docs: false
+      dotnet-build-version: ${{ needs.define-version.outputs.dotnet-build-version }}
 
   # Evaluate Go-To-Production Readiness
   evaluate-goto-production:
@@ -299,3 +317,4 @@ jobs:
       create-release: true
       release-version: ${{ needs.define-version.outputs.beta-version != '' && needs.define-version.outputs.beta-version || needs.define-version.outputs.code-version }}
       deploy-docs: true
+      dotnet-build-version: ${{ needs.define-version.outputs.dotnet-build-version }}

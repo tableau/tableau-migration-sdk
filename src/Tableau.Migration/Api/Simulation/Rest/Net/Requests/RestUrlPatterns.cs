@@ -38,6 +38,9 @@ namespace Tableau.Migration.Api.Simulation.Rest.Net.Requests
         public const string SiteIdGroupName = "siteId";
         public static readonly string SiteId = IdPattern(SiteIdGroupName);
 
+        public const string UserIdGroupName = "userId";
+        public static readonly string UserId = IdPattern(UserIdGroupName);
+
         public const string EntityIdGroupName = "entityId";
         public const string NamePattern = @"[a-zA-Z0-9-_]*$";
 

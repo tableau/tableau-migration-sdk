@@ -1,0 +1,50 @@
+name: Clean .NET Installations
+description: 'Remove all existing .NET installations from the system. Does not install any new versions.'
+
+runs:
+  using: "composite"
+  steps:
+    # Step 1: Clean existing .NET installations on Ubuntu/Linux
+    - name: Clean .NET installations (Ubuntu/Linux)
+      if: runner.os == 'Linux'
+      shell: bash
+      run: |
+        echo "Cleaning existing .NET installations on Ubuntu/Linux..."
+        # Remove via package manager
+        sudo apt-get remove -y --purge dotnet* aspnetcore* netstandard* || true
+        # Remove installation directories
+        sudo rm -rf /usr/share/dotnet || true
+        sudo rm -rf /etc/dotnet || true
+        sudo rm -rf ~/.dotnet || true
+        echo "✅ Cleaned .NET installations on Ubuntu/Linux"
+
+    # Step 2: Clean existing .NET installations on macOS
+    - name: Clean .NET installations (macOS)
+      if: runner.os == 'macOS'
+      shell: bash
+      run: |
+        echo "Cleaning existing .NET installations on macOS..."
+        # Remove installation directories
+        sudo rm -rf /usr/local/share/dotnet || true
+        sudo rm -rf ~/.dotnet || true
+        # Remove brew installed versions if any (suppress error output to avoid annotations)
+        brew uninstall --ignore-dependencies dotnet 2>/dev/null || true
+        echo "✅ Cleaned .NET installations on macOS"
+
+    # Step 3: Clean existing .NET installations on Windows
+    - name: Clean .NET installations (Windows)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        Write-Host "Cleaning existing .NET installations on Windows..."
+        # Remove via package manager
+        try {
+          Get-Package -Name "Microsoft .NET*" | Uninstall-Package -Force -ErrorAction SilentlyContinue
+        } catch {
+          Write-Host "No .NET packages found to uninstall"
+        }
+        # Remove installation directories
+        Remove-Item -Path "C:\Program Files\dotnet" -Recurse -Force -ErrorAction SilentlyContinue
+        Remove-Item -Path "C:\Program Files (x86)\dotnet" -Recurse -Force -ErrorAction SilentlyContinue
+        Remove-Item -Path "$env:USERPROFILE\.dotnet" -Recurse -Force -ErrorAction SilentlyContinue
+        Write-Host "✅ Cleaned .NET installations on Windows" 

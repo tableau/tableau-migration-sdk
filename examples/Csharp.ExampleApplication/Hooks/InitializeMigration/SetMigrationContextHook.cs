@@ -2,7 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
-using Tableau.Migration.Engine.Hooks;
+using Tableau.Migration.Engine.Hooks.InitializeMigration;
 
 namespace Csharp.ExampleApplication.Hooks.InitializeMigration
 {

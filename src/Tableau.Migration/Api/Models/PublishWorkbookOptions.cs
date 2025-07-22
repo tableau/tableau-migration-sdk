@@ -17,7 +17,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using Tableau.Migration.Api.Rest.Models.Types;
 using Tableau.Migration.Content;
 
@@ -26,7 +25,7 @@ namespace Tableau.Migration.Api.Models
     /// <summary>
     /// Class for API client workbook publish options. 
     /// </summary>
-    public class PublishWorkbookOptions : PublishContentWithFileOptions, IPublishWorkbookOptions
+    public class PublishWorkbookOptions : PublishFileOptionsBase, IPublishWorkbookOptions
     {
         ///<inheritdoc/>
         public string Name { get; }
@@ -59,16 +58,9 @@ namespace Tableau.Migration.Api.Models
         /// Creates a new <see cref="PublishWorkbookOptions"/> instance.
         /// </summary>
         /// <param name="workbook">The publishable workbook information.</param>
-        /// <param name="file">The workbook file as a <see cref="Stream"/></param>
         /// <param name="fileType">The type of workbook file.</param>
-        public PublishWorkbookOptions(
-            IPublishableWorkbook workbook,
-            Stream file,
-            string fileType = WorkbookFileTypes.Twbx)
-                 : base(
-                  file,
-                  workbook.File.OriginalFileName,
-                  fileType)
+        public PublishWorkbookOptions(IPublishableWorkbook workbook, string fileType = WorkbookFileTypes.Twbx)
+                 : base(workbook.File, fileType)
         {
             Name = workbook.Name;
             Description = workbook.Description;

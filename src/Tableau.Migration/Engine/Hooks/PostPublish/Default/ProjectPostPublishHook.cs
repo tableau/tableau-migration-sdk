@@ -24,7 +24,7 @@ using System.Threading.Tasks;
 using Tableau.Migration.Content;
 using Tableau.Migration.Content.Permissions;
 using Tableau.Migration.Engine.Endpoints;
-using Tableau.Migration.Engine.Hooks.Transformers.Default;
+using Tableau.Migration.Engine.Hooks.Transformers;
 
 namespace Tableau.Migration.Engine.Hooks.PostPublish.Default
 {
@@ -33,8 +33,6 @@ namespace Tableau.Migration.Engine.Hooks.PostPublish.Default
     /// </summary>
     public class ProjectPostPublishHook : PermissionPostPublishHookBase<IProject, IProject>
     {
-        private readonly IPermissionsTransformer _permissionsTransformer;
-
         private readonly ISourceApiEndpoint? _sourceApiEndpoint;
         private readonly IDestinationApiEndpoint? _destinationApiEndpoint;
 
@@ -47,14 +45,11 @@ namespace Tableau.Migration.Engine.Hooks.PostPublish.Default
         /// <summary>
         /// Creates a new <see cref="ProjectPostPublishHook"/> object.
         /// </summary>
-        /// <param name="migration">The current migration.</param>
-        /// <param name="permissionsTransformer">The transformer used for permissions.</param>
-        public ProjectPostPublishHook(IMigration migration,
-            IPermissionsTransformer permissionsTransformer)
-            : base(migration)
+        /// <param name="migration"><inheritdoc /></param>
+        /// <param name="transformerRunner"><inheritdoc /></param>
+        public ProjectPostPublishHook(IMigration migration, IContentTransformerRunner transformerRunner)
+            : base(migration, transformerRunner)
         {
-            _permissionsTransformer = permissionsTransformer;
-
             IsEnabled = Migration.TryGetSourceApiEndpoint(out _sourceApiEndpoint) && Migration.TryGetDestinationApiEndpoint(out _destinationApiEndpoint);
         }
 
@@ -78,10 +73,7 @@ namespace Tableau.Migration.Engine.Hooks.PostPublish.Default
             var transformedPermissions = await TransformPermissionsAsync(sourceDefaultPermissionsResult.Value, cancel).ConfigureAwait(false);
 
             var updateDefaultPermissionsResult = await _destinationApiEndpoint.SiteApi.Projects.UpdateAllDefaultPermissionsAsync(
-                    ctx.DestinationItem.Id,
-                    transformedPermissions,
-                    cancel)
-                .ConfigureAwait(false);
+                    ctx.DestinationItem.Id, transformedPermissions, cancel).ConfigureAwait(false);
 
             if (!updateDefaultPermissionsResult.Success)
             {
@@ -95,16 +87,16 @@ namespace Tableau.Migration.Engine.Hooks.PostPublish.Default
             IReadOnlyDictionary<string, IPermissions> sourcePermissions,
             CancellationToken cancel)
         {
-            var transformedPermissions = ImmutableDictionary.CreateBuilder<string, IPermissions>(StringComparer.OrdinalIgnoreCase);
+            var results = ImmutableDictionary.CreateBuilder<string, IPermissions>(StringComparer.OrdinalIgnoreCase);
 
             foreach (var sourcePermission in sourcePermissions)
             {
-                var transformedGrantees = await _permissionsTransformer.ExecuteAsync(sourcePermission.Value.GranteeCapabilities.ToImmutableArray(), cancel).ConfigureAwait(false);
+                var transformedPermissions = await TransformPermissionsAsync(sourcePermission.Value, cancel).ConfigureAwait(false);
 
-                transformedPermissions.Add(sourcePermission.Key, new Permissions(null, transformedGrantees));
+                results.Add(sourcePermission.Key, transformedPermissions);
             }
 
-            return transformedPermissions.ToImmutable();
+            return results.ToImmutable();
         }
     }
 }

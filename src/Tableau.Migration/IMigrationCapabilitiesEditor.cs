@@ -26,11 +26,6 @@ namespace Tableau.Migration
     public interface IMigrationCapabilitiesEditor : IMigrationCapabilities
     {
         /// <summary>
-        /// Gets or sets a value indicating whether the preflight check has been executed.
-        /// </summary>
-        new bool PreflightCheckExecuted { get; set; }
-
-        /// <summary>
         /// Gets or sets whether Embedded Credential migration is disabled.
         /// </summary>
         new bool EmbeddedCredentialsDisabled { get; set; }

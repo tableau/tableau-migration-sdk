@@ -21,7 +21,6 @@ import inspect
 import sys
 
 from typing import Type, TypeVar, List
-from uuid import UUID
 
 # region Generic Wrapper Helpers
 
@@ -73,6 +72,10 @@ from Tableau.Migration.Interop.Logging import ( # noqa: E402
     NonGenericLoggerBase
 )
 
+from Microsoft.Extensions.Configuration import ( # noqa: E402
+    IConfigurationRoot
+)
+
 from Microsoft.Extensions.DependencyInjection import ( # noqa: E402
     ServiceCollectionContainerBuilderExtensions, 
     ServiceCollection,
@@ -110,6 +113,10 @@ def get_service_provider() -> ServiceProvider:
     else:
         raise Exception("Service provider is not initialized.")
 
+def reload_configuration() -> None:
+    """Reloads the configuration providers so that updated Migration SDK configuration options are applied."""
+    config_root = get_service(get_service_provider(), IConfigurationRoot)
+    config_root.Reload()
 
 def _initialize() -> None:
     """Initializes the DI container and returns the services provider."""
@@ -148,12 +155,15 @@ from enum import IntEnum # noqa: E402, F401
 from tableau_migration.migration_api_rest import PyRestIdentifiable # noqa: E402, F401
 from typing import Sequence # noqa: E402, F401
 from typing_extensions import Self # noqa: E402, F401
+from uuid import UUID # noqa: E402, F401
 
 import System # noqa: E402
 
+from System import Guid # noqa: E402, F401
 from Tableau.Migration import (  # noqa: E402, F401
     ContentLocation,
     IContentReference,
+    IEmptyIdContentReference,
     IResult
 )
 
@@ -282,6 +292,26 @@ class PyContentReference(PyRestIdentifiable):
     def name(self) -> str:
         """Gets the name of the content item. This is equivalent to the last segment of the Location. Renames should be performed through mapping."""
         return self._dotnet.Name
+    
+class PyEmptyIdContentReference(PyContentReference):
+    """Interface for an empty ID object that describes information on how to reference an item of content, for example through a Tableau API. This in cases where the content type does not have a LUID on Tableau Server or Cloud."""
+    
+    _dotnet_base = IEmptyIdContentReference
+    
+    def __init__(self, empty_id_content_reference: IEmptyIdContentReference) -> None:
+        """Creates a new PyEmptyIdContentReference object.
+        
+        Args:
+            empty_id_content_reference: A IEmptyIdContentReference object.
+        
+        Returns: None.
+        """
+        self._dotnet = empty_id_content_reference
+        
+    @property
+    def id(self) -> UUID:
+        """Gets the empty unique identifier."""
+        return None if self._dotnet.Id is None else UUID(self._dotnet.Id.ToString())
     
 class PyMigrationCompletionStatus(IntEnum):
     """Enumeration of the various ways a migration can reach completion."""

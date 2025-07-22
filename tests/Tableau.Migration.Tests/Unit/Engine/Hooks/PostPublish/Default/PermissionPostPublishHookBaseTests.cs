@@ -24,6 +24,7 @@ using Tableau.Migration.Engine;
 using Tableau.Migration.Engine.Endpoints.Search;
 using Tableau.Migration.Engine.Hooks.PostPublish;
 using Tableau.Migration.Engine.Hooks.PostPublish.Default;
+using Tableau.Migration.Engine.Hooks.Transformers;
 using Tableau.Migration.Engine.Manifest;
 using Xunit;
 
@@ -35,8 +36,8 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.PostPublish.Default
 
         public class TestPermissionPostPublishHook<TPublish, TResult> : PermissionPostPublishHookBase<TPublish, TResult>
         {
-            public TestPermissionPostPublishHook(IMigration migration)
-                : base(migration)
+            public TestPermissionPostPublishHook(IMigration migration, IContentTransformerRunner transformerRunner)
+                : base(migration, transformerRunner)
             { }
 
             public override Task<ContentItemPostPublishContext<TPublish, TResult>?> ExecuteAsync(ContentItemPostPublishContext<TPublish, TResult> ctx, CancellationToken cancel)
@@ -111,7 +112,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.PostPublish.Default
 
         #endregion
 
-        #region - PublicParentProjectLockedAsync
+        #region - PublicParentProjectLockedAsync -
 
         public class PublicParentProjectLockedAsync : PermissionPostPublishHookBaseTest
         {

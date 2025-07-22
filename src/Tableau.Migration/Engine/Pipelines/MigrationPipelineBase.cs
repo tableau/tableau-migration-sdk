@@ -117,6 +117,9 @@ namespace Tableau.Migration.Engine.Pipelines
                 case Type group when group == typeof(IGroup):
                     return Services.GetRequiredService<ItemPublishContentBatchMigrator<TContent, IPublishableGroup>>();
 
+                case Type groupSet when groupSet == typeof(IGroupSet):
+                    return Services.GetRequiredService<ItemPublishContentBatchMigrator<TContent, IPublishableGroupSet, IPublishableGroupSet>>();
+
                 case Type project when project == typeof(IProject):
                     return Services.GetRequiredService<ItemPublishContentBatchMigrator<TContent>>();
 

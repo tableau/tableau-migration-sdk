@@ -33,6 +33,11 @@ namespace Tableau.Migration.Config
             public const int FILE_CHUNK_SIZE_KB = 65536;
 
             /// <summary>
+            /// The default Network Requests Logging Flag - Disabled as Default.
+            /// </summary>
+            public const bool LOG_REQUESTS_ENABLED = true;
+
+            /// <summary>
             /// The default Network Headers Logging Flag - Disabled as Default.
             /// </summary>
             public const bool LOG_HEADERS_ENABLED = false;
@@ -72,6 +77,16 @@ namespace Tableau.Migration.Config
             set => _fileChunkSizeKB = value;
         }
         private int? _fileChunkSizeKB;
+
+        /// <summary>
+        /// Indicates whether the SDK logs request start events. The default value is disabled.
+        /// </summary>
+        public bool RequestsLoggingEnabled
+        {
+            get => _requestsLoggingEnabled ?? Defaults.LOG_REQUESTS_ENABLED;
+            set => _requestsLoggingEnabled = value;
+        }
+        private bool? _requestsLoggingEnabled;
 
         /// <summary>
         /// Indicates whether the SDK logs request/response headers. The default value is disabled.

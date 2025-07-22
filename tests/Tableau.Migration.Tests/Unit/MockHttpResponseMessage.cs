@@ -56,9 +56,9 @@ namespace Tableau.Migration.Tests.Unit
 
         public abstract TMockResponseMessage WithEnsureSuccessStatusCodeException(Exception exception);
 
-        public static TMockResponseMessage Success(HttpContent? content = null)
+        public static TMockResponseMessage Success(HttpContent? content = null, HttpStatusCode statusCode = HttpStatusCode.OK)
             => new TMockResponseMessage()
-                .WithSuccessStatusCode<TMockResponseMessage, TResponseMessage>()
+                .WithSuccessStatusCode<TMockResponseMessage, TResponseMessage>(statusCode)
                 .WithContent<TMockResponseMessage, TResponseMessage>(content);
 
         public static TMockResponseMessage Exception(Exception exception, HttpStatusCode statusCode = HttpStatusCode.InternalServerError)

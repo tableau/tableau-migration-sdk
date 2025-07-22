@@ -85,7 +85,7 @@ class PyContentTransformerBuilder():
         return self._content_transformer_builder.ByContentType()
 
 
-    def build(self) -> Self:
+    def build(self) -> PyMigrationHookFactoryCollection:
         """Builds an immutable collection from the currently added transformers.
 
         Returns:

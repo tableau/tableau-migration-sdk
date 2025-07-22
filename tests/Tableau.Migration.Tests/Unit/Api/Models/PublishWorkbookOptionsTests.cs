@@ -28,6 +28,7 @@ namespace Tableau.Migration.Tests.Unit.Api.Models
     {
         private static void AssertContentTypeFields(IPublishableWorkbook workbook, PublishWorkbookOptions result)
         {
+            Assert.Same(workbook.File, result.File);
             Assert.Equal(workbook.Name, result.Name);
             Assert.Equal(workbook.Description, result.Description);
             Assert.Equal(workbook.ShowTabs, result.ShowTabs);
@@ -41,12 +42,10 @@ namespace Tableau.Migration.Tests.Unit.Api.Models
         public void Default()
         {
             var workbook = Create<IPublishableWorkbook>();
-            var testFile = Create<Stream>();
-            var result = new PublishWorkbookOptions(workbook, testFile);
+            var result = new PublishWorkbookOptions(workbook);
 
             Assert.NotNull(result);
             AssertContentTypeFields(workbook, result);
-            Assert.Equal(testFile, result.File);
             Assert.Equal(workbook.File.OriginalFileName, result.FileName);
             Assert.Equal(WorkbookFileTypes.Twbx, result.FileType);
         }
@@ -55,13 +54,11 @@ namespace Tableau.Migration.Tests.Unit.Api.Models
         public void Different_FileType()
         {
             var workbook = Create<IPublishableWorkbook>();
-            var testFile = Create<Stream>();
             var testFileType = Create<string>();
-            var result = new PublishWorkbookOptions(workbook, testFile, testFileType);
+            var result = new PublishWorkbookOptions(workbook, testFileType);
 
             Assert.NotNull(result);
             AssertContentTypeFields(workbook, result);
-            Assert.Equal(testFile, result.File);
             Assert.Equal(workbook.File.OriginalFileName, result.FileName);
             Assert.Equal(testFileType, result.FileType);
         }

@@ -40,5 +40,10 @@ namespace Tableau.Migration.Content
         /// Gets the site's "content URL".
         /// </summary>
         string ContentUrl { get; }
+
+        /// <summary>
+        /// Gets whether group sets are enabled.
+        /// </summary>
+        bool GroupSetsEnabled { get; } // Not in ISiteSettings because it is not present in server session info, only site info.
     }
 }

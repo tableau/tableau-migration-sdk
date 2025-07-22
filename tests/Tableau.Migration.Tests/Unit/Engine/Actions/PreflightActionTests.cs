@@ -26,6 +26,7 @@ using Tableau.Migration.Content;
 using Tableau.Migration.Engine.Actions;
 using Tableau.Migration.Engine.Endpoints;
 using Tableau.Migration.Engine.Hooks;
+using Tableau.Migration.Engine.Hooks.InitializeMigration;
 using Xunit;
 
 namespace Tableau.Migration.Tests.Unit.Engine.Actions
@@ -40,11 +41,19 @@ namespace Tableau.Migration.Tests.Unit.Engine.Actions
 
             protected Func<IResult<IServerSession>> SourceSessionResult { get; set; }
 
+            protected Mock<ISite> MockSourceSite { get; set; }
+
+            protected Func<IResult<ISite>> SourceSiteResult { get; set; }
+
             protected Mock<ISourceEndpoint> MockSource { get; set; }
 
             protected Mock<IServerSession> MockDestinationSession { get; set; }
 
             protected Func<IResult<IServerSession>> DestinationSessionResult { get; set; }
+
+            protected Mock<ISite> MockDestinationSite { get; set; }
+
+            protected Func<IResult<ISite>> DestinationSiteResult { get; set; }
 
             protected Mock<IDestinationEndpoint> MockDestination { get; set; }
 
@@ -64,16 +73,24 @@ namespace Tableau.Migration.Tests.Unit.Engine.Actions
 
                 SourceSessionResult = () => Result<IServerSession>.Succeeded(MockSourceSession.Object);
 
+                MockSourceSite = Create<Mock<ISite>>();
+                SourceSiteResult = () => Result<ISite>.Succeeded(MockSourceSite.Object);
+
                 MockSource = Freeze<Mock<ISourceEndpoint>>();
                 MockSource.Setup(x => x.GetSessionAsync(Cancel)).ReturnsAsync(() => SourceSessionResult());
+                MockSource.Setup(x => x.GetCurrentSiteAsync(Cancel)).ReturnsAsync(() => SourceSiteResult());
 
                 MockDestinationSession = Create<Mock<IServerSession>>();
                 MockDestinationSession.SetupGet(x => x.IsAdministrator).Returns(true);
 
                 DestinationSessionResult = () => Result<IServerSession>.Succeeded(MockDestinationSession.Object);
 
+                MockDestinationSite = Create<Mock<ISite>>();
+                DestinationSiteResult = () => Result<ISite>.Succeeded(MockDestinationSite.Object);
+
                 MockDestination = Freeze<Mock<IDestinationEndpoint>>();
                 MockDestination.Setup(x => x.GetSessionAsync(Cancel)).ReturnsAsync(() => DestinationSessionResult());
+                MockDestination.Setup(x => x.GetCurrentSiteAsync(Cancel)).ReturnsAsync(() => DestinationSiteResult());
 
                 UpdateResult = Result<ISite>.Succeeded(Create<ISite>());
                 MockDestination.Setup(x => x.UpdateSiteSettingsAsync(It.IsAny<ISiteSettingsUpdate>(), Cancel))
@@ -130,6 +147,46 @@ namespace Tableau.Migration.Tests.Unit.Engine.Actions
             public async Task DestinationSessionFailedAsync()
             {
                 DestinationSessionResult = () => Result<IServerSession>.Failed(new Exception());
+
+                var action = Create<PreflightAction>();
+
+                var result = await action.ExecuteAsync(Cancel);
+
+                result.AssertFailure();
+                Assert.False(result.PerformNextAction);
+
+                MockSource.Verify(x => x.GetSessionAsync(Cancel), Times.Once);
+                MockDestination.Verify(x => x.GetSessionAsync(Cancel), Times.Once);
+
+                MockLogger.VerifyWarnings(Times.Never);
+
+                MockHookRunner.Verify(x => x.ExecuteAsync<IInitializeMigrationHook, IInitializeMigrationHookResult>(It.IsAny<IInitializeMigrationHookResult>(), Cancel), Times.Never);
+            }
+
+            [Fact]
+            public async Task SourceSiteFailedAsync()
+            {
+                SourceSiteResult = () => Result<ISite>.Failed(new Exception());
+
+                var action = Create<PreflightAction>();
+
+                var result = await action.ExecuteAsync(Cancel);
+
+                result.AssertFailure();
+                Assert.False(result.PerformNextAction);
+
+                MockSource.Verify(x => x.GetSessionAsync(Cancel), Times.Once);
+                MockDestination.Verify(x => x.GetSessionAsync(Cancel), Times.Once);
+
+                MockLogger.VerifyWarnings(Times.Never);
+
+                MockHookRunner.Verify(x => x.ExecuteAsync<IInitializeMigrationHook, IInitializeMigrationHookResult>(It.IsAny<IInitializeMigrationHookResult>(), Cancel), Times.Never);
+            }
+
+            [Fact]
+            public async Task DestinationSiteFailedAsync()
+            {
+                DestinationSiteResult = () => Result<ISite>.Failed(new Exception());
 
                 var action = Create<PreflightAction>();
 

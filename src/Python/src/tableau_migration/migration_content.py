@@ -19,8 +19,10 @@ from Tableau.Migration import IContentReference # noqa: E402, F401
 
 # region _generated
 
+from enum import IntEnum # noqa: E402, F401
 from tableau_migration.migration import (  # noqa: E402, F401
     PyContentReference,
+    PyEmptyIdContentReference,
     _generic_wrapper
 )
 from tableau_migration.migration_api_rest import PyRestIdentifiable # noqa: E402, F401
@@ -54,13 +56,16 @@ from Tableau.Migration.Content import (  # noqa: E402, F401
     IDataSourceDetails,
     IDescriptionContent,
     IExtractContent,
+    IFavorite,
     IGroup,
+    IGroupSet,
     IGroupUser,
     ILabel,
     IProject,
     IPublishableCustomView,
     IPublishableDataSource,
     IPublishableGroup,
+    IPublishableGroupSet,
     IPublishableWorkbook,
     IPublishedContent,
     IServerSubscription,
@@ -642,6 +647,80 @@ class PyDataSourceDetails(PyDataSource):
         """Gets the certification note."""
         return self._dotnet.CertificationNote
     
+class PyFavoriteContentType(IntEnum):
+    """Enum of content types for favorites."""
+    
+    """Unknown content type."""
+    UNKNOWN = 0
+    
+    """Workbook content type."""
+    PROJECT = 1
+    
+    """Workbook content type."""
+    WORKBOOK = 2
+    
+    """Workbook content type."""
+    VIEW = 3
+    
+    """Data source content type."""
+    DATA_SOURCE = 4
+    
+    """Flow content type."""
+    FLOW = 5
+    
+    """Collection content type."""
+    COLLECTION = 6
+    
+class PyFavorite(PyEmptyIdContentReference):
+    """Interface for a content item named favorite."""
+    
+    _dotnet_base = IFavorite
+    
+    def __init__(self, favorite: IFavorite) -> None:
+        """Creates a new PyFavorite object.
+        
+        Args:
+            favorite: A IFavorite object.
+        
+        Returns: None.
+        """
+        self._dotnet = favorite
+        
+    @property
+    def label(self) -> str:
+        """Gets or sets the label for the favorite."""
+        return self._dotnet.Label
+    
+    @label.setter
+    def label(self, value: str) -> None:
+        """Gets or sets the label for the favorite."""
+        self._dotnet.Label = value
+    
+    @property
+    def user(self) -> PyContentReference:
+        """Gets the user IContentReference for the favorite."""
+        return None if self._dotnet.User is None else PyContentReference(self._dotnet.User)
+    
+    @user.setter
+    def user(self, value: PyContentReference) -> None:
+        """Gets the user IContentReference for the favorite."""
+        self._dotnet.User = None if value is None else value._dotnet
+    
+    @property
+    def content(self) -> PyContentReference:
+        """Gets or sets the IContentReference for the favorite."""
+        return None if self._dotnet.Content is None else PyContentReference(self._dotnet.Content)
+    
+    @content.setter
+    def content(self, value: PyContentReference) -> None:
+        """Gets or sets the IContentReference for the favorite."""
+        self._dotnet.Content = None if value is None else value._dotnet
+    
+    @property
+    def content_type(self) -> PyFavoriteContentType:
+        """Gets or sets the content type for the favorite."""
+        return None if self._dotnet.ContentType is None else PyFavoriteContentType(self._dotnet.ContentType.value__)
+    
 class PyWithDomain():
     """Interface for content items with a domain."""
     
@@ -712,6 +791,21 @@ class PyGroup(PyUsernameContent):
         """Gets the site role of the group."""
         self._dotnet.SiteRole = value
     
+class PyGroupSet(PyContentReference):
+    """Interface for a group set content item."""
+    
+    _dotnet_base = IGroupSet
+    
+    def __init__(self, group_set: IGroupSet) -> None:
+        """Creates a new PyGroupSet object.
+        
+        Args:
+            group_set: A IGroupSet object.
+        
+        Returns: None.
+        """
+        self._dotnet = group_set
+        
 class PyGroupUser():
     """Interface for a user linked to a group content item."""
     
@@ -919,6 +1013,37 @@ class PyPublishableGroup(PyGroup):
                 dotnet_collection.Add(x._dotnet)
             self._dotnet.Users = dotnet_collection
     
+class PyPublishableGroupSet(PyGroupSet):
+    """Interface for a group set content item with groups."""
+    
+    _dotnet_base = IPublishableGroupSet
+    
+    def __init__(self, publishable_group_set: IPublishableGroupSet) -> None:
+        """Creates a new PyPublishableGroupSet object.
+        
+        Args:
+            publishable_group_set: A IPublishableGroupSet object.
+        
+        Returns: None.
+        """
+        self._dotnet = publishable_group_set
+        
+    @property
+    def groups(self) -> List[PyContentReference]:
+        """Gets or sets the groups belonging to the group set."""
+        return [] if self._dotnet.Groups is None else [PyContentReference(x) for x in self._dotnet.Groups if x is not None]
+    
+    @groups.setter
+    def groups(self, value: List[PyContentReference]) -> None:
+        """Gets or sets the groups belonging to the group set."""
+        if value is None:
+            self._dotnet.Groups = DotnetList[IContentReference]()
+        else:
+            dotnet_collection = DotnetList[IContentReference]()
+            for x in filter(None,value):
+                dotnet_collection.Add(x._dotnet)
+            self._dotnet.Groups = dotnet_collection
+    
 class PyWorkbook(PyPublishedContent, PyDescriptionContent, PyExtractContent, PyWithTags, PyContainerContent, PyWithOwner):
     """Interface for a workbook content item."""
     
@@ -949,7 +1074,7 @@ class PyWorkbook(PyPublishedContent, PyDescriptionContent, PyExtractContent, PyW
         """Gets the file size."""
         return self._dotnet.Size
     
-class PyView(PyWithTags, PyContentReference):
+class PyView(PyWithTags, PyContentReference, PyContainerContent):
     """Interface for view associated with the content item."""
     
     _dotnet_base = IView

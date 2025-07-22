@@ -27,23 +27,27 @@ namespace Tableau.Migration.Resources
 
         public const string PreviousManifestPlanMismatchWarning = "PreviousManifestPlanMismatchWarning";
 
-        public const string NetworkTraceLogMessage = "NetworkTraceLogMessage";
+        public const string HttpActivityLogMessage = "HttpActivityLogMessage";
 
-        public const string NetworkTraceExceptionLogMessage = "NetworkTraceExceptionLogMessage";
+        public const string HttpActivityExceptionLogMessage = "HttpActivityExceptionLogMessage";
 
-        public const string NetworkTraceTooLargeDetails = "NetworkTraceTooLargeDetails";
+        public const string HttpContentTooLargeText = "HttpContentTooLargeText";
 
-        public const string SectionRequestHeaders = "SectionRequestHeaders";
+        public const string HttpRequestHeadersSectionName = "HttpRequestHeadersSectionName";
 
-        public const string SectionResponseHeaders = "SectionResponseHeaders";
+        public const string HttpResponseHeadersSectionName = "HttpResponseHeadersSectionName";
 
-        public const string SectionRequestContent = "SectionRequestContent";
+        public const string HttpRequestContentSectionName = "HttpRequestContentSectionName";
 
-        public const string SectionResponseContent = "SectionResponseContent";
+        public const string HttpResponseContentSectionName = "HttpResponseContentSectionName";
 
-        public const string SectionException = "SectionException";
+        public const string HttpExceptionSectionName = "HttpExceptionSectionName";
 
-        public const string NetworkTraceNotDisplayedDetails = "NetworkTraceNotDisplayedDetails";
+        public const string HttpActivityNotDisplayedText = "HttpActivityNotDisplayedText";
+
+        public const string HttpActivityEmptyText = "HttpActivityEmptyText";
+
+        public const string HttpActivityRequestLogMessage = "HttpActivityRequestLogMessage";
 
         public const string AuthenticationTypeDomainMappingValidationMessage = "AuthenticationTypeDomainMappingValidationMessage";
 
@@ -116,6 +120,10 @@ namespace Tableau.Migration.Resources
         public const string ViewReferenceNotFoundMessage = "ViewReferenceNotFoundMessage";
 
         public const string ViewReferenceNotFoundException = "ViewReferenceNotFoundException";
+
+        public const string GroupReferenceNotFoundMessage = "GroupReferenceNotFoundMessage";
+
+        public const string GroupReferenceNotFoundException = "GroupReferenceNotFoundException";
 
         public const string UserReferenceNotFoundMessage = "UserReferenceNotFoundMessage";
 
@@ -201,7 +209,7 @@ namespace Tableau.Migration.Resources
 
         public const string StartEndTimeDifferenceError = "StartEndTimeDifferenceError";
 
-        public const string ReplacingHourlyIntervalMessage = "ReplacingHourlyIntevalMessage";
+        public const string ReplacingHourlyIntervalMessage = "ReplacingHourlyIntervalMessage";
 
         public const string ScheduleUpdateFailedError = "ScheduleUpdateFailedError";
 
@@ -241,6 +249,13 @@ namespace Tableau.Migration.Resources
 
         public const string ContentTypeDisabledWarning = "ContentTypeDisabledWarning";
 
-        public const string SubscriptionsDisabledReason = "SubscriptionsDisabledReason";
+             
+        public const string FavoriteSkippedMissingContentWarning = "FavoriteSkippedMissingContentWarning";
+        
+        public const string FavoriteContentTypeNotSupportedWarning = "FavoriteContentTypeNotSupportedWarning";
+
+        public const string ContentTypeDisabledReason = "ContentTypeDisabledReason";
+
+        public const string GroupSetGroupsTransformerMissingGroupsException = "GroupSetGroupsTransformerMissingGroupsException";
     }
 }

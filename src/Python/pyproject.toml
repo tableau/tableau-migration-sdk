@@ -20,7 +20,7 @@ classifiers = [
 license = "Apache-2.0"
 
 dependencies = [
-    "typing_extensions==4.13.2",
+    "typing_extensions==4.14.1",
     "cffi==1.17.1",
     "pycparser==2.22",
     "pythonnet==3.0.5"
@@ -45,7 +45,7 @@ docs = "sphinx-build -M markdown .\\Documentation\\ ..\\Documentation\\python\\ 
 detached = true
 
 dependencies = [
-  "ruff==0.11.10"
+  "ruff==0.12.4"
 ]
 
 [tool.hatch.envs.lint.scripts]
@@ -54,8 +54,8 @@ lint = "ruff check ."
 [tool.hatch.envs.test]
 dev-mode = false
 dependencies = [
-  "pytest>=8.3.5",
-  "pytest-cov>=6.1.1",
+  "pytest>=8.4.1",
+  "pytest-cov>=6.2.1",
   "pytest-env>=1.1.5"
 ]
 
@@ -64,7 +64,7 @@ test = "pytest -vv"
 testcov = "test --cov-config=pyproject.toml --cov=src/tableau_migration --cov-report term --cov-report xml:TestResults/coverage-{matrix:python}.xml"
 
 [[tool.hatch.envs.test.matrix]]
-python = ["3.9", "3.10", "3.11", "3.12"]
+python = ["3.9", "3.10", "3.11", "3.12", "3.13"]
 
 [project.urls]
 "Homepage" = "http://www.tableau.com"

@@ -9,3 +9,4 @@ The following samples cover some common scenarios:
 - [Sample: Adjust 'Start At' to Scheduled Tasks](~/samples/transformers/start_at_transformer.md)
 - [Sample: Change default users for Custom Views](~/samples/transformers/custom_view_default_users_transformer.md)
 - [Sample: Action URL XML transformer](~/samples/transformers/action_url_xml_transformer.md)
+- [Sample: Modify permissions](~/samples/transformers/modify_permissions.md)

@@ -19,7 +19,11 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Tableau.Migration.TestApplication.Config;
-using Tableau.Migration.TestApplication.Hooks;
+using Tableau.Migration.TestApplication.Hooks.ActionCompleted;
+using Tableau.Migration.TestApplication.Hooks.BatchMigrationCompleted;
+using Tableau.Migration.TestApplication.Hooks.Filters;
+using Tableau.Migration.TestApplication.Hooks.Mappings;
+using Tableau.Migration.TestApplication.Hooks.Transformers;
 
 namespace Tableau.Migration.TestApplication
 {

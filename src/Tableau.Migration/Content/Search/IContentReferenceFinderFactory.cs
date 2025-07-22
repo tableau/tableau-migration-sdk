@@ -41,13 +41,30 @@ namespace Tableau.Migration.Content.Search
         /// <returns>The content reference finder.</returns>
         public IContentReferenceFinder ForExtractRefreshContent(ExtractRefreshContentType contentType)
         {
-            if (contentType is ExtractRefreshContentType.DataSource)
-                return ForContentType<IDataSource>();
+            return contentType switch
+            {
+                ExtractRefreshContentType.DataSource => ForContentType<IDataSource>(),
+                ExtractRefreshContentType.Workbook => ForContentType<IWorkbook>(),
+                _ => throw new NotSupportedException($"Content type {contentType} is not supported.")
+            };
+        }
 
-            if (contentType is ExtractRefreshContentType.Workbook)
-                return ForContentType<IWorkbook>();
-
-            throw new NotSupportedException($"Content type {contentType} is not supported.");
+        /// <summary>
+        /// Gets or creates a content reference finder for a given favorite content type. 
+        /// </summary>
+        /// <param name="contentType">The favorite content type</param>
+        /// <returns>The content reference finder.</returns>
+        public IContentReferenceFinder ForFavoriteContentType(FavoriteContentType contentType)
+        {
+            return contentType switch
+            {
+                FavoriteContentType.DataSource => ForContentType<IDataSource>(),
+                FavoriteContentType.Flow => ForContentType<IFlow>(),
+                FavoriteContentType.Project => ForContentType<IProject>(),
+                FavoriteContentType.Workbook => ForContentType<IWorkbook>(),  
+                FavoriteContentType.Collection => ForContentType<ITableauCollection>(),
+                _ => throw new NotSupportedException($"Favorite content type {contentType} is not supported.")
+            };
         }
     }
 }

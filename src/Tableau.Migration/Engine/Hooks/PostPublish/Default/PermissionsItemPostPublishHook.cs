@@ -15,13 +15,10 @@
 //  limitations under the License.
 //
 
-using System;
-using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Tableau.Migration.Content;
-using Tableau.Migration.Content.Permissions;
-using Tableau.Migration.Engine.Hooks.Transformers.Default;
+using Tableau.Migration.Engine.Hooks.Transformers;
 
 namespace Tableau.Migration.Engine.Hooks.PostPublish.Default
 {
@@ -34,19 +31,14 @@ namespace Tableau.Migration.Engine.Hooks.PostPublish.Default
         where TPublish : IPermissionsContent
         where TResult : IContentReference
     {
-        private readonly IPermissionsTransformer _permissionsTransformer;
-
         /// <summary>
         /// Creates a new <see cref="PermissionsItemPostPublishHook{TPublish, TDestination}"/> object.
         /// </summary>
-        /// <param name="migration">The current migration.</param>
-        /// <param name="permissionsTransformer">The transformer used for permissions.</param>
-        public PermissionsItemPostPublishHook(IMigration migration,
-            IPermissionsTransformer permissionsTransformer)
-            : base(migration)
-        {
-            _permissionsTransformer = permissionsTransformer;
-        }
+        /// <param name="migration"><inheritdoc /></param>
+        /// <param name="transformerRunner"><inheritdoc /></param>
+        public PermissionsItemPostPublishHook(IMigration migration, IContentTransformerRunner transformerRunner)
+            : base(migration, transformerRunner)
+        { }
 
         /// <inheritdoc/>
         public override async Task<ContentItemPostPublishContext<TPublish, TResult>?> ExecuteAsync(ContentItemPostPublishContext<TPublish, TResult> ctx, CancellationToken cancel)
@@ -63,12 +55,9 @@ namespace Tableau.Migration.Engine.Hooks.PostPublish.Default
                 return ctx;
             }
 
-            var transformedPermissions = await TransformPermissionsAsync(ctx, sourcePermissionsResult.Value, cancel).ConfigureAwait(false);
+            var transformedPermissions = await TransformPermissionsAsync(sourcePermissionsResult.Value, cancel).ConfigureAwait(false);
 
-            var updatePermissionsResult = await Migration.Destination.UpdatePermissionsAsync<TPublish>(
-                    ctx.DestinationItem,
-                    transformedPermissions,
-                    cancel)
+            var updatePermissionsResult = await Migration.Destination.UpdatePermissionsAsync<TPublish>(ctx.DestinationItem, transformedPermissions, cancel)
                 .ConfigureAwait(false);
 
             if (!updatePermissionsResult.Success)
@@ -77,21 +66,6 @@ namespace Tableau.Migration.Engine.Hooks.PostPublish.Default
             }
 
             return ctx;
-        }
-
-        private async Task<IPermissions> TransformPermissionsAsync(
-            ContentItemPostPublishContext<TPublish, TResult> ctx,
-            IPermissions sourcePermissions,
-            CancellationToken cancel)
-        {
-            var transformedGrantees = await _permissionsTransformer.ExecuteAsync(sourcePermissions.GranteeCapabilities.ToImmutableArray(), cancel).ConfigureAwait(false);
-
-            Guid? parentId = null;
-
-            if (sourcePermissions.ParentId is not null && sourcePermissions.ParentId == ctx.PublishedItem.Id)
-                parentId = ctx.DestinationItem.Id;
-
-            return new Permissions(parentId, transformedGrantees);
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿//
+//
 //  Copyright (c) 2025, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
@@ -17,8 +17,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -27,51 +25,21 @@ namespace Tableau.Migration.Paging
     /// <summary>
     /// <see cref="IPager{TContent}"/> implementation that wraps an in-memory collection.
     /// </summary>
-    internal class MemoryPager<TItem> : IPager<TItem>
+    internal class MemoryPager<TItem> : MemoryPagerBase<TItem>
     {
         private readonly Func<CancellationToken, Task<IResult<IReadOnlyCollection<TItem>>>> _getItems;
-        private readonly int _pageSize;
-
-        private IReadOnlyCollection<TItem>? _items;
-        private int _pagesAvailable;
-
-        private int _pageNumber;
-        private int _offset;
 
         public MemoryPager(Func<CancellationToken, Task<IResult<IReadOnlyCollection<TItem>>>> getItems, int pageSize)
+            : base(pageSize)
         {
             _getItems = getItems;
-            _pageSize = pageSize;
-
-            _offset = 0;
-            _pageNumber = 1;
         }
 
         public MemoryPager(IReadOnlyCollection<TItem> items, int pageSize)
             : this((c) => Task.FromResult((IResult<IReadOnlyCollection<TItem>>)Result<IReadOnlyCollection<TItem>>.Succeeded(items)), pageSize)
         { }
 
-        public async Task<IPagedResult<TItem>> NextPageAsync(CancellationToken cancel)
-        {
-            if (_items is null)
-            {
-                var getResult = await _getItems(cancel).ConfigureAwait(false);
-                if (!getResult.Success)
-                {
-                    return PagedResult<TItem>.Failed(getResult.Errors);
-                }
-
-                _items = getResult.Value;
-                _pagesAvailable = (_items.Count / _pageSize) + (_items.Count % _pageSize > 0 ? 1 : 0);
-            }
-
-            var pageItems = _items.Skip(_offset).Take(_pageSize).ToImmutableArray();
-            var result = PagedResult<TItem>.Succeeded(pageItems, _pageNumber, _pageSize, _items.Count, _pageNumber >= _pagesAvailable);
-
-            _offset += _pageSize;
-            _pageNumber++;
-
-            return result;
-        }
+        protected override async Task<IResult<IReadOnlyCollection<TItem>>> LoadItemsAsync(CancellationToken cancel)
+            => await _getItems(cancel).ConfigureAwait(false);
     }
 }

@@ -29,10 +29,13 @@ using Tableau.Migration.Engine.Conversion.ExtractRefreshTasks;
 using Tableau.Migration.Engine.Conversion.Schedules;
 using Tableau.Migration.Engine.Conversion.Subscriptions;
 using Tableau.Migration.Engine.Endpoints;
+using Tableau.Migration.Engine.Endpoints.Caching;
+using Tableau.Migration.Engine.Endpoints.ContentClients;
 using Tableau.Migration.Engine.Endpoints.Search;
 using Tableau.Migration.Engine.Hooks;
 using Tableau.Migration.Engine.Hooks.Filters;
 using Tableau.Migration.Engine.Hooks.Filters.Default;
+using Tableau.Migration.Engine.Hooks.InitializeMigration.Capabilities;
 using Tableau.Migration.Engine.Hooks.InitializeMigration.Default;
 using Tableau.Migration.Engine.Hooks.Mappings;
 using Tableau.Migration.Engine.Hooks.Mappings.Default;
@@ -67,6 +70,7 @@ namespace Tableau.Migration.Engine
             .AddPlanBuildingServices()
             .AddMigratorServices()
             .AddConversionServices()
+            .AddContentClientServices()
             .AddSingleton<MigrationManifestSerializer>() // Serializer
             .AddCacheServices()
             .AddContentFinderServices()
@@ -142,13 +146,16 @@ namespace Tableau.Migration.Engine
             .AddScoped(typeof(BulkDestinationCache<>))
             .AddScoped<BulkDestinationProjectCache>()
             .AddScoped<IUserSavedCredentialsCache, UserSavedCredentialsCache>()
-            .AddScoped<IDestinationAuthenticationConfigurationsCache, BulkApiAuthenticationConfigurationsCache>();
+            .AddScoped<IDestinationAuthenticationConfigurationsCache, BulkApiAuthenticationConfigurationsCache>()
+            .AddScoped<IEndpointViewCache, TableauApiEndpointViewCache>()
+            .AddScoped<IEndpointWorkbookViewsCache, TableauApiEndpointWorkbookViewsCache>();
 
         private static IServiceCollection AddContentFinderServices(this IServiceCollection services) => services
             .AddScoped(typeof(ISourceContentReferenceFinder<>), typeof(ManifestSourceContentReferenceFinder<>))
             .AddScoped<ISourceContentReferenceFinderFactory, ManifestSourceContentReferenceFinderFactory>()
             .AddScoped(typeof(IDestinationContentReferenceFinder<>), typeof(ManifestDestinationContentReferenceFinder<>))
-            .AddScoped<IDestinationContentReferenceFinderFactory, ManifestDestinationContentReferenceFinderFactory>();
+            .AddScoped<IDestinationContentReferenceFinderFactory, ManifestDestinationContentReferenceFinderFactory>()
+            .AddScoped<IDestinationViewReferenceFinder, DestinationViewReferenceFinder>();
 
         private static IServiceCollection AddPipelineServices(this IServiceCollection services) => services
             .AddScoped<ServerToCloudMigrationPipeline>()
@@ -162,37 +169,40 @@ namespace Tableau.Migration.Engine
         private static IServiceCollection AddMigrationCapabilityServices(this IServiceCollection services) => services
             .AddSingleton<IMigrationCapabilitiesEditor, MigrationCapabilities>()
             .AddSingleton<IMigrationCapabilities>(p => p.GetRequiredService<IMigrationCapabilitiesEditor>())
-            .AddScoped<IEmbeddedCredentialsCapabilityManager, EmbeddedCredentialsCapabilityManager>()
-            .AddScoped<ISubscriptionsCapabilityManager, SubscriptionsCapabilityManager>();
+            .AddScoped<IMigrationCapabilityManager, EmbeddedCredentialsCapabilityManager>()
+            .AddScoped<IMigrationCapabilityManager, SubscriptionsCapabilityManager>()
+            .AddScoped<IMigrationCapabilityManager, GroupSetsCapabilityManager>();
 
         private static IServiceCollection AddDefaultPreflightHookServices(this IServiceCollection services) => services
-            .AddScoped<PreflightCheck>()
-            .AddScoped<EmbeddedCredentialsPreflightCheck>()
-            .AddScoped<SubscriptionsPreflightCheck>();
+            .AddScoped<InitializeCapabilitiesHook>();
 
         private static IServiceCollection AddDefaultFilterServices(this IServiceCollection services) => services
             .AddScoped(typeof(PreviouslyMigratedFilter<>))
             .AddScoped<GroupAllUsersFilter>()
             .AddScoped<UserSiteRoleSupportUserFilter>()
-            .AddScoped(typeof(SystemOwnershipFilter<>));
+            .AddScoped(typeof(SystemOwnershipFilter<>))
+            .AddScoped<FavoriteFilter>();
 
         private static IServiceCollection AddDefaultMappingServices(this IServiceCollection services) => services
             .AddScoped<AuthenticationTypeDomainMapping>()
-            .AddScoped<TableauCloudUsernameMapping>();
+            .AddScoped<TableauCloudUsernameMapping>()
+            .AddScoped<FavoriteMapping>();
 
         private static IServiceCollection AddDefaultTransformerServices(this IServiceCollection services) => services
             .AddScoped<UserAuthenticationTypeTransformer>()
             .AddScoped<UserTableauCloudSiteRoleTransformer>()
             .AddScoped<GroupUsersTransformer>()
+            .AddScoped<GroupSetGroupsTransformer>()
             .AddScoped(typeof(OwnershipTransformer<>))
             .AddScoped<TableauServerConnectionUrlTransformer>()
             .AddScoped<MappedReferenceExtractRefreshTaskTransformer>()
             .AddScoped(typeof(EncryptExtractTransformer<>))
-            .AddScoped<IPermissionsTransformer, PermissionsTransformer>()
+            .AddScoped<PermissionsTransformer>()
             .AddScoped<IMappedUserTransformer, MappedUserTransformer>()
             .AddScoped(typeof(WorkbookReferenceTransformer<>))
             .AddScoped<CustomViewDefaultUserReferencesTransformer>()
-            .AddScoped<SubscriptionTransformer>();
+            .AddScoped<SubscriptionTransformer>()
+            .AddScoped<FavoriteTransformer>();
 
         private static IServiceCollection AddDefaultActionCompletedHookServices(this IServiceCollection services) => services;
 
@@ -203,7 +213,9 @@ namespace Tableau.Migration.Engine
             .AddScoped<ProjectPostPublishHook>()
             .AddScoped(typeof(ChildItemsPermissionsPostPublishHook<,>))
             .AddScoped<CustomViewDefaultUsersPostPublishHook>()
-            .AddScoped(typeof(EmbeddedCredentialsItemPostPublishHook<,>));
+            .AddScoped(typeof(EmbeddedCredentialsItemPostPublishHook<,>))
+            .AddScoped<DeleteUserFavoritesPostPublishHook>()
+            .AddScoped<PopulateViewCachePostPublishHook>();
 
         private static IServiceCollection AddFileStoreServices(this IServiceCollection services) => services
             .AddScoped<MigrationDirectoryContentFileStore>()
@@ -225,5 +237,10 @@ namespace Tableau.Migration.Engine
 
                 return new EncryptedFileStore(s, s.GetRequiredService<MigrationDirectoryContentFileStore>());
             });
+
+        private static IServiceCollection AddContentClientServices(this IServiceCollection services) => services
+            .AddScoped<IWorkbooksContentClient, WorkbooksContentClient>()
+            .AddScoped<IViewsContentClient, ViewsContentClient>()
+            .AddScoped<IFavoritesContentClient, FavoritesContentClient>();
     }
 }

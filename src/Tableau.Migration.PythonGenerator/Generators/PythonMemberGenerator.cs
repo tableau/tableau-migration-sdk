@@ -19,6 +19,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.Extensions.Options;
 using Tableau.Migration.PythonGenerator.Config;
@@ -82,6 +83,11 @@ namespace Tableau.Migration.PythonGenerator.Generators
 
         protected bool IgnoreMember(ITypeSymbol type, ISymbol member)
         {
+            if(member.DeclaredAccessibility is not Accessibility.Public)
+            {
+                return true;
+            }
+
             var typeHints = _options.Hints.ForType(type);
             if (typeHints is null)
             {
@@ -182,6 +188,8 @@ namespace Tableau.Migration.PythonGenerator.Generators
                 case Dotnet.Types.STRING_SIMPLIFIED:
                 case nameof(String):
                     return STRING;
+                case nameof(Task<int>):
+                    return GetGenericTypes(t)!.Value.Single();
                 case nameof(TimeOnly):
                     return TIME_ONLY;
                 case nameof(Type):

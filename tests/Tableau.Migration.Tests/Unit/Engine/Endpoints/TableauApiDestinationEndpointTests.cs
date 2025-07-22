@@ -17,7 +17,6 @@
 
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Moq;
 using Tableau.Migration.Api;
 using Tableau.Migration.Content;
@@ -41,7 +40,6 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints
                     Create<ITableauApiEndpointConfiguration>(),
                     Create<ManifestDestinationContentReferenceFinderFactory>(),
                     Create<IContentFileStore>(),
-                    Create<ILoggerFactory>(),
                     Create<ISharedResourcesLocalizer>()
                 );
             }

@@ -92,6 +92,10 @@ namespace Tableau.Migration.Api.Search
         }
 
         /// <inheritdoc />
+        protected override async ValueTask<IEnumerable<ContentReferenceStub>> SearchAllAsync(CancellationToken cancel)
+            => await LoadAllAsync(cancel).ConfigureAwait(false);
+
+        /// <inheritdoc />
         protected override async ValueTask<IEnumerable<ContentReferenceStub>> SearchAsync(ContentLocation searchLocation, CancellationToken cancel)
             => await LoadAllAsync(cancel).ConfigureAwait(false);
 

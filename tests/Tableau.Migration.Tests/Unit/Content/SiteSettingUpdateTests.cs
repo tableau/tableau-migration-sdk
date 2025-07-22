@@ -55,6 +55,28 @@ namespace Tableau.Migration.Tests.Unit.Content
 
                 Assert.True(u.NeedsUpdate());
             }
+
+            [Fact]
+            public void DisableSubscriptionsUpdated()
+            {
+                var u = new SiteSettingsUpdate(Guid.NewGuid())
+                {
+                    DisableSubscriptions = Create<bool>()
+                };
+
+                Assert.True(u.NeedsUpdate());
+            }
+
+            [Fact]
+            public void GroupSetsEnabledUpdated()
+            {
+                var u = new SiteSettingsUpdate(Guid.NewGuid())
+                {
+                    GroupSetsEnabled = Create<bool>()
+                };
+
+                Assert.True(u.NeedsUpdate());
+            }
         }
     }
 }

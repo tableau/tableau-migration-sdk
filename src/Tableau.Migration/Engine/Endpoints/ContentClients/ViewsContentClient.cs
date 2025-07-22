@@ -19,32 +19,28 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Tableau.Migration.Api;
 using Tableau.Migration.Content;
+using Tableau.Migration.Engine.Endpoints.Caching;
 using Tableau.Migration.Resources;
 
 namespace Tableau.Migration.Engine.Endpoints.ContentClients
 {
     /// <summary>
-    /// Content client to interact with workbooks.
+    /// Content client to interact with views.
     /// </summary>
     public class ViewsContentClient : ContentClientBase<IView>, IViewsContentClient
     {
-        private readonly IViewsApiClient _viewsApiClient;
+        private readonly IEndpointViewCache _viewCache;
 
         /// <inheritdoc/>
-        public ViewsContentClient(
-            IViewsApiClient viewsApiClient,
-            ILogger<IViewsContentClient> logger,
-            ISharedResourcesLocalizer localizer) : base(logger, localizer)
+        public ViewsContentClient(IEndpointViewCache viewCache, ILogger<ViewsContentClient> logger, ISharedResourcesLocalizer localizer)
+            : base(logger, localizer)
         {
-            _viewsApiClient = viewsApiClient;
+            _viewCache = viewCache;
         }
 
         /// <inheritdoc/>
-        public Task<IResult<IView>> GetByIdAsync(Guid id, CancellationToken cancel)
-        {
-            return _viewsApiClient.GetByIdAsync(id, cancel);
-        }
+        public async Task<IResult<IView>> GetByIdAsync(Guid id, CancellationToken cancel)
+            => await _viewCache.GetOrAddAsync(id, cancel).ConfigureAwait(false);
     }
 }

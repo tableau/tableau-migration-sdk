@@ -32,6 +32,7 @@ using Tableau.Migration.Engine.Hooks.Filters;
 using Tableau.Migration.Engine.Hooks.Filters.Default;
 using Tableau.Migration.Engine.Hooks.InitializeMigration.Default;
 using Tableau.Migration.Engine.Hooks.Mappings;
+using Tableau.Migration.Engine.Hooks.Mappings.Default;
 using Tableau.Migration.Engine.Hooks.PostPublish.Default;
 using Tableau.Migration.Engine.Hooks.Transformers;
 using Tableau.Migration.Engine.Hooks.Transformers.Default;
@@ -84,9 +85,12 @@ namespace Tableau.Migration.Tests.Unit.Engine
             protected void AssertDefaultExtensions()
             {
                 //Add expected default extensions to assert for here.
+                MockMappingBuilder.Verify(b => b.Add<FavoriteMapping, IFavorite>(null), Times.Once);
+
                 MockFilterBuilder.Verify(b => b.Add(typeof(PreviouslyMigratedFilter<>), It.IsAny<IEnumerable<Type[]>>()), Times.Once);
                 MockFilterBuilder.Verify(b => b.Add<GroupAllUsersFilter, IGroup>(It.IsAny<Func<IServiceProvider, GroupAllUsersFilter>>()), Times.Once);
                 MockFilterBuilder.Verify(b => b.Add(typeof(SystemOwnershipFilter<>), It.IsAny<IEnumerable<Type[]>>()), Times.Once);
+                MockFilterBuilder.Verify(b => b.Add<FavoriteFilter, IFavorite>(null), Times.Once);
 
                 MockTransformerBuilder.Verify(x => x.Add<UserAuthenticationTypeTransformer, IUser>(It.IsAny<Func<IServiceProvider, UserAuthenticationTypeTransformer>>()), Times.Once);
                 MockTransformerBuilder.Verify(x => x.Add<GroupUsersTransformer, IPublishableGroup>(It.IsAny<Func<IServiceProvider, GroupUsersTransformer>>()), Times.Once);
@@ -97,6 +101,7 @@ namespace Tableau.Migration.Tests.Unit.Engine
                 MockTransformerBuilder.Verify(x => x.Add<CustomViewDefaultUserReferencesTransformer, IPublishableCustomView>(It.IsAny<Func<IServiceProvider, CustomViewDefaultUserReferencesTransformer>>()), Times.Once);
                 MockTransformerBuilder.Verify(x => x.Add(typeof(EncryptExtractTransformer<>), It.IsAny<IEnumerable<Type[]>>()), Times.Once);
                 MockTransformerBuilder.Verify(x => x.Add<SubscriptionTransformer, ICloudSubscription>(It.IsAny<Func<IServiceProvider, SubscriptionTransformer>>()), Times.Once);
+                MockTransformerBuilder.Verify(x => x.Add<FavoriteTransformer, IFavorite>(It.IsAny<Func<IServiceProvider, FavoriteTransformer>>()), Times.Once);
 
                 MockHookBuilder.Verify(x => x.Add(typeof(OwnerItemPostPublishHook<,>), It.IsAny<IEnumerable<Type[]>>()), Times.Once);
                 MockHookBuilder.Verify(x => x.Add(typeof(PermissionsItemPostPublishHook<,>), It.IsAny<IEnumerable<Type[]>>()), Times.Once);
@@ -105,9 +110,9 @@ namespace Tableau.Migration.Tests.Unit.Engine
                 MockHookBuilder.Verify(x => x.Add(It.IsAny<Func<IServiceProvider, ProjectPostPublishHook>>()), Times.Once);
                 MockHookBuilder.Verify(x => x.Add(It.IsAny<Func<IServiceProvider, CustomViewDefaultUsersPostPublishHook>>()), Times.Once);
                 MockHookBuilder.Verify(x => x.Add(typeof(EmbeddedCredentialsItemPostPublishHook<,>), It.IsAny<IEnumerable<Type[]>>()), Times.Once);
-                MockHookBuilder.Verify(x => x.Add(It.IsAny<Func<IServiceProvider, SubscriptionsPreflightCheck>>()), Times.Once);
-                MockHookBuilder.Verify(x => x.Add(It.IsAny<Func<IServiceProvider, EmbeddedCredentialsPreflightCheck>>()), Times.Once);
-
+                MockHookBuilder.Verify(x => x.Add(It.IsAny<Func<IServiceProvider, InitializeCapabilitiesHook>>()), Times.Once);
+                MockHookBuilder.Verify(x => x.Add(It.IsAny<Func<IServiceProvider, DeleteUserFavoritesPostPublishHook>>()), Times.Once);
+                MockHookBuilder.Verify(x => x.Add(It.IsAny<Func<IServiceProvider, PopulateViewCachePostPublishHook>>()), Times.Once);
             }
 
             protected void AssertDefaultServerToCloudExtensions()

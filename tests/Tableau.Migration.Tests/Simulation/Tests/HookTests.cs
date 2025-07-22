@@ -48,21 +48,14 @@ namespace Tableau.Migration.Tests.Simulation.Tests
                     .AddSingleton(CallCounter);
             }
 
-            protected async Task TestActionCompletedHook(Action<IMigrationPlanBuilder> registerHook)
+            protected async Task TestActionCompletedHookAsync(Action<IMigrationPlanBuilder> registerHook)
             {
-                var planBuilder = ServiceProvider.GetRequiredService<IMigrationPlanBuilder>()
-                    .ForServerToCloud()
-                    .FromSource(SourceEndpointConfig)
-                    // This likely won't be needed once ServerToCloudMigrationPipeline is implemented.
-                    .ToDestination(CloudDestinationEndpointConfig);
+                var planBuilder = CreatePlanBuilder();
 
                 registerHook(planBuilder);
 
-                var plan = planBuilder
-                    .Build();
-
-                var migrator = ServiceProvider.GetRequiredService<IMigrator>();
-                var result = await migrator.ExecuteAsync(plan, Cancel);
+                var plan = planBuilder.Build();
+                var result = await RunMigrationAsync(plan);
                 Assert.Equal(MigrationCompletionStatus.Completed, result.Status);
 
                 //Hook call count should equal total pipeline length, which we have to do some internal work to find dynamically.
@@ -101,7 +94,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests
             [Fact]
             public async Task UserDefinedHookTypeAsync()
             {
-                await TestActionCompletedHook(planBuilder =>
+                await TestActionCompletedHookAsync(planBuilder =>
                 {
                     var hook = new MyActionCompletedHook(CallCounter);
                     planBuilder.Hooks.Add(hook);
@@ -142,7 +135,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests
             [Fact]
             public async Task UserInjectedHookTypeDefaultAsync()
             {
-                await TestActionCompletedHook(planBuilder =>
+                await TestActionCompletedHookAsync(planBuilder =>
                 {
                     planBuilder.Hooks.Add<MyInjectedActionCompletedHook>();
                 });
@@ -151,7 +144,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests
             [Fact]
             public async Task UserInjectedHookTypeInitializerAsync()
             {
-                await TestActionCompletedHook(planBuilder =>
+                await TestActionCompletedHookAsync(planBuilder =>
                 {
                     planBuilder.Hooks.Add(services => services.GetRequiredService<MyInjectedActionCompletedHook>());
                 });
@@ -162,7 +155,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests
             [Fact]
             public async Task CallbackAsync()
             {
-                await TestActionCompletedHook(planBuilder =>
+                await TestActionCompletedHookAsync(planBuilder =>
                 {
                     planBuilder.Hooks.Add<IMigrationActionCompletedHook, IMigrationActionResult>((ctx, cancel) =>
                     {

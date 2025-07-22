@@ -10,6 +10,7 @@ using Tableau.Migration.Content.Permissions;
 using Tableau.Migration.Engine;
 using Tableau.Migration.Engine.Hooks.PostPublish;
 using Tableau.Migration.Engine.Hooks.PostPublish.Default;
+using Tableau.Migration.Engine.Hooks.Transformers;
 
 namespace Csharp.ExampleApplication.Hooks.PostPublish
 {
@@ -21,8 +22,9 @@ namespace Csharp.ExampleApplication.Hooks.PostPublish
 
         private readonly ILogger<UpdatePermissionsHook<TPublish, TResult>> _logger;
 
-        public UpdatePermissionsHook(IMigration migration, ILogger<UpdatePermissionsHook<TPublish, TResult>> logger)
-            : base(migration)
+        public UpdatePermissionsHook(IMigration migration, IContentTransformerRunner transformerRunner,
+            ILogger<UpdatePermissionsHook<TPublish, TResult>> logger)
+            : base(migration, transformerRunner)
         {
             _logger = logger;
         }

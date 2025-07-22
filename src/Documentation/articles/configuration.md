@@ -56,18 +56,30 @@ The Plan Builder exposes the properties [`MigrationPlanBuilder.Hooks`](xref:Tabl
 
 ## Advanced configuration
 
-[`MigrationSdkOptions`](xref:Tableau.Migration.Config.MigrationSdkOptions) is the configuration class the Migration SDK uses internally to process a migration. It contains adjustable properties that change some engine behaviors. These properties are useful tools to troubleshoot and tune a migration process.
+[`MigrationSdkOptions`](xref:Tableau.Migration.Config.MigrationSdkOptions) is the configuration class the Migration SDK uses internally to process a migration.
+It contains adjustable properties that change migration engine behavior.
+These properties are useful tools to troubleshoot and tune the migration process.
+
+Advanced configuration uses the [.NET Configuration Framework](https://learn.microsoft.com/en-us/dotnet/core/extensions/configuration) to build [`MigrationSdkOptions`](xref:Tableau.Migration.Config.MigrationSdkOptions) from a set of configuration providers.
 
 > [!NOTE]
-> Unless specified otherwise, all configuration options are dynamically applied during the migration.
+> Unless specified otherwise, all configuration options are dynamically applied for configuration providers that support change detection.
 
 ### [Python](#tab/Python)
 
-Configuration values are set via environment variables. The `:` delimiter doesn't work with environment variable hierarchical keys on all platforms. For example, the `:` delimiter is not supported by Bash. The double underscore (`__`), which is supported on all platforms, automatically replaces any `:` delimiters in environment variables. All configuration environment variables start with `MigrationSDK__`.
+When using Python, Migration SDK configuration values can be set via environment variables.
+Environment variables are evaluated at the time the `tableau_migration` module is imported.
+To reload Migration SDK configuration after modifying environment variables during runtime, call the [reload_configuration](~/api-python/reference/tableau_migration.migration.reload_configuration.md) function.
+
+Environment variables do not support the `:` hierarchy delimiter used by other configuration providers.
+The double underscore (`__`) delimiter is used instead.
+All configuration environment variables start with `MigrationSDK__`.
 
 ### [C#](#tab/CSharp)
 
-We recommend using a [.NET Generic Host](https://learn.microsoft.com/en-us/dotnet/core/extensions/generic-host?tabs=appbuilder) to initialize the application. This will enable setting configuration values via `appsettings.json` which can be passed into `userOptions` in [`.AddTableauMigrationSdk`](xref:Tableau.Migration.IServiceCollectionExtensions#Tableau_Migration_IServiceCollectionExtensions_AddTableauMigrationSdk_Microsoft_Extensions_DependencyInjection_IServiceCollection_Microsoft_Extensions_Configuration_IConfiguration_). See  [.NET getting started examples](~/api-csharp/index.md) for more info.
+We recommend using a [.NET Generic Host](https://learn.microsoft.com/en-us/dotnet/core/extensions/generic-host?tabs=appbuilder) to initialize the application.
+This will enable setting configuration values via `appsettings.json` which can be passed into `userOptions` in [`.AddTableauMigrationSdk`](xref:Tableau.Migration.IServiceCollectionExtensions#Tableau_Migration_IServiceCollectionExtensions_AddTableauMigrationSdk_Microsoft_Extensions_DependencyInjection_IServiceCollection_Microsoft_Extensions_Configuration_IConfiguration_).
+See [.NET getting started examples](~/api-csharp/index.md) for more info.
 
 ---
 

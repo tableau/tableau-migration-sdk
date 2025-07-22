@@ -21,13 +21,10 @@ using System.Collections.Generic;
 namespace Tableau.Migration
 {
     /// <summary>
-    /// Represents the capabilities of a migration and are set via <see cref="Engine.Hooks.IInitializeMigrationHook"/>s.
+    /// Represents the capabilities of a migration and are set via <see cref="Engine.Hooks.InitializeMigration.IInitializeMigrationHook"/>s.
     /// </summary>
     internal class MigrationCapabilities : IMigrationCapabilitiesEditor
     {
-        /// <inheritdoc/>
-        public bool PreflightCheckExecuted { get; set; } = false;
-
         /// <inheritdoc/>
         public bool EmbeddedCredentialsDisabled { get; set; } = false;
 
@@ -39,9 +36,8 @@ namespace Tableau.Migration
         {
             return new MigrationCapabilities
             {
-                PreflightCheckExecuted = PreflightCheckExecuted,
                 EmbeddedCredentialsDisabled = EmbeddedCredentialsDisabled,
-                ContentTypesDisabledAtDestination = ContentTypesDisabledAtDestination
+                ContentTypesDisabledAtDestination = new(ContentTypesDisabledAtDestination)
             };
         }
 

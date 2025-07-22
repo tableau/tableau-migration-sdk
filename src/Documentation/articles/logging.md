@@ -16,6 +16,7 @@ It will also log every errored **Request**/**Response** as an **Error** message 
 
 As part of the included tracings, it is possible to [configure](configuration.md) the level of details for each log message by setting the following configuration parameters:
 
+- [Network.RequestsLoggingEnabled](xref:Tableau.Migration.Config.NetworkOptions#Tableau_Migration_Config_NetworkOptions_RequestsLoggingEnabled): Indicates whether the SDK logs request start events. The default value is enabled.
 - [Network.HeadersLoggingEnabled](xref:Tableau.Migration.Config.NetworkOptions#Tableau_Migration_Config_NetworkOptions_HeadersLoggingEnabled): Indicates whether the SDK logs request/response headers. The default value is disabled.
 - [Network.ContentLoggingEnabled](xref:Tableau.Migration.Config.NetworkOptions#Tableau_Migration_Config_NetworkOptions_ContentLoggingEnabled): Indicates whether the SDK logs request/response content. The default value is disabled.
 - [Network.BinaryContentLoggingEnabled](xref:Tableau.Migration.Config.NetworkOptions#Tableau_Migration_Config_NetworkOptions_BinaryContentLoggingEnabled): Indicates whether the SDK logs request/response binary (not textual) content. The default value is disabled.

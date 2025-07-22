@@ -17,7 +17,6 @@
 
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
 using Tableau.Migration.Api.Rest.Models.Responses;
 using Tableau.Migration.Content;
 using Tableau.Migration.Content.Permissions;
@@ -48,16 +47,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests
                 var sourceProjects = PrepareSourceProjectsData();
 
                 //Migrate
-                var plan = ServiceProvider.GetRequiredService<IMigrationPlanBuilder>()
-                    .FromSource(SourceEndpointConfig)
-                    .ToDestination(CloudDestinationEndpointConfig)
-                    .ForServerToCloud()
-                    .WithTableauIdAuthenticationType()
-                    .WithTableauCloudUsernames("test.com")
-                    .Build();
-
-                var migrator = ServiceProvider.GetRequiredService<IMigrator>();
-                var result = await migrator.ExecuteAsync(plan, Cancel);
+                var result = await RunMigrationWithTableauIdAuthAsync();
 
                 //Assert - all projects should be migrated.
 

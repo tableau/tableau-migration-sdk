@@ -3,6 +3,10 @@ name: Test .NET Workflow
 
 on:
   workflow_call:
+    inputs:
+      dotnet-build-version:
+        required: true
+        type: string
 
 env:
   DOTNET_NOLOGO: "true"
@@ -18,28 +22,45 @@ jobs:
       matrix:
         os: ${{ fromJSON(vars.BUILD_OS) }}
         config: ${{ fromJSON(vars.BUILD_CONFIGURATIONS) }}
+        dotnet-version: ['8.0.x', '9.0.x']
 
     runs-on: ${{ matrix.os }}
-    name: Test .NET (${{ matrix.os }} ${{ matrix.config }})
+    name: Test .NET (${{ matrix.os }}, ${{ matrix.config }}, .NET ${{ matrix.dotnet-version }})
     steps:
       # Checkout the repository
       - uses: actions/checkout@v4
 
-      # Setup .NET environment
-      - uses: ./.github/actions/setup-dotnet
+      # Clean all existing .NET installations
+      - name: Clean existing .NET installations
+        uses: ./.github/actions/clean-dotnet
 
-      # Cache NuGet packages based on the lock file
+      # Setup .NET SDK
+      - name: Setup .NET ${{ matrix.dotnet-version }}
+        uses: ./.github/actions/setup-dotnet
+        with:
+          dotnet-version: ${{ matrix.dotnet-version }}
+
+      # Setup .NET 9 SDK (Needed to run dotnet test in any matrix)
+      - name: Setup .NET 9 SDK (for build compatibility)
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      # Cache NuGet packages based on the lock file and .NET version
       - name: Cache NuGet packages
         uses: actions/cache@v4
         with:
           path: ~/.nuget/packages
-          key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
+          key: ${{ runner.os }}-nuget-${{ matrix.dotnet-version }}-${{ hashFiles('**/packages.lock.json') }}
           restore-keys: |
+            ${{ runner.os }}-nuget-${{ matrix.dotnet-version }}-
             ${{ runner.os }}-nuget-
 
       # Restore dependencies
       - name: Restore Dependencies
         run: dotnet restore '${{ vars.BUILD_SOLUTION }}' --locked-mode
+        env:
+          DOTNET_ROLL_FORWARD: LatestMajor
 
       # Restore Tools (i.e. report generator)
       - name: Restore .NET Tools
@@ -49,29 +70,39 @@ jobs:
       - name: Download Build Output
         uses: actions/download-artifact@v4
         with:
-          name: build-output-${{ matrix.config }}
+          name: build-output-${{ matrix.config }}-net${{ inputs.dotnet-build-version }}
           path: ./
 
-      # Test the solution
+      # Test the solution with framework targeting
       - name: Test Solution with ${{ matrix.config }} Configuration
+        shell: pwsh
         run: |
-          dotnet test '${{ vars.BUILD_SOLUTION }}' --no-build --no-restore -c ${{ matrix.config }} --verbosity normal --collect:"XPlat Code Coverage" --logger junit --results-directory "TestResults-${{ matrix.os }}-${{ matrix.config }}" -- RunConfiguration.TestSessionTimeout=${{ vars.MIGRATIONSDK_TEST_CANCELLATION_TIMEOUT_MILLISECONDS }}
+          $framework = if ('${{ matrix.dotnet-version }}' -eq '8.0.x') { 'net8.0' } else { 'net9.0' }
+          Write-Host "Testing with framework: $framework"
+          dotnet test '${{ vars.BUILD_SOLUTION }}' `
+                 --framework $framework `
+                 --no-build --no-restore `
+                 -c ${{ matrix.config }} `
+                 --verbosity normal `
+                 --collect:"XPlat Code Coverage" `
+                 --logger junit `
+                 --results-directory "TestResults-${{ matrix.os }}-${{ matrix.config }}-net${{ matrix.dotnet-version }}" `
+                 -- RunConfiguration.TestSessionTimeout=${{ vars.MIGRATIONSDK_TEST_CANCELLATION_TIMEOUT_MILLISECONDS }}
 
       # Build code coverage reports
       - name: Build Coverage Summary
-        run: dotnet reportgenerator -reports:"TestResults-${{ matrix.os }}-${{ matrix.config }}/*/coverage.cobertura.xml" -targetdir:"TestResults-${{ matrix.os }}-${{ matrix.config }}/coverage-reports" -reporttypes:"Html;MarkdownSummaryGithub"
+        run: dotnet reportgenerator -reports:"TestResults-${{ matrix.os }}-${{ matrix.config }}-net${{ matrix.dotnet-version }}/*/coverage.cobertura.xml" -targetdir:"TestResults-${{ matrix.os }}-${{ matrix.config }}-net${{ matrix.dotnet-version }}/coverage-reports" -reporttypes:"Html;MarkdownSummaryGithub"
 
       # Create job summary
       - name: Set Job Summary
-        run: cat "TestResults-${{ matrix.os }}-${{ matrix.config }}/coverage-reports/SummaryGithub.md" >> $GITHUB_STEP_SUMMARY
+        run: cat "TestResults-${{ matrix.os }}-${{ matrix.config }}-net${{ matrix.dotnet-version }}/coverage-reports/SummaryGithub.md" >> $GITHUB_STEP_SUMMARY
         shell: bash
 
       # Upload test results
       - name: Upload Test Results
-        # Use always() to always run this step to publish test results when there are test failures
         if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
-          name: dotnet-results-${{ matrix.os }}-${{ matrix.config }}
-          path: TestResults-${{ matrix.os }}-${{ matrix.config }}
+          name: dotnet-results-${{ matrix.os }}-${{ matrix.config }}-net${{ matrix.dotnet-version }}
+          path: TestResults-${{ matrix.os }}-${{ matrix.config }}-net${{ matrix.dotnet-version }}
           if-no-files-found: error

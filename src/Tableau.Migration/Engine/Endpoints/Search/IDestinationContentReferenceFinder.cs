@@ -26,9 +26,7 @@ namespace Tableau.Migration.Engine.Endpoints.Search
     /// Interface for an object that can find destination content reference 
     /// for given content information, applying mapping rules.
     /// </summary>
-    /// <typeparam name="TContent">The content type.</typeparam>
-    public interface IDestinationContentReferenceFinder<TContent> : IContentReferenceFinder<TContent>
-        where TContent : IContentReference
+    public interface IDestinationContentReferenceFinder : IContentReferenceFinder
     {
         /// <summary>
         /// Finds the destination content reference for the source content reference location.
@@ -62,4 +60,13 @@ namespace Tableau.Migration.Engine.Endpoints.Search
         /// <returns>The found destination content reference, or null if no content reference was found.</returns>
         Task<IContentReference?> FindBySourceContentUrlAsync(string sourceContentUrl, CancellationToken cancel);
     }
+
+    /// <summary>
+    /// Interface for an object that can find destination content reference 
+    /// for given content information, applying mapping rules.
+    /// </summary>
+    /// <typeparam name="TContent">The content type.</typeparam>
+    public interface IDestinationContentReferenceFinder<TContent> : IDestinationContentReferenceFinder, IContentReferenceFinder<TContent>
+        where TContent : IContentReference
+    { }
 }

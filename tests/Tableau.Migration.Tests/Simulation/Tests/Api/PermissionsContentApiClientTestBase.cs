@@ -66,7 +66,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
 
             GetContentData().Add(content);
 
-            var permissions = Create<IPermissions>();
+            var permissions = Create<Permissions>();
             permissions.ParentId = content.Id;
 
             // Act

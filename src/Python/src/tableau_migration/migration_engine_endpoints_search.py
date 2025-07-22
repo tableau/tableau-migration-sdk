@@ -15,39 +15,44 @@
 
 """Wrapper for classes in Tableau.Migration.Engine.Endpoints.Search namespace."""
 
-from tableau_migration import (
-    cancellation_token
-)
-from tableau_migration.migration import (
-    PyContentLocation,
-    PyContentReference
-)
-
-from Tableau.Migration.Engine.Endpoints.Search import (
-    IDestinationContentReferenceFinder,
-    ISourceContentReferenceFinder,
-    ManifestDestinationContentReferenceFinderFactory,
-    ManifestSourceContentReferenceFinderFactory
-)
-
-from Tableau.Migration import (
-    IContentReference,
-    TaskExtensions
-)
-
-from System import Guid
 
 from typing import (
     Generic,
     TypeVar,
-    Type
+    Type,
+    Union
 )
 
 from uuid import UUID
 
 TContent = TypeVar("TContent")
 
-class PyDestinationContentReferenceFinder(Generic[TContent]):
+from tableau_migration import ( # noqa: E402, F401
+    cancellation_token
+)
+
+from tableau_migration.migration import ( # noqa: E402, F401
+    PyContentLocation,
+    PyContentReference
+)
+
+from tableau_migration.migration_content_search import PyContentReferenceFinder # noqa: E402, F401
+
+from System import Guid # noqa: E402, F401
+
+from Tableau.Migration import ( # noqa: E402, F401
+    IContentReference,
+    TaskExtensions
+)
+
+from Tableau.Migration.Engine.Endpoints.Search import ( # noqa: E402, F401
+    IDestinationContentReferenceFinder,
+    ISourceContentReferenceFinder,
+    ManifestDestinationContentReferenceFinderFactory,
+    ManifestSourceContentReferenceFinderFactory
+)
+
+class PyDestinationContentReferenceFinder(Generic[TContent], PyContentReferenceFinder):
     """Interface for an object that can find destination content reference for given content information, applying mapping rules."""
     
     _dotnet_base = IDestinationContentReferenceFinder
@@ -64,7 +69,7 @@ class PyDestinationContentReferenceFinder(Generic[TContent]):
         self._dotnet = destination_content_reference_finder
         self._content_type = t
         
-    def find_by_source_location(self, source_location: PyContentLocation, cancel = None) -> PyContentReference:
+    def find_by_source_location(self, source_location: PyContentLocation, cancel = None) -> Union[PyContentReference, None]:
         """Finds the destination content reference for the source content reference location.
         
         Args:
@@ -82,7 +87,7 @@ class PyDestinationContentReferenceFinder(Generic[TContent]):
         result = TaskExtensions.AwaitResult[IContentReference](self._dotnet.FindBySourceLocationAsync(source_location._dotnet, cancel))
         return None if result is None else PyContentReference(result)
     
-    def find_by_mapped_location(self, mapped_location: PyContentLocation, cancel = None) -> PyContentReference:
+    def find_by_mapped_location(self, mapped_location: PyContentLocation, cancel = None) -> Union[PyContentReference, None]:
         """Finds the destination content reference for the mapped destination content reference location.
         
         Args:
@@ -100,7 +105,7 @@ class PyDestinationContentReferenceFinder(Generic[TContent]):
         result = TaskExtensions.AwaitResult[IContentReference](self._dotnet.FindByMappedLocationAsync(mapped_location._dotnet, cancel))
         return None if result is None else PyContentReference(result)
     
-    def find_by_source_id(self, source_id: UUID, cancel = None) -> PyContentReference:
+    def find_by_source_id(self, source_id: UUID, cancel = None) -> Union[PyContentReference, None]:
         """Finds the destination content reference for the source content reference unique identifier.
         
         Args:
@@ -118,7 +123,7 @@ class PyDestinationContentReferenceFinder(Generic[TContent]):
         result = TaskExtensions.AwaitResult[IContentReference](self._dotnet.FindBySourceIdAsync(Guid.Parse(str(source_id)), cancel))
         return None if result is None else PyContentReference(result)
     
-    def find_by_id(self, id: UUID, cancel = None) -> PyContentReference:
+    def find_by_id(self, id: UUID, cancel = None) -> Union[PyContentReference, None]:
         """Finds the content reference by its unique identifier.
         
         Args:
@@ -136,7 +141,7 @@ class PyDestinationContentReferenceFinder(Generic[TContent]):
         result = TaskExtensions.AwaitResult[IContentReference](self._dotnet.FindByIdAsync(Guid.Parse(str(id)), cancel))
         return None if result is None else PyContentReference(result)
     
-    def find_by_source_content_url(self, source_content_url: str, cancel = None) -> PyContentReference:
+    def find_by_source_content_url(self, source_content_url: str, cancel = None) -> Union[PyContentReference, None]:
         """Finds the destination content reference for the source content reference URL.
         
         Args:
@@ -154,7 +159,7 @@ class PyDestinationContentReferenceFinder(Generic[TContent]):
         result = TaskExtensions.AwaitResult[IContentReference](self._dotnet.FindBySourceContentUrlAsync(source_content_url.strip(), cancel))
         return None if result is None else PyContentReference(result)
     
-class PySourceContentReferenceFinder(Generic[TContent]):
+class PySourceContentReferenceFinder(Generic[TContent], PyContentReferenceFinder):
     """Interface for an object that can find source content reference."""
     
     _dotnet_base = ISourceContentReferenceFinder
@@ -171,7 +176,7 @@ class PySourceContentReferenceFinder(Generic[TContent]):
         self._dotnet = source_content_reference_finder
         self._content_type = t
 
-    def find_by_source_location(self, source_location: PyContentLocation, cancel = None) -> PyContentReference:
+    def find_by_source_location(self, source_location: PyContentLocation, cancel = None) -> Union[PyContentReference, None]:
         """Finds the source content reference for the source content reference location.
         
         Args:
@@ -189,7 +194,7 @@ class PySourceContentReferenceFinder(Generic[TContent]):
         result = TaskExtensions.AwaitResult[IContentReference](self._dotnet.FindBySourceLocationAsync(source_location._dotnet, cancel))
         return None if result is None else PyContentReference(result)
     
-    def find_by_id(self, id: UUID, cancel = None) -> PyContentReference:
+    def find_by_id(self, id: UUID, cancel = None) -> Union[PyContentReference, None]:
         """Finds the content reference by its unique identifier.
         
         Args:
@@ -222,7 +227,7 @@ class PyDestinationContentReferenceFinderFactory():
         """
         self._dotnet = destination_content_reference_finder_factory
         
-    def for_destination_content_type(self, t: Type[TContent]) -> PyDestinationContentReferenceFinder[TContent]:
+    def for_destination_content_type(self, t: Type[TContent]) -> Union[PyDestinationContentReferenceFinder[TContent], None]:
         """Gets or creates a destination content reference finder for a given content type.
         
         Returns: The content reference finder.

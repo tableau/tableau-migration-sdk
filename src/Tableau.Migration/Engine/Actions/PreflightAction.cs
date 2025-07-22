@@ -21,8 +21,8 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Tableau.Migration.Config;
-using Tableau.Migration.Content;
 using Tableau.Migration.Engine.Hooks;
+using Tableau.Migration.Engine.Hooks.InitializeMigration;
 using Tableau.Migration.Resources;
 
 namespace Tableau.Migration.Engine.Actions
@@ -64,7 +64,8 @@ namespace Tableau.Migration.Engine.Actions
             _localizer = localizer;
         }
 
-        private async ValueTask<(IResult Result, IServerSession? Session)> ManageSettingsAsync(CancellationToken cancel)
+        private async ValueTask<(IResult Result, IEndpointPreflightContext? SourceInfo, IEndpointPreflightContext? DestinationInfo)> 
+            ManageSettingsAsync(CancellationToken cancel)
         {
             // Get the source and destination settings to compare concurrently.
             var sourceSessionTask = _migration.Source.GetSessionAsync(cancel);
@@ -77,23 +78,40 @@ namespace Tableau.Migration.Engine.Actions
 
             if (!sourceSessionResult.Success || !destinationSessionResult.Success)
             {
-                return (new ResultBuilder().Add(sourceSessionResult, destinationSessionResult).Build(), null);
+                return (new ResultBuilder().Add(sourceSessionResult, destinationSessionResult).Build(), null, null);
+            }
+
+            // Get the source and destination sites concurrently.
+            var sourceSiteTask = _migration.Source.GetCurrentSiteAsync(cancel);
+            var destinationSiteTask = _migration.Destination.GetCurrentSiteAsync(cancel);
+
+            await Task.WhenAll(sourceSiteTask, destinationSiteTask).ConfigureAwait(false);
+
+            var sourceSiteResult = sourceSiteTask.Result;
+            var destinationSiteResult = destinationSiteTask.Result;
+
+            if(!sourceSiteResult.Success || !destinationSiteResult.Success)
+            {
+                return (new ResultBuilder().Add(sourceSiteResult, destinationSiteResult).Build(), null, null);
             }
 
             // Find if we have access to validate settings.
             var sourceSession = sourceSessionResult.Value;
+            var sourceCtx = new EndpointPreflightContext(_migration.Source, sourceSession, sourceSiteResult.Value);
+
             var destinationSession = destinationSessionResult.Value;
-            
+            var destinationCtx = new EndpointPreflightContext(_migration.Destination, destinationSession, destinationSiteResult.Value);
+
             if (!_options.ValidateSettings)
             {
                 _logger.LogDebug(_localizer[SharedResourceKeys.SiteSettingsSkippedDisabledLogMessage]);
-                return (Result.Succeeded(), destinationSession);
+                return (Result.Succeeded(), sourceCtx, destinationCtx);
             }
 
             if (!sourceSession.IsAdministrator || !destinationSession.IsAdministrator)
             {
                 _logger.LogDebug(_localizer[SharedResourceKeys.SiteSettingsSkippedNoAccessLogMessage]);
-                return (Result.Succeeded(), destinationSession);
+                return (Result.Succeeded(), sourceCtx, destinationCtx);
             }
 
             /* We currently don't update settings for the user because
@@ -103,7 +121,7 @@ namespace Tableau.Migration.Engine.Actions
              * If/when that gets addressed we can update the destination setting automatically.
              */
 
-            return (Result.Succeeded(), destinationSession);
+            return (Result.Succeeded(), sourceCtx, destinationCtx);
         }
 
         /// <inheritdoc />
@@ -114,15 +132,15 @@ namespace Tableau.Migration.Engine.Actions
 
             var preflightResultBuilder = new ResultBuilder();
 
-            var (settingsResult, destinationSession) = await ManageSettingsAsync(cancel).ConfigureAwait(false);
+            var (settingsResult, sourceInfo, destinationInfo) = await ManageSettingsAsync(cancel).ConfigureAwait(false);
 
-            if (!settingsResult.Success || destinationSession == null)
+            if (!settingsResult.Success || sourceInfo is null || destinationInfo is null)
             {
                 return MigrationActionResult.FromResult(settingsResult);
             }
 
             // Call user-registered initializer last so the hook can rely that all engine initialization/validation is complete.
-            IInitializeMigrationHookResult initResult = InitializeMigrationHookResult.Succeeded(_services, destinationSession);
+            IInitializeMigrationHookResult initResult = InitializeMigrationHookResult.Succeeded(_services, sourceInfo, destinationInfo);
 
             initResult = await _hooks.ExecuteAsync<IInitializeMigrationHook, IInitializeMigrationHookResult>(initResult, cancel).ConfigureAwait(false);
 

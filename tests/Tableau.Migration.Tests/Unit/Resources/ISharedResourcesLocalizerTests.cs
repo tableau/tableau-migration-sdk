@@ -15,6 +15,7 @@
 //  limitations under the License.
 //
 
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
@@ -91,7 +92,7 @@ namespace Tableau.Migration.Tests.Unit.Resources
             }
 
             [Fact]
-            public void All_key_valid()
+            public void All_keys_valid()
             {
                 var services = CreateLocalizationTestServices();
                 var container = services.BuildServiceProvider();
@@ -105,11 +106,60 @@ namespace Tableau.Migration.Tests.Unit.Resources
 
                 Assert.All(constants, (constant) =>
                 {
-                    // If this fails, it means the key is not in the SharedResource.rex file
+                    // If this fails, it means the key is not in the SharedResource.resx file
 
                     var localized = localizer[constant.Name];
                     Assert.False(localized.ResourceNotFound);
                 });
+            }
+
+            [Fact]
+            public void SharedResourceKeys_and_SharedResources_are_in_sync()
+            {
+                var services = CreateLocalizationTestServices();
+                var container = services.BuildServiceProvider();
+
+                var localizer = container.GetRequiredService<ISharedResourcesLocalizer>();
+
+                // Get all string constants from SharedResourceKeys
+                var keyConstants = typeof(SharedResourceKeys)
+                    .GetFields(BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy)
+                    .Where(f => f.IsLiteral && !f.IsInitOnly && f.FieldType == typeof(string))
+                    .Select(f => f.GetValue(null)?.ToString())
+                    .Where(key => !string.IsNullOrWhiteSpace(key))
+                    .ToHashSet()!;
+
+                // Verify each key from SharedResourceKeys can be resolved                
+                var missingKeys = new List<string>();
+                var foundKeys = new List<string>();
+
+                foreach (var key in keyConstants)
+                {
+                    if (key is null)
+                    {
+                        continue;
+                    }
+
+                    var localized = localizer[key];
+                    if (localized.ResourceNotFound)
+                    {
+                        missingKeys.Add(key);
+                        continue;
+                    }
+
+                    foundKeys.Add(key);
+                }
+
+                // Report any keys from SharedResourceKeys that are missing in SharedResources.resx
+                if (missingKeys.Count != 0)
+                {
+                    var missingKeysMessage = $"Keys defined in SharedResourceKeys but missing in SharedResources.resx:\n  - {string.Join("\n  - ", missingKeys)}";
+                    Assert.Fail($"{nameof(SharedResourceKeys)} and SharedResources.resx are out of sync:\n\n{missingKeysMessage}");
+                }
+
+
+                // Verify all keys were found
+                Assert.Equal(keyConstants.Count, foundKeys.Count);
             }
         }
     }

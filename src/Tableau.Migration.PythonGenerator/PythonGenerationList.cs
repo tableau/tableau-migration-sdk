@@ -26,6 +26,7 @@ using Tableau.Migration.Content.Permissions;
 using Tableau.Migration.Content.Schedules;
 using Tableau.Migration.Content.Schedules.Cloud;
 using Tableau.Migration.Content.Schedules.Server;
+using Tableau.Migration.Content.Search;
 using Tableau.Migration.Engine;
 using Tableau.Migration.Engine.Actions;
 using Tableau.Migration.Engine.Hooks.Mappings;
@@ -48,6 +49,7 @@ namespace Tableau.Migration.PythonGenerator
             typeof(IResult),
             typeof(MigrationCompletionStatus),
             typeof(PipelineProfile),
+            typeof(IEmptyIdContentReference),
 
         #endregion
 
@@ -93,6 +95,17 @@ namespace Tableau.Migration.PythonGenerator
             typeof(ICloudSubscription),
             typeof(ISubscription<>),
             typeof(UserAuthenticationType),
+            typeof(FavoriteContentType),
+            typeof(IFavorite),
+            typeof(IGroupSet),
+            typeof(IPublishableGroupSet),
+
+        #endregion
+
+        #region - Tableau.Migration.Content.Search -
+
+            typeof(IContentReferenceFinder),
+
 
         #endregion
 
@@ -165,6 +178,7 @@ namespace Tableau.Migration.PythonGenerator
             typeof(GranteeType),
             typeof(IGranteeCapability),
             typeof(IPermissions),
+            typeof(IPermissionSet),
             typeof(ICapability),
 
         #endregion

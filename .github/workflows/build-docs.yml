@@ -9,17 +9,23 @@ on:
       python-version:
         required: true
         type: string
+      dotnet-sdk-version: # New input for .NET SDK version
+        required: true
+        type: string
 
 jobs:
   build-docs:
     runs-on: ${{ inputs.runs-on-config }}
-    name: Build Docs
+    name: Build Docs (.NET ${{ inputs.dotnet-sdk-version }}) # Updated name
     steps:
       # Checkout the repository
       - uses: actions/checkout@v4
 
       # Setup .NET environment
-      - uses: ./.github/actions/setup-dotnet
+      - name: Setup .NET ${{ inputs.dotnet-sdk-version }}
+        uses: ./.github/actions/setup-dotnet
+        with:
+          dotnet-version: ${{ inputs.dotnet-sdk-version }} # Pass the input here
 
       # Setup Python environment
       - name: Setup Python
@@ -32,11 +38,10 @@ jobs:
         shell: pwsh
         run: |
           ./scripts/generate-docs.ps1 -SkipPreClean
-          Compress-Archive ./docs/* -Destination docs.zip 
 
       # Upload Docs Artifact
       - name: Upload Docs Artifact
         uses: actions/upload-artifact@v4
         with:
           name: docs
-          path: docs.zip
+          path: ./docs

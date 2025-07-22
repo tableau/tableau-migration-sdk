@@ -16,6 +16,7 @@
 //
 
 using System;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -33,6 +34,10 @@ namespace Tableau.Migration.Content.Search
     public class CachedContentReferenceFinder<TContent>(IContentReferenceCache cache) : IContentReferenceFinder<TContent>
         where TContent : IContentReference
     {
+        /// <inheritdoc />
+        public async Task<IImmutableList<IContentReference>> FindAllAsync(CancellationToken cancel)
+            => await cache.GetAllAsync(cancel).ConfigureAwait(false);
+
         /// <inheritdoc />
         public async Task<IContentReference?> FindByIdAsync(Guid id, CancellationToken cancel)
             => await cache.ForIdAsync(id, cancel).ConfigureAwait(false);

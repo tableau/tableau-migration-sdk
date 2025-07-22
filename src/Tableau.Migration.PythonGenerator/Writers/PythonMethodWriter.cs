@@ -15,7 +15,12 @@
 //  limitations under the License.
 //
 
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 
 namespace Tableau.Migration.PythonGenerator.Writers
 {
@@ -41,9 +46,48 @@ namespace Tableau.Migration.PythonGenerator.Writers
         private string BuildArgumentInvocation(PythonMethod method)
         {
             string ArgumentInvocation(PythonMethodArgument arg)
-                => ToDotNetType(arg.Type, arg.Name);
+            {
+                return ToDotNetType(arg.Type, arg.Name);
+            }
 
-            return string.Join(", ", method.Arguments.Select(ArgumentInvocation));
+            var argInvocations = new List<string>(method.DotNetMethod.Parameters.Length);
+            var pythonArgQueue = new Queue<PythonMethodArgument>(method.Arguments);
+            foreach(var dotNetParam in method.DotNetMethod.Parameters)
+            {
+                if(dotNetParam.Type.Name == nameof(CancellationToken))
+                {
+                    argInvocations.Add("cancellation_token");
+                }
+                else
+                {
+                    argInvocations.Add(ArgumentInvocation(pythonArgQueue.Dequeue()));
+                }
+            }
+
+            return string.Join(", ", argInvocations);
+        }
+
+        private string UnwrapTaskType(ITypeSymbol type)
+        {
+            if (type.Name != nameof(Task<int>) || type is not INamedTypeSymbol namedType)
+                return DotNetTypeName(type);
+
+            return DotNetTypeName(namedType.TypeArguments.Single());
+        }
+
+        private string BuildInvokeExpression(PythonType type, PythonMethod method)
+        {
+            var argInvocation = BuildArgumentInvocation(method);
+            var dotNetInvoker = method.IsStatic ? type.DotNetType.Name : $"self.{PythonTypeWriter.DOTNET_OBJECT}";
+            var methodInvokeExpression = $"{dotNetInvoker}.{method.DotNetMethod.Name}({argInvocation})";
+
+            if(method.IsAsync)
+            {
+                var taskReturn = UnwrapTaskType(method.DotNetMethod.ReturnType);
+                methodInvokeExpression = $"TaskExtensions.AwaitResult[{taskReturn}]({methodInvokeExpression})";
+            }
+
+            return methodInvokeExpression;
         }
 
         public void Write(IndentingStringBuilder builder, PythonType type, PythonMethod method)
@@ -60,9 +104,7 @@ namespace Tableau.Migration.PythonGenerator.Writers
             {
                 _docWriter.Write(methodBuilder, method.Documentation);
 
-                var argInvocation = BuildArgumentInvocation(method);
-                var dotNetInvoker = method.IsStatic ? type.DotNetType.Name : $"self.{PythonTypeWriter.DOTNET_OBJECT}";
-                var methodInvokeExpression = $"{dotNetInvoker}.{method.DotNetMethod.Name}({argInvocation})";
+                var methodInvokeExpression = BuildInvokeExpression(type, method);
 
                 if (method.ReturnType is not null)
                 {

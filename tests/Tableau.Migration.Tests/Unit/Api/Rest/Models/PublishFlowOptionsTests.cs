@@ -15,7 +15,6 @@
 //  limitations under the License.
 //
 
-using System.IO;
 using Tableau.Migration.Api.Models;
 using Tableau.Migration.Api.Rest.Models.Types;
 using Tableau.Migration.Content;
@@ -31,17 +30,16 @@ namespace Tableau.Migration.Tests.Unit.Api.Rest.Models
             public void Initializes()
             {
                 var flow = Create<IPublishableFlow>();
-                using var file = new MemoryStream();
                 var fileType = FlowFileTypes.Tfl;
 
-                var opts = new PublishFlowOptions(flow, file, fileType);
+                var opts = new PublishFlowOptions(flow, fileType);
 
                 Assert.Equal(flow.Name, opts.Name);
                 Assert.Equal(flow.Description, opts.Description);
                 Assert.Equal(((IContainerContent)flow).Container.Id, opts.ProjectId);
                 Assert.Equal(flow.File.OriginalFileName, opts.FileName);
 
-                Assert.Same(file, opts.File);
+                Assert.Same(flow.File, opts.File);
                 Assert.Equal(fileType, opts.FileType);
             }
         }

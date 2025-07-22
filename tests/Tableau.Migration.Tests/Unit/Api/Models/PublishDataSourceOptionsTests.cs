@@ -15,7 +15,6 @@
 //  limitations under the License.
 //
 
-using System.IO;
 using Tableau.Migration.Api.Models;
 using Tableau.Migration.Api.Rest.Models.Types;
 using Tableau.Migration.Content;
@@ -27,6 +26,7 @@ namespace Tableau.Migration.Tests.Unit.Api.Models
     {
         private static void AssertContentTypeFields(IPublishableDataSource dataSource, PublishDataSourceOptions result)
         {
+            Assert.Same(dataSource.File, result.File);
             Assert.Equal(dataSource.Name, result.Name);
             Assert.Equal(dataSource.Description, result.Description);
             Assert.Equal(dataSource.UseRemoteQueryAgent, result.UseRemoteQueryAgent);
@@ -38,12 +38,10 @@ namespace Tableau.Migration.Tests.Unit.Api.Models
         public void Default()
         {
             var dataSource = Create<IPublishableDataSource>();
-            var testFile = Create<Stream>();
-            var result = new PublishDataSourceOptions(dataSource, testFile);
+            var result = new PublishDataSourceOptions(dataSource);
 
             Assert.NotNull(result);
             AssertContentTypeFields(dataSource, result);
-            Assert.Equal(testFile, result.File);
             Assert.Equal(dataSource.File.OriginalFileName, result.FileName);
             Assert.Equal(DataSourceFileTypes.Tdsx, result.FileType);
         }
@@ -52,13 +50,11 @@ namespace Tableau.Migration.Tests.Unit.Api.Models
         public void Different_FileType()
         {
             var dataSource = Create<IPublishableDataSource>();
-            var testFile = Create<Stream>();
             var testFileType = Create<string>();
-            var result = new PublishDataSourceOptions(dataSource, testFile, testFileType);
+            var result = new PublishDataSourceOptions(dataSource, testFileType);
 
             Assert.NotNull(result);
             AssertContentTypeFields(dataSource, result);
-            Assert.Equal(testFile, result.File);
             Assert.Equal(dataSource.File.OriginalFileName, result.FileName);
             Assert.Equal(testFileType, result.FileType);
         }

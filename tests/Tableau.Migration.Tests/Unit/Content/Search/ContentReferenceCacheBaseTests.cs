@@ -26,7 +26,7 @@ using Xunit;
 
 namespace Tableau.Migration.Tests.Unit.Content.Search
 {
-    public class ContentReferenceCacheBaseTests
+    public sealed class ContentReferenceCacheBaseTests
     {
         #region - Test Classes -
 
@@ -40,6 +40,22 @@ namespace Tableau.Migration.Tests.Unit.Content.Search
             public Exception? SearchException { get; set; }
 
             public int SearchCalls { get; private set; }
+
+            protected override async ValueTask<IEnumerable<ContentReferenceStub>> SearchAllAsync(CancellationToken cancel)
+            {
+                SearchCalls++;
+                if (SearchSpinTime is not null)
+                {
+                    await Task.Delay(SearchSpinTime.Value, cancel);
+                }
+
+                if (SearchException is not null)
+                {
+                    throw SearchException;
+                }
+
+                return SearchData;
+            }
 
             protected override async ValueTask<IEnumerable<ContentReferenceStub>> SearchAsync(ContentLocation searchLocation, CancellationToken cancel)
             {
@@ -88,7 +104,7 @@ namespace Tableau.Migration.Tests.Unit.Content.Search
 
         #region - ForLocationAsync -
 
-        public class ForLocationAsync : ContentReferenceCacheBaseTest
+        public sealed class ForLocationAsync : ContentReferenceCacheBaseTest
         {
             [Fact]
             public async Task CachesByLocationAsync()
@@ -249,7 +265,7 @@ namespace Tableau.Migration.Tests.Unit.Content.Search
 
         #region - ForIdAsync -
 
-        public class ForIdAsync : ContentReferenceCacheBaseTest
+        public sealed class ForIdAsync : ContentReferenceCacheBaseTest
         {
             [Fact]
             public async Task CachesByIdAsync()
@@ -269,6 +285,36 @@ namespace Tableau.Migration.Tests.Unit.Content.Search
                 Assert.Same(searchItem, result);
 
                 Assert.Equal(1, Cache.SearchCalls);
+            }
+
+            [Fact]
+            public async Task DoesNotCacheByEmptyIdAsync()
+            {
+                Cache.SearchData = new[]
+                {
+                   new ContentReferenceStub(Guid.Empty,string.Empty, Create<ContentLocation>()),
+                   new ContentReferenceStub(Guid.Empty,string.Empty, Create<ContentLocation>())
+                };
+
+                var searchItem = Cache.SearchData.First();
+
+                var result = await Cache.ForIdAsync(searchItem.Id, Cancel);
+                Assert.Null(result);
+
+                //Test value not cached.
+                result = await Cache.ForIdAsync(searchItem.Id, Cancel);
+                Assert.Null(result);
+
+                var searchItem2 = Cache.SearchData.Last();
+
+                var result2 = await Cache.ForIdAsync(searchItem2.Id, Cancel);
+                Assert.Null(result);
+
+                //Test value not cached.
+                result = await Cache.ForIdAsync(searchItem2.Id, Cancel);
+                Assert.Null(result);
+
+                Assert.Equal(0, Cache.SearchCalls);
             }
 
             [Fact]
@@ -381,6 +427,27 @@ namespace Tableau.Migration.Tests.Unit.Content.Search
 
                 Assert.Same(successItem, result);
                 Assert.Equal(2, Cache.SearchCalls);
+            }
+        }
+
+        #endregion
+
+        #region - GetAllAsync -
+
+        public sealed class GetAllAsync : ContentReferenceCacheBaseTest
+        {
+            [Fact]
+            public async Task SearchesAllAndCachesAsync()
+            {
+                Cache.SearchData = CreateMany<ContentReferenceStub>();
+                var result1 = await Cache.GetAllAsync(Cancel);
+
+                Assert.Equal(Cache.SearchData, result1);
+                Assert.Equal(1, Cache.SearchCalls);
+                
+                var result2 = await Cache.GetAllAsync(Cancel);
+                Assert.Equal(result1, result2);
+                Assert.Equal(1, Cache.SearchCalls);
             }
         }
 

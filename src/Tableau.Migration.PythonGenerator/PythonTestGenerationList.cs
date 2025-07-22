@@ -120,6 +120,8 @@ namespace Tableau.Migration.PythonGenerator
 
         private static readonly ImportedModule IContentReferenceImport = new(Dotnet.Namespaces.TABLEAU_MIGRATION, nameof(IContentReference));
 
+        private static readonly ImportedModule IEmptyIdContentReferenceImport = new(Dotnet.Namespaces.TABLEAU_MIGRATION, nameof(IEmptyIdContentReference));
+
         private static readonly ImportedModule DotnetListImport = new(
             Dotnet.Namespaces.SYSTEM_COLLECTIONS_GENERIC,
             new ImportedType(Dotnet.Types.LIST, Dotnet.TypeAliases.LIST));
@@ -137,6 +139,7 @@ namespace Tableau.Migration.PythonGenerator
                 new List<ImportedModule>()
                 {
                     IContentReferenceImport,
+                    IEmptyIdContentReferenceImport,
                     new(Dotnet.Namespaces.SYSTEM, [Dotnet.Types.BOOLEAN, Dotnet.Types.NULLABLE]),
                     GetDotnetImportedModule(typeof(ISchedule)),
                     GetPythonImportedModule(typeof(ISchedule))

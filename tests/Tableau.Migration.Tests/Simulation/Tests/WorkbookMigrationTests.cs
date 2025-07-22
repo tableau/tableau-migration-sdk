@@ -19,7 +19,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
 using Tableau.Migration.Api.Rest.Models.Responses;
 using Tableau.Migration.Api.Simulation;
 using Tableau.Migration.Content;
@@ -52,16 +51,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests
                 var sourceWorkbooks = PrepareSourceWorkbooksData();
 
                 //Migrate
-                var plan = ServiceProvider.GetRequiredService<IMigrationPlanBuilder>()
-                    .FromSource(SourceEndpointConfig)
-                    .ToDestination(CloudDestinationEndpointConfig)
-                    .ForServerToCloud()
-                    .WithTableauIdAuthenticationType()
-                    .WithTableauCloudUsernames("test.com")
-                    .Build();
-
-                var migrator = ServiceProvider.GetRequiredService<IMigrator>();
-                var result = await migrator.ExecuteAsync(plan, Cancel);
+                var result = await RunMigrationWithTableauIdAuthAsync();
 
                 //Assert - all workbooks should be migrated.
 
@@ -115,8 +105,8 @@ namespace Tableau.Migration.Tests.Simulation.Tests
                         Assert.NotEqual(sourceView.Id, destinationView.Id);
 
                         // Assert view permissions
-                        AssertPermissionsMigrated(result.Manifest,
-                            SourceApi.Data.ViewPermissions[sourceView.Id],
+                        AssertPermissionsMigrated(
+                            result.Manifest, SourceApi.Data.ViewPermissions[sourceView.Id],
                             CloudDestinationApi.Data.ViewPermissions[destinationView.Id]);
 
                         // Assert view tags

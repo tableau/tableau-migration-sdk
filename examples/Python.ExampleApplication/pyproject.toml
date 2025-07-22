@@ -7,7 +7,7 @@ ignore = ["E501"]
 detached = true
 
 dependencies = [
-  "ruff==0.11.10"
+  "ruff==0.12.4"
 ]
 
 [tool.hatch.envs.lint.scripts]

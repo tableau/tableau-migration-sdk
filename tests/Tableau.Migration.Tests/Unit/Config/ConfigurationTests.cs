@@ -44,7 +44,7 @@ namespace Tableau.Migration.Tests.Unit.Config
         }
 
         [Fact]
-        public async Task LoadFromInitialConfiguration()
+        public async Task LoadsFromInitialConfigurationAsync()
         {
             var content =
 $@"
@@ -100,7 +100,7 @@ $@"
         /// This test checks if changes to a config file can be hot-reloaded.
         /// </summary>
         [Fact]
-        public async Task FileConfigChangeReload()
+        public async Task FileConfigChangeReloadsAsync()
         {
             var content =
 $@"
@@ -178,7 +178,7 @@ $@"
         }
 
         [Fact]
-        public async Task DefaultsApplied()
+        public async Task DefaultsAppliedAsync()
         {
             await using var context = ConfigurationTestContext.WithoutConfigFile();
 
@@ -194,7 +194,7 @@ $@"
         }
 
         [Fact]
-        public async Task Reads_DefaultPermissionsContentTypes_config()
+        public async Task ReadsDefaultPermissionsContentTypesAsync()
         {
             var content =
 $@"{{
@@ -213,6 +213,31 @@ $@"{{
             var configSegments = config.DefaultPermissionsContentTypes.UrlSegments;
 
             Assert.True(configSegments.SequenceEqual(defaultUrlSegments.Concat(["test1", "test2"])));
+        }
+
+        [Fact]
+        public async Task ReadsCacheConfigByKeyAsync()
+        {
+            var content =
+$@"{{
+  ""MigrationSdkOptions"": {{
+    ""caches"": {{
+      ""cache1"": {{ ""{nameof(CacheOptions.SizeLimit)}"": 100 }},
+      ""cache2"": {{ ""{nameof(CacheOptions.SizeLimit)}"": 500 }},
+      ""cache3"": {{ }},
+    }}
+  }}
+}}";
+
+            await using var context = await ConfigurationTestContext.FromContentAsync(content, Cancel);
+
+            var config = context.GetCurrentConfiguration();
+
+            Assert.Equal(3, config.Caches.Count);
+            Assert.Equal(100, config.Caches["Cache1"].SizeLimit);
+            Assert.Equal(500, config.Caches["CACHE2"].SizeLimit);
+            Assert.Equal(CacheOptions.Defaults.SIZE_LIMIT, config.Caches["cache3"].SizeLimit);
+            Assert.False(config.Caches.ContainsKey("notConfigured"));
         }
     }
 }

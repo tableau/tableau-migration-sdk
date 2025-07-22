@@ -9,6 +9,9 @@ on:
       test-name:
         required: true
         type: string
+      dotnet-build-version:
+        required: true
+        type: string
 
 env:
   DOTNET_NOLOGO: "true"
@@ -25,18 +28,28 @@ jobs:
       matrix:
         os: ${{ fromJSON(vars.BUILD_OS) }}
         config: ${{ fromJSON(vars.BUILD_CONFIGURATIONS) }}
+        dotnet-version: ['8.0.x', '9.0.x']
 
     runs-on: ${{ matrix.os }}
-    name: Test Python ${{ inputs.test-name }} (${{ matrix.os }}, ${{ matrix.config }})
+    name: Test Python ${{ inputs.test-name }} (${{ matrix.os }}, ${{ matrix.config }}, .NET ${{ matrix.dotnet-version }})
     steps:
       # Checkout the repository
       - uses: actions/checkout@v4
 
-      # Setup .NET environment
-      - uses: ./.github/actions/setup-dotnet
+      # Clean all existing .NET installations
+      - name: Clean existing .NET installations
+        uses: ./.github/actions/clean-dotnet
 
-      # Restore Tools (i.e. report generator)
+      # Setup .NET environment
+      - name: Setup .NET ${{ matrix.dotnet-version }}
+        uses: ./.github/actions/setup-dotnet
+        with:
+          dotnet-version: ${{ matrix.dotnet-version }} # Pass the .NET version from the matrix
+
+      # Restore Tools (i.e. report generator) - skip for .NET 8
+      # Code coverage report generation is only supported on the latest .NET version
       - name: Restore .NET Tools
+        if: ${{ !(matrix.dotnet-version == '8.0.x') }}
         run: dotnet tool restore
 
       # Setup Python environment
@@ -69,7 +82,7 @@ jobs:
       # TODO: [W-18497981: CI/CD Improvements: Python tests should test final package | Work](https://gus.lightning.force.com/lightning/r/ADM_Work__c/a07EE00002EIUwKYAX/view)
       - uses: actions/download-artifact@v4
         with:
-          name: tests-${{ matrix.config }}
+          name: tests-${{ matrix.config }}-net${{ inputs.dotnet-build-version }}
           path: ./src/Python/src/tableau_migration/bin/
 
       # Test with pytest
@@ -78,19 +91,20 @@ jobs:
 
       # Build code coverage reports
       - name: Build Coverage Summary
+        if: ${{ !(matrix.dotnet-version == '8.0.x') }}
         run: dotnet reportgenerator -reports:"./TestResults/coverage*.xml" -targetdir:"./TestResults/coverage-reports" -reporttypes:"Html;MarkdownSummaryGithub"
 
       # Create job summary
       - name: Set Job Summary
+        if: ${{ !(matrix.dotnet-version == '8.0.x') }}
         run: cat "./TestResults/coverage-reports/SummaryGithub.md" >> $GITHUB_STEP_SUMMARY
         shell: bash
 
       # Upload test results
       - name: Upload Test Results
-        # Use always() to always run this step to publish test results when there are test failures
-        if: ${{ always() }}
+        if: ${{ !(matrix.dotnet-version == '8.0.x') }}
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ inputs.test-name }}-results-${{ matrix.os }}-${{ matrix.config }}
+          name: ${{ inputs.test-name }}-results-${{ matrix.os }}-${{ matrix.config }}-net${{ matrix.dotnet-version }}
           path: ${{ inputs.working-directory }}/TestResults
           if-no-files-found: error

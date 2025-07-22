@@ -66,6 +66,11 @@ namespace Tableau.Migration.PythonGenerator
                 {
                     yield return arg.Type;
                 }
+
+                foreach(var r in m.ExtraImports)
+                {
+                    yield return r;
+                }
             }
         }
 

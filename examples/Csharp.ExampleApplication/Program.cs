@@ -112,6 +112,10 @@ namespace Csharp.ExampleApplication
             services.AddScoped<ActionUrlXmlTransformer>();
             #endregion
 
+            #region ModifyPermissionsTransformer-DI
+            services.AddScoped<ModifyPermissionsTransformer>();
+            #endregion
+
             #region LogMigrationActionsHook-DI
             services.AddScoped<LogMigrationActionsHook>();
             #endregion

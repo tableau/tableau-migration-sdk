@@ -26,11 +26,6 @@ namespace Tableau.Migration
     public interface IMigrationCapabilities : ICloneable
     {
         /// <summary>
-        /// Gets a value indicating whether the preflight check has been executed.
-        /// </summary>
-        bool PreflightCheckExecuted { get; }
-
-        /// <summary>
         /// Gets the unique list of items that are disabled at the destination.
         /// </summary>
         HashSet<Type> ContentTypesDisabledAtDestination { get; }

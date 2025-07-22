@@ -529,6 +529,7 @@ namespace Tableau.Migration.Tests.Unit.Api
                 if (errorStatusCode is null)
                 {
                     var response = AutoFixture.CreateResponse<UsersWithCustomViewAsDefaultViewResponse>();
+
                     MockHttpClient.SetupResponse(
                         new MockHttpResponseMessage<UsersWithCustomViewAsDefaultViewResponse>(response));
                     return response;

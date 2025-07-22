@@ -27,7 +27,6 @@ namespace Tableau.Migration.Engine.Hooks.Transformers
     /// </summary>
     /// <typeparam name="TPublish"><inheritdoc/></typeparam>
     public abstract class ContentTransformerBase<TPublish> : IContentTransformer<TPublish>
-        where TPublish : IContentReference
     {
         private readonly string _typeName;
 

@@ -35,17 +35,17 @@ namespace Tableau.Migration.Interop
         /// </summary>
         /// <param name="services">The service collection to register services with.</param>
         /// <param name="loggerFactory">A factory to use to create new loggers for a given category name.</param>
-        /// <returns></returns>
-        public static IServiceCollection AddPythonSupport(
-            this IServiceCollection services,
-            Func<string, NonGenericLoggerBase> loggerFactory)
+        /// <returns>The original service collection, for fluent API usage.</returns>
+        public static IServiceCollection AddPythonSupport(this IServiceCollection services, Func<string, NonGenericLoggerBase> loggerFactory)
         {
             // Add environment variable configuration.
             var userOptions = BuildEnvironmentVariableConfiguration();
 
             return services
+                // Add underlying configuration to DI
+                .AddSingleton(userOptions)
                 .AddTableauMigrationSdk(userOptions)
-                // Add Python logging.
+                // Add additional Python logging.
                 .AddLogging(b => b.AddPythonLogging(loggerFactory));
         }
 
@@ -54,10 +54,8 @@ namespace Tableau.Migration.Interop
         /// </summary>
         /// <param name="builder">The <see cref="ILoggingBuilder"/></param>
         /// <param name="loggerFactory">A factory to use to create new loggers for a given category name.</param>
-        /// <returns></returns>
-        public static ILoggingBuilder AddPythonLogging(
-            this ILoggingBuilder builder,
-            Func<string, NonGenericLoggerBase> loggerFactory)
+        /// <returns>The original logging builder, for fluent API usage.</returns>
+        public static ILoggingBuilder AddPythonLogging(this ILoggingBuilder builder, Func<string, NonGenericLoggerBase> loggerFactory)
         {
             // Clear all previous providers
             builder.ClearProviders();
@@ -74,7 +72,7 @@ namespace Tableau.Migration.Interop
         /// Environment variables start with "MigrationSDK__".
         /// </summary>
         /// <retruns>The build configuration.</retruns>
-        private static IConfiguration BuildEnvironmentVariableConfiguration()
+        private static IConfigurationRoot BuildEnvironmentVariableConfiguration()
         {
             // Set standard python configuration values.
             Environment.SetEnvironmentVariable(Constants.PYTHON_USER_AGENT_COMMENT_CONFIG_KEY, Constants.PYTHON_USER_AGENT_COMMENT);

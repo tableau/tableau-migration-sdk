@@ -23,6 +23,10 @@ on:
         description: "Whether to continue on error for this deployment"
         required: true
         type: boolean
+      dotnet-build-version:
+        description: "The .NET version used for building"
+        required: true
+        type: string
 
 env:
   DOTNET_NOLOGO: "true"
@@ -62,14 +66,36 @@ jobs:
 
       # Download the NuGet package artifact
       - uses: actions/download-artifact@v4
-
         with:
-          name: nuget-package
+          name: nuget-package-Release-net${{ inputs.dotnet-build-version }}
 
       # Publish the package to a NuGet Repository
       - name: Publish the package to a Nuget Repository
         shell: pwsh
         env:
           NUGET_API_KEY: ${{ secrets.NUGET_PUBLISH_API_KEY }}
-        # This command will fail if the package already exists in the repository.
-        run: dotnet nuget push Tableau.Migration.*.nupkg -k $env:NUGET_API_KEY -s ${{ env.NUGET_PACKAGE_REPOSITORY }}
+        run: |
+          $publishEnv = "${{ inputs.publish-environment }}"
+          
+          if ("${{ vars.NUGET_PUBLISH_USER }}" -ne "") {
+            Write-Host "Using username and API key authentication for environment: $publishEnv"
+            
+            # Remove existing source if it exists to avoid conflicts
+            dotnet nuget remove source $publishEnv 2>$null
+            
+            # Add the NuGet source configuration
+            dotnet nuget add source ${{ env.NUGET_PACKAGE_REPOSITORY }} `
+              --name $publishEnv `
+              --username ${{ vars.NUGET_PUBLISH_USER }} `
+              --password ${{ secrets.NUGET_PUBLISH_API_KEY }} `
+              --store-password-in-clear-text
+            
+            # Push the package using the configured source
+            dotnet nuget push Tableau.Migration.*.nupkg -s $publishEnv
+          }
+          else {
+            Write-Host "Using API key only authentication for environment: $publishEnv"
+            
+            # Push directly with API key
+            dotnet nuget push Tableau.Migration.*.nupkg -k $env:NUGET_PUBLISH_API_KEY -s ${{ env.NUGET_PACKAGE_REPOSITORY }}
+          }

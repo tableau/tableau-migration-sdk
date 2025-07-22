@@ -1,4 +1,4 @@
-﻿//
+//
 //  Copyright (c) 2025, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
@@ -42,14 +42,19 @@ namespace Tableau.Migration.Config
             public const bool BATCH_PUBLISHING_ENABLED = false;
 
             /// <summary>
-            /// The default migration include extract flag.
+            /// The default migration overwrite group users flag.
             /// </summary>
-            public const bool INCLUDE_EXTRACT_ENABLED = true;
+            public const bool OVERWRITE_GROUP_USERS_ENABLED = true;
 
             /// <summary>
-            /// The default overwrite group users flag.
+            /// The default migration overwrite user favorites flag.
             /// </summary>
-            public const bool OVERWRITE_GROUP_USERS = true;
+            public const bool OVERWRITE_USER_FAVORITES_ENABLED = true;
+
+            /// <summary>
+            /// The default overwrite group set groups flag.
+            /// </summary>
+            public const bool OVERWRITE_GROUP_SET_GROUPS = true;
         }
 
         /// <summary>
@@ -80,18 +85,6 @@ namespace Tableau.Migration.Config
         private bool? _batchPublishingEnabled;
 
         /// <summary>
-        /// Gets or sets the include extract flag for supported types. Default: enabled.<br/>
-        /// <b>Important:</b> This option is only available to <see cref="Content.IWorkbook"/> and <see cref="Content.IDataSource"/>.
-        /// For more details, check the configuration <seealso href="https://tableau.github.io/migration-sdk/articles/configuration.html#contenttypesincludeextractenabled">article</seealso>.
-        /// </summary>
-        public bool IncludeExtractEnabled
-        {
-            get => _includeExtractEnabled ?? Defaults.INCLUDE_EXTRACT_ENABLED;
-            set => _includeExtractEnabled = value;
-        }
-        private bool? _includeExtractEnabled;
-
-        /// <summary>
         /// Gets or sets the overwrite group users flag for supported types. Default: enabled.<br/>
         /// <b>Important:</b> This option is only available to <see cref="Content.IGroup"/>.
         /// For more details, check the configuration 
@@ -99,10 +92,34 @@ namespace Tableau.Migration.Config
         /// </summary>
         public bool OverwriteGroupUsersEnabled
         {
-            get => _overwriteGroupUsersEnabled ?? Defaults.OVERWRITE_GROUP_USERS;
+            get => _overwriteGroupUsersEnabled ?? Defaults.OVERWRITE_GROUP_USERS_ENABLED;
             set => _overwriteGroupUsersEnabled = value;
         }
         private bool? _overwriteGroupUsersEnabled;
+
+        /// <summary>
+        /// When true, destination favorites will be deleted for all migrated users as a user post-publish hook. This will delete favorites that exist on the destination but are not present on the source.
+        /// <b>Important:</b> This option is only available for the <see cref="Content.IFavorite"/> content type.
+        /// </summary>
+        public bool OverwriteUserFavoritesEnabled
+        {
+            get => _overwriteUserFavoritesEnabled ?? Defaults.OVERWRITE_USER_FAVORITES_ENABLED;
+            set => _overwriteUserFavoritesEnabled = value;
+        }
+        private bool? _overwriteUserFavoritesEnabled;
+
+        /// <summary>
+        /// Gets or sets the overwrite group set groups flag for supported types. Default: enabled.<br/>
+        /// <b>Important:</b> This option is only available to <see cref="Content.IGroupSet"/>.
+        /// For more details, check the configuration 
+        /// <seealso href="https://tableau.github.io/migration-sdk/articles/configuration.html#contenttypesoverwritegroupsetgroupsenabled">article</seealso>.
+        /// </summary>
+        public bool OverwriteGroupSetGroupsEnabled
+        {
+            get => _overwriteGroupSetGroupsEnabled ?? Defaults.OVERWRITE_GROUP_SET_GROUPS;
+            set => _overwriteGroupSetGroupsEnabled = value;
+        }
+        private bool? _overwriteGroupSetGroupsEnabled;
 
         /// <summary>
         /// Checks if the content type in <see cref="Type"/> is valid.

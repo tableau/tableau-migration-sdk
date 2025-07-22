@@ -26,6 +26,7 @@ using Tableau.Migration.Api.Rest.Models.Types;
 using Tableau.Migration.Api.Simulation;
 using Tableau.Migration.Content;
 using Tableau.Migration.Net;
+using Tableau.Migration.Tests.Unit.Content.Files;
 using Xunit;
 
 namespace Tableau.Migration.Tests.Simulation.Tests.Api
@@ -101,10 +102,9 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
                 var mockPublishable = Create<Mock<IPublishableDataSource>>()
                     .WithProject(project);
 
-                var options = new PublishDataSourceOptions(
-                    mockPublishable.Object,
-                    new MemoryStream(Constants.DefaultEncoding.GetBytes(dataSourceResponse.ToXml())),
-                    DataSourceFileTypes.Tdsx);
+                mockPublishable.SetupGet(x => x.File).Returns(new MockXmlFileHandle(dataSourceResponse.ToXml()).Object);
+
+                var options = new PublishDataSourceOptions(mockPublishable.Object, DataSourceFileTypes.Tdsx);
 
                 var result = await sitesClient.DataSources.PublishDataSourceAsync(options, Cancel);
 
