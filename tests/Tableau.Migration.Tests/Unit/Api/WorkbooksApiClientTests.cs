@@ -229,7 +229,7 @@ namespace Tableau.Migration.Tests.Unit.Api
                 Assert.Same(exception, resultError);
 
                 var request = MockHttpClient.AssertSingleRequest();
-                request.AssertRelativeUri($"/api/{TableauServerVersion.RestApiVersion}/sites/{SiteId}/workbooks/{workbookId}/{RestUrlKeywords.Content}?includeExtract=True");
+                request.AssertRelativeUri($"/api/{TableauServerVersion.RestApiVersion}/sites/{SiteId}/workbooks/{workbookId}/{RestUrlKeywords.Content}?includeExtract=true");
             }
 
             [Fact]
@@ -249,7 +249,7 @@ namespace Tableau.Migration.Tests.Unit.Api
                 Assert.Single(result.Errors);
 
                 var request = MockHttpClient.AssertSingleRequest();
-                request.AssertRelativeUri($"/api/{TableauServerVersion.RestApiVersion}/sites/{SiteId}/workbooks/{workbookId}/{RestUrlKeywords.Content}?includeExtract=True");
+                request.AssertRelativeUri($"/api/{TableauServerVersion.RestApiVersion}/sites/{SiteId}/workbooks/{workbookId}/{RestUrlKeywords.Content}?includeExtract=true");
             }
 
             [Fact]
@@ -268,7 +268,7 @@ namespace Tableau.Migration.Tests.Unit.Api
                 Assert.NotNull(result.Value);
 
                 var request = MockHttpClient.AssertSingleRequest();
-                request.AssertRelativeUri($"/api/{TableauServerVersion.RestApiVersion}/sites/{SiteId}/workbooks/{workbookId}/{RestUrlKeywords.Content}?includeExtract=True");
+                request.AssertRelativeUri($"/api/{TableauServerVersion.RestApiVersion}/sites/{SiteId}/workbooks/{workbookId}/{RestUrlKeywords.Content}?includeExtract=true");
             }
         }
 
@@ -303,7 +303,7 @@ namespace Tableau.Migration.Tests.Unit.Api
 
                 MockWorkbookPublisher.Verify(p =>
                     p.PublishAsync(
-                        It.Is<IPublishWorkbookOptions>(o => o.Name == mockPublishableWorkbook.Object.Name && o.File == mockFileStream.Object),
+                        It.Is<IPublishWorkbookOptions>(o => o.Name == mockPublishableWorkbook.Object.Name && o.File == mockContentFileHandle.Object),
                         Cancel),
                     Times.Once);
             }

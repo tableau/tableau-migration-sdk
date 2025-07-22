@@ -1,4 +1,4 @@
-﻿//
+//
 //  Copyright (c) 2025, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
@@ -24,6 +24,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Tableau.Migration.Api.Simulation;
 using Tableau.Migration.Content;
+using Tableau.Migration.Content.Permissions;
 using Tableau.Migration.Content.Schedules.Cloud;
 using Tableau.Migration.Engine.Endpoints;
 using Tableau.Migration.Engine.Hooks;
@@ -31,6 +32,7 @@ using Tableau.Migration.Engine.Hooks.Filters;
 using Tableau.Migration.Engine.Hooks.Filters.Default;
 using Tableau.Migration.Engine.Hooks.InitializeMigration.Default;
 using Tableau.Migration.Engine.Hooks.Mappings;
+using Tableau.Migration.Engine.Hooks.Mappings.Default;
 using Tableau.Migration.Engine.Hooks.PostPublish.Default;
 using Tableau.Migration.Engine.Hooks.Transformers;
 using Tableau.Migration.Engine.Hooks.Transformers.Default;
@@ -145,6 +147,7 @@ namespace Tableau.Migration.Engine
         {
             // Add standard hooks, filters, etc. for all migrations here.
             AppendDefaultPreflightHooks();
+            AppendDefaultMappings();
             AppendDefaultFilters();
             AppendDefaultTransformers();
             AppendDefaultPostPublishHooks();
@@ -153,9 +156,12 @@ namespace Tableau.Migration.Engine
 
             void AppendDefaultPreflightHooks()
             {
-                Hooks.Add<PreflightCheck>();
-                Hooks.Add<EmbeddedCredentialsPreflightCheck>();
-                Hooks.Add<SubscriptionsPreflightCheck>();
+                Hooks.Add<InitializeCapabilitiesHook>();
+            }
+
+            void AppendDefaultMappings()
+            {
+                Mappings.Add<FavoriteMapping, IFavorite>();
             }
 
             void AppendDefaultFilters()
@@ -163,6 +169,7 @@ namespace Tableau.Migration.Engine
                 Filters.Add(typeof(PreviouslyMigratedFilter<>), GetAllContentTypes());
                 Filters.Add<GroupAllUsersFilter, IGroup>();
                 Filters.Add(typeof(SystemOwnershipFilter<>), GetContentTypesByInterface<IWithOwner>());
+                Filters.Add<FavoriteFilter, IFavorite>();
             }
 
             void AppendDefaultPostPublishHooks()
@@ -174,12 +181,15 @@ namespace Tableau.Migration.Engine
                 Hooks.Add<ProjectPostPublishHook>();
                 Hooks.Add<CustomViewDefaultUsersPostPublishHook>();
                 Hooks.Add(typeof(EmbeddedCredentialsItemPostPublishHook<,>), GetPostPublishTypesByInterface<IRequiresEmbeddedCredentialMigration>());
+                Hooks.Add<DeleteUserFavoritesPostPublishHook>();
+                Hooks.Add<PopulateViewCachePostPublishHook>();
             }
 
             void AppendDefaultTransformers()
             {
                 Transformers.Add<UserAuthenticationTypeTransformer, IUser>();
                 Transformers.Add<GroupUsersTransformer, IPublishableGroup>();
+                Transformers.Add<GroupSetGroupsTransformer, IPublishableGroupSet>();
                 Transformers.Add(typeof(OwnershipTransformer<>), GetPublishTypesByInterface<IWithOwner>());
                 Transformers.Add<TableauServerConnectionUrlTransformer, IPublishableWorkbook>();
                 Transformers.Add<MappedReferenceExtractRefreshTaskTransformer, ICloudExtractRefreshTask>();
@@ -187,6 +197,8 @@ namespace Tableau.Migration.Engine
                 Transformers.Add<CustomViewDefaultUserReferencesTransformer, IPublishableCustomView>();
                 Transformers.Add(typeof(EncryptExtractTransformer<>), GetPublishTypesByInterface<IExtractContent>());
                 Transformers.Add<SubscriptionTransformer, ICloudSubscription>();
+                Transformers.Add<FavoriteTransformer, IFavorite>();
+                Transformers.Add<PermissionsTransformer, IPermissionSet>();
             }
         }
 
@@ -330,13 +342,19 @@ namespace Tableau.Migration.Engine
 
             foreach (var transformerType in Transformers.ByContentType())
             {
-                if (publishContentTypes.Contains(transformerType.Key))
+                /*
+                 * Validate transformsers use the pipeline's supported publish types.
+                 * Permission sets are a known exception for a non-publish type that uses transformer hooks.
+                 */
+                if (publishContentTypes.Contains(transformerType.Key) || transformerType.Key == typeof(IPermissionSet))
                 {
                     continue;
                 }
 
-                //If the user gave us a list content type instead of a publish type
-                //give the user a validation error with a hint to the right type.                
+                /*
+                 * If the user gave us a list content type instead of a publish type,
+                 * give the user a validation error with a hint to the right type.
+                 */
                 if (listContentTypes.Contains(transformerType.Key))
                 {
                     var hintType = _supportedContentTypes.First(x

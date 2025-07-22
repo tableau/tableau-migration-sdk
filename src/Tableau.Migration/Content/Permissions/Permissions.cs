@@ -26,35 +26,31 @@ namespace Tableau.Migration.Content.Permissions
     internal class Permissions : IPermissions
     {
         /// <inheritdoc/>
-        public IGranteeCapability[] GranteeCapabilities { get; set; } = Array.Empty<IGranteeCapability>();
+        public IList<IGranteeCapability> GranteeCapabilities { get; set; }
 
         /// <inheritdoc/>
         public Guid? ParentId { get; set; }
 
-        public Permissions()
-        { }
-
         public Permissions(PermissionsResponse response)
-            : this(response.ParentId, response.Item?.GranteeCapabilities?.Select(c => new GranteeCapability(c)))
+            : this(response.ParentId, response.Item?.GranteeCapabilities)
         { }
 
         public Permissions(PermissionsType permissions)
-            : this(permissions.ContentItem?.Id, permissions.GranteeCapabilities?.Select(c => new GranteeCapability(c)))
+            : this(permissions.ContentItem?.Id, permissions.GranteeCapabilities)
         { }
 
         public Permissions(IPermissions permissions)
-            : this(permissions.ParentId, permissions.GranteeCapabilities)
+            : this(permissions.ParentId, permissions.GranteeCapabilities.ToList())
         { }
 
-        public Permissions(Guid? parentId, IEnumerable<IGranteeCapability>? granteeCapabilities = null)
-            : this()
+        public Permissions(Guid? parentId, params IEnumerable<GranteeCapabilityType>? grantees)
+            : this(parentId, grantees?.Select(c => (IGranteeCapability)new GranteeCapability(c))?.ToList())
+        { }
+
+        public Permissions(Guid? parentId, IList<IGranteeCapability>? granteeCapabilities = null)
         {
             ParentId = parentId;
-
-            if (granteeCapabilities != null)
-            {
-                GranteeCapabilities = granteeCapabilities.ToArray();
-            }
+            GranteeCapabilities = granteeCapabilities ?? new List<IGranteeCapability>();
         }
     }
 }

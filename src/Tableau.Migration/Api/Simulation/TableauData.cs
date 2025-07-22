@@ -150,7 +150,7 @@ namespace Tableau.Migration.Api.Simulation
         /// <summary>
         /// Gets or sets the users.
         /// </summary>
-        public ConcurrentSet<WorkbookResponse.WorkbookType.WorkbookViewReferenceType> Views { get; set; } = new();
+        public ConcurrentSet<ViewResponse.ViewType> Views { get; set; } = new();
 
         /// <summary>
         /// Gets or sets the data source permissions.
@@ -212,12 +212,39 @@ namespace Tableau.Migration.Api.Simulation
         /// </summary>
         public ConcurrentDictionary<Guid, List<UsersWithCustomViewAsDefaultViewResponse.UserType>> CustomViewDefaultUsers { get; set; } = new();
 
+        /// <summary>
+        /// Gets or sets the flows.
+        /// </summary>
+        public ConcurrentSet<FlowsResponse.FlowType> Flows { get; set; } = new();
+
+        /// <summary>
+        /// Gets or sets the users' favorites, by user ID.
+        /// </summary>
+        public ConcurrentDictionary<Guid, ConcurrentDictionary<(FavoriteContentType ContentType, Guid Id), string>> UserFavorites { get; set; } = new();
+
+
+        /// <summary>
+        /// Gets or sets the collections.
+        /// </summary>
+        public ConcurrentSet<CollectionsResponse.CollectionType> Collections { get; set; } = new();
+
+        /// <summary>
+        /// Gets or sets the group sets.
+        /// </summary>
+        public ConcurrentSet<GroupSetsResponse.GroupSetType> GroupSets { get; set; } = new();
+
         #region - Relationships -
 
         /// <summary>
         /// Gets the users that belong to groups, by ID.
         /// </summary>
         public ConcurrentDictionary<Guid, ConcurrentSet<Guid>> GroupUsers { get; set; } = new();
+
+        /// <summary>
+        /// Gets or sets the group set members (groups in group sets), by group set ID.
+        /// </summary>
+        public ConcurrentDictionary<Guid, ConcurrentSet<Guid>> GroupSetGroups { get; set; } = new();
+
 
         /// <summary>
         /// Gets the groups that users belong to, by ID.
@@ -301,6 +328,7 @@ namespace Tableau.Migration.Api.Simulation
             Users.Add(user);
             UserGroups.TryAdd(user.Id, new());
             UserSavedCredentials.TryAdd(user.Id, new());
+            UserFavorites.TryAdd(user.Id, new());
 
             return user;
         }
@@ -472,7 +500,8 @@ namespace Tableau.Migration.Api.Simulation
                     Id = id,
                     ContentUrl = "",
                     Name = "Default",
-                    ExtractEncryptionMode = ExtractEncryptionModes.Disabled
+                    ExtractEncryptionMode = ExtractEncryptionModes.Disabled,
+                    GroupSetsEnabled = true
                 });
 
         private static GroupsResponse.GroupType CreateAllUsersGroup()
@@ -541,8 +570,8 @@ namespace Tableau.Migration.Api.Simulation
         /// <summary>
         /// Adds a view to simulated dataset.
         /// </summary>
-        /// <param name="view">The <see cref="WorkbookResponse.WorkbookType.WorkbookViewReferenceType"/> metadata</param>
-        internal void AddView(WorkbookResponse.WorkbookType.WorkbookViewReferenceType view)
+        /// <param name="view">The <see cref="ViewResponse.ViewType"/> data.</param>
+        internal void AddView(ViewResponse.ViewType view)
         {
             Views.Add(view);
         }
@@ -556,6 +585,67 @@ namespace Tableau.Migration.Api.Simulation
         {
             CustomViews.Add(customView);
             CustomViewFiles[customView.Id] = fileData ?? [];
+        }
+
+        /// <summary>
+        /// Adds a collection to simulated dataset.
+        /// </summary>
+        /// <param name="collection">The <see cref="CollectionsResponse.CollectionType"/> metadata</param>
+        internal void AddCollection(CollectionsResponse.CollectionType collection)
+        {
+            Collections.Add(collection);
+        }
+
+        /// <summary>
+        /// Adds a group set to simulated dataset.
+        /// </summary>
+        /// <param name="groupSet">The <see cref="GroupSetsResponse.GroupSetType"/> metadata</param>
+        internal void AddGroupSet(GroupSetsResponse.GroupSetType groupSet)
+        {
+            GroupSets.Add(groupSet);
+            GroupSetGroups.TryAdd(groupSet.Id, new());
+        }
+
+        /// <summary>
+        /// Adds a group to a group set.
+        /// </summary>
+        /// <param name="groupId">The group ID to add.</param>
+        /// <param name="groupSetId">The group set ID to add to.</param>
+        public void AddGroupToGroupSet(Guid groupId, Guid groupSetId)
+        {
+            if (GroupSetGroups.TryGetValue(groupSetId, out var groups))
+            {
+                groups.Add(groupId);
+                return;
+            }
+
+            GroupSetGroups.TryAdd(groupSetId, [groupId]);
+        }
+
+        /// <summary>
+        /// Removes a group from a group set.
+        /// </summary>
+        /// <param name="groupId">The group ID to remove.</param>
+        /// <param name="groupSetId">The group set ID to remove from.</param>
+        public void RemoveGroupFromGroupSet(Guid groupId, Guid groupSetId)
+        {
+            if (GroupSetGroups.TryGetValue(groupSetId, out var groups))
+            {
+                groups.Remove(groupId);
+            }
+        }
+
+        /// <summary>
+        /// Gets the groups in a group set.
+        /// </summary>
+        /// <param name="groupSetId">The group set ID.</param>
+        /// <returns>The groups in the group set.</returns>
+        public IEnumerable<GroupsResponse.GroupType> GetGroupSetGroups(Guid groupSetId)
+        {
+            if (!GroupSetGroups.TryGetValue(groupSetId, out var groupIds))
+                return [];
+
+            return Groups.Where(g => groupIds.Contains(g.Id));
         }
 
         internal void AddDefaultProjectPermissions(Guid projectId, string contentTypeUrlSegment, PermissionsType permissions)
@@ -634,6 +724,17 @@ namespace Tableau.Migration.Api.Simulation
             var contentTypePermissions = GetContentTypePermissions(contentTypeUrlPrefix);
 
             contentTypePermissions.AddOrUpdate(contentId, _ => permission, (_, __) => permission);
+        }
+
+        internal void AddFlow(FlowsResponse.FlowType flow)
+        {
+            Flows.Add(flow);
+        }
+
+        internal void AddUserFavorite(Guid userId, FavoriteContentType contentType, Guid contentId, string label)
+        {
+            var userFavorites = UserFavorites.GetOrAdd(userId, (id) => new ConcurrentDictionary<(FavoriteContentType, Guid), string>());
+            userFavorites[(contentType, contentId)] = label;
         }
     }
 }

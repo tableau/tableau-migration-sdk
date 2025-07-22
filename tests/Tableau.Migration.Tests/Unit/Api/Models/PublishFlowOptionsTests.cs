@@ -15,7 +15,6 @@
 //  limitations under the License.
 //
 
-using System.IO;
 using Tableau.Migration.Api.Models;
 using Tableau.Migration.Api.Rest.Models.Types;
 using Tableau.Migration.Content;
@@ -27,6 +26,7 @@ namespace Tableau.Migration.Tests.Unit.Api.Models
     {
         private static void AssertContentTypeFields(IPublishableFlow flow, PublishFlowOptions result)
         {
+            Assert.Same(flow.File, result.File);
             Assert.Equal(flow.Name, result.Name);
             Assert.Equal(flow.Description, result.Description);
             Assert.Equal(((IContainerContent)flow).Container.Id, result.ProjectId);
@@ -36,12 +36,10 @@ namespace Tableau.Migration.Tests.Unit.Api.Models
         public void Default()
         {
             var flow = Create<IPublishableFlow>();
-            var testFile = Create<Stream>();
-            var result = new PublishFlowOptions(flow, testFile);
+            var result = new PublishFlowOptions(flow);
 
             Assert.NotNull(result);
             AssertContentTypeFields(flow, result);
-            Assert.Equal(testFile, result.File);
             Assert.Equal(flow.File.OriginalFileName, result.FileName);
             Assert.Equal(FlowFileTypes.Tflx, result.FileType);
         }
@@ -50,13 +48,11 @@ namespace Tableau.Migration.Tests.Unit.Api.Models
         public void Different_FileType()
         {
             var flow = Create<IPublishableFlow>();
-            var testFile = Create<Stream>();
             var testFileType = Create<string>();
-            var result = new PublishFlowOptions(flow, testFile, testFileType);
+            var result = new PublishFlowOptions(flow, testFileType);
 
             Assert.NotNull(result);
             AssertContentTypeFields(flow, result);
-            Assert.Equal(testFile, result.File);
             Assert.Equal(flow.File.OriginalFileName, result.FileName);
             Assert.Equal(testFileType, result.FileType);
         }

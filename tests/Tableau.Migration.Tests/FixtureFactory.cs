@@ -25,6 +25,7 @@ using System.Net.Http;
 using AutoFixture;
 using AutoFixture.AutoMoq;
 using AutoFixture.Kernel;
+using Microsoft.Extensions.Caching.Memory;
 using Moq;
 using Tableau.Migration.Api.Models;
 using Tableau.Migration.Api.Rest.Models.Requests;
@@ -51,6 +52,7 @@ namespace Tableau.Migration.Tests
             fixture = fixture.Customize(new AutoMoqCustomization { ConfigureMembers = true });
 
             fixture.Customizations.Add(new ImmutableCollectionSpecimenBuilder());
+            fixture.Customizations.Add(new PageInfoSpecimenBuilder());
 
             fixture.Register<IFileSystem>(() => new MockFileSystem());
 
@@ -326,6 +328,8 @@ namespace Tableau.Migration.Tests
                 .With(j => j.Embed, () => fixture.Create<bool?>().ToString()));
 
             #endregion
+
+            fixture.Register<MemoryCacheOptions>(() => new MemoryCacheOptions());
 
             return fixture;
         }

@@ -16,6 +16,7 @@
 //
 
 using System;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -29,9 +30,9 @@ using Xunit;
 
 namespace Tableau.Migration.Tests.Unit.Engine.Endpoints.Search
 {
-    public class ManifestDestinationContentReferenceFinderTests
+    public sealed class ManifestDestinationContentReferenceFinderTests
     {
-        public class LocationDestinationContentFinderTest : AutoFixtureTestBase
+        public abstract class LocationDestinationContentFinderTest : AutoFixtureTestBase
         {
             protected readonly IMigrationManifestEditor Manifest;
             protected readonly Mock<IContentReferenceCache> MockCache;
@@ -54,7 +55,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints.Search
 
         #region - FindDestinationReferenceAsync -
 
-        public class FindDestinationReferenceAsync : LocationDestinationContentFinderTest
+        public sealed class FindDestinationReferenceAsync : LocationDestinationContentFinderTest
         {
             [Fact]
             public async Task FindsWithCachedMappedLocationAsync()
@@ -156,7 +157,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints.Search
 
         #region - FindMappedDestinationReferenceAsync -
 
-        public class FindMappedDestinationReferenceAsync : LocationDestinationContentFinderTest
+        public sealed class FindMappedDestinationReferenceAsync : LocationDestinationContentFinderTest
         {
             [Fact]
             public async Task FindsWithMappedLocationFromManifestAsync()
@@ -242,7 +243,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints.Search
 
         #region - FindByIdAsync -
 
-        public class FindByIdAsync : LocationDestinationContentFinderTest
+        public sealed class FindByIdAsync : LocationDestinationContentFinderTest
         {
             [Fact]
             public async Task FindsWithManifestEntryDestinationInfoAsync()
@@ -275,6 +276,25 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints.Search
                 Assert.Same(cacheItem, result);
 
                 MockCache.Verify(x => x.ForIdAsync(cacheItem.Id, Cancel), Times.Once);
+            }
+        }
+
+        #endregion
+
+        #region - FindAllAsync -
+
+        public sealed class FindAllAsync : LocationDestinationContentFinderTest
+        {
+            [Fact]
+            public async Task FindsAllAsync()
+            {
+                IImmutableList<IContentReference> cacheResult = CreateMany<IContentReference>().ToImmutableArray();
+                MockCache.Setup(x => x.GetAllAsync(Cancel)).ReturnsAsync(cacheResult);
+
+                var result = await Finder.FindAllAsync(Cancel);
+
+                Assert.Same(cacheResult, result);
+                MockCache.Verify(x => x.GetAllAsync(Cancel), Times.Once);
             }
         }
 

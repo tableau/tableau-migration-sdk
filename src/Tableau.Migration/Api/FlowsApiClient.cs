@@ -155,18 +155,7 @@ namespace Tableau.Migration.Api
 
         /// <inheritdoc />
         public async Task<IResult<IFlow>> PublishAsync(IPublishableFlow item, CancellationToken cancel)
-        {
-            var fileStream = await item.File.OpenReadAsync(cancel).ConfigureAwait(false);
-
-            await using (fileStream)
-            {
-                var publishOptions = new PublishFlowOptions(item, fileStream.Content);
-                var publishResult = await PublishFlowAsync(publishOptions, cancel)
-                    .ConfigureAwait(false);
-
-                return publishResult;
-            }
-        }
+            => await PublishFlowAsync(new PublishFlowOptions(item), cancel).ConfigureAwait(false);
 
         #endregion
     }

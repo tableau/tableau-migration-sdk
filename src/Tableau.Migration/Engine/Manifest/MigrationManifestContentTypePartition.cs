@@ -83,14 +83,19 @@ namespace Tableau.Migration.Engine.Manifest
         /// <inheritdoc />
         public IMigrationManifestContentTypePartitionEditor CreateEntries(IReadOnlyCollection<IMigrationManifestEntry> entriesToCopy)
         {
+
             _entriesBySourceLocation.EnsureCapacity(_entriesBySourceLocation.Count + entriesToCopy.Count);
-            _entriesBySourceId.EnsureCapacity(_entriesBySourceId.Count + entriesToCopy.Count);
+            _entriesBySourceId.EnsureCapacity(_entriesBySourceId.Count + entriesToCopy.Where(e => e.Source.Id != Guid.Empty).Count());
 
             foreach (var entryToCopy in entriesToCopy)
             {
                 var clonedEntry = new MigrationManifestEntry(this, entryToCopy);
                 _entriesBySourceLocation.Add(clonedEntry.Source.Location, clonedEntry);
-                _entriesBySourceId.Add(clonedEntry.Source.Id, clonedEntry);
+
+                if (clonedEntry.Source.Id != Guid.Empty)
+                {
+                    _entriesBySourceId.Add(clonedEntry.Source.Id, clonedEntry);
+                }
 
                 if (!string.IsNullOrEmpty(clonedEntry.Source.ContentUrl))
                 {
@@ -125,7 +130,11 @@ namespace Tableau.Migration.Engine.Manifest
                 if (!_entriesBySourceLocation.TryGetValue(sourceItem.Location, out var manifestEntry))
                 {
                     _entriesBySourceLocation.Add(sourceItem.Location, manifestEntry = new MigrationManifestEntry(this, sourceReferenceStub));
-                    _entriesBySourceId.Add(sourceItem.Id, manifestEntry);
+
+                    if (sourceItem.Id != Guid.Empty)
+                    {
+                        _entriesBySourceId.Add(sourceItem.Id, manifestEntry);
+                    }
 
                     if (!string.IsNullOrEmpty(sourceItem.ContentUrl))
                     {
@@ -144,7 +153,11 @@ namespace Tableau.Migration.Engine.Manifest
                     _entriesBySourceLocation[sourceItem.Location] = manifestEntry;
 
                     _entriesBySourceId.Remove(existing.Source.Id);
-                    _entriesBySourceId.Add(sourceItem.Id, manifestEntry);
+
+                    if (sourceItem.Id != Guid.Empty)
+                    {
+                        _entriesBySourceId.Add(sourceItem.Id, manifestEntry);
+                    }
 
                     if (!string.IsNullOrEmpty(existing.Source.ContentUrl))
                     {
@@ -196,7 +209,7 @@ namespace Tableau.Migration.Engine.Manifest
                 _entriesByMappedLocation.TryRemove(oldDestinationInfo.Location, out _);
             }
 
-            if (entry.Destination is not null)
+            if (entry.Destination is not null && entry.Destination.Id != Guid.Empty)
             {
                 _entriesByDestinationId[entry.Destination.Id] = entry;
             }

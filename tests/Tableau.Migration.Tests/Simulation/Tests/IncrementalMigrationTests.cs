@@ -18,7 +18,6 @@
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
 using Tableau.Migration.Content;
 using Tableau.Migration.Engine.Manifest;
 using Xunit;
@@ -39,15 +38,6 @@ namespace Tableau.Migration.Tests.Simulation.Tests
 
         public abstract class ServerToCloud : ServerToCloudSimulationTestBase
         {
-            private IMigrationPlanBuilder ConfigurePlanBuilder()
-            {
-                return ServiceProvider.GetRequiredService<IMigrationPlanBuilder>()
-                    .FromSource(SourceEndpointConfig)
-                    .ToDestination(CloudDestinationEndpointConfig)
-                    .ForServerToCloud()
-                    .WithTableauIdAuthenticationType()
-                    .WithTableauCloudUsernames("test.com");
-            }
 
             [Fact]
             public async Task IncrementalFilterAsync()
@@ -65,15 +55,13 @@ namespace Tableau.Migration.Tests.Simulation.Tests
                     .Select(w => w.Id)
                     .ToImmutableHashSet();
 
-                var migrator = ServiceProvider.GetRequiredService<IMigrator>();
-
                 //First migration, filters out some workbooks.
-                var planBuilder = ConfigurePlanBuilder();
+                var planBuilder = CreateMigrationPlanBuilderWithTableauIdAuth();
 
                 planBuilder.Filters.Add<IWorkbook>(items => items.Where(i => !filteredWorkbooksIds.Contains(i.SourceItem.Id)));
 
                 var plan = planBuilder.Build();
-                var result1 = await migrator.ExecuteAsync(plan, Cancel);
+                var result1 = await RunMigrationAsync(plan);
 
                 //Sanity test our 'mistake' filter worked.
                 Assert.Equal(sourceWorkbooks.Count - filteredWorkbooksIds.Count, CloudDestinationApi.Data.Workbooks.Count);
@@ -93,10 +81,10 @@ namespace Tableau.Migration.Tests.Simulation.Tests
                 });
 
                 //Perform second (incremental) migration
-                planBuilder = ConfigurePlanBuilder();
+                planBuilder = CreateMigrationPlanBuilderWithTableauIdAuth();
                 plan = planBuilder.Build();
 
-                var result2 = await migrator.ExecuteAsync(plan, result1.Manifest, Cancel);
+                var result2 = await RunMigrationAsync(plan, result1.Manifest);
 
                 //Assert everything moved eventually, but only the workbooks that were filtered out
                 //last run were migrated this run.
@@ -128,13 +116,11 @@ namespace Tableau.Migration.Tests.Simulation.Tests
                 var sourceGroups = PrepareSourceGroupsData();
                 var sourceProjects = PrepareSourceProjectsData();
 
-                var migrator = ServiceProvider.GetRequiredService<IMigrator>();
-
                 //First migration, filters out some workbooks.
-                var planBuilder = ConfigurePlanBuilder();
+                var planBuilder = CreateMigrationPlanBuilderWithTableauIdAuth();
 
                 var plan = planBuilder.Build();
-                var result1 = await migrator.ExecuteAsync(plan, Cancel);
+                var result1 = await RunMigrationAsync(plan);
 
                 //Sanity test our first migration worked.
                 Assert.All(result1.Manifest.Entries.ForContentType<IUser>(), e =>
@@ -161,10 +147,10 @@ namespace Tableau.Migration.Tests.Simulation.Tests
                 var sourceDataSources = PrepareSourceDataSourceData();
                 var sourceWorkbooks = PrepareSourceWorkbooksData();
 
-                planBuilder = ConfigurePlanBuilder();
+                planBuilder = CreateMigrationPlanBuilderWithTableauIdAuth();
                 plan = planBuilder.Build();
 
-                var result2 = await migrator.ExecuteAsync(plan, result1.Manifest, Cancel);
+                var result2 = await RunMigrationAsync(plan, result1.Manifest);
 
                 //Assert everything moved eventually, but only the workbooks that were filtered out
                 //last run were migrated this run.

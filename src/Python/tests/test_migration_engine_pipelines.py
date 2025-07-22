@@ -37,6 +37,11 @@ class TestPyMigrationPipelineContentTypeGenerated(AutoFixtureTestBase):
         py = PyMigrationPipelineContentType(dotnet)
         assert py.get_groups() == None if MigrationPipelineContentType.Groups is None else PyMigrationPipelineContentType(MigrationPipelineContentType.Groups)
     
+    def test_group_sets_getter(self):
+        dotnet = self.create(MigrationPipelineContentType)
+        py = PyMigrationPipelineContentType(dotnet)
+        assert py.get_group_sets() == None if MigrationPipelineContentType.GroupSets is None else PyMigrationPipelineContentType(MigrationPipelineContentType.GroupSets)
+    
     def test_projects_getter(self):
         dotnet = self.create(MigrationPipelineContentType)
         py = PyMigrationPipelineContentType(dotnet)
@@ -91,6 +96,11 @@ class TestPyMigrationPipelineContentTypeGenerated(AutoFixtureTestBase):
         dotnet = self.create(MigrationPipelineContentType)
         py = PyMigrationPipelineContentType(dotnet)
         assert py.get_cloud_to_cloud_subscriptions() == None if MigrationPipelineContentType.CloudToCloudSubscriptions is None else PyMigrationPipelineContentType(MigrationPipelineContentType.CloudToCloudSubscriptions)
+    
+    def test_favorites_getter(self):
+        dotnet = self.create(MigrationPipelineContentType)
+        py = PyMigrationPipelineContentType(dotnet)
+        assert py.get_favorites() == None if MigrationPipelineContentType.Favorites is None else PyMigrationPipelineContentType(MigrationPipelineContentType.Favorites)
     
     def test_content_type_getter(self):
         dotnet = self.create(MigrationPipelineContentType)

@@ -17,6 +17,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -37,6 +38,13 @@ namespace Tableau.Migration.Content.Search
         /// Gets the count of items in the cache.
         /// </summary>
         public int Count => _locationCache.Count;
+
+        /// <summary>
+        /// Searches for all items.
+        /// </summary>
+        /// <param name="cancel">The cancellation token to obey.</param>
+        /// <returns>The content references to cache.</returns>
+        protected abstract ValueTask<IEnumerable<ContentReferenceStub>> SearchAllAsync(CancellationToken cancel);
 
         /// <summary>
         /// Searches for content at the given location, possibly returning more locations to opportunistically cache.
@@ -72,6 +80,16 @@ namespace Tableau.Migration.Content.Search
         protected virtual Task<ContentReferenceStub?> IndividualSearchAsync(Guid searchId, CancellationToken cancel)
             => Task.FromResult<ContentReferenceStub?>(null);
 
+        private void ProcessSearchResult(ContentReferenceStub searchResult)
+        {
+            if (searchResult.Id != Guid.Empty)
+            {
+                _idCache[searchResult.Id] = searchResult;
+            }
+
+            _locationCache[searchResult.Location] = searchResult;
+        }
+
         private async Task<IContentReference?> SearchCacheAsync<TKey>(
             Dictionary<TKey, ContentReferenceStub?> cache, TKey search,
             Func<TKey, CancellationToken, ValueTask<IEnumerable<ContentReferenceStub>>> searchAsync,
@@ -100,8 +118,7 @@ namespace Tableau.Migration.Content.Search
                     var searchResults = await searchAsync(search, cancel).ConfigureAwait(false);
                     foreach (var searchResult in searchResults)
                     {
-                        _idCache[searchResult.Id] = searchResult;
-                        _locationCache[searchResult.Location] = searchResult;
+                        ProcessSearchResult(searchResult);
                     }
 
                     _loaded = true;
@@ -124,7 +141,11 @@ namespace Tableau.Migration.Content.Search
                 else
                 {
                     // Sets the cache with the individual search result.
-                    _idCache[cachedResult.Id] = cachedResult;
+                    if (cachedResult.Id != Guid.Empty)
+                    {
+                        _idCache[cachedResult.Id] = cachedResult;
+                    }
+
                     _locationCache[cachedResult.Location] = cachedResult;
                 }
 
@@ -139,12 +160,51 @@ namespace Tableau.Migration.Content.Search
         #region - IContentReferenceCache Implementation -
 
         /// <inheritdoc />
+        public async Task<IImmutableList<IContentReference>> GetAllAsync(CancellationToken cancel)
+        {
+            if(!_loaded)
+            {
+                await _writeSemaphore.WaitAsync(cancel).ConfigureAwait(false);
+
+                try
+                {
+                    if (!_loaded)
+                    {
+                        var searchResults = await SearchAllAsync(cancel).ConfigureAwait(false);
+                        foreach (var searchResult in searchResults)
+                        {
+                            ProcessSearchResult(searchResult);
+                        }
+
+                        _loaded = true;
+                    }
+                }
+                finally
+                {
+                    _writeSemaphore.Release();
+                }
+            }
+
+            var results = _locationCache.Values
+                .ExceptNulls()
+                .ToImmutableArray<IContentReference>();
+
+            return results;
+        }
+
+        /// <inheritdoc />
         public async Task<IContentReference?> ForLocationAsync(ContentLocation location, CancellationToken cancel)
             => await SearchCacheAsync(_locationCache, location, SearchAsync, IndividualSearchAsync, cancel).ConfigureAwait(false);
 
         /// <inheritdoc />
         public async Task<IContentReference?> ForIdAsync(Guid id, CancellationToken cancel)
-            => await SearchCacheAsync(_idCache, id, SearchAsync, IndividualSearchAsync, cancel).ConfigureAwait(false);
+        {
+            if (id == Guid.Empty)
+            {
+                return null;
+            }
+            return await SearchCacheAsync(_idCache, id, SearchAsync, IndividualSearchAsync, cancel).ConfigureAwait(false);
+        }
 
         #endregion
     }

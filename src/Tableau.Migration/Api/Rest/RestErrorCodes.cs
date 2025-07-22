@@ -31,6 +31,8 @@ namespace Tableau.Migration.Api.Rest
 
         public const string GROUP_NAME_CONFLICT_ERROR_CODE = "409009";
 
+        public const string GROUP_SET_NAME_CONFLICT_ERROR_CODE = "409120";
+
         public const string INVALID_CAPABILITY_FOR_RESOURCE = "400009";
 
         public const string LOGIN_ERROR = "401001";

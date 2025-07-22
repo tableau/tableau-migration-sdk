@@ -29,7 +29,7 @@ using Tableau.Migration.Engine.Endpoints;
 using Tableau.Migration.Engine.Endpoints.Search;
 using Tableau.Migration.Engine.Hooks.PostPublish;
 using Tableau.Migration.Engine.Hooks.PostPublish.Default;
-using Tableau.Migration.Engine.Hooks.Transformers.Default;
+using Tableau.Migration.Engine.Hooks.Transformers;
 using Tableau.Migration.Engine.Manifest;
 using Xunit;
 
@@ -47,23 +47,27 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.PostPublish.Default
 
         public abstract class PermissionsItemPostPublishHookTest : AutoFixtureTestBase
         {
-            protected readonly Mock<IMigration> MockMigration = new();
+            protected readonly Mock<IMigration> MockMigration;
             protected readonly Mock<ISourceEndpoint> MockSourceEndpoint = new();
             protected readonly Mock<IDestinationEndpoint> MockDestinationEndpoint = new();
-            protected readonly Mock<IPermissionsTransformer> MockPermissionsTransformer = new();
             protected readonly Mock<ILockedProjectCache> MockProjectCache = new();
+            protected readonly Mock<IContentTransformerRunner> MockTransformerRunner;
 
             protected readonly PermissionsItemPostPublishHook<PermissionsContentType, ResultContentType> Hook;
 
             public PermissionsItemPostPublishHookTest()
             {
+                MockMigration = Freeze<Mock<IMigration>>();
+
                 MockMigration.SetupGet(m => m.Source).Returns(MockSourceEndpoint.Object);
                 MockMigration.SetupGet(m => m.Destination).Returns(MockDestinationEndpoint.Object);
 
                 MockMigration.Setup(m => m.Pipeline.GetDestinationLockedProjectCache())
                     .Returns(MockProjectCache.Object);
 
-                Hook = new(MockMigration.Object, MockPermissionsTransformer.Object);
+                MockTransformerRunner = Freeze<Mock<IContentTransformerRunner>>();
+
+                Hook = Create<PermissionsItemPostPublishHook<PermissionsContentType, ResultContentType>>();
             }
         }
 
@@ -82,7 +86,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.PostPublish.Default
 
                 Assert.Same(context, result);
 
-                MockPermissionsTransformer.VerifyNoOtherCalls();
+                MockTransformerRunner.VerifyNoOtherCalls();
             }
 
             [Fact]
@@ -94,10 +98,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.PostPublish.Default
 
                 var context = new ContentItemPostPublishContext<PermissionsContentType, ResultContentType>(manifestEntry, sourceItem, destinationItem);
 
-                var sourcePermissions = AutoFixture.Build<Mock<IPermissions>>()
-                    .Do(m => m.SetupGet(i => i.ParentId).Returns(sourceItem.Id))
-                    .Create()
-                    .Object;
+                var sourcePermissions = Create<IPermissions>();
 
                 var sourceGrantees = sourcePermissions.GranteeCapabilities.ToImmutableArray();
 
@@ -106,14 +107,15 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.PostPublish.Default
                     .ReturnsAsync(Result<IPermissions>.Succeeded(sourcePermissions));
 
                 var destinationGrantees = CreateMany<IGranteeCapability>(5).ToImmutableArray();
+                var destinationPermissions = new Permissions(sourcePermissions.ParentId, destinationGrantees);
 
-                MockPermissionsTransformer.Setup(t => t.ExecuteAsync(sourcePermissions.GranteeCapabilities.ToImmutableArray(), It.IsAny<CancellationToken>()))
-                    .ReturnsAsync(destinationGrantees);
+                MockTransformerRunner.Setup(t => t.ExecuteAsync((IPermissionSet)sourcePermissions, Cancel))
+                    .ReturnsAsync(destinationPermissions);
 
                 MockDestinationEndpoint
                     .Setup(e => e.UpdatePermissionsAsync<PermissionsContentType>(
                         destinationItem,
-                        It.Is<IPermissions>(p => p.GranteeCapabilities.SequenceEqual(destinationGrantees) && p.ParentId == destinationItem.Id),
+                        It.Is<IPermissions>(p => p.GranteeCapabilities.SequenceEqual(destinationGrantees)),
                         It.IsAny<CancellationToken>()))
                     .ReturnsAsync(Result<IPermissions>.Succeeded(Create<IPermissions>()));
 
@@ -121,7 +123,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.PostPublish.Default
 
                 Assert.Same(context, result);
 
-                MockPermissionsTransformer.Verify(t => t.ExecuteAsync(sourceGrantees, Cancel), Times.Once);
+                MockTransformerRunner.Verify(t => t.ExecuteAsync((IPermissionSet)sourcePermissions, Cancel), Times.Once);
 
                 MockDestinationEndpoint.VerifyAll();
             }
@@ -139,7 +141,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.PostPublish.Default
 
                 Assert.Same(context, result);
 
-                MockPermissionsTransformer.VerifyNoOtherCalls();
+                MockTransformerRunner.VerifyNoOtherCalls();
             }
         }
     }

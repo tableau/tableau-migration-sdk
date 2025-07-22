@@ -36,7 +36,9 @@ namespace Tableau.Migration.Tests.Unit.Content
                         Id = Create<Guid>(),
                         Name = Create<string>(),
                         ContentUrl = Create<string>(),
-                        ExtractEncryptionMode = ExtractEncryptionModes.Disabled
+                        ExtractEncryptionMode = ExtractEncryptionModes.Disabled,
+                        DisableSubscriptions = Create<bool>(),
+                        GroupSetsEnabled = Create<bool>()
                     }
                 };
             }
@@ -50,6 +52,9 @@ namespace Tableau.Migration.Tests.Unit.Content
                 Assert.Equal(response.Item!.Id, site.Id);
                 Assert.Equal(response.Item.Name, site.Name);
                 Assert.Equal(response.Item.ContentUrl, site.ContentUrl);
+                Assert.Equal(response.Item.ExtractEncryptionMode, site.ExtractEncryptionMode);
+                Assert.Equal(response.Item.DisableSubscriptions, site.DisableSubscriptions);
+                Assert.Equal(response.Item.GroupSetsEnabled, site.GroupSetsEnabled);
             }
 
             [Fact]

@@ -202,8 +202,8 @@ class TestNameComparison():
         assert message == "Python has extra elements ['(crawl: (py:crawl->net:???))']\n" 
 
     def test_dotnet_extra(self): # meaning python is missing it
-        dotnet_names = ["DoWalk", "RunAsync", "RunAsync"]
-        python_names = ["run", "run"]
+        dotnet_names = ["DoWalk", "RunAsync", "RunAsync", "Id"]
+        python_names = ["run", "run", "id"]
 
         message = compare_names(dotnet_names, python_names)
         assert message == "Python lacks elements ['(dowalk: (py:???->net:DoWalk))']\n"
@@ -223,6 +223,7 @@ class TestNameComparison():
 from tableau_migration.migration import (  # noqa: E402, F401
     PyContentLocation,
     PyContentReference,
+    PyEmptyIdContentReference,
     PyMigrationCompletionStatus,
     PyPipelineProfile,
     PyResult
@@ -257,13 +258,17 @@ from tableau_migration.migration_content import (  # noqa: E402, F401
     PyDataSourceDetails,
     PyDescriptionContent,
     PyExtractContent,
+    PyFavorite,
+    PyFavoriteContentType,
     PyGroup,
+    PyGroupSet,
     PyGroupUser,
     PyLabel,
     PyProject,
     PyPublishableCustomView,
     PyPublishableDataSource,
     PyPublishableGroup,
+    PyPublishableGroupSet,
     PyPublishableWorkbook,
     PyPublishedContent,
     PyServerSubscription,
@@ -286,7 +291,8 @@ from tableau_migration.migration_content_permissions import (  # noqa: E402, F40
     PyCapability,
     PyGranteeCapability,
     PyGranteeType,
-    PyPermissions
+    PyPermissions,
+    PyPermissionSet
 )
 
 from tableau_migration.migration_content_schedules import (  # noqa: E402, F401
@@ -301,6 +307,8 @@ from tableau_migration.migration_content_schedules import (  # noqa: E402, F401
 from tableau_migration.migration_content_schedules_cloud import PyCloudSchedule # noqa: E402, F401
 
 from tableau_migration.migration_content_schedules_server import PyServerSchedule # noqa: E402, F401
+
+from tableau_migration.migration_content_search import PyContentReferenceFinder # noqa: E402, F401
 
 from tableau_migration.migration_engine import PyContentMigrationItem # noqa: E402, F401
 
@@ -342,69 +350,76 @@ from Tableau.Migration.Api.Rest.Models import SiteRoles
 from Tableau.Migration.Api.Rest.Models.Types import AuthenticationTypes
 from Tableau.Migration.Api.Rest.Models.Types import DataSourceFileTypes
 from Tableau.Migration.Api.Rest.Models.Types import WorkbookFileTypes
+from Tableau.Migration.Content import FavoriteContentType
 from Tableau.Migration.Content.Permissions import GranteeType
 from Tableau.Migration.Content.Schedules import ExtractRefreshContentType
 from Tableau.Migration.Engine.Manifest import MigrationManifestEntryStatus
 
-_generated_class_data = [
-    (PyContentLocation, [ "ForContentType" ]),
-    (PyContentReference, None),
-    (PyResult, [ "CastFailure" ]),
-    (PyRestIdentifiable, None),
-    (PyCloudSubscription, None),
-    (PyConnection, None),
-    (PyConnectionsContent, None),
-    (PyContainerContent, None),
-    (PyCustomView, None),
-    (PyDataSource, [ "SetLocation" ]),
-    (PyDataSourceDetails, [ "SetLocation" ]),
-    (PyDescriptionContent, None),
-    (PyExtractContent, None),
-    (PyGroup, [ "SetLocation" ]),
-    (PyGroupUser, None),
-    (PyLabel, None),
-    (PyProject, [ "Container", "SetLocation" ]),
-    (PyPublishableCustomView, [ "DisposeAsync", "File" ]),
-    (PyPublishableDataSource, [ "DisposeAsync", "File", "SetLocation" ]),
-    (PyPublishableGroup, [ "SetLocation" ]),
-    (PyPublishableWorkbook, [ "ChildPermissionContentItems", "ChildType", "DisposeAsync", "File", "SetLocation", "ShouldMigrateChildPermissions" ]),
-    (PyPublishedContent, None),
-    (PyServerSubscription, None),
-    (PySubscription, None),
-    (PySubscriptionContent, None),
-    (PyTag, None),
-    (PyUser, [ "SetLocation" ]),
-    (PyUserAuthenticationType, None),
-    (PyUsernameContent, [ "SetLocation" ]),
-    (PyView, None),
-    (PyWithDomain, None),
-    (PyWithOwner, None),
-    (PyWithTags, None),
-    (PyWithWorkbook, None),
-    (PyWorkbook, [ "SetLocation" ]),
-    (PyWorkbookDetails, [ "ChildPermissionContentItems", "ChildType", "SetLocation", "ShouldMigrateChildPermissions" ]),
-    (PyCapability, None),
-    (PyGranteeCapability, None),
-    (PyPermissions, None),
-    (PyExtractRefreshTask, None),
-    (PyFrequencyDetails, None),
-    (PyInterval, None),
-    (PySchedule, None),
-    (PyWithSchedule, None),
-    (PyCloudSchedule, None),
-    (PyServerSchedule, [ "ExtractRefreshTasks" ]),
-    (PyContentMigrationItem, None),
-    (PyMigrationActionResult, [ "CastFailure" ]),
-    (PyContentMappingContext, [ "ToTask" ]),
-    (PyBulkPostPublishContext, [ "ToTask" ]),
-    (PyContentItemPostPublishContext, [ "ToTask" ]),
-    (PyMigrationManifestEntry, None),
-    (PyMigrationManifestEntryEditor, [ "SetFailed" ]),
-    (PyContentItemMigrationResult, [ "CastFailure" ]),
-    (PyContentBatchMigrationResult, [ "CastFailure" ]),
-    (PyMigrationPipelineContentType, [ "GetContentTypeForInterface", "GetPostPublishTypesForInterface", "GetPublishTypeForInterface", "WithPrepareType", "WithPublishType", "WithResultType" ]),
-    (PyServerToCloudMigrationPipeline, [ "BuildActions", "BuildPipeline", "CreateDestinationCache", "CreateSourceCache", "GetBatchMigrator", "GetDestinationLockedProjectCache", "GetItemConverter", "GetItemPreparer", "GetMigrator" ])
-]
+_generated_class_data = {
+    PyContentLocation: (PyContentLocation, [ "ForContentType" ], []),
+    PyContentReference: (PyContentReference, None, []),
+    PyEmptyIdContentReference: (PyEmptyIdContentReference, None, []),
+    PyResult: (PyResult, [ "CastFailure" ], []),
+    PyRestIdentifiable: (PyRestIdentifiable, None, []),
+    PyCloudSubscription: (PyCloudSubscription, None, []),
+    PyConnection: (PyConnection, None, []),
+    PyConnectionsContent: (PyConnectionsContent, None, []),
+    PyContainerContent: (PyContainerContent, None, []),
+    PyCustomView: (PyCustomView, None, []),
+    PyDataSource: (PyDataSource, [ "SetLocation" ], []),
+    PyDataSourceDetails: (PyDataSourceDetails, [ "SetLocation" ], []),
+    PyDescriptionContent: (PyDescriptionContent, None, []),
+    PyExtractContent: (PyExtractContent, None, []),
+    PyFavorite: (PyFavorite, None, []),
+    PyGroup: (PyGroup, [ "SetLocation" ], []),
+    PyGroupSet: (PyGroupSet, [ "SetLocation" ], []),
+    PyGroupUser: (PyGroupUser, None, []),
+    PyLabel: (PyLabel, None, []),
+    PyProject: (PyProject, [ "Container", "SetLocation" ], []),
+    PyPublishableCustomView: (PyPublishableCustomView, [ "DisposeAsync", "File" ], []),
+    PyPublishableDataSource: (PyPublishableDataSource, [ "DisposeAsync", "File", "SetLocation" ], []),
+    PyPublishableGroup: (PyPublishableGroup, [ "SetLocation" ], []),
+    PyPublishableGroupSet: (PyPublishableGroupSet, [ "SetLocation" ], []),
+    PyPublishableWorkbook: (PyPublishableWorkbook, [ "ChildPermissionContentItems", "ChildType", "DisposeAsync", "File", "SetLocation", "ShouldMigrateChildPermissions" ], []),
+    PyPublishedContent: (PyPublishedContent, None, []),
+    PyServerSubscription: (PyServerSubscription, None, []),
+    PySubscription: (PySubscription, None, []),
+    PySubscriptionContent: (PySubscriptionContent, None, []),
+    PyTag: (PyTag, None, []),
+    PyUser: (PyUser, [ "SetLocation" ], []),
+    PyUserAuthenticationType: (PyUserAuthenticationType, None, []),
+    PyUsernameContent: (PyUsernameContent, [ "SetLocation" ], []),
+    PyView: (PyView, None, []),
+    PyWithDomain: (PyWithDomain, None, []),
+    PyWithOwner: (PyWithOwner, None, []),
+    PyWithTags: (PyWithTags, None, []),
+    PyWithWorkbook: (PyWithWorkbook, None, []),
+    PyWorkbook: (PyWorkbook, [ "SetLocation" ], []),
+    PyWorkbookDetails: (PyWorkbookDetails, [ "ChildPermissionContentItems", "ChildType", "SetLocation", "ShouldMigrateChildPermissions" ], []),
+    PyCapability: (PyCapability, None, []),
+    PyGranteeCapability: (PyGranteeCapability, None, []),
+    PyPermissions: (PyPermissions, None, []),
+    PyPermissionSet: (PyPermissionSet, None, []),
+    PyExtractRefreshTask: (PyExtractRefreshTask, None, []),
+    PyFrequencyDetails: (PyFrequencyDetails, None, []),
+    PyInterval: (PyInterval, None, []),
+    PySchedule: (PySchedule, None, []),
+    PyWithSchedule: (PyWithSchedule, None, []),
+    PyCloudSchedule: (PyCloudSchedule, None, []),
+    PyServerSchedule: (PyServerSchedule, [ "ExtractRefreshTasks" ], []),
+    PyContentReferenceFinder: (PyContentReferenceFinder, None, []),
+    PyContentMigrationItem: (PyContentMigrationItem, None, []),
+    PyMigrationActionResult: (PyMigrationActionResult, [ "CastFailure" ], []),
+    PyContentMappingContext: (PyContentMappingContext, [ "ToTask" ], []),
+    PyBulkPostPublishContext: (PyBulkPostPublishContext, [ "ToTask" ], []),
+    PyContentItemPostPublishContext: (PyContentItemPostPublishContext, [ "ToTask" ], []),
+    PyMigrationManifestEntry: (PyMigrationManifestEntry, None, []),
+    PyMigrationManifestEntryEditor: (PyMigrationManifestEntryEditor, [ "SetFailed" ], []),
+    PyContentItemMigrationResult: (PyContentItemMigrationResult, [ "CastFailure" ], []),
+    PyContentBatchMigrationResult: (PyContentBatchMigrationResult, [ "CastFailure" ], []),
+    PyMigrationPipelineContentType: (PyMigrationPipelineContentType, [ "GetContentTypeForInterface", "GetPostPublishTypesForInterface", "GetPublishTypeForInterface", "WithPrepareType", "WithPublishType", "WithResultType" ], []),
+    PyServerToCloudMigrationPipeline: (PyServerToCloudMigrationPipeline, [ "BuildActions", "BuildPipeline", "CreateDestinationCache", "CreateSourceCache", "GetBatchMigrator", "GetDestinationLockedProjectCache", "GetItemConverter", "GetItemPreparer", "GetMigrator" ], [])
+}
 
 _generated_enum_data = [
     (PyMigrationCompletionStatus, MigrationCompletionStatus),
@@ -420,6 +435,7 @@ _generated_enum_data = [
     (PyAuthenticationTypes, AuthenticationTypes),
     (PyDataSourceFileTypes, DataSourceFileTypes),
     (PyWorkbookFileTypes, WorkbookFileTypes),
+    (PyFavoriteContentType, FavoriteContentType),
     (PyGranteeType, GranteeType),
     (PyExtractRefreshContentType, ExtractRefreshContentType),
     (PyMigrationManifestEntryStatus, MigrationManifestEntryStatus)
@@ -427,30 +443,34 @@ _generated_enum_data = [
 
 # endregion
 
-_test_class_data = [
-    (PyMigrationPlanBuilder, [ "ForCustomPipeline", "ForCustomPipelineFactory" ]),
-    (PyServerToCloudMigrationPlanBuilder, [ "ForCustomPipeline", "ForCustomPipelineFactory" ]),
-    (PyMigrationResult, None),
-    (PyMigrationManifest, None),
-    (PyMigrator, None),
-    (PyMigrationPlan, [ "PipelineFactoryOverride" ]),
-    (PyMigrationHookBuilder, None),
-    (PyContentTransformerBuilder, None),
-    (PyContentMappingBuilder, None),
-    (PyContentFilterBuilder, None),
-    (PyMigrationPlanOptionsBuilder, None),
-    (PyMigrationPlanOptionsCollection, None),
-    (PyMigrationHookFactoryCollection, None),
-    (PyDestinationContentReferenceFinder, None),
-    (PyDestinationContentReferenceFinderFactory, [ "ForContentType" ]),
-    (PySourceContentReferenceFinder, None),
-    (PySourceContentReferenceFinderFactory, [ "ForContentType" ]),
-    (PyMigrationManifestSerializer, None),
-]
-_test_class_data.extend(_generated_class_data)
+_test_class_data = {
+    PyMigrationPlanBuilder: (PyMigrationPlanBuilder, [ "ForCustomPipeline", "ForCustomPipelineFactory" ], []),
+    PyServerToCloudMigrationPlanBuilder: (PyServerToCloudMigrationPlanBuilder, [ "ForCustomPipeline", "ForCustomPipelineFactory" ], []),
+    PyMigrationResult: (PyMigrationResult, None, []),
+    PyMigrationManifest: (PyMigrationManifest, None, []),
+    PyMigrator: (PyMigrator, None, []),
+    PyMigrationPlan: (PyMigrationPlan, [ "PipelineFactoryOverride" ], []),
+    PyMigrationHookBuilder: (PyMigrationHookBuilder, None, []),
+    PyContentTransformerBuilder: (PyContentTransformerBuilder, None, []),
+    PyContentMappingBuilder: (PyContentMappingBuilder, None, []),
+    PyContentFilterBuilder: (PyContentFilterBuilder, None, []),
+    PyMigrationPlanOptionsBuilder: (PyMigrationPlanOptionsBuilder, None, []),
+    PyMigrationPlanOptionsCollection: (PyMigrationPlanOptionsCollection, None, []),
+    PyMigrationHookFactoryCollection: (PyMigrationHookFactoryCollection, None, []),
+    PyDestinationContentReferenceFinder: (PyDestinationContentReferenceFinder, None, []),
+    PyDestinationContentReferenceFinderFactory: (PyDestinationContentReferenceFinderFactory, [ "ForContentType" ], []),
+    PySourceContentReferenceFinder: (PySourceContentReferenceFinder, None, []),
+    PySourceContentReferenceFinderFactory: (PySourceContentReferenceFinderFactory, [ "ForContentType" ], []),
+    PyMigrationManifestSerializer: (PyMigrationManifestSerializer, None, []),
+}
+_test_class_data.update(_generated_class_data)
 
-@pytest.mark.parametrize("python_class, ignored_members", _test_class_data)
-def test_classes(python_class, ignored_members):
+# Known factory extensions
+_test_class_data[PyCapability][2].append("create")
+_test_class_data[PyGranteeCapability][2].append("create")
+
+@pytest.mark.parametrize("python_class, ignored_members, ignored_extra_members", _test_class_data.values())
+def test_classes(python_class, ignored_members, ignored_extra_members):
     """Verify that all the python wrapper classes actually wrap all the dotnet methods and properties."""
     from Tableau.Migration.Interop import InteropHelper
 
@@ -459,9 +479,22 @@ def test_classes(python_class, ignored_members):
 
     dotnet_class = python_class._dotnet_base
 
+    
     # Get all the python methods and properties.
     _all_py_methods = get_class_methods(python_class)
+    print("All Python methods")
+    print(_all_py_methods)
+
     _all_py_props = get_class_properties(python_class)
+    print("All Python properties")
+    print(_all_py_props)
+
+    if ignored_extra_members is None:
+        _clean_py_methods = _all_py_methods
+        _clean_py_props = _all_py_props
+    else:
+        _clean_py_methods = [method for method in _all_py_methods if method not in ignored_extra_members]
+        _clean_py_props = [prop for prop in _all_py_props if prop not in ignored_extra_members]
 
     # Get all the dotnet methods and field/properties.
     _all_dotnet_methods = [m for m in InteropHelper.GetMethods(dotnet_class)]
@@ -472,11 +505,16 @@ def test_classes(python_class, ignored_members):
         _clean_dotnet_methods = _all_dotnet_methods
         _clean_dotnet_props = _all_dotnet_props
     else:
-        _clean_dotnet_methods = [method for method in _all_dotnet_methods if method not in ignored_members]
+        _clean_dotnet_methods = [method for method in _all_dotnet_methods if method not in ignored_members]    
+        print("Clean .net methods")
+        print(_clean_dotnet_methods)
+
         _clean_dotnet_props = [prop for prop in _all_dotnet_props if prop not in ignored_members]
+        print("Clean .net properties")
+        print(_clean_dotnet_props)
 
     # Compare the lists.
-    member_message = compare_names(_clean_dotnet_methods + _clean_dotnet_props, _all_py_methods + _all_py_props)
+    member_message = compare_names(_clean_dotnet_methods + _clean_dotnet_props, _clean_py_methods + _clean_py_props)
 
     # Assert
     assert not member_message # Remember that the names are normalized.

@@ -25,6 +25,7 @@ using Microsoft.Extensions.Options;
 using Tableau.Migration.Api;
 using Tableau.Migration.Config;
 using Tableau.Migration.Net.Handlers;
+using Tableau.Migration.Net.Logging;
 using Tableau.Migration.Net.Resilience;
 using Tableau.Migration.Net.Rest;
 using Tableau.Migration.Net.Simulation;
@@ -54,8 +55,8 @@ namespace Tableau.Migration.Net
                 .AddSingleton<IConfigReader, ConfigReader>()
                 .AddSingleton<IUserAgentProvider, UserAgentProvider>()
                 .AddSingleton<IHttpContentSerializer, HttpContentSerializer>()
-                .AddSingleton<INetworkTraceRedactor, NetworkTraceRedactor>()
-                .AddTransient<INetworkTraceLogger, NetworkTraceLogger>()
+                .AddSingleton<IHttpContentRedactor, HttpContentRedactor>()
+                .AddTransient<IHttpActivityLogger, HttpActivityLogger>()
                 .AddTransient<UserAgentHeaderHttpHandler>()
                 .AddTransient<AuthenticationHttpHandler>()
                 .AddTransient<LoggingHttpHandler>()
@@ -112,8 +113,8 @@ namespace Tableau.Migration.Net
 
             httpClientBuilder
                 .AddHttpMessageHandler<AuthenticationHttpHandler>()
-                .AddHttpMessageHandler<LoggingHttpHandler>()
                 .AddHttpMessageHandler<RequestCorrelationIdHeaderHttpHandler>()
+                .AddHttpMessageHandler<LoggingHttpHandler>()
                 .AddHttpMessageHandler<SimulationHttpHandler>(); //Must be last for simulation to function.
 
             //Bootstrap and scope state tracking services.

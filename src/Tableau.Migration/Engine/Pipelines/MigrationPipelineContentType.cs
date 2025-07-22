@@ -40,19 +40,26 @@ namespace Tableau.Migration.Engine.Pipelines
         public static readonly MigrationPipelineContentType Users = new MigrationPipelineContentType<IUser>();
 
         /// <summary>
-        /// Gets the groups <see cref="MigrationPipelineContentType"/>.
+        /// Gets the group <see cref="MigrationPipelineContentType"/>.
         /// </summary>
         public static readonly MigrationPipelineContentType Groups = new MigrationPipelineContentType<IGroup>()
             .WithPrepareType<IPublishableGroup>()
             .WithPublishType<IPublishableGroup>();
 
         /// <summary>
-        /// Gets the projects <see cref="MigrationPipelineContentType"/>.
+        /// Gets the group set <see cref="MigrationPipelineContentType"/>.
+        /// </summary>
+        public static readonly MigrationPipelineContentType GroupSets = new MigrationPipelineContentType<IGroupSet>()
+            .WithPrepareType<IPublishableGroupSet>()
+            .WithPublishType<IPublishableGroupSet>();
+
+        /// <summary>
+        /// Gets the project <see cref="MigrationPipelineContentType"/>.
         /// </summary>
         public static readonly MigrationPipelineContentType Projects = new MigrationPipelineContentType<IProject>();
 
         /// <summary>
-        /// Gets the data sources <see cref="MigrationPipelineContentType"/>.
+        /// Gets the data source <see cref="MigrationPipelineContentType"/>.
         /// </summary>
         public static readonly MigrationPipelineContentType DataSources = new MigrationPipelineContentType<IDataSource>()
             .WithPrepareType<IPublishableDataSource>()
@@ -60,7 +67,7 @@ namespace Tableau.Migration.Engine.Pipelines
             .WithResultType<IDataSourceDetails>();
 
         /// <summary>
-        /// Gets the workbooks <see cref="MigrationPipelineContentType"/>.
+        /// Gets the workbook <see cref="MigrationPipelineContentType"/>.
         /// </summary>
         public static readonly MigrationPipelineContentType Workbooks = new MigrationPipelineContentType<IWorkbook>()
             .WithPrepareType<IPublishableWorkbook>()
@@ -68,48 +75,53 @@ namespace Tableau.Migration.Engine.Pipelines
             .WithResultType<IWorkbookDetails>();
 
         /// <summary>
-        /// Gets the views <see cref="MigrationPipelineContentType"/>.
+        /// Gets the view <see cref="MigrationPipelineContentType"/>.
         /// </summary>
         public static readonly MigrationPipelineContentType Views = new MigrationPipelineContentType<IView>();
 
         /// <summary>
-        /// Gets the Server to Server extract refresh tasks <see cref="MigrationPipelineContentType"/>.
+        /// Gets the server to server extract refresh task <see cref="MigrationPipelineContentType"/>.
         /// </summary>
         public static readonly MigrationPipelineContentType ServerToServerExtractRefreshTasks = new MigrationPipelineContentType<IServerExtractRefreshTask>();
 
         /// <summary>
-        /// Gets the Server to Cloud extract refresh tasks <see cref="MigrationPipelineContentType"/>.
+        /// Gets the server to cloud extract refresh task <see cref="MigrationPipelineContentType"/>.
         /// </summary>
         public static readonly MigrationPipelineContentType ServerToCloudExtractRefreshTasks = new MigrationPipelineContentType<IServerExtractRefreshTask>()
             .WithPublishType<ICloudExtractRefreshTask>();
 
         /// <summary>
-        /// Gets the Cloud to Cloud extract refresh tasks <see cref="MigrationPipelineContentType"/>.
+        /// Gets the cloud to cloud extract refresh task <see cref="MigrationPipelineContentType"/>.
         /// </summary>
         public static readonly MigrationPipelineContentType CloudToCloudExtractRefreshTasks = new MigrationPipelineContentType<ICloudExtractRefreshTask>();
 
         /// <summary>
-        /// Gets the custom views <see cref="MigrationPipelineContentType"/>.
+        /// Gets the custom view <see cref="MigrationPipelineContentType"/>.
         /// </summary>
         public static readonly MigrationPipelineContentType CustomViews = new MigrationPipelineContentType<ICustomView>()
             .WithPrepareType<IPublishableCustomView>()
             .WithPublishType<IPublishableCustomView>();
 
         /// <summary>
-        /// Gets the Server to Server subscriptions <see cref="MigrationPipelineContentType"/>.
+        /// Gets the server to server subscription <see cref="MigrationPipelineContentType"/>.
         /// </summary>
         public static readonly MigrationPipelineContentType ServerToServerSubscriptions = new MigrationPipelineContentType<IServerSubscription>();
 
         /// <summary>
-        /// Gets the Server to Cloud subscriptions <see cref="MigrationPipelineContentType"/>.
+        /// Gets the server to cloud subscription <see cref="MigrationPipelineContentType"/>.
         /// </summary>
         public static readonly MigrationPipelineContentType ServerToCloudSubscriptions = new MigrationPipelineContentType<IServerSubscription>()
             .WithPublishType<ICloudSubscription>();
 
         /// <summary>
-        /// Gets the Cloud to Cloud subscriptions <see cref="MigrationPipelineContentType"/>.
+        /// Gets the cloud to cloud subscription <see cref="MigrationPipelineContentType"/>.
         /// </summary>
         public static readonly MigrationPipelineContentType CloudToCloudSubscriptions = new MigrationPipelineContentType<ICloudSubscription>();
+
+        /// <summary>
+        /// Gets the favorite <see cref="MigrationPipelineContentType"/>.
+        /// </summary>
+        public static readonly MigrationPipelineContentType Favorites = new MigrationPipelineContentType<IFavorite>();
 
         /// <summary>
         /// Gets the preparation type that is pulled and converted for publishing. The Prepare type is the post-pull, pre-conversion type.

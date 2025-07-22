@@ -61,7 +61,6 @@ class TestConfig():
     def test_config(self):
         '''
         Verify that the MigrationSDK__BatchSize variable has been changed
-        Verify that the MigrationSDK__IncludeExtractEnabled variable has been changed
         
         Environment variables act different in different operating systems. For this reason we 
         must set the MigrationSDK_BatchSize in pytest.ini, as that is set before the python
@@ -72,7 +71,5 @@ class TestConfig():
         config_reader = get_service(services, IConfigReader)
 
         batch_size = config_reader.Get[IUser]().BatchSize
-        include_extract = config_reader.Get[IWorkbook]().IncludeExtractEnabled
 
         assert batch_size == 102
-        assert include_extract is False

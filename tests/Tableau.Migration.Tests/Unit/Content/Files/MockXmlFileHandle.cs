@@ -15,6 +15,7 @@
 //  limitations under the License.
 //
 
+using System.IO;
 using System.Threading;
 using System.Xml.Linq;
 using Moq;
@@ -28,10 +29,10 @@ namespace Tableau.Migration.Tests.Unit.Content.Files
 
         public Mock<ITableauFileXmlStream> MockXmlStream { get; set; }
 
-        public MockXmlFileHandle()
+        public MockXmlFileHandle(string? xml = null)
             : base()
         {
-            Xml = new();
+            Xml = xml is null ? new() : XDocument.Parse(xml);
 
             MockXmlStream = new();
             MockXmlStream.Setup(x => x.GetXmlAsync(It.IsAny<CancellationToken>()))
@@ -39,6 +40,9 @@ namespace Tableau.Migration.Tests.Unit.Content.Files
 
             Setup(x => x.GetXmlStreamAsync(It.IsAny<CancellationToken>()))
                 .ReturnsAsync(() => MockXmlStream.Object);
+
+            Setup(x => x.OpenReadAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(() => new ContentFileStream(new MemoryStream(Constants.DefaultEncoding.GetBytes(Xml.ToString()))));
         }
     }
 }

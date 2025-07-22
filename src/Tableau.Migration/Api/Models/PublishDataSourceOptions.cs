@@ -25,7 +25,7 @@ namespace Tableau.Migration.Api.Models
     /// <summary>
     /// Class for API client data source publish options. 
     /// </summary>
-    public class PublishDataSourceOptions : PublishContentWithFileOptions, IPublishDataSourceOptions
+    public class PublishDataSourceOptions : PublishFileOptionsBase, IPublishDataSourceOptions
     {
         ///<inheritdoc/>
         public string Name { get; }
@@ -49,16 +49,9 @@ namespace Tableau.Migration.Api.Models
         /// Creates a new <see cref="PublishDataSourceOptions"/> instance.
         /// </summary>
         /// <param name="dataSource">The publishable data source information.</param>
-        /// <param name="file">The data source file as a <see cref="Stream"/></param>
         /// <param name="fileType">The type of data source file.</param>
-        public PublishDataSourceOptions(
-            IPublishableDataSource dataSource,
-            Stream file,
-            string fileType = DataSourceFileTypes.Tdsx)
-             : base(
-                  file,
-                  dataSource.File.OriginalFileName,
-                  fileType)
+        public PublishDataSourceOptions(IPublishableDataSource dataSource, string fileType = DataSourceFileTypes.Tdsx)
+             : base(dataSource.File, fileType)
         {
             Name = dataSource.Name;
             Description = dataSource.Description;

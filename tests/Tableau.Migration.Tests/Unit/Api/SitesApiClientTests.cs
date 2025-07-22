@@ -50,6 +50,47 @@ namespace Tableau.Migration.Tests.Unit.Api
                 Assert.NotNull(SitesApiClient.Jobs);
                 Assert.NotNull(SitesApiClient.Projects);
                 Assert.NotNull(SitesApiClient.Users);
+                Assert.NotNull(SitesApiClient.Favorites);
+            }
+        }
+
+        #endregion
+
+        #region - GetCurrentSite -
+
+        public class GetCurrentSite : SitesApiClientTest
+        {
+            [Fact]
+            public async Task NoCurrentSiteAsync()
+            {
+                MockSessionProvider.Setup(x => x.SiteId).Returns((Guid?)null);
+
+                var result = await SitesApiClient.GetCurrentSiteAsync(Cancel);
+
+                result.AssertFailure();
+                Assert.Single(result.Errors);
+
+                MockHttpClient.AssertNoRequests();
+            }
+
+            [Fact]
+            public async Task SuccessAsync()
+            {
+                var siteResponse = AutoFixture.CreateResponse<SiteResponse>();
+
+                var mockResponse = new MockHttpResponseMessage<SiteResponse>(siteResponse);
+                MockHttpClient.SetupResponse(mockResponse);
+
+                var siteId = Guid.NewGuid();
+                MockSessionProvider.Setup(x => x.SiteId).Returns(siteId);
+
+                var result = await SitesApiClient.GetCurrentSiteAsync(Cancel);
+
+                result.AssertSuccess();
+                Assert.NotNull(result.Value);
+
+                var request = MockHttpClient.AssertSingleRequest();
+                request.AssertRelativeUri($"/api/{TableauServerVersion.RestApiVersion}/sites/{siteId}");
             }
         }
 

@@ -34,6 +34,7 @@
     <Compile Include="src\tableau_migration\migration_api_rest_models_types.py" />
     <Compile Include="src\tableau_migration\migration_content.py" />
     <Compile Include="src\tableau_migration\migration_content_permissions.py" />
+    <Compile Include="src\tableau_migration\migration_content_search.py" />
     <Compile Include="src\tableau_migration\migration_engine_actions.py" />
     <Compile Include="src\tableau_migration\migration_engine_endpoints_search.py" />
     <Compile Include="src\tableau_migration\migration_engine_hooks.py" />
@@ -44,7 +45,7 @@
     <Compile Include="src\tableau_migration\migration_engine_hooks_mappings_interop.py" />
     <Compile Include="src\tableau_migration\migration_engine_hooks_postpublish.py" />
     <Compile Include="src\tableau_migration\migration_engine_hooks_postpublish_interop.py" />
-    <Compile Include="src\tableau_migration\migration_engine_hooks_results.py" />
+    <Compile Include="src\tableau_migration\migration_engine_hooks_initializemigration.py" />
     <Compile Include="src\tableau_migration\migration_engine_hooks_transformers.py" />
     <Compile Include="src\tableau_migration\migration_engine_hooks_transformers_interop.py" />
     <Compile Include="src\tableau_migration\migration_engine_manifest.py" />
@@ -62,6 +63,7 @@
     <Compile Include="tests\test_migration_content_permissions.py" />
     <Compile Include="tests\test_migration_content_schedules_cloud.py" />
     <Compile Include="tests\test_migration_content_schedules_server.py" />
+    <Compile Include="tests\test_migration_content_search.py" />
     <Compile Include="tests\test_migration_engine_hooks.py" />
     <Compile Include="tests\test_migration_engine_hooks_filters.py" />
     <Compile Include="tests\test_migration_engine_hooks_mappings.py" />

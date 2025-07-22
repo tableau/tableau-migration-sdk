@@ -39,8 +39,8 @@ namespace Tableau.Migration.Engine.Endpoints.ContentClients
         /// <summary>
         /// Initializes a new instance of the <see cref="ContentClientBase{TContent}"/> class.
         /// </summary>
-        /// <param name="logger"></param>
-        /// <param name="localizer"></param>
+        /// <param name="logger">The logger for this content client.</param>
+        /// <param name="localizer">The localizer for the content client.</param>
         public ContentClientBase(
             ILogger<IContentClient<TContent>> logger,
             ISharedResourcesLocalizer localizer)

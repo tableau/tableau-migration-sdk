@@ -17,6 +17,7 @@
 
 using System.Collections.Generic;
 using Tableau.Migration.Api.Rest.Models.Responses;
+using Tableau.Migration.Api.Rest.Models.Types;
 
 namespace Tableau.Migration.Api.Simulation
 {
@@ -46,16 +47,23 @@ namespace Tableau.Migration.Api.Simulation
             /// </summary>
             /// <param name="view"></param>
             /// <param name="hidden"></param>
-            public SimulatedViewType(ViewResponse.ViewType view, bool hidden)
+            /// <param name="permissions"></param>
+            public SimulatedViewType(ViewResponse.ViewType view, bool hidden, PermissionsType permissions)
             {
                 View = view;
                 Hidden = hidden;
+                ViewPermissions = permissions;
             }
 
             /// <summary>
             /// Simulated View
             /// </summary>
             public ViewResponse.ViewType? View { get; set; }
+
+            /// <summary>
+            /// Simulated View permissions
+            /// </summary>
+            public PermissionsType? ViewPermissions { get; set; }
 
             /// <summary>
             /// Simulated hidden flag

@@ -133,6 +133,7 @@ namespace Tableau.Migration.Api.Simulation.Rest.Net.Responses
             Data.WorkbookKeychains.AddOrUpdate(targetWorkbook.Id, new RetrieveKeychainResponse(), (_, _) => new RetrieveKeychainResponse());
 
             // Update view data
+            var wbViews = new List<WorkbookResponse.WorkbookType.WorkbookViewReferenceType>();
             foreach (var simulatedView in simulatedFileData.Views)
             {
                 Guard.AgainstNull(simulatedView.View, nameof(simulatedView.View));
@@ -145,7 +146,22 @@ namespace Tableau.Migration.Api.Simulation.Rest.Net.Responses
                 }
 
                 simulatedView.View.ContentUrl = $"{targetWorkbook.Name}{Constants.PathSeparator}{simulatedView.View.Name}";
+                simulatedView.View.Id = Guid.NewGuid();
+
+                var wbView = new WorkbookResponse.WorkbookType.WorkbookViewReferenceType(simulatedView.View);
+
+                Data.AddView(simulatedView.View);
+                wbViews.Add(wbView);
+
+                var viewPermissions = simulatedView.ViewPermissions;
+                if (viewPermissions != null)
+                {
+                    Data.AddViewPermissions(wbView, viewPermissions);
+                }
             }
+
+            targetWorkbook.Views = [.. wbViews];
+
 
             // Write our updated file back to the commitFileData reference
             commitFileData = Encoding.Default.GetBytes(simulatedFileData.ToXml());

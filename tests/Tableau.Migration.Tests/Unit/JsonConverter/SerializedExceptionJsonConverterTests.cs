@@ -71,7 +71,7 @@ namespace Tableau.Migration.Tests.Unit.JsonConverter
                 writer.Flush();
                 var json = Encoding.UTF8.GetString(memoryStream.ToArray());
 
-                var expectedJsonMessage = ex.Error?.Message.Replace("'", "\\u0027") ?? "";
+                var expectedJsonMessage = ex.Error?.Message.Replace("'", "\\u0027").Replace("\r", "\\r").Replace("\n", "\\n") ?? "";
 
                 // Assert Writer
                 Assert.NotNull(json);

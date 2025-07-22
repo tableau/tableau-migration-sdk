@@ -23,7 +23,7 @@ namespace Tableau.Migration.Tests.Unit.Api.Rest.Models.Requests
 {
     public class UpdateSiteRequestTests
     {
-        public class Ctor : AutoFixtureTestBase
+        public sealed class Ctor : AutoFixtureTestBase
         {
             [Fact]
             public void Initializes()
@@ -34,6 +34,94 @@ namespace Tableau.Migration.Tests.Unit.Api.Rest.Models.Requests
 
                 Assert.NotNull(req.Site);
                 Assert.Equal(update.ExtractEncryptionMode, req.Site.ExtractEncryptionMode);
+                Assert.Equal(update.DisableSubscriptions, req.Site.DisableSubscriptions);
+                Assert.Equal(update.GroupSetsEnabled, req.Site.GroupSetsEnabled);
+            }
+        }
+
+        public sealed class DisableSubscriptions : AutoFixtureTestBase
+        {
+            [Fact]
+            public void GetsNull()
+            {
+                var req = new UpdateSiteRequest(Create<ISiteSettingsUpdate>());
+                Assert.NotNull(req.Site);
+
+                req.Site.DisableSubscriptionsValue = null;
+                Assert.Null(req.Site.DisableSubscriptions);
+            }
+
+            [Fact]
+            public void GetsBool()
+            {
+                var req = new UpdateSiteRequest(Create<ISiteSettingsUpdate>());
+                Assert.NotNull(req.Site);
+
+                req.Site.DisableSubscriptionsValue = "true";
+                Assert.True(req.Site.DisableSubscriptions);
+            }
+
+            [Fact]
+            public void SetsNull()
+            {
+                var req = new UpdateSiteRequest(Create<ISiteSettingsUpdate>());
+                Assert.NotNull(req.Site);
+
+                req.Site.DisableSubscriptions = null;
+                Assert.Null(req.Site.DisableSubscriptionsValue);
+            }
+
+            [Fact]
+            public void SetsBool()
+            {
+                var req = new UpdateSiteRequest(Create<ISiteSettingsUpdate>());
+                Assert.NotNull(req.Site);
+
+                req.Site.DisableSubscriptions = true;
+                Assert.Equal("true", req.Site.DisableSubscriptionsValue);
+            }
+        }
+
+        public sealed class GroupSetsEnabled : AutoFixtureTestBase
+        {
+            [Fact]
+            public void GetsNull()
+            {
+                var req = new UpdateSiteRequest(Create<ISiteSettingsUpdate>());
+                Assert.NotNull(req.Site);
+
+                req.Site.GroupSetsEnabledValue = null;
+                Assert.Null(req.Site.GroupSetsEnabled);
+            }
+
+            [Fact]
+            public void GetsBool()
+            {
+                var req = new UpdateSiteRequest(Create<ISiteSettingsUpdate>());
+                Assert.NotNull(req.Site);
+
+                req.Site.GroupSetsEnabledValue = "true";
+                Assert.True(req.Site.GroupSetsEnabled);
+            }
+
+            [Fact]
+            public void SetsNull()
+            {
+                var req = new UpdateSiteRequest(Create<ISiteSettingsUpdate>());
+                Assert.NotNull(req.Site);
+
+                req.Site.GroupSetsEnabled = null;
+                Assert.Null(req.Site.GroupSetsEnabledValue);
+            }
+
+            [Fact]
+            public void SetsBool()
+            {
+                var req = new UpdateSiteRequest(Create<ISiteSettingsUpdate>());
+                Assert.NotNull(req.Site);
+
+                req.Site.GroupSetsEnabled = true;
+                Assert.Equal("true", req.Site.GroupSetsEnabledValue);
             }
         }
     }

@@ -106,6 +106,23 @@ namespace Tableau.Migration.Api
         ICloudSubscriptionsApiClient CloudSubscriptions { get; }
 
         /// <summary>
+        /// Gets the API client for favorites operations.
+        /// </summary>
+        IFavoritesApiClient Favorites { get; }
+
+        /// <summary>
+        /// Gets the API client for group set operations.
+        /// </summary>
+        IGroupSetsApiClient GroupSets { get; }
+
+        /// <summary>
+        /// Gets the site for the current signed in session.
+        /// </summary>
+        /// <param name="cancel">The cancellation token to obey.</param>
+        /// <returns>The site for the current signed in session.</returns>
+        Task<IResult<ISite>> GetCurrentSiteAsync(CancellationToken cancel);
+
+        /// <summary>
         /// Gets the site with the specified ID.
         /// </summary>
         /// <param name="siteId">The site's ID.</param>

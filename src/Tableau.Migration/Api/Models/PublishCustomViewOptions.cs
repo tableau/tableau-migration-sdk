@@ -16,7 +16,6 @@
 //
 
 using System;
-using System.IO;
 using Tableau.Migration.Api.Rest.Models.Types;
 using Tableau.Migration.Content;
 
@@ -24,7 +23,7 @@ namespace Tableau.Migration.Api.Models
 {
 
     /// <inheritdoc/>    
-    public class PublishCustomViewOptions : PublishContentWithFileOptions, IPublishCustomViewOptions
+    public class PublishCustomViewOptions : PublishFileOptionsBase, IPublishCustomViewOptions
     {
         /// <inheritdoc/>
         public string Name { get; set; }
@@ -42,16 +41,9 @@ namespace Tableau.Migration.Api.Models
         /// Creates a new <see cref="PublishCustomViewOptions"/> instance.
         /// </summary>
         /// <param name="customView">The publishable custom view information.</param>
-        /// <param name="file">The custom view file as a <see cref="Stream"/>.</param>
         /// <param name="fileType">The type of custom view file. Defaults to <see cref="CustomViewFileTypes.Json"/>.</param> 
-        public PublishCustomViewOptions(
-            IPublishableCustomView customView,
-            Stream file,
-            string fileType = CustomViewFileTypes.Json)
-            : base(
-                  file,
-                  customView.File.OriginalFileName,
-                  fileType)
+        public PublishCustomViewOptions(IPublishableCustomView customView, string fileType = CustomViewFileTypes.Json)
+            : base(customView.File, fileType)
         {
             Name = customView.Name;
             Shared = customView.Shared;

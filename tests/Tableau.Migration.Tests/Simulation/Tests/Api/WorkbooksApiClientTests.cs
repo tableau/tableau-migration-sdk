@@ -27,6 +27,7 @@ using Tableau.Migration.Api.Rest.Models.Types;
 using Tableau.Migration.Api.Simulation;
 using Tableau.Migration.Content;
 using Tableau.Migration.Net;
+using Tableau.Migration.Tests.Unit.Content.Files;
 using Xunit;
 
 namespace Tableau.Migration.Tests.Simulation.Tests.Api
@@ -96,7 +97,13 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
 
                 foreach (var view in workbook.Views)
                 {
-                    Api.Data.AddView(view);
+                    Api.Data.AddView(new ViewResponse.ViewType()
+                    {
+                        Id = view.Id,
+                        ContentUrl = view.ContentUrl,
+                        Name = view.Name,
+                        Tags = view.Tags.Select(t => new ViewResponse.ViewType.TagType() { Label = t.Label }).ToArray(),
+                    });
                     Api.Data.CreateViewPermissions(AutoFixture, view, view.Id, view.Name);
                 }
 
@@ -149,10 +156,9 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
                 var mockPublishable = Create<Mock<IPublishableWorkbook>>()
                     .WithProject(project);
 
-                var options = new PublishWorkbookOptions(
-                    mockPublishable.Object,
-                    new MemoryStream(Constants.DefaultEncoding.GetBytes(new SimulatedWorkbookData().ToXml())),
-                    WorkbookFileTypes.Twbx);
+                mockPublishable.SetupGet(x => x.File).Returns(new MockXmlFileHandle(new SimulatedWorkbookData().ToXml()).Object);
+
+                var options = new PublishWorkbookOptions(mockPublishable.Object, WorkbookFileTypes.Twbx);
 
                 var result = await sitesClient.Workbooks.PublishWorkbookAsync(options, Cancel);
 

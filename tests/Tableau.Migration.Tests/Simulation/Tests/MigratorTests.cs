@@ -38,15 +38,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests
         [Fact]
         public async Task BasicSuccessAsync()
         {
-            var plan = ServiceProvider.GetRequiredService<IMigrationPlanBuilder>()
-                .FromSource(SourceEndpointConfig)
-                // This likely won't be needed once ServerToCloudMigrationPipeline is implemented.
-                .ToDestination(CloudDestinationEndpointConfig)
-                .ForServerToCloud()
-                .Build();
-
-            var migrator = ServiceProvider.GetRequiredService<IMigrator>();
-            var result = await migrator.ExecuteAsync(plan, Cancel);
+            var result = await RunMigrationAsync();
 
             Assert.Empty(result.Manifest.Errors);
             Assert.Equal(MigrationCompletionStatus.Completed, result.Status);
@@ -59,15 +51,11 @@ namespace Tableau.Migration.Tests.Simulation.Tests
         [Fact]
         public async Task FailAsync()
         {
-            var plan = ServiceProvider.GetRequiredService<IMigrationPlanBuilder>()
-                .FromSource(SourceEndpointConfig)
-                // This likely won't be needed once ServerToCloudMigrationPipeline is implemented.
+            var plan = CreatePlanBuilder()
                 .ToDestination(new TableauApiEndpointConfiguration(new TableauSiteConnectionConfiguration()))
-                .ForServerToCloud()
                 .Build();
 
-            var migrator = ServiceProvider.GetRequiredService<IMigrator>();
-            var result = await migrator.ExecuteAsync(plan, Cancel);
+            var result = await RunMigrationAsync(plan);
 
             Assert.NotEmpty(result.Manifest.Errors);
             Assert.Equal(MigrationCompletionStatus.FatalError, result.Status);
@@ -79,15 +67,8 @@ namespace Tableau.Migration.Tests.Simulation.Tests
         [Fact]
         public async Task CancelAsync()
         {
-            var plan = ServiceProvider.GetRequiredService<IMigrationPlanBuilder>()
-                .FromSource(SourceEndpointConfig)
-                // This likely won't be needed once ServerToCloudMigrationPipeline is implemented.
-                .ToDestination(CloudDestinationEndpointConfig)
-                .ForServerToCloud()
-                .Build();
-
+            var plan = CreatePlanBuilder().Build();
             var migrator = ServiceProvider.GetRequiredService<IMigrator>();
-
             var result = await migrator.ExecuteAsync(plan, new CancellationToken(true));
 
             Assert.Empty(result.Manifest.Errors);
@@ -104,19 +85,11 @@ namespace Tableau.Migration.Tests.Simulation.Tests
             {
                 throw new TaskCanceledException();
             }
-            var planBuilder = ServiceProvider.GetRequiredService<IMigrationPlanBuilder>()
-                .FromSource(SourceEndpointConfig)
-                // This likely won't be needed once ServerToCloudMigrationPipeline is implemented.
-                .ToDestination(CloudDestinationEndpointConfig)
-                .ForServerToCloud();
-
+            var planBuilder = CreatePlanBuilder();
             planBuilder.Hooks.Add<IMigrationActionCompletedHook, IMigrationActionResult>(throwCancelOnCallback);
 
             var plan = planBuilder.Build();
-
-            var migrator = ServiceProvider.GetRequiredService<IMigrator>();
-
-            var result = await migrator.ExecuteAsync(plan, Cancel);
+            var result = await RunMigrationAsync(plan);
 
             Assert.Empty(result.Manifest.Errors);
             Assert.Equal(MigrationCompletionStatus.Canceled, result.Status);

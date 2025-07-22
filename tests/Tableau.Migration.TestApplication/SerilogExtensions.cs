@@ -34,7 +34,8 @@ namespace Tableau.Migration.TestApplication
                 .AddEnrichments()
                 .AddMinimumLogLevelOverrides(logOptions)
                 .ConfigureConsoleLogging(logOptions)
-                .ConfigureFileLogging(logOptions);
+                .ConfigureFileLogging(logOptions)
+                .ConfigureHttpFileLogging(logOptions);
 
             config.AddSerilog(serilogConfig.CreateLogger());
         }
@@ -50,13 +51,35 @@ namespace Tableau.Migration.TestApplication
             {
                 return serilogConfig;
             }
+            return serilogConfig.AddWriteToFileConfig(logOptions.FileSizeLimitMB, LogFileHelper.GetLogFilePath(logPath), LogFileHelper.LOG_LINE_TEMPLATE);
+        }
 
-            return serilogConfig.WriteTo.File(
-                path: LogFileHelper.GetLogFilePath(logPath),
-                outputTemplate: LogFileHelper.LOG_LINE_TEMPLATE,
-                fileSizeLimitBytes: logOptions.FileSizeLimitMB * 1024 * 1024,
-                rollOnFileSizeLimit: true,
-                retainedFileCountLimit: null); // Retain all log files
+        private static LoggerConfiguration ConfigureHttpFileLogging(this LoggerConfiguration serilogConfig, LogOptions logOptions)
+        {
+            var logPath = logOptions.FolderPath;
+
+            if (string.IsNullOrEmpty(logPath))
+            {
+                return serilogConfig;
+            }
+            var filePath = LogFileHelper.GetHttpLogFilePath(logPath);
+            var outputFormat = LogFileHelper.LOG_LINE_HTTP_TEMPLATE;
+            return serilogConfig.WriteTo.Logger(lc => lc
+                .Filter.ByIncludingOnly(logEvent =>
+                    logEvent.Properties.TryGetValue("SourceContext", out var sourceContext) &&
+                    sourceContext.ToString().Trim('\"') == "Tableau.Migration.Net.Logging.HttpActivityLogger")
+                .AddWriteToFileConfig(logOptions.FileSizeLimitMB, filePath, outputFormat));
+        }
+
+        private static LoggerConfiguration AddWriteToFileConfig(this LoggerConfiguration serilogConfig, int sizeLimitMB, string filePath, string outputFormat)
+        {
+            return serilogConfig
+                .WriteTo.File(
+                    path: filePath,
+                    outputTemplate: outputFormat,
+                    fileSizeLimitBytes: sizeLimitMB * 1024 * 1024,
+                    rollOnFileSizeLimit: true,
+                    retainedFileCountLimit: null); // Retain all log files
         }
 
         private static LoggerConfiguration ConfigureConsoleLogging(this LoggerConfiguration serilogConfig, LogOptions logOptions)

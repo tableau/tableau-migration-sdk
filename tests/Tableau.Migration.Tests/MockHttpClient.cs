@@ -16,9 +16,11 @@
 //
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -167,8 +169,8 @@ namespace Tableau.Migration.Tests
 
         #region - Success Responses -
 
-        public IHttpResponseMessage SetupSuccessResponse(HttpContent? content = null)
-            => SetupSendAsync(MockHttpResponseMessage.Success(content).Object);
+        public IHttpResponseMessage SetupSuccessResponse(HttpContent? content = null, HttpStatusCode statusCode = HttpStatusCode.OK)
+            => SetupSendAsync(MockHttpResponseMessage.Success(content, statusCode).Object);
 
         public (IHttpResponseMessage<TContent> Response, TContent Content) SetupSuccessResponse<TContent>(
             IFixture autoFixture,
@@ -231,24 +233,24 @@ namespace Tableau.Migration.Tests
             return (response, error);
         }
 
-        public (IHttpResponseMessage<TContent> Response, Error Error) SetupErrorResponse<TContent>(Error error)
-            where TContent : TableauServerResponse, new()
+        public (IHttpResponseMessage<TResponse> Response, Error Error) SetupErrorResponse<TResponse>(Error error)
+            where TResponse : TableauServerResponse, new()
         {
-            var response = SetupSendAsync(MockHttpResponseMessage<TContent>.Error(error).Object);
+            var response = SetupSendAsync(MockHttpResponseMessage<TResponse>.Error(error).Object);
 
             return (response, error);
         }
 
-        public (IHttpResponseMessage<TContent> Response, Error Error) SetupErrorResponse<TContent>(
+        public (IHttpResponseMessage<TResponse> Response, Error Error) SetupErrorResponse<TResponse>(
             IFixture autoFixture,
             Action<Error>? configureError = null)
-            where TContent : TableauServerResponse, new()
+            where TResponse : TableauServerResponse, new()
         {
-            var error = autoFixture.CreateErrorResponse().Error!;
+            var error = autoFixture.Create<Error>();
 
             configureError?.Invoke(error);
 
-            return SetupErrorResponse<TContent>(error);
+            return SetupErrorResponse<TResponse>(error);
         }
 
         #endregion
@@ -297,21 +299,24 @@ namespace Tableau.Migration.Tests
             return SentRequests;
         }
 
-        public IImmutableList<HttpRequestMessage> AssertAllRequests(int expectedCount, params Action<HttpRequestMessage>[] assert)
+        public IImmutableList<HttpRequestMessage> AssertAllRequests(params IEnumerable<Action<HttpRequestMessage>> assert)
+            => AssertAllRequests(assert.Count(), assert);
+
+        public IImmutableList<HttpRequestMessage> AssertAllRequests(int expectedCount, params IEnumerable<Action<HttpRequestMessage>> assert)
         {
-            if (expectedCount != assert.Length)
-                throw new ArgumentException($"{nameof(expectedCount)} ({expectedCount}) does not match {nameof(assert)}.{nameof(assert.Length)} ({assert.Length}.");
+            if (expectedCount != assert.Count())
+                throw new ArgumentException($"{nameof(expectedCount)} ({expectedCount}) does not match assertion count ({assert.Count()}.");
 
             AssertRequestCount(expectedCount);
 
             return AssertRequests(assert);
         }
 
-        public IImmutableList<HttpRequestMessage> AssertRequests(params Action<HttpRequestMessage>[] assert)
+        public IImmutableList<HttpRequestMessage> AssertRequests(params IEnumerable<Action<HttpRequestMessage>> assert)
         {
-            Assert.True(_sentRequests.Count >= assert.Length);
+            Assert.True(_sentRequests.Count >= assert.Count());
 
-            Assert.Collection(_sentRequests.Take(assert.Length), assert);
+            Assert.Collection(_sentRequests.Take(assert.Count()), assert.ToArray());
 
             return SentRequests;
         }

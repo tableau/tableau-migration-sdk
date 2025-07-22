@@ -15,6 +15,8 @@
 //  limitations under the License.
 //
 
+using System;
+using Tableau.Migration.Content;
 using Tableau.Migration.Content.Search;
 
 namespace Tableau.Migration.Engine.Endpoints.Search
@@ -32,5 +34,22 @@ namespace Tableau.Migration.Engine.Endpoints.Search
         /// <returns>The content reference finder.</returns>
         IDestinationContentReferenceFinder<TContent> ForDestinationContentType<TContent>()
             where TContent : class, IContentReference;
+
+        /// <summary>
+        /// Gets or creates a destination content reference finder for a given favoritecontent type. 
+        /// </summary>
+        /// <param name="contentType">The favorite content type</param>
+        /// <returns>The content reference finder.</returns>
+        public IDestinationContentReferenceFinder ForFavoriteDestinationContentType(FavoriteContentType contentType)
+        {
+            return contentType switch
+            {
+                FavoriteContentType.DataSource => ForDestinationContentType<IDataSource>(),
+                FavoriteContentType.Flow => ForDestinationContentType<IFlow>(),
+                FavoriteContentType.Project => ForDestinationContentType<IProject>(),
+                FavoriteContentType.Workbook => ForDestinationContentType<IWorkbook>(),
+                _ => throw new NotSupportedException($"Favorite content type {contentType} is not supported.")
+            };
+        }
     }
 }

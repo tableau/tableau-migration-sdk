@@ -29,14 +29,22 @@ using Xunit;
 
 namespace Tableau.Migration.Tests.Unit.Api
 {
-    public class IContentReferenceFinderFactoryExtensionsTests
+    public sealed class IContentReferenceFinderFactoryExtensionsTests
     {
+        #region - Test Classes -
+
         private class WithProjectNamedReferenceType : IWithProjectNamedReferenceType, INamedContent, IRestIdentifiable
         {
             public virtual Guid Id { get; set; }
             public virtual string? Name { get; set; }
             public virtual IProjectNamedReferenceType? Project { get; set; }
             IProjectReferenceType? IWithProjectReferenceType.Project => Project;
+        }
+
+        private class WithGroupType : INamedContent, IRestIdentifiable
+        {
+            public virtual Guid Id { get; set; }
+            public virtual string? Name { get; set; }
         }
 
         private class WithUserType : INamedContent, IRestIdentifiable
@@ -62,6 +70,7 @@ namespace Tableau.Migration.Tests.Unit.Api
         public abstract class IContentReferenceFinderFactoryExtensionsTest : AutoFixtureTestBase
         {
             protected readonly Mock<IContentReferenceFinderFactory> MockFinderFactory = new();
+            protected readonly Mock<IContentReferenceFinder<IGroup>> MockGroupFinder = new();
             protected readonly Mock<IContentReferenceFinder<IProject>> MockProjectFinder = new();
             protected readonly Mock<IContentReferenceFinder<IUser>> MockUserFinder = new();
             protected readonly Mock<IContentReferenceFinder<IWorkbook>> MockWorkbookFinder = new();
@@ -71,6 +80,7 @@ namespace Tableau.Migration.Tests.Unit.Api
 
             public IContentReferenceFinderFactoryExtensionsTest()
             {
+                MockFinderFactory.Setup(f => f.ForContentType<IGroup>()).Returns(MockGroupFinder.Object);
                 MockFinderFactory.Setup(f => f.ForContentType<IProject>()).Returns(MockProjectFinder.Object);
                 MockFinderFactory.Setup(f => f.ForContentType<IUser>()).Returns(MockUserFinder.Object);
                 MockFinderFactory.Setup(f => f.ForContentType<IWorkbook>()).Returns(MockWorkbookFinder.Object);
@@ -78,7 +88,69 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
         }
 
-        public class FindProjectAsync : IContentReferenceFinderFactoryExtensionsTest
+        #endregion
+
+        #region - FindUserAsync -
+
+        public sealed class FindGroupAsync : IContentReferenceFinderFactoryExtensionsTest
+        {
+            [Fact]
+            public async Task NullThrowsAsync()
+            {
+                await Assert.ThrowsAsync<ArgumentNullException>(() =>
+                    MockFinderFactory.Object.FindGroupAsync<WithGroupType>(null, MockLogger.Object, SharedResourcesLocalizer, true, Cancel)
+                );
+            }
+
+            [Fact]
+            public async Task ThrowsDefaultGroupAsync()
+            {
+                await Assert.ThrowsAsync<ArgumentException>(() =>
+                    MockFinderFactory.Object.FindGroupAsync(new WithGroupType(), MockLogger.Object, SharedResourcesLocalizer, true, Cancel)
+                );
+            }
+
+            [Fact]
+            public async Task GroupFoundAsync()
+            {
+                var mockContentReference = new Mock<IContentReference>();
+                mockContentReference.SetupGet(o => o.Id).Returns(Guid.NewGuid());
+
+                MockGroupFinder.Setup(f => f.FindByIdAsync(mockContentReference.Object.Id, Cancel)).ReturnsAsync(mockContentReference.Object);
+
+                var response = new WithGroupType { Id = mockContentReference.Object.Id };
+
+                var result = await MockFinderFactory.Object.FindGroupAsync(response, MockLogger.Object, SharedResourcesLocalizer, true, Cancel);
+
+                Assert.Same(mockContentReference.Object, result);
+            }
+
+            [Fact]
+            public async Task ReturnsNullAsync()
+            {
+                var response = new WithGroupType { Id = Guid.NewGuid() };
+
+                var result = await MockFinderFactory.Object.FindGroupAsync(response, MockLogger.Object, SharedResourcesLocalizer, false, Cancel);
+
+                Assert.Null(result);
+            }
+
+            [Fact]
+            public async Task NotFoundThrowsAsync()
+            {
+                var response = new WithGroupType { Id = Guid.NewGuid() };
+
+                await Assert.ThrowsAsync<InvalidOperationException>(() => 
+                    MockFinderFactory.Object.FindGroupAsync(response, MockLogger.Object, SharedResourcesLocalizer, true, Cancel)
+                );
+            }
+        }
+
+        #endregion
+
+        #region - FindProjectAsync -
+
+        public sealed class FindProjectAsync : IContentReferenceFinderFactoryExtensionsTest
         {
             [Fact]
             public async Task Throws_when_response_is_null()
@@ -173,7 +245,11 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
         }
 
-        public class FindOwnerAsync : IContentReferenceFinderFactoryExtensionsTest
+        #endregion
+
+        #region - FindOwnerAsync -
+
+        public sealed class FindOwnerAsync : IContentReferenceFinderFactoryExtensionsTest
         {
             [Fact]
             public async Task Throws_when_response_is_null()
@@ -268,7 +344,11 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
         }
 
-        public class FindUserAsync : IContentReferenceFinderFactoryExtensionsTest
+        #endregion
+
+        #region - FindUserAsync -
+
+        public sealed class FindUserAsync : IContentReferenceFinderFactoryExtensionsTest
         {
             [Fact]
             public async Task Throws_when_response_is_null()
@@ -343,7 +423,11 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
         }
 
-        public class FindWorkbookAsync : IContentReferenceFinderFactoryExtensionsTest
+        #endregion
+
+        #region - FindWorkbookAsync -
+
+        public sealed class FindWorkbookAsync : IContentReferenceFinderFactoryExtensionsTest
         {
             [Fact]
             public async Task Throws_when_response_is_null()
@@ -437,5 +521,7 @@ namespace Tableau.Migration.Tests.Unit.Api
                     Cancel));
             }
         }
+
+        #endregion
     }
 }

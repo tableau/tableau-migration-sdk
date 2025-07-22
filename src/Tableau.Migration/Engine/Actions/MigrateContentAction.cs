@@ -61,7 +61,7 @@ namespace Tableau.Migration.Engine.Actions
             var contentType = typeof(TContent);
             if (_migrationCapabilities.ContentTypesDisabledAtDestination.Contains(contentType))
             {
-                _logger.LogWarning(_localizer[SharedResourceKeys.ContentTypeDisabledWarning], contentType.GetFormattedName());
+                _logger.LogWarning(_localizer[SharedResourceKeys.ContentTypeDisabledWarning], MigrationPipelineContentType.GetDisplayNameForType(contentType, plural: true));
                 return MigrationActionResult.Succeeded();
             }
 

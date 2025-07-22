@@ -78,6 +78,16 @@ namespace Tableau.Migration.Api
 
         #endregion - Find Project Methods -
 
+        #region - Find Group Methods -
+
+        protected async Task<IContentReference?> FindGroupAsync<T>(T response, [DoesNotReturnIf(true)] bool throwIfNotFound, CancellationToken cancel)
+            where T : IRestIdentifiable
+            => await ContentFinderFactory
+                .FindGroupAsync(response, Logger, SharedResourcesLocalizer, throwIfNotFound, cancel)
+                .ConfigureAwait(false);
+
+        #endregion
+
         #region - Find User Methods -
 
         protected async Task<IContentReference?> FindUserAsync<T>(

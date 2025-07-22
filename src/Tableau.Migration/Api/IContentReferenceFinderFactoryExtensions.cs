@@ -30,6 +30,33 @@ namespace Tableau.Migration.Api
 {
     internal static class IContentReferenceFinderFactoryExtensions
     {
+        #region - Group Find Methods -
+
+        public static async Task<IContentReference?> FindGroupAsync<T>(
+            this IContentReferenceFinderFactory finderFactory,
+            T response,
+            ILogger logger,
+            ISharedResourcesLocalizer localizer,
+            [DoesNotReturnIf(true)] bool throwIfNotFound,
+            CancellationToken cancel)
+            where T : IRestIdentifiable
+            => await finderFactory
+                .FindAsync<T, IGroup>(
+                    response,
+                    r =>
+                    {
+                        return Guard.AgainstDefaultValue(r.Id, () => nameof(response.Id));
+                    },
+                    logger,
+                    localizer,
+                    throwIfNotFound,
+                    SharedResourceKeys.GroupReferenceNotFoundMessage,
+                    SharedResourceKeys.GroupReferenceNotFoundException,
+                    cancel)
+                .ConfigureAwait(false);
+
+        #endregion - User Find Methods -
+
         #region - Project Find Methods -
 
         public static async Task<IContentReference?> FindProjectAsync<T>(

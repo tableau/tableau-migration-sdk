@@ -37,6 +37,10 @@ on:
         description: 'Whether to deploy the docs.'
         required: true
         type: boolean
+      dotnet-build-version:
+        description: 'The .NET version used for building'
+        required: true
+        type: string
 
 env:
   DOTNET_NOLOGO: 'true'
@@ -52,6 +56,7 @@ jobs:
       build-config: ${{ vars.PUBLISH_CONFIGURATION }}
       publish-environment: ${{ inputs.publish-environment }}
       continue-on-error: ${{ inputs.dotnet-continue-on-error }}
+      dotnet-build-version: ${{ inputs.dotnet-build-version }}
 
   deploy-python:
     name: Deploy python to ${{ inputs.publish-environment }}

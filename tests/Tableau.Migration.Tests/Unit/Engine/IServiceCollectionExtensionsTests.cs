@@ -34,9 +34,12 @@ using Tableau.Migration.Engine.Conversion.ExtractRefreshTasks;
 using Tableau.Migration.Engine.Conversion.Schedules;
 using Tableau.Migration.Engine.Conversion.Subscriptions;
 using Tableau.Migration.Engine.Endpoints;
+using Tableau.Migration.Engine.Endpoints.Caching;
 using Tableau.Migration.Engine.Endpoints.Search;
 using Tableau.Migration.Engine.Hooks;
 using Tableau.Migration.Engine.Hooks.Filters.Default;
+using Tableau.Migration.Engine.Hooks.Mappings.Default;
+using Tableau.Migration.Engine.Hooks.PostPublish.Default;
 using Tableau.Migration.Engine.Hooks.Transformers.Default;
 using Tableau.Migration.Engine.Manifest;
 using Tableau.Migration.Engine.Migrators;
@@ -69,6 +72,10 @@ namespace Tableau.Migration.Tests.Unit.Engine
                 mockScopedClientFactory.Setup(x => x.Initialize(It.IsAny<TableauSiteConnectionConfiguration>(), It.IsAny<IContentReferenceFinderFactory?>(), It.IsAny<IContentFileStore?>()))
                     .Returns(mockApiClient.Object);
 
+                var mockFavoriteApiClient = Freeze<Mock<IFavoritesApiClient>>();
+                var mockViewApiClient = Freeze<Mock<IViewsApiClient>>();
+                var mockWorkbookApiClient = Freeze<Mock<IWorkbooksApiClient>>();
+
                 var mockMigrationPlan = Freeze<Mock<IMigrationPlan>>();
                 mockMigrationPlan.SetupGet(x => x.PipelineProfile).Returns(PipelineProfile.ServerToCloud);
                 AutoFixture.Register<IMigrationPlan>(() => mockMigrationPlan.Object);
@@ -82,7 +89,10 @@ namespace Tableau.Migration.Tests.Unit.Engine
                     .AddSharedResourcesLocalization()
                     .AddMigrationApiClient()
                     .AddMigrationEngine()
-                    .AddScoped((provider) => mockScopedClientFactory.Object);
+                    .AddScoped((provider) => mockFavoriteApiClient.Object)
+                    .AddScoped((provider) => mockScopedClientFactory.Object)
+                    .AddScoped((provider) => mockViewApiClient.Object)
+                    .AddScoped((provider) => mockWorkbookApiClient.Object);
             }
 
             protected async Task<AsyncServiceScope> InitializeMigrationScopeAsync()
@@ -110,7 +120,7 @@ namespace Tableau.Migration.Tests.Unit.Engine
             }
 
             [Fact]
-            public async Task RegistersScopedMigrationInputAndInitializer()
+            public async Task RegistersScopedMigrationInputAndInitializerAsync()
             {
                 await using var scope1 = ServiceProvider.CreateAsyncScope();
                 await using var scope2 = ServiceProvider.CreateAsyncScope();
@@ -144,19 +154,19 @@ namespace Tableau.Migration.Tests.Unit.Engine
             }
 
             [Fact]
-            public async Task RegistersScopedEndpointFactory()
+            public async Task RegistersScopedEndpointFactoryAsync()
             {
                 await AssertServiceAsync<IMigrationEndpointFactory, MigrationEndpointFactory>(ServiceLifetime.Scoped);
             }
 
             [Fact]
-            public async Task RegistersSingletoneManifestFactory()
+            public async Task RegistersSingletoneManifestFactoryAsync()
             {
                 await AssertServiceAsync<IMigrationManifestFactory, MigrationManifestFactory>(ServiceLifetime.Singleton);
             }
 
             [Fact]
-            public async Task RegistersScopedMigrationAndProperties()
+            public async Task RegistersScopedMigrationAndPropertiesAsync()
             {
                 await using var scope1 = await InitializeMigrationScopeAsync();
                 await using var scope2 = await InitializeMigrationScopeAsync();
@@ -180,7 +190,7 @@ namespace Tableau.Migration.Tests.Unit.Engine
             }
 
             [Fact]
-            public async Task RegistersScopedPlanOptionsProvider()
+            public async Task RegistersScopedPlanOptionsProviderAsync()
             {
                 await using var scope = await InitializeMigrationScopeAsync();
 
@@ -188,7 +198,7 @@ namespace Tableau.Migration.Tests.Unit.Engine
             }
 
             [Fact]
-            public async Task RegistersScopedHookRunner()
+            public async Task RegistersScopedHookRunnerAsync()
             {
                 await using var scope = await InitializeMigrationScopeAsync();
 
@@ -196,31 +206,31 @@ namespace Tableau.Migration.Tests.Unit.Engine
             }
 
             [Fact]
-            public async Task RegistersSingletonPlanBuilderFactory()
+            public async Task RegistersSingletonPlanBuilderFactoryAsync()
             {
                 await AssertServiceAsync<IMigrationPlanBuilderFactory, MigrationPlanBuilderFactory>(ServiceLifetime.Singleton);
             }
 
             [Fact]
-            public async Task RegistersTransientPlanBuilder()
+            public async Task RegistersTransientPlanBuilderAsync()
             {
                 await AssertServiceAsync<IMigrationPlanBuilder, MigrationPlanBuilder>(ServiceLifetime.Transient);
             }
 
             [Fact]
-            public async Task RegistersTransientOptionsBuilder()
+            public async Task RegistersTransientOptionsBuilderAsync()
             {
                 await AssertServiceAsync<IMigrationPlanOptionsBuilder, MigrationPlanOptionsBuilder>(ServiceLifetime.Transient);
             }
 
             [Fact]
-            public async Task RegistersTransientHookBuilder()
+            public async Task RegistersTransientHookBuilderAsync()
             {
                 await AssertServiceAsync<IMigrationHookBuilder, MigrationHookBuilder>(ServiceLifetime.Transient);
             }
 
             [Fact]
-            public async Task RegistersScopedServerToCloudPipeline()
+            public async Task RegistersScopedServerToCloudPipelineAsync()
             {
                 await using var scope = await InitializeMigrationScopeAsync();
 
@@ -228,13 +238,13 @@ namespace Tableau.Migration.Tests.Unit.Engine
             }
 
             [Fact]
-            public async Task RegistersScopedPipelineFactory()
+            public async Task RegistersScopedPipelineFactoryAsync()
             {
                 await AssertServiceAsync<IMigrationPipelineFactory, MigrationPipelineFactory>(ServiceLifetime.Scoped);
             }
 
             [Fact]
-            public async Task RegistersSingletonMigrator()
+            public async Task RegistersSingletonMigratorAsync()
             {
                 await AssertServiceAsync<IMigrator, Migrator>(ServiceLifetime.Singleton);
             }
@@ -334,6 +344,14 @@ namespace Tableau.Migration.Tests.Unit.Engine
             }
 
             [Fact]
+            public async Task RegistersScopedDestinationViewFinderAsync()
+            {
+                await using var scope = await InitializeMigrationScopeAsync();
+
+                AssertService<IDestinationViewReferenceFinder, DestinationViewReferenceFinder>(scope, ServiceLifetime.Scoped);
+            }
+
+            [Fact]
             public async Task RegistersScopedBulkSourceCacheAsync()
             {
                 await using var scope = await InitializeMigrationScopeAsync();
@@ -403,6 +421,54 @@ namespace Tableau.Migration.Tests.Unit.Engine
                 await using var scope = await InitializeMigrationScopeAsync();
 
                 AssertService<IDestinationAuthenticationConfigurationsCache, BulkApiAuthenticationConfigurationsCache>(scope, ServiceLifetime.Scoped);
+            }
+
+            [Fact]
+            public async Task RegistersScopedFavoriteFilterAsync()
+            {
+                await using var scope = await InitializeMigrationScopeAsync();
+
+                AssertService<FavoriteFilter>(scope, ServiceLifetime.Scoped);
+            }
+
+            [Fact]
+            public async Task RegistersScopedFavoriteMappingAsync()
+            {
+                await using var scope = await InitializeMigrationScopeAsync();
+
+                AssertService<FavoriteMapping>(scope, ServiceLifetime.Scoped);
+            }
+
+            [Fact]
+            public async Task RegistersScopedFavoriteTransformerAsync()
+            {
+                await using var scope = await InitializeMigrationScopeAsync();
+
+                AssertService<FavoriteTransformer>(scope, ServiceLifetime.Scoped);
+            }
+
+            [Fact]
+            public async Task RegistersScopedDeleteUserFavoritesPostPublishHookAsync()
+            {
+                await using var scope = await InitializeMigrationScopeAsync();
+
+                AssertService<DeleteUserFavoritesPostPublishHook>(scope, ServiceLifetime.Scoped);
+            }
+
+            [Fact]
+            public async Task RegistersScopedEndpointViewCacheAsync()
+            {
+                await using var scope = await InitializeMigrationScopeAsync();
+
+                AssertService<IEndpointViewCache, TableauApiEndpointViewCache>(scope, ServiceLifetime.Scoped);
+            }
+
+            [Fact]
+            public async Task RegistersScopedPopulateViewCachePostPublishHookAsync()
+            {
+                await using var scope = await InitializeMigrationScopeAsync();
+
+                AssertService<PopulateViewCachePostPublishHook>(scope, ServiceLifetime.Scoped);
             }
         }
     }

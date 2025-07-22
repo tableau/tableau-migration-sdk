@@ -71,6 +71,7 @@ namespace Tableau.Migration.Api
             services.AddScoped<IDataSourcesApiClient, DataSourcesApiClient>();
             services.AddScoped<IFlowsApiClient, FlowsApiClient>();
             services.AddScoped<IGroupsApiClient, GroupsApiClient>();
+            services.AddScoped<IGroupSetsApiClient, GroupSetsApiClient>();
             services.AddScoped<IJobsApiClient, JobsApiClient>();
             services.AddScoped<ISchedulesApiClient, SchedulesApiClient>();
             services.AddScoped<IProjectsApiClient, ProjectsApiClient>();
@@ -82,6 +83,7 @@ namespace Tableau.Migration.Api
             services.AddScoped<ITasksApiClient, TasksApiClient>();
             services.AddScoped<ICustomViewsApiClient, CustomViewsApiClient>();
             services.AddScoped<ISubscriptionsApiClient, SubscriptionsApiClient>();
+            services.AddScoped<IFavoritesApiClient, FavoritesApiClient>();
 
             //API Simulator.
             services.AddSingleton<ITableauApiSimulatorFactory, TableauApiSimulatorFactory>();

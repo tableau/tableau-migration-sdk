@@ -145,7 +145,7 @@ namespace Tableau.Migration.Engine.Preparation
                     //Without a valid destination container we cannot publish.
                     if (newParent is null)
                     {
-                        throw new Exception(string.Format(_localizer[SharedResourceKeys.ContainerParentNotFound], containerContent.Container.Location));
+                        throw new Exception(string.Format(_localizer[SharedResourceKeys.ContainerParentNotFound], string.Empty, containerContent.Container.Location));
                     }
                 }
                 else

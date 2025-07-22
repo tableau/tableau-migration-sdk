@@ -40,7 +40,6 @@ using Tableau.Migration.Resources;
 
 namespace Tableau.Migration.Api
 {
-
     internal sealed class CustomViewsApiClient : ContentApiClientBase, ICustomViewsApiClient
     {
         private readonly IHttpContentSerializer _serializer;
@@ -69,6 +68,7 @@ namespace Tableau.Migration.Api
             _fileStore = fileStore;
             _customViewPublisher = customViewPublisher;
         }
+
         /// <inheritdoc />
         public async Task<IPagedResult<ICustomView>> GetAllCustomViewsAsync(int pageNumber, int pageSize, CancellationToken cancel)
             => await GetAllCustomViewsAsync(pageNumber, pageSize, Enumerable.Empty<Filter>(), cancel).ConfigureAwait(false);
@@ -261,6 +261,7 @@ namespace Tableau.Migration.Api
         }
 
         #region - IPullApiClient<ICustomView, IPublishableCustomView> Implementation -
+
         /// <inheritdoc />
         public async Task<IResult<IPublishableCustomView>> PullAsync(ICustomView contentItem, CancellationToken cancel)
         {
@@ -386,27 +387,11 @@ namespace Tableau.Migration.Api
         }
 
         #region - IPublishApiClient<IPublishableCustomView, ICustomView> Implementation -
+
         /// <inheritdoc />
-        public async Task<IResult<ICustomView>> PublishAsync(
-            IPublishableCustomView contentItem,
-            CancellationToken cancel)
-        {
-            var fileStream = await contentItem.File.OpenReadAsync(cancel).ConfigureAwait(false);
-            await using (fileStream)
-            {
-                var publishResult = await PublishCustomViewAsync(
-                    new PublishCustomViewOptions(contentItem, fileStream.Content),
-                    cancel)
-                    .ConfigureAwait(false);
+        public async Task<IResult<ICustomView>> PublishAsync(IPublishableCustomView contentItem, CancellationToken cancel)
+            => await PublishCustomViewAsync(new PublishCustomViewOptions(contentItem), cancel).ConfigureAwait(false);
 
-                if (!publishResult.Success)
-                {
-                    return publishResult.CastFailure<ICustomView>();
-                }
-
-                return publishResult;
-            }
-        }
         #endregion
 
         #region - IPagedListApiClient<ICustomView> Implementation -
@@ -444,7 +429,7 @@ namespace Tableau.Migration.Api
 
             return getCustomViewResult;
         }
+
         #endregion
     }
-
 }

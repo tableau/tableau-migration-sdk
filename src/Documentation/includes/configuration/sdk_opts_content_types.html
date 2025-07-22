@@ -49,10 +49,9 @@
         <tr>
             <td><code>ContentTypes.IncludeExtractEnabled</code></td>
             <td>
-                Determines whether to include extracts. Default: enabled.<br /><b>Important:</b> This option is
-                available only for Workbooks.
+                <span style="color: #ff0000;"><strong>DEPRECATED:</strong></span> This option is not supported and datasource publishing with extract is required.<br />
             </td>
-            <td><code>true</code></td>
+            <td><code></code></td>
             <td>
                 <code>MigrationSDK__ContentTypes__&lt;array-index&gt;__&lt;type-key&gt;__IncludeExtractEnabled</code>
             </td>
@@ -62,6 +61,17 @@
             <td>
                 Determines whether to overwrite group users. Default: enabled.<br /><b>Important:</b> This option is
                 available only for Groups.
+            </td>
+            <td><code>true</code></td>
+            <td>
+                <code>MigrationSDK__ContentTypes__&lt;array-index&gt;__&lt;type-key&gt;__OverwriteGroupUsersEnabled</code>
+            </td>
+        </tr>
+        <tr>
+            <td><code>ContentTypes.OverwriteUserFavoritesEnabled</code></td>
+            <td>
+                Determines whether to overwrite user favorites. Default: enabled.<br /><b>Important:</b> This option is
+                available only for Favorites.
             </td>
             <td><code>true</code></td>
             <td>

@@ -16,7 +16,6 @@
 //
 
 using System;
-using System.IO;
 using Tableau.Migration.Api.Rest.Models.Types;
 using Tableau.Migration.Content;
 
@@ -25,7 +24,7 @@ namespace Tableau.Migration.Api.Models
     /// <summary>
     /// Class for API client prep flow publish options. 
     /// </summary>
-    public class PublishFlowOptions : PublishContentWithFileOptions, IPublishFlowOptions
+    public class PublishFlowOptions : PublishFileOptionsBase, IPublishFlowOptions
     {
         ///<inheritdoc/>
         public string Name { get; }
@@ -43,16 +42,9 @@ namespace Tableau.Migration.Api.Models
         /// Creates a new <see cref="PublishFlowOptions"/> instance.
         /// </summary>
         /// <param name="flow">The publishable prep flow information.</param>
-        /// <param name="file">The prep flow file as a <see cref="Stream"/></param>
         /// <param name="fileType">The type of prep flow file.</param>
-        public PublishFlowOptions(
-            IPublishableFlow flow,
-            Stream file,
-            string fileType = FlowFileTypes.Tflx)
-              : base(
-                  file,
-                  flow.File.OriginalFileName,
-                  fileType)
+        public PublishFlowOptions(IPublishableFlow flow, string fileType = FlowFileTypes.Tflx)
+              : base(flow.File, fileType)
         {
             Name = flow.Name;
             Description = flow.Description;

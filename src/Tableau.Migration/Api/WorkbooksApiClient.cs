@@ -177,7 +177,7 @@ namespace Tableau.Migration.Api
         {
             var downloadResult = await RestRequestBuilderFactory
                 .CreateUri($"{UrlPrefix}/{workbookId.ToUrlSegment()}/{RestUrlKeywords.Content}")
-                .WithQuery("includeExtract", _configReader.Get<IWorkbook>().IncludeExtractEnabled.ToString())
+                .WithQuery("includeExtract", "true")
                 .ForGetRequest()
                 .DownloadAsync(cancel)
                 .ConfigureAwait(false);
@@ -186,24 +186,12 @@ namespace Tableau.Migration.Api
         }
 
         /// <inheritdoc />
-        public async Task<IResult<IWorkbookDetails>> PublishWorkbookAsync(
-            IPublishWorkbookOptions options,
-            CancellationToken cancel)
+        public async Task<IResult<IWorkbookDetails>> PublishWorkbookAsync(IPublishWorkbookOptions options, CancellationToken cancel)
             => await _workbookPublisher.PublishAsync(options, cancel).ConfigureAwait(false);
 
         /// <inheritdoc />
         public async Task<IResult<IWorkbookDetails>> PublishAsync(IPublishableWorkbook item, CancellationToken cancel)
-        {
-            var fileStream = await item.File.OpenReadAsync(cancel).ConfigureAwait(false);
-            await using (fileStream)
-            {
-                var publishOptions = new PublishWorkbookOptions(item, fileStream.Content);
-                var publishResult = await PublishWorkbookAsync(publishOptions, cancel)
-                    .ConfigureAwait(false);
-
-                return publishResult;
-            }
-        }
+            => await PublishWorkbookAsync(new PublishWorkbookOptions(item), cancel).ConfigureAwait(false);
 
         /// <inheritdoc />
         public async Task<IResult<IUpdateWorkbookResult>> UpdateWorkbookAsync(

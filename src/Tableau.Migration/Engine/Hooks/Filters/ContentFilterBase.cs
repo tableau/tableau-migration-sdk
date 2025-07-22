@@ -28,43 +28,26 @@ namespace Tableau.Migration.Engine.Hooks.Filters
     /// Base implementation for an object that can filter content of a specific content type, to determine which content to migrate.
     /// </summary>
     /// <typeparam name="TContent"><inheritdoc/></typeparam>
-    public abstract class ContentFilterBase<TContent> : IContentFilter<TContent>
+    public abstract class ContentFilterBase<TContent> : RootContentFilterBase<TContent>
         where TContent : IContentReference
     {
-        private readonly string _typeName;
-
         /// <summary>
-        /// Default constructor for ContentFilterBase
+        /// Creates a new <see cref="ContentFilterBase{TContent}"/> object.
         /// </summary>
-        /// <param name="localizer">A string localizer.</param>
-        /// <param name="logger">Default logger.</param>
-        public ContentFilterBase(
-            ISharedResourcesLocalizer? localizer,
-            ILogger<IContentFilter<TContent>>? logger)
-        {
-            Localizer = localizer;
-            Logger = logger;
-            _typeName = GetType().GetFormattedName();
-        }
-
-        /// <summary>
-        /// The string localizer.
-        /// </summary>
-        protected ISharedResourcesLocalizer? Localizer { get; }
-
-        /// <summary>
-        /// Default logger.
-        /// </summary>
-        protected ILogger<IContentFilter<TContent>>? Logger { get; }
+        /// <param name="localizer"><inheritdoc /></param>
+        /// <param name="logger"><inheritdoc /></param>
+        public ContentFilterBase(ISharedResourcesLocalizer? localizer, ILogger<IContentFilter<TContent>>? logger)
+            : base(localizer, logger)
+        { }
 
         /// <inheritdoc />
-        public Task<IEnumerable<ContentMigrationItem<TContent>>?> ExecuteAsync(
-            IEnumerable<ContentMigrationItem<TContent>> unfilteredItems,
+        public override Task<IEnumerable<ContentMigrationItem<TContent>>?> ExecuteAsync(
+            IEnumerable<ContentMigrationItem<TContent>> unfilteredItems, 
             CancellationToken cancel)
         {
             var result = unfilteredItems;
 
-            //Avoid re-allocation on a no-op/disabled filter.
+            // Avoid re-allocation on a no-op/disabled filter.
             if (!Disabled)
             {
                 result = unfilteredItems.Where(ShouldMigrate);
@@ -72,11 +55,6 @@ namespace Tableau.Migration.Engine.Hooks.Filters
 
             return Task.FromResult((IEnumerable<ContentMigrationItem<TContent>>?)result);
         }
-
-        /// <summary>
-        /// Gets or sets whether the filter is disabled.
-        /// </summary>
-        protected virtual bool Disabled { get; set; }
 
         /// <summary>
         /// Checks if the item should be migrated.

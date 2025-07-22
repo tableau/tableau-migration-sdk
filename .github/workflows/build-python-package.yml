@@ -13,6 +13,9 @@ on:
       beta-version:
         required: true
         type: string
+      dotnet-build-version:
+        required: true
+        type: string
 
 env:
   WORKING_DIRECTORY: ./src/Python
@@ -57,7 +60,7 @@ jobs:
       # Download the product artifact
       - uses: actions/download-artifact@v4
         with:
-          name: product-${{ inputs.build-config }}
+          name: product-${{ inputs.build-config }}-net${{ inputs.dotnet-build-version }}
           path: ./src/Python/src/tableau_migration/bin/
 
       # Set replaced version

@@ -91,7 +91,7 @@ namespace Tableau.Migration.Api.Simulation.Rest.Net.Responses
 
             var content = _getContent(Data).SingleOrDefault(d => d.Id == contentId);
             if (content is null)
-                return BuildEmptyErrorResponseAsync(HttpStatusCode.NotFound, 0, $"The content with ID {contentId} could not be found.", "");
+                return BuildEmptyErrorResponseAsync(HttpStatusCode.NotFound, 0, $"The {typeof(TContent).Name} content with ID {contentId} could not be found.", "");
 
             if (HasProjectLeaderDenyCapability(createPermissionRequest))
                 return BuildEmptyErrorResponseAsync(HttpStatusCode.BadRequest, 9, "Invalid capability", "The capability 'ProjectLeader Deny' is invalid for a project");

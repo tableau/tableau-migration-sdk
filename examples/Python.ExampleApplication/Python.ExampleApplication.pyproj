@@ -35,6 +35,7 @@
     <Compile Include="hooks\transformers\custom_view_default_users_transformer.py" />
     <Compile Include="hooks\transformers\encrypt_extracts_transformer.py" />
     <Compile Include="hooks\transformers\migrated_tag_transformer.py" />
+    <Compile Include="hooks\transformers\modify_permissions_transformer.py" />
     <Compile Include="hooks\transformers\schedule_startat_transformer.py" />
     <Compile Include="print_result.py" />
     <Compile Include="Python.ExampleApplication.py" />

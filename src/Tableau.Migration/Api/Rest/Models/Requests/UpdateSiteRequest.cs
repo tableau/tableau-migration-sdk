@@ -41,7 +41,9 @@ namespace Tableau.Migration.Api.Rest.Models.Requests
         {
             Site = new()
             {
-                ExtractEncryptionMode = update.ExtractEncryptionMode
+                ExtractEncryptionMode = update.ExtractEncryptionMode,
+                DisableSubscriptions = update.DisableSubscriptions,
+                GroupSetsEnabled = update.GroupSetsEnabled
             };
         }
 
@@ -61,6 +63,38 @@ namespace Tableau.Migration.Api.Rest.Models.Requests
             /// </summary>
             [XmlAttribute("extractEncryptionMode")]
             public string? ExtractEncryptionMode { get; set; }
+
+            /// <summary>
+            /// Gets or sets the disable subscriptions value for the request.
+            /// </summary>
+            [XmlAttribute("disableSubscriptions")]
+            public string? DisableSubscriptionsValue { get; set; }
+
+            /// <summary>
+            /// Gets or sets the disable subscriptions setting.
+            /// </summary>
+            [XmlIgnore]
+            public bool? DisableSubscriptions
+            {
+                get => DisableSubscriptionsValue.ToBoolOrNull();
+                set => DisableSubscriptionsValue = value?.ToString().ToLower();
+            }
+
+            /// <summary>
+            /// Gets or sets the group sets enabled value for the request.
+            /// </summary>
+            [XmlAttribute("groupSetsEnabled")]
+            public string? GroupSetsEnabledValue { get; set; }
+
+            /// <summary>
+            /// Gets or sets the group sets enabled setting.
+            /// </summary>
+            [XmlIgnore]
+            public bool? GroupSetsEnabled
+            {
+                get => GroupSetsEnabledValue.ToBoolOrNull();
+                set => GroupSetsEnabledValue = value?.ToString().ToLower();
+            }
         }
     }
 }

@@ -16,6 +16,7 @@
 //
 
 using System;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -27,6 +28,13 @@ namespace Tableau.Migration.Content.Search
     /// </summary>
     public interface IContentReferenceFinder
     {
+        /// <summary>
+        /// Finds all available content references.
+        /// </summary>
+        /// <param name="cancel">The cancellation token to obey.</param>
+        /// <returns>The found content references.</returns>
+        Task<IImmutableList<IContentReference>> FindAllAsync(CancellationToken cancel);
+
         /// <summary>
         /// Finds the content reference by its unique identifier.
         /// </summary>

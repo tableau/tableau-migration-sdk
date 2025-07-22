@@ -72,13 +72,16 @@ namespace Tableau.Migration.Tests.Unit.Api
 
         public Mock<ILogger> MockLogger { get; } = new();
 
+
+        public Mock<IContentReferenceFinder<IGroup>> MockGroupFinder { get; }
         public Mock<IContentReferenceFinder<IProject>> MockProjectFinder { get; }
         public Mock<IContentReferenceFinder<IUser>> MockUserFinder { get; }
         public Mock<IContentReferenceFinder<IWorkbook>> MockWorkbookFinder { get; }
         public Mock<IContentReferenceFinder<IView>> MockViewFinder { get; }
         public Mock<IContentReferenceFinder<IDataSource>> MockDataSourceFinder { get; }
         public Mock<IContentReferenceFinder<IServerSchedule>> MockScheduleFinder { get; }
-
+        public Mock<IContentReferenceFinder<ITableauCollection>> MockCollectionFinder { get; }
+        
         public Mock<IContentCache<IServerSchedule>> MockScheduleCache { get; } = new();
 
         public TableauServerVersion TableauServerVersion { get; private set; }
@@ -107,12 +110,14 @@ namespace Tableau.Migration.Tests.Unit.Api
                 .Setup(x => x.Get())
                 .Returns(new MigrationSdkOptions());
 
+            MockGroupFinder = MockContentFinderFactory.SetupMockFinder<IGroup>(autoFixture);
             MockProjectFinder = MockContentFinderFactory.SetupMockFinder<IProject>(autoFixture);
             MockUserFinder = MockContentFinderFactory.SetupMockFinder<IUser>(autoFixture);
             MockWorkbookFinder = MockContentFinderFactory.SetupMockFinder<IWorkbook>(autoFixture);
             MockViewFinder = MockContentFinderFactory.SetupMockFinder<IView>(autoFixture);
             MockDataSourceFinder = MockContentFinderFactory.SetupMockFinder<IDataSource>(autoFixture);
             MockScheduleFinder = MockContentFinderFactory.SetupMockFinder<IServerSchedule>(autoFixture);
+            MockCollectionFinder = MockContentFinderFactory.SetupMockFinder<ITableauCollection>(autoFixture);
 
             MockScheduleCache = MockContentCacheFactory.SetupMockCache<IServerSchedule>(autoFixture);
 

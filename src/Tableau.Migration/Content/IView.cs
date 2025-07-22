@@ -22,7 +22,8 @@ namespace Tableau.Migration.Content
     /// </summary>
     public interface IView :
         IWithTags,
-        IPermissionsContent
+        IPermissionsContent,
+        IContainerContent
     {
         /// <summary>
         /// Gets the parent workbook of the view.

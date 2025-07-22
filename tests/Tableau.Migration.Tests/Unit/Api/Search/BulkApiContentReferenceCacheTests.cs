@@ -41,7 +41,26 @@ namespace Tableau.Migration.Tests.Unit.Api.Search
 
             protected ImmutableArray<IUser> Data { get; set; }
 
+            internal ImmutableArray<TestEmptyIdContentType> EmptyIdData { get; set; }
+
             protected readonly BulkApiContentReferenceCache<IUser> Cache;
+
+            internal readonly BulkApiContentReferenceCache<TestEmptyIdContentType> EmptyIdCache;
+
+            internal class TestEmptyIdContentType : IEmptyIdContentReference
+            {
+                public string ContentUrl { get; set; } = string.Empty;
+
+                public ContentLocation Location { get; set; } = new ContentLocation();
+
+                public string Name { get; set; } = string.Empty;
+
+                public Guid Id { get; set; } = Guid.Empty;
+
+                public bool Equals(IContentReference? other)
+                  => Location.Equals(other?.ContentUrl);
+            }
+
 
             public SearchAsync()
             {
@@ -56,8 +75,10 @@ namespace Tableau.Migration.Tests.Unit.Api.Search
                     CallBase = true
                 };
 
-                Data = CreateMany<IUser>()
-                    .ToImmutableArray();
+                Data = CreateMany<IUser>().ToImmutableArray();
+
+                AutoFixture.Customize<TestEmptyIdContentType>(c => c.With(x => x.Id, Guid.Empty));
+                EmptyIdData = CreateMany<TestEmptyIdContentType>().ToImmutableArray();
 
                 var mockConfigReader = Freeze<Mock<IConfigReader>>();
                 mockConfigReader.Setup(x => x.Get<TestContentType>())
@@ -73,6 +94,8 @@ namespace Tableau.Migration.Tests.Unit.Api.Search
                     .Returns(MockReadApiClient.Object);
 
                 Cache = Create<BulkApiContentReferenceCache<IUser>>();
+
+                EmptyIdCache = Create<BulkApiContentReferenceCache<TestEmptyIdContentType>>();
             }
 
             [Fact]
@@ -107,6 +130,18 @@ namespace Tableau.Migration.Tests.Unit.Api.Search
                 Assert.NotNull(result);
                 var resultStub = Assert.IsType<ContentReferenceStub>(result);
                 Assert.Equal(new ContentReferenceStub(search), resultStub);
+            }
+
+
+            [Fact]
+            public async Task SuccessByEmptyIdAsync()
+            {
+                var search = EmptyIdData.First();
+
+                var result = await EmptyIdCache.ForIdAsync(search.Id, Cancel);
+
+                Assert.Null(result);
+
             }
 
             [Fact]
@@ -162,6 +197,14 @@ namespace Tableau.Migration.Tests.Unit.Api.Search
                 var result = await Cache.ForIdAsync(Guid.NewGuid(), Cancel);
 
                 Assert.Null(result);
+            }
+
+            [Fact]
+            public async Task SearchAllAsync()
+            {
+                var result = await Cache.GetAllAsync(Cancel);
+
+                Assert.Equal(Data.Select(i => new ContentReferenceStub(i)), result);
             }
         }
     }

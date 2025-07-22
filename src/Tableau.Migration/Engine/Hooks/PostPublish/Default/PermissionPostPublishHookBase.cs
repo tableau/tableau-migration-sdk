@@ -19,6 +19,8 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Tableau.Migration.Content;
+using Tableau.Migration.Content.Permissions;
+using Tableau.Migration.Engine.Hooks.Transformers;
 
 namespace Tableau.Migration.Engine.Hooks.PostPublish.Default
 {
@@ -29,6 +31,8 @@ namespace Tableau.Migration.Engine.Hooks.PostPublish.Default
     /// <typeparam name="TResult"><inheritdoc /></typeparam>
     public abstract class PermissionPostPublishHookBase<TPublish, TResult> : ContentItemPostPublishHookBase<TPublish, TResult>
     {
+        private readonly IContentTransformerRunner _transformerRunner;
+
         /// <summary>
         /// Gets the current migration.
         /// </summary>
@@ -38,9 +42,30 @@ namespace Tableau.Migration.Engine.Hooks.PostPublish.Default
         /// Creates a new <see cref="PermissionPostPublishHookBase{TPublish, TResult}"/> object.
         /// </summary>
         /// <param name="migration">The current migration.</param>
-        public PermissionPostPublishHookBase(IMigration migration)
+        /// <param name="transformerRunner">A transformer runner to use for permissions.</param>
+        public PermissionPostPublishHookBase(IMigration migration, IContentTransformerRunner transformerRunner)
         {
+            _transformerRunner = transformerRunner;
+
             Migration = migration;
+        }
+
+        /// <summary>
+        /// Runs transformers on a set of permission grantees, retaining parent ID.
+        /// </summary>
+        /// <param name="permissions">The permissions to transform</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
+        /// <returns>The transformed permissions.</returns>
+        protected async Task<IPermissions> TransformPermissionsAsync(IPermissions permissions, CancellationToken cancel)
+        {
+            var resultSet = await _transformerRunner.ExecuteAsync((IPermissionSet)permissions, cancel).ConfigureAwait(false);
+
+            if (resultSet is IPermissions result)
+            {
+                return result;
+            }
+
+            return new Permissions(permissions.ParentId, resultSet.GranteeCapabilities);
         }
 
         /// <summary>
@@ -68,9 +93,7 @@ namespace Tableau.Migration.Engine.Hooks.PostPublish.Default
         /// <param name="ctx">The post publish context.</param>
         /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>Whether or not the parent project is locked.</returns>
-        protected async Task<bool> ParentProjectLockedAsync(
-            ContentItemPostPublishContext<TPublish, TResult> ctx,
-            CancellationToken cancel)
+        protected async Task<bool> ParentProjectLockedAsync(ContentItemPostPublishContext<TPublish, TResult> ctx, CancellationToken cancel)
         {
             var destinationProjectId = GetDestinationProjectId(ctx.DestinationItem);
             if (destinationProjectId is null)

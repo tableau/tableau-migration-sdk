@@ -18,6 +18,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Tableau.Migration;
 using Tableau.Migration.Content;
+using Tableau.Migration.Content.Permissions;
 using Tableau.Migration.Content.Schedules.Cloud;
 using Tableau.Migration.Engine.Manifest;
 using Tableau.Migration.Engine.Pipelines;
@@ -150,6 +151,10 @@ namespace Csharp.ExampleApplication
 
             #region ActionUrlXmlTransformer-Registration
             _planBuilder.Transformers.Add<ActionUrlXmlTransformer, IPublishableWorkbook>();
+            #endregion
+
+            #region ModifyPermissionsTransformer-Registration
+            _planBuilder.Transformers.Add<ModifyPermissionsTransformer, IPermissionSet>();
             #endregion
 
             // Add initialize migration hooks

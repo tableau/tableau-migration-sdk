@@ -15,7 +15,6 @@
 //  limitations under the License.
 //
 
-using System.IO;
 using Tableau.Migration.Api.Models;
 using Tableau.Migration.Api.Rest.Models.Types;
 using Tableau.Migration.Content;
@@ -27,6 +26,7 @@ namespace Tableau.Migration.Tests.Unit.Api.Models
     {
         private static void AssertContentTypeFields(IPublishableCustomView customView, PublishCustomViewOptions result)
         {
+            Assert.Same(customView.File, result.File);
             Assert.Equal(customView.Name, result.Name);
             Assert.Equal(customView.Workbook.Id, result.WorkbookId);
             Assert.Equal(customView.Owner.Id, result.OwnerId);
@@ -37,12 +37,10 @@ namespace Tableau.Migration.Tests.Unit.Api.Models
         public void Default()
         {
             var customView = Create<IPublishableCustomView>();
-            var testFile = Create<Stream>();
-            var result = new PublishCustomViewOptions(customView, testFile);
+            var result = new PublishCustomViewOptions(customView);
 
             Assert.NotNull(result);
             AssertContentTypeFields(customView, result);
-            Assert.Equal(testFile, result.File);
             Assert.Equal(customView.File.OriginalFileName, result.FileName);
             Assert.Equal(CustomViewFileTypes.Json, result.FileType);
         }
@@ -51,13 +49,11 @@ namespace Tableau.Migration.Tests.Unit.Api.Models
         public void Different_FileType()
         {
             var customView = Create<IPublishableCustomView>();
-            var testFile = Create<Stream>();
             var testFileType = Create<string>();
-            var result = new PublishCustomViewOptions(customView, testFile, testFileType);
+            var result = new PublishCustomViewOptions(customView, testFileType);
 
             Assert.NotNull(result);
             AssertContentTypeFields(customView, result);
-            Assert.Equal(testFile, result.File);
             Assert.Equal(customView.File.OriginalFileName, result.FileName);
             Assert.Equal(testFileType, result.FileType);
         }

@@ -26,7 +26,7 @@ from tableau_migration.migration_engine_hooks_interop import (
     PyInitializeMigrationHookBase,
     PyMigrationActionCompletedHookBase
 )
-from tableau_migration.migration_engine_hooks_results import PyInitializeMigrationHookResult
+from tableau_migration.migration_engine_hooks_initializemigration import PyInitializeMigrationHookResult
 from tableau_migration.migration_engine_migrators_batch import PyContentBatchMigrationResult
 from tableau_migration.migration_services import ScopedMigrationServices
 
@@ -38,8 +38,10 @@ from Tableau.Migration.Content import IUser
 from Tableau.Migration.Engine.Actions import IMigrationActionResult
 from Tableau.Migration.Engine.Hooks import (
     IContentBatchMigrationCompletedHook, 
-    IInitializeMigrationHookResult, IInitializeMigrationHook,
     IMigrationActionCompletedHook, IMigrationHook, MigrationHookBuilder
+)
+from Tableau.Migration.Engine.Hooks.InitializeMigration import (
+    IInitializeMigrationHookResult, IInitializeMigrationHook
 )
 from Tableau.Migration.Engine.Migrators.Batch import IContentBatchMigrationResult
 

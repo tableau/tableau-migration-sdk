@@ -21,6 +21,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 using Microsoft.Extensions.Logging;
+using Moq;
 using Tableau.Migration.Api;
 using Tableau.Migration.Api.Models;
 using Tableau.Migration.Api.Publishing;
@@ -31,6 +32,7 @@ using Tableau.Migration.Content.Search;
 using Tableau.Migration.Net;
 using Tableau.Migration.Net.Rest;
 using Tableau.Migration.Resources;
+using Tableau.Migration.Tests.Unit.Content.Files;
 using Xunit;
 
 namespace Tableau.Migration.Tests.Unit.Api.Publishing
@@ -163,7 +165,7 @@ namespace Tableau.Migration.Tests.Unit.Api.Publishing
         public class PublishAsync : FilePublisherBaseTest
         {
             [Fact]
-            public async Task Publishes()
+            public async Task PublishesAsync()
             {
                 var initiateResponse = SetupSuccessResponse<FileUploadResponse, FileUploadResponse.FileUploadType>();
 
@@ -176,7 +178,7 @@ namespace Tableau.Migration.Tests.Unit.Api.Publishing
             }
 
             [Fact]
-            public async Task Returns_failure_when_initiate_fails()
+            public async Task InitiateFailureAsync()
             {
                 var response = SetupErrorResponse<FileUploadResponse>();
 
@@ -190,6 +192,27 @@ namespace Tableau.Migration.Tests.Unit.Api.Publishing
 
                 AssertInitiateRequest();
                 MockHttpClient.AssertSingleRequest();
+            }
+
+            [Fact]
+            public async Task RetryPublishSupportedAsync()
+            {
+                var mockOptions = Create<Mock<ITestPublishOptions>>();
+                mockOptions.SetupGet(x => x.File).Returns(new MockXmlFileHandle("<test />").Object);
+                var publishOptions = mockOptions.Object;
+
+                var initiateResponse = SetupSuccessResponse<FileUploadResponse, FileUploadResponse.FileUploadType>();
+
+                var firstResult = await Publisher.PublishAsync(publishOptions, Cancel);
+
+                AssertInitiateRequest();
+                AssertCommitRequest(publishOptions, initiateResponse.Item.UploadSessionId!, Cancel);
+
+                var retryInitiateResponse = SetupSuccessResponse<FileUploadResponse, FileUploadResponse.FileUploadType>();
+
+                var retryResult = await Publisher.PublishAsync(publishOptions, Cancel);
+
+                retryResult.AssertSuccess();
             }
         }
     }

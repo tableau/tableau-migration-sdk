@@ -49,6 +49,11 @@ namespace Tableau.Migration.Api.Simulation.Rest
         public GroupsRestApiSimulator Groups { get; }
 
         /// <summary>
+        /// Gets the simulated group set API methods.
+        /// </summary>
+        public GroupSetsRestApiSimulator GroupSets { get; }
+
+        /// <summary>
         /// Gets the simulated job API methods.
         /// </summary>
         public JobsRestApiSimulator Jobs { get; }
@@ -99,9 +104,14 @@ namespace Tableau.Migration.Api.Simulation.Rest
         public CustomViewsRestApiSimulator CustomViews { get; }
 
         /// <summary>
-        /// Gets the simulated workbook API methods.
+        /// Gets the simulated file uploads API methods.
         /// </summary>
         public FileUploadsRestApiSimulator Files { get; }
+
+        /// <summary>
+        /// Gets the simulated favorites API methods.
+        /// </summary>
+        public FavoritesRestApiSimulator Favorites { get; }
 
         /// <summary>
         /// Gets the simulated server info query API method.
@@ -158,6 +168,7 @@ namespace Tableau.Migration.Api.Simulation.Rest
             Auth = new(simulator);
             DataSources = new(simulator);
             Groups = new(simulator);
+            GroupSets = new(simulator);
             Jobs = new(simulator);
             Schedules = new(simulator);
             Tasks = new(simulator);
@@ -169,6 +180,7 @@ namespace Tableau.Migration.Api.Simulation.Rest
             Files = new(simulator);
             Views = new(simulator);
             CustomViews = new(simulator);
+            Favorites = new(simulator);
 
             QueryServerInfo = simulator.SetupRestGet<ServerInfoResponse, ServerInfoResponse.ServerInfoType>(RestApiUrl(RestUrlKeywords.ServerInfo), d => d.ServerInfo, requiresAuthentication: false);
             GetCurrentServerSession = simulator.SetupRestGet<ServerSessionResponse, ServerSessionResponse.SessionType>(RestApiUrl("sessions/current"), BuildCurrentSession);

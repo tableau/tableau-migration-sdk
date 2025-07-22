@@ -30,9 +30,19 @@ namespace Tableau.Migration.Content
         Guid SiteId { get; }
 
         /// <summary>
-        /// Gets the new extract encryption mode, or null to not update the setting.
+        /// Gets or sets the new extract encryption mode, or null to not update the setting.
         /// </summary>
         string? ExtractEncryptionMode { get; set; }
+
+        /// <summary>
+        /// Gets or sets the new disable subscriptions setting, or null to not update the setting.
+        /// </summary>
+        bool? DisableSubscriptions { get; set; }
+
+        /// <summary>
+        /// Gets or sets the new group sets enabled setting, or null to not update the setting.
+        /// </summary>
+        bool? GroupSetsEnabled { get; set; }
 
         /// <summary>
         /// Finds whether any settings require updates.

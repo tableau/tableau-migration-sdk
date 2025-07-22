@@ -16,13 +16,10 @@
 //
 
 using System;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Tableau.Migration.Content;
-using Tableau.Migration.Engine.Endpoints;
-using Tableau.Migration.Engine.Endpoints.ContentClients;
 using Tableau.Migration.Engine.Endpoints.Search;
 using Tableau.Migration.Resources;
 
@@ -31,22 +28,19 @@ namespace Tableau.Migration.Engine.Hooks.Transformers.Default
     /// <summary>
     /// Transformer that updates the subscription view from the source id to the destination id
     /// </summary>
-    internal class SubscriptionTransformer : ContentTransformerBase<ICloudSubscription>
+    internal sealed class SubscriptionTransformer : ContentTransformerBase<ICloudSubscription>
     {
-        private readonly IDestinationContentReferenceFinder<IWorkbook> _destinationContentReferenceFinder;
-        private readonly IViewsContentClient _sourceViewClient;
-        private readonly IWorkbooksContentClient _destinationWorkbookClient;
+        private readonly IDestinationContentReferenceFinder<IWorkbook> _destinationWorkbookFinder;
+        private readonly IDestinationViewReferenceFinder _destinationViewFinder;
 
         public SubscriptionTransformer(
-            ISourceEndpoint sourceEndpoint,
-            IDestinationEndpoint destinationEndpoint,
-            IDestinationContentReferenceFinder<IWorkbook> destinationContentReferenceFinder,
-            ISharedResourcesLocalizer localizer,
-            ILogger<SubscriptionTransformer> logger) : base(localizer, logger)
+            IDestinationContentReferenceFinder<IWorkbook> destinationWorkbookFinder,
+            IDestinationViewReferenceFinder destinationViewFinder,
+            ISharedResourcesLocalizer localizer, ILogger<SubscriptionTransformer> logger)
+            : base(localizer, logger)
         {
-            _destinationContentReferenceFinder = destinationContentReferenceFinder;
-            _sourceViewClient = (IViewsContentClient)sourceEndpoint.GetContentClient<IView>();
-            _destinationWorkbookClient = (IWorkbooksContentClient)destinationEndpoint.GetContentClient<IWorkbook>();
+            _destinationWorkbookFinder = destinationWorkbookFinder;
+            _destinationViewFinder = destinationViewFinder;
         }
 
         public override async Task<ICloudSubscription?> TransformAsync(ICloudSubscription itemToTransform, CancellationToken cancel)
@@ -54,55 +48,32 @@ namespace Tableau.Migration.Engine.Hooks.Transformers.Default
             switch (itemToTransform.Content.Type.ToLowerInvariant())
             {
                 case "view":
-                    return await TransformViewSubscriptionAsync(itemToTransform, cancel).ConfigureAwait(false);
-
+                    await TransformViewSubscriptionAsync(itemToTransform, cancel).ConfigureAwait(false);
+                    break;
                 case "workbook":
-                    return await TransformWorkbookSubscriptionAsync(itemToTransform, cancel).ConfigureAwait(false);
-
+                    await TransformWorkbookSubscriptionAsync(itemToTransform, cancel).ConfigureAwait(false);
+                    break;
                 default:
                     throw new NotSupportedException($"Unsupported subscription content type: {itemToTransform.Content.Type}");
             }
+
+            return itemToTransform;
         }
 
-        private async Task<ICloudSubscription?> TransformViewSubscriptionAsync(ICloudSubscription itemToTransform, CancellationToken cancel)
+        private async Task TransformViewSubscriptionAsync(ICloudSubscription itemToTransform, CancellationToken cancel)
         {
-            // 1. Get the workbook of the source ViewID
-            // 2. Find the mapped location of the source workbook 
-            // 3. Get the views of the destination (mapped) workbook
-            // 4. Find the view with the same name as the source view
-
-            var sourceView = await _sourceViewClient.GetByIdAsync(itemToTransform.Content.Id, cancel).ConfigureAwait(false);
-            if (!sourceView.Success)
-            {
-                throw new Exception($"Unable to find source view with id {itemToTransform.Content.Id}.");
-            }
-
-            // Find the destination reference for the source workbook
-            var destinationWorkbookReference = await _destinationContentReferenceFinder.FindBySourceIdAsync(sourceView.Value.ParentWorkbook.Id, cancel).ConfigureAwait(false)
-                ?? throw new Exception($"Unable to find source workbook content reference for workbook id {sourceView.Value.ParentWorkbook.Id}.");
-
-            var destinationViews = await _destinationWorkbookClient.GetViewsForWorkbookIdAsync(destinationWorkbookReference.Id, cancel).ConfigureAwait(false);
-            if (!destinationViews.Success)
-            {
-                throw new Exception($"Unable to get views for destination workbook {destinationWorkbookReference.Location}");
-            }
-
-            var destinationView = destinationViews.Value.FirstOrDefault(v => v.Name == sourceView.Value.Name)
-                ?? throw new Exception($"Unable to find destination view with name {sourceView.Value.Name} in destination workbook {destinationWorkbookReference.Location}.");
+            var destinationView = (await _destinationViewFinder.FindBySourceIdAsync(itemToTransform.Content.Id, cancel).ConfigureAwait(false))
+                .ThrowOnMissingContentReference("Missing destination subscription view reference.");
 
             itemToTransform.Content.Id = destinationView.Id;
-
-            return itemToTransform;
         }
 
-        private async Task<ICloudSubscription?> TransformWorkbookSubscriptionAsync(ICloudSubscription itemToTransform, CancellationToken cancel)
+        private async Task TransformWorkbookSubscriptionAsync(ICloudSubscription itemToTransform, CancellationToken cancel)
         {
-            var destinationWorkbookReference = await _destinationContentReferenceFinder.FindBySourceIdAsync(itemToTransform.Content.Id, cancel).ConfigureAwait(false)
-                ?? throw new Exception($"Unable to find destination workbook content reference for workbook id {itemToTransform.Content.Id}.");
+            var destinationWorkbook = (await _destinationWorkbookFinder.FindBySourceIdAsync(itemToTransform.Content.Id, cancel).ConfigureAwait(false))
+                .ThrowOnMissingContentReference("Missing destination subscription workbook reference.");
 
-            itemToTransform.Content.Id = destinationWorkbookReference.Id;
-
-            return itemToTransform;
+            itemToTransform.Content.Id = destinationWorkbook.Id;
         }
     }
 }

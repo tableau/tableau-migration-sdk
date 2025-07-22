@@ -20,7 +20,7 @@ namespace Tableau.Migration.Content
     /// <summary>
     /// Abstract base class for default <see cref="IMappableContainerContent"/> implementation.
     /// </summary>
-    public abstract class MappableContainerContentBase : ContentBase, IMappableContainerContent
+    public abstract class MappableContainerContentBase : MappableContentBase, IMappableContainerContent
     {
         //We use a protected property and an explicit interface implementation
         //So that implementation types can use a more natural name (e.g. Project.ParentProject).
@@ -36,9 +36,8 @@ namespace Tableau.Migration.Content
         /// <inheritdoc/>
         void IMappableContainerContent.SetLocation(IContentReference? container, ContentLocation newLocation)
         {
+            base.SetLocation(newLocation);
             MappableContainer = container;
-            Location = newLocation;
-            Name = newLocation.Name;
         }
     }
 }

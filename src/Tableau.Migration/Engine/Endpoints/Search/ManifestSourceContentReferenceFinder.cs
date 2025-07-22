@@ -16,6 +16,8 @@
 //
 
 using System;
+using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Tableau.Migration.Content.Search;
@@ -45,6 +47,16 @@ namespace Tableau.Migration.Engine.Endpoints.Search
         {
             _manifest = manifest;
             _sourceCache = pipeline.CreateSourceCache<TContent>();
+        }
+
+        /// <inheritdoc />
+        public Task<IImmutableList<IContentReference>> FindAllAsync(CancellationToken cancel)
+        {
+            var manifestEntries = _manifest.Entries.GetOrCreatePartition<TContent>()
+                .Select(e => e.Source)
+                .ToImmutableArray();
+
+            return Task.FromResult<IImmutableList<IContentReference>>(manifestEntries);
         }
 
         /// <inheritdoc />

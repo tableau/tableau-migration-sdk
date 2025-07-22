@@ -39,10 +39,10 @@ namespace Tableau.Migration.Tests.Unit
         }
 
         public static TMockResponseMessage WithSuccessStatusCode<TMockResponseMessage, TResponseMessage>(
-            this TMockResponseMessage mockResponse)
+            this TMockResponseMessage mockResponse, HttpStatusCode statusCode = HttpStatusCode.OK)
             where TMockResponseMessage : Mock<TResponseMessage>
             where TResponseMessage : class, IHttpResponseMessage
-            => mockResponse.WithStatusCode<TMockResponseMessage, TResponseMessage>(HttpStatusCode.OK);
+            => mockResponse.WithStatusCode<TMockResponseMessage, TResponseMessage>(statusCode);
 
         public static TMockResponseMessage WithContent<TMockResponseMessage, TResponseMessage>(
             this TMockResponseMessage mockResponse,

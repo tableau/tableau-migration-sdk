@@ -151,18 +151,22 @@ from enum import IntEnum # noqa: E402, F401
 from tableau_migration.migration_api_rest import PyRestIdentifiable # noqa: E402, F401
 from typing import Sequence # noqa: E402, F401
 from typing_extensions import Self # noqa: E402, F401
+from uuid import UUID # noqa: E402, F401
 
 import System # noqa: E402
 
+from System import Guid # noqa: E402, F401
 from Tableau.Migration import (  # noqa: E402, F401
     ContentLocation,
     IContentReference,
+    IEmptyIdContentReference,
     IResult
 )
 
 from tableau_migration.migration import (  # noqa: E402, F401
     PyContentLocation,
     PyContentReference,
+    PyEmptyIdContentReference,
     PyMigrationCompletionStatus,
     PyPipelineProfile,
     PyResult
@@ -229,6 +233,18 @@ class TestPyContentReferenceGenerated(AutoFixtureTestBase):
         dotnet = self.create(IContentReference)
         py = PyContentReference(dotnet)
         assert py.name == dotnet.Name
+    
+class TestPyEmptyIdContentReferenceGenerated(AutoFixtureTestBase):
+    
+    def test_ctor(self):
+        dotnet = self.create(IEmptyIdContentReference)
+        py = PyEmptyIdContentReference(dotnet)
+        assert py._dotnet == dotnet
+    
+    def test_id_getter(self):
+        dotnet = self.create(IEmptyIdContentReference)
+        py = PyEmptyIdContentReference(dotnet)
+        assert py.id == None if dotnet.Id is None else UUID(dotnet.Id.ToString())
     
 class TestPyResultGenerated(AutoFixtureTestBase):
     

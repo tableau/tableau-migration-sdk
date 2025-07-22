@@ -10,6 +10,9 @@ on:
       runs-on-config:
         required: true
         type: string
+      dotnet-sdk-version: # Input for the .NET SDK version
+        required: true
+        type: string
 
 env:
   MIGRATIONSDK_BUILD_DOCS: "no"
@@ -26,7 +29,8 @@ jobs:
         config: ${{ fromJSON(vars.BUILD_CONFIGURATIONS) }}
 
     runs-on: ${{ inputs.runs-on-config }}
-    name: Build .NET (${{ matrix.os }}, ${{ matrix.config }})
+    # Updated job name to include the .NET version from input
+    name: Build .NET ${{ inputs.dotnet-sdk-version }} (${{ matrix.os }}, ${{ matrix.config }})
     steps:
       ## SETUP
 
@@ -34,15 +38,19 @@ jobs:
       - uses: actions/checkout@v4
 
       # Setup .NET environment
-      - uses: ./.github/actions/setup-dotnet
+      - name: Setup .NET ${{ inputs.dotnet-sdk-version }}
+        uses: ./.github/actions/setup-dotnet
+        with:
+          dotnet-version: ${{ inputs.dotnet-sdk-version }} # Use the input for .NET version
 
-      # Cache NuGet packages based on the lock file
+      # Cache NuGet packages based on the lock file and .NET version
       - name: Cache NuGet packages
         uses: actions/cache@v4
         with:
           path: ~/.nuget/packages
-          key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
+          key: ${{ runner.os }}-nuget-${{ inputs.dotnet-sdk-version }}-${{ hashFiles('**/packages.lock.json') }}
           restore-keys: |
+            ${{ runner.os }}-nuget-${{ inputs.dotnet-sdk-version }}-
             ${{ runner.os }}-nuget-
 
       # Explicitly restore dependencies using the lock file
@@ -85,7 +93,7 @@ jobs:
           echo "OS Comparison Result: ${{ matrix.os == vars.PUBLISH_OS }}"
           echo "Config Comparison Result: ${{ matrix.config == 'Release' }}"
           echo "SHOULD_PUBLISH=${{ matrix.os == vars.PUBLISH_OS && matrix.config == 'Release' }}" >> $GITHUB_ENV
-
+          
       # Publish the .NET library
       - name: Publish .NET Library ${{ matrix.config }}
         if: ${{ env.SHOULD_PUBLISH == 'true' }}
@@ -103,7 +111,7 @@ jobs:
         if: ${{ env.SHOULD_PUBLISH == 'true' }}
         uses: actions/upload-artifact@v4
         with:
-          name: product-${{ matrix.config }}
+          name: product-${{ matrix.config }}-net${{ inputs.dotnet-sdk-version }}
           path: "./src/Python/src/tableau_migration/bin/**"
           retention-days: 15 # This is not required to stick around very long as it's not pushed to production.
 
@@ -113,7 +121,7 @@ jobs:
         if: ${{ env.SHOULD_PUBLISH == 'true' }}
         uses: actions/upload-artifact@v4
         with:
-          name: tests-${{ matrix.config }}
+          name: tests-${{ matrix.config }}-net${{ inputs.dotnet-sdk-version }}
           path: "./dist/tests/**"
           retention-days: 15 # This is not required to stick around very long as it's not pushed to production.
 
@@ -122,7 +130,7 @@ jobs:
         if: ${{ env.SHOULD_PUBLISH == 'true' }}
         uses: actions/upload-artifact@v4
         with:
-          name: nuget-package
+          name: nuget-package-${{ matrix.config }}-net${{ inputs.dotnet-sdk-version }}
           path: "./src/${{ vars.NUGET_PACKAGE_FOLDER }}/bin/${{ matrix.config }}/*.nupkg"
           if-no-files-found: error
 
@@ -131,7 +139,7 @@ jobs:
         if: ${{ env.SHOULD_PUBLISH == 'true' }}
         uses: actions/upload-artifact@v4
         with:
-          name: build-output-${{ matrix.config }}
+          name: build-output-${{ matrix.config }}-net${{ inputs.dotnet-sdk-version }}
           path: |
             **/bin/${{ matrix.config }}/**
             **/obj/${{ matrix.config }}/**

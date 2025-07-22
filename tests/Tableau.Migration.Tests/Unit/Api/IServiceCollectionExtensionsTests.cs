@@ -111,6 +111,7 @@ namespace Tableau.Migration.Tests.Unit.Api
                 AssertService<IDataSourcesApiClient, DataSourcesApiClient>(scope, ServiceLifetime.Scoped);
                 AssertService<IFlowsApiClient, FlowsApiClient>(scope, ServiceLifetime.Scoped);
                 AssertService<IGroupsApiClient, GroupsApiClient>(scope, ServiceLifetime.Scoped);
+                AssertService<IGroupSetsApiClient, GroupSetsApiClient>(scope, ServiceLifetime.Scoped);
                 AssertService<IJobsApiClient, JobsApiClient>(scope, ServiceLifetime.Scoped);
                 AssertService<ISchedulesApiClient, SchedulesApiClient>(scope, ServiceLifetime.Scoped);
                 AssertService<IProjectsApiClient, ProjectsApiClient>(scope, ServiceLifetime.Scoped);
@@ -119,6 +120,8 @@ namespace Tableau.Migration.Tests.Unit.Api
                 AssertService<IWorkbooksApiClient, WorkbooksApiClient>(scope, ServiceLifetime.Scoped);
                 AssertService<IViewsApiClient, ViewsApiClient>(scope, ServiceLifetime.Scoped);
                 AssertService<ICustomViewsApiClient, CustomViewsApiClient>(scope, ServiceLifetime.Scoped);
+                AssertService<ISubscriptionsApiClient, SubscriptionsApiClient>(scope, ServiceLifetime.Scoped);
+                AssertService<IFavoritesApiClient, FavoritesApiClient>(scope, ServiceLifetime.Scoped);
             }
 
             [Fact]

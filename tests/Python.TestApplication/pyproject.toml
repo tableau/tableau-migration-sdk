@@ -14,7 +14,7 @@ classifiers = [
 ]
 
 dependencies = [
-    "typing_extensions==4.13.2",
+    "typing_extensions==4.14.1",
     "cffi==1.17.1",
     "pycparser==2.22",
     "pythonnet==3.0.5",
@@ -29,11 +29,11 @@ ignore = ["D401", "D407", "E501", "D203", "D212"]
 [tool.hatch.envs.test]
 dev-mode = false
 dependencies = [
-  "pytest>=8.3.5"
+  "pytest>=8.4.1"
 ]
 
 [tool.hatch.envs.test.scripts]
 test = "pytest"
 
 [[tool.hatch.envs.test.matrix]]
-python = ["3.9", "3.10", "3.11", "3.12"]
+python = ["3.9", "3.10", "3.11", "3.12", "3.13"]

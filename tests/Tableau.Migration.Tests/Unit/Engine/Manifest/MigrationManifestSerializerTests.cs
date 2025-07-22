@@ -24,6 +24,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AutoFixture;
 using Moq;
+using Tableau.Migration.Content;
 using Tableau.Migration.Engine.Manifest;
 using Xunit;
 
@@ -69,6 +70,170 @@ namespace Tableau.Migration.Tests.Unit.Engine.Manifest
             // Assert
             Assert.NotNull(loadedManifest);
             Assert.Equal(manifest as MigrationManifest, loadedManifest);
+        }
+
+        [Fact]
+        public async Task ManifestSaveLoadAsync_empty_entry_ID()
+        {
+            var planId = Guid.NewGuid();
+            var migrationId = Guid.NewGuid();
+            var manifest = $@"
+{{
+    ""PlanId"": ""{planId}"",
+    ""MigrationId"": ""{migrationId}"",
+    ""Errors"": [],
+    ""Entries"": {{
+        ""Tableau.Migration.Content.IFavorite"": [
+            {{
+                ""Source"": {{
+                    ""Id"": ""{Guid.Empty}"",
+                    ""ContentUrl"": """",
+                    ""Location"": {{
+                        ""PathSegments"": [
+                            ""local"",
+                            ""user_name"",
+                            ""favorites"",
+                            ""Flow"",
+                            ""project"",
+                            ""flow1""
+                        ],
+                        ""PathSeparator"": ""\\"",
+                        ""Path"": ""local\\user_name\\favorites\\Flow\\project\\flow1"",
+                        ""Name"": ""flow1"",
+                        ""IsEmpty"": false
+                    }},
+                    ""Name"": ""Flow 1 Friendly Name""
+                }},
+                ""MappedLocation"": {{
+                    ""PathSegments"": [
+                        ""local"",
+                        ""user_name"",
+                        ""favorites"",
+                        ""Flow"",
+                        ""project"",
+                        ""flow1""
+                    ],
+                    ""PathSeparator"": ""\\"",
+                    ""Path"": ""local\\user_name\\favorites\\Flow\\project\\flow1"",
+                    ""Name"": ""flow1"",
+                    ""IsEmpty"": false
+                }},
+                ""Destination"": {{
+                    ""Id"": ""{Guid.Empty}"",
+                    ""ContentUrl"": """",
+                    ""Location"": {{
+                        ""PathSegments"": [
+                           ""local"",
+                            ""user_name"",
+                            ""favorites"",
+                            ""Flow"",
+                            ""project"",
+                            ""flow1""
+                        ],
+                        ""PathSeparator"": ""\\"",
+                        ""Path"": ""local\\user_name\\favorites\\Flow\\project\\flow1"",
+                        ""Name"": ""flow1"",
+                        ""IsEmpty"": false
+                    }},
+                    ""Name"": ""Flow 1 Friendly Name""
+                }},
+                ""Status"": ""Migrated"",
+                ""HasMigrated"": true,
+                ""Errors"": []
+            }},
+            {{
+                ""Source"": {{
+                    ""Id"": ""{Guid.Empty}"",
+                    ""ContentUrl"": """",
+                    ""Location"": {{
+                        ""PathSegments"": [
+                            ""local"",
+                            ""user_name"",
+                            ""favorites"",
+                            ""Flow"",
+                            ""project"",
+                            ""flow2""
+                        ],
+                        ""PathSeparator"": ""\\"",
+                        ""Path"": ""local\\user_name\\favorites\\Flow\\project\\flow2"",
+                        ""Name"": ""flow2"",
+                        ""IsEmpty"": false
+                    }},
+                    ""Name"": ""Flow 2 Friendly Name""
+                }},
+                ""MappedLocation"": {{
+                    ""PathSegments"": [
+                           ""local"",
+                            ""user_name"",
+                            ""favorites"",
+                            ""Flow"",
+                            ""project"",
+                            ""flow2""
+                    ],
+                    ""PathSeparator"": ""\\"",
+                    ""Path"": ""local\\user_name\\favorites\\Flow\\project\\flow2"",
+                    ""Name"": ""flow2"",
+                    ""IsEmpty"": false
+                }},
+                ""Destination"": {{
+                    ""Id"": ""{Guid.Empty}"",
+                    ""ContentUrl"": """",
+                    ""Location"": {{
+                        ""PathSegments"": [
+                           ""local"",
+                            ""user_name"",
+                            ""favorites"",
+                            ""Flow"",
+                            ""project"",
+                            ""flow2""
+                        ],
+                        ""PathSeparator"": ""\\"",
+                        ""Path"": ""local\\user_name\\favorites\\Flow\\project\\flow2"",
+                        ""Name"": ""flow2"",
+                        ""IsEmpty"": false
+                    }},
+                    ""Name"": ""Flow 2 Friendly Name""
+
+                }},
+                ""Status"": ""Migrated"",
+                ""HasMigrated"": true,
+                ""Errors"": []
+            }}
+        ]
+    }},
+    ""ManifestVersion"": 4
+}}
+            ";
+            using var tempFile = new TempFile();
+
+            // Save the JSON string to the temp file
+            File.WriteAllText(tempFile.FilePath, manifest);
+
+            // Use a real file system for this specific test
+            var realFileSystem = new FileSystem();
+            var serializer = new MigrationManifestSerializer(realFileSystem);
+            var cancel = new CancellationToken();
+
+            // Act
+            var loadedManifest = await serializer.LoadAsync(tempFile.FilePath, cancel);
+
+            // Assert
+            Assert.NotNull(loadedManifest);
+            Assert.Equal(planId, loadedManifest.PlanId);
+            Assert.Equal(migrationId, loadedManifest.MigrationId);
+            Assert.Equal(2, loadedManifest.Entries.Count());
+
+            var partition = loadedManifest.Entries.GetOrCreatePartition<IFavorite>();
+
+            Assert.Equal(2, partition.ExpectedTotalCount);
+
+            Assert.Empty(partition.BySourceId);
+            Assert.Empty(partition.ByDestinationId);
+
+            Assert.NotEmpty(partition.BySourceLocation);
+            Assert.Equal(2, partition.BySourceLocation.Count());
+
+            Assert.Empty(partition.BySourceContentUrl);
         }
 
         [Fact]

@@ -74,9 +74,7 @@ namespace Tableau.Migration.Api.Publishing
         /// <param name="options">The publish options context object.</param>
         /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>The specified type object with the completion data.</returns>
-        public async Task<IResult<TPublishResult>> PublishAsync(
-            TPublishOptions options,
-            CancellationToken cancel)
+        public async Task<IResult<TPublishResult>> PublishAsync(TPublishOptions options, CancellationToken cancel)
         {
             static IResult<TPublishResult> GetFailedResult(IResult failedResult)
                 => Result<TPublishResult>.Failed(failedResult.Errors);
@@ -95,19 +93,24 @@ namespace Tableau.Migration.Api.Publishing
             var boundary = Guid.NewGuid().ToString("N");
             var uploadSessionUri = $"{RestUrlKeywords.FileUploads}/{uploadSessionId}";
 
-            var chunkResults = await _httpStreamProcessor
-                .ProcessAsync<FileUploadResponse>(
-                    options.File,
-                    (chunk, bytesRead) => BuildChunkRequest(uploadSessionUri, boundary, fileName, chunk, bytesRead),
-                    cancel)
-                .ConfigureAwait(false);
-
-            var lastResult = chunkResults.Last()
-                .ToResult(r => r, SharedResourcesLocalizer);
-
-            if (!lastResult.Success)
+            // Open a fresh file stream for each set of chunked upload attempts.
+            var fileStream = await options.File.OpenReadAsync(cancel).ConfigureAwait(false);
+            await using (fileStream)
             {
-                return GetFailedResult(lastResult);
+                var chunkResults = await _httpStreamProcessor
+                        .ProcessAsync<FileUploadResponse>(
+                            fileStream.Content,
+                            (chunk, bytesRead) => BuildChunkRequest(uploadSessionUri, boundary, fileName, chunk, bytesRead),
+                            cancel)
+                        .ConfigureAwait(false);
+
+                var lastResult = chunkResults.Last()
+                    .ToResult(r => r, SharedResourcesLocalizer);
+
+                if (!lastResult.Success)
+                {
+                    return GetFailedResult(lastResult);
+                }
             }
 
             return await CommitPublishedContentAsync(options, uploadSessionId, boundary, cancel).ConfigureAwait(false);

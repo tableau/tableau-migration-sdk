@@ -20,8 +20,8 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Tableau.Migration.Api;
 using Tableau.Migration.Content;
+using Tableau.Migration.Engine.Endpoints.Caching;
 using Tableau.Migration.Resources;
 
 namespace Tableau.Migration.Engine.Endpoints.ContentClients
@@ -31,28 +31,17 @@ namespace Tableau.Migration.Engine.Endpoints.ContentClients
     /// </summary>
     public class WorkbooksContentClient : ContentClientBase<IWorkbook>, IWorkbooksContentClient
     {
-        private readonly IWorkbooksApiClient _workbooksApiClient;
+        private readonly IEndpointWorkbookViewsCache _workbookViewsCache;
 
         /// <inheritdoc/>
-        public WorkbooksContentClient(
-            IWorkbooksApiClient workbooksApiClient,
-            ILogger<IWorkbooksContentClient> logger,
-            ISharedResourcesLocalizer localizer) : base(logger, localizer)
+        public WorkbooksContentClient(IEndpointWorkbookViewsCache workbookViewsCache, ILogger<WorkbooksContentClient> logger, ISharedResourcesLocalizer localizer) 
+            : base(logger, localizer)
         {
-            _workbooksApiClient = workbooksApiClient;
+            _workbookViewsCache = workbookViewsCache;
         }
 
         /// <inheritdoc/>
         public async Task<IResult<IImmutableList<IView>>> GetViewsForWorkbookIdAsync(Guid workbookId, CancellationToken cancel)
-        {
-            var workbook = await _workbooksApiClient.GetWorkbookAsync(workbookId, cancel).ConfigureAwait(false);
-
-            if (!workbook.Success)
-            {
-                return workbook.CastFailure<IImmutableList<IView>>();
-            }
-
-            return Result<IImmutableList<IView>>.Succeeded(workbook.Value.Views);
-        }
+            => await _workbookViewsCache.GetOrAddAsync(workbookId, cancel).ConfigureAwait(false);
     }
 }

@@ -21,6 +21,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.Metrics;
 using System.Linq;
+using System.Threading.Tasks;
 using AutoFixture;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -35,8 +36,8 @@ using Tableau.Migration.Config;
 using Tableau.Migration.Content;
 using Tableau.Migration.Content.Permissions;
 using Tableau.Migration.Engine.Endpoints;
-using Tableau.Migration.Net;
 using Tableau.Migration.Tests.Content.Permissions;
+using Tableau.Migration.Tests.Simulation.DataPreparation;
 using Tableau.Migration.Tests.Unit.Content.Permissions;
 using Xunit;
 using Server = Tableau.Migration.Api.Rest.Models.Responses.Server;
@@ -87,6 +88,8 @@ namespace Tableau.Migration.Tests.Simulation
 
         protected virtual bool UsersBatchImportEnabled { get; } = true;
 
+        protected virtual bool GroupSetGroupOverWriteEnabled { get; } = true;
+
         protected override IServiceCollection ConfigureServices(IServiceCollection services)
         {
             var mockedConfigReader = Freeze<Mock<IConfigReader>>();
@@ -95,6 +98,13 @@ namespace Tableau.Migration.Tests.Simulation
                 {
                     BatchPublishingEnabled = UsersBatchImportEnabled
                 });
+
+            mockedConfigReader.Setup(x => x.Get<IGroupSet>())
+                 .Returns(new ContentTypesOptions
+                 {
+                     OverwriteGroupSetGroupsEnabled = GroupSetGroupOverWriteEnabled
+                 });
+
             mockedConfigReader.Setup(x => x.Get())
                 .Returns(new MigrationSdkOptions());
 
@@ -102,16 +112,90 @@ namespace Tableau.Migration.Tests.Simulation
                 .AddSingleton(mockedConfigReader.Object);
         }
 
+        #region - Migration -
+
+        protected IMigrationPlan CreateMigrationPlan()
+            => CreatePlanBuilder().Build();
+
+        protected IServerToCloudMigrationPlanBuilder CreatePlanBuilder()
+            => ServiceProvider.GetRequiredService<IMigrationPlanBuilder>()
+                .FromSource(SourceEndpointConfig)
+                .ToDestination(CloudDestinationEndpointConfig)
+                .ForServerToCloud();
+
+        protected IServerToCloudMigrationPlanBuilder CreateMigrationPlanBuilderWithTableauIdAuth()
+            => CreatePlanBuilder()
+                .WithTableauIdAuthenticationType()
+                .WithTableauCloudUsernames("test.com");
+
+        protected IMigrationPlan CreateMigrationPlanWithTableauIdAuth()
+            => CreateMigrationPlanBuilderWithTableauIdAuth().Build();
+
+        protected async Task<MigrationResult> RunMigrationAsync(IMigrationPlan? plan = null)
+            => await RunMigrationAsync(plan ?? CreateMigrationPlan(), null);
+
+
+        protected async Task<MigrationResult> RunMigrationAsync(IMigrationPlan plan, IMigrationManifest? previousManifest = null)
+        {
+            var migrator = ServiceProvider.GetRequiredService<IMigrator>();
+            return previousManifest == null
+                ? await migrator.ExecuteAsync(plan, Cancel)
+                : await migrator.ExecuteAsync(plan, previousManifest, Cancel);
+        }
+
+        protected async Task<MigrationResult> RunMigrationAsync(IServerToCloudMigrationPlanBuilder planBuilder)
+            => await RunMigrationAsync(planBuilder.Build());
+
+        protected async Task<MigrationResult> RunMigrationWithTableauIdAuthAsync()
+            => await RunMigrationAsync(CreateMigrationPlanWithTableauIdAuth());
+
+        #endregion
+
         #region - Asserts -
 
-        protected static IContentReference? MapReference<TContent>(IMigrationManifest manifest, Guid sourceId)
+        protected IContentReference? MapViewReference(IMigrationManifest manifest, Guid sourceViewId)
         {
+            var sourceView = SourceApi.Data.Views.SingleOrDefault(v => v.Id == sourceViewId);
+            if (sourceView?.Workbook is null)
+            {
+                return null;
+            }
+
+            var workbookEntries = manifest.Entries.ForContentType<IWorkbook>();
+            var workbookEntry = workbookEntries.SingleOrDefault(e => e.Source.Id == sourceView.Workbook.Id);
+            if (workbookEntry?.Destination is null)
+            {
+                return null;
+            }
+
+            var destinationWorkbook = CloudDestinationApi.Data.Workbooks.SingleOrDefault(w => w.Id == workbookEntry.Destination.Id);
+            if (destinationWorkbook is null)
+            {
+                return null;
+            }
+
+            var destinationView = destinationWorkbook.Views.SingleOrDefault(v => string.Equals(v.Name, sourceView.Name, StringComparison.OrdinalIgnoreCase));
+            if (destinationView is null)
+            {
+                return null;
+            }
+
+            return new ContentReferenceStub(destinationView.Id, destinationView.ContentUrl!, workbookEntry.Destination.Location.Append(destinationView.Name!));
+        }
+
+        protected IContentReference? MapReference<TContent>(IMigrationManifest manifest, Guid sourceId)
+        {
+            if (typeof(TContent) == typeof(IView))
+            {
+                return MapViewReference(manifest, sourceId);
+            }
+
             var entries = manifest.Entries.ForContentType<TContent>();
             var entry = entries.Single(e => e.Source.Id == sourceId);
             return entry.Destination;
         }
 
-        protected static GranteeCapabilityType MapGrantee(IMigrationManifest manifest, GranteeCapabilityType capability)
+        protected GranteeCapabilityType MapGrantee(IMigrationManifest manifest, GranteeCapabilityType capability)
             => capability.GranteeType switch
             {
                 GranteeType.User => new()
@@ -133,7 +217,7 @@ namespace Tableau.Migration.Tests.Simulation
                 _ => throw new ArgumentException($"Grantee Type {capability.GranteeType} is invalid.", nameof(capability)),
             };
 
-        protected static void AssertPermissionsMigrated(IMigrationManifest manifest, PermissionsType? sourcePermissions, PermissionsType? destinationPermissions)
+        protected void AssertPermissionsMigrated(IMigrationManifest manifest, PermissionsType? sourcePermissions, PermissionsType? destinationPermissions)
         {
             Assert.NotNull(sourcePermissions);
             Assert.NotNull(destinationPermissions);
@@ -151,7 +235,7 @@ namespace Tableau.Migration.Tests.Simulation
             Assert.Equal(mappedGranteeCapabilities.ToIGranteeCapabilities(), destinationGranteeCapabilities.ToIGranteeCapabilities(), comparer);
         }
 
-        protected static void AssertEmbeddedCredentialsMigrated(
+        protected void AssertEmbeddedCredentialsMigrated(
             IMigrationManifest manifest,
             RetrieveKeychainResponse sourceKeychains,
             RetrieveKeychainResponse destinationKeychains,
@@ -173,7 +257,7 @@ namespace Tableau.Migration.Tests.Simulation
                 AssertSavedCredentials(sourceUserSavedCredentials, destinationUserSavedCredentials, userMapping.Key, userMapping.Value);
             }
 
-            static Dictionary<Guid, Guid> GetUserMappings(IMigrationManifest manifest, List<Guid> sourceUserIds)
+            Dictionary<Guid, Guid> GetUserMappings(IMigrationManifest manifest, List<Guid> sourceUserIds)
             {
                 var result = new Dictionary<Guid, Guid>();
 
@@ -242,714 +326,45 @@ namespace Tableau.Migration.Tests.Simulation
 
         #endregion
 
-        #region - Prepare Source Data (Users) -
-
         protected (List<UsersResponse.UserType> NonSupportUsers, List<UsersResponse.UserType> SupportUsers) PrepareSourceUsersData(int? count = null)
-        {
-            var allSiteRoles = SiteRoles.GetAll();
-            var numSourceUsers = count ?? (int)Math.Ceiling(ContentTypesOptions.Defaults.BATCH_SIZE * 2.5);
-
-            var nonSupportUsers = new List<UsersResponse.UserType>();
-            var supportUsers = new List<UsersResponse.UserType>();
-            for (int i = 0; i < numSourceUsers; i++)
-            {
-                var user = Create<UsersResponse.UserType>();
-                user.Domain = i % 2 == 0 ? new UsersResponse.UserType.DomainType { Name = "local" } : Create<UsersResponse.UserType.DomainType>();
-
-                // Wrong - Work item in in backlog
-                // This is not how the response should be built. The domain does not go into the name for UsersResponse.UserType
-                // Replace domain name in the user name
-                if (user.Name != null)
-                {
-                    var currentDomainName = TableauData.GetUserDomain(user)?.Name;
-                    if (currentDomainName != null)
-                    {
-                        user.Name = user.Name.Replace(currentDomainName, user.Domain.Name);
-                    }
-                }
-                user.SiteRole = allSiteRoles[i % allSiteRoles.Count];
-
-                if (user.SiteRole == SiteRoles.SupportUser)
-                {
-                    supportUsers.Add(user);
-                }
-                else
-                {
-                    nonSupportUsers.Add(user);
-                }
-
-                SourceApi.Data.Users.Add(user);
-
-                var savedCredentials = (i % 2) switch
-                {
-                    0 => new RetrieveKeychainResponse(),
-                    _ => new RetrieveKeychainResponse(CreateMany<string>(), [user.Id])
-                };
-                SourceApi.Data.UserSavedCredentials.TryAdd(user.Id, savedCredentials);
-            }
-
-            return (nonSupportUsers, supportUsers);
-        }
-
-        #endregion - Prepare Source Data (Users) -
-
-        #region - Prepare Source Data (Groups) -
+            => UsersDataPreparation.PrepareServerSource(SourceApi, AutoFixture, count);
 
         protected List<GroupsResponse.GroupType> PrepareSourceGroupsData(int? count = null)
-        {
-            var groups = new List<GroupsResponse.GroupType>();
-            var allSiteRoles = SiteRoles.GetAll();
-            var numSourceGroups = count ?? (int)Math.Ceiling(ContentTypesOptions.Defaults.BATCH_SIZE * 1.5);
+            => GroupsDataPreparation.Prepare(SourceApi, AutoFixture, count);
 
-            for (int i = 0; i < numSourceGroups; i++)
-            {
-                var group = Create<GroupsResponse.GroupType>();
-                group.Domain = i % 2 == 0 ? new GroupsResponse.GroupType.DomainType { Name = "local" } : Create<GroupsResponse.GroupType.DomainType>();
-                group.Import!.SiteRole = allSiteRoles[i % allSiteRoles.Count];
-                groups.Add(group);
-                SourceApi.Data.Groups.Add(group);
-            }
-
-            return groups;
-        }
-
-        #endregion - Prepare Source Data (Groups) -
-
-        #region - Prepare Source Data (Projects) -
+        protected List<GroupsResponse.GroupType> PrepareDestinationGroupsData(int? count = null)
+           => GroupsDataPreparation.Prepare(CloudDestinationApi, AutoFixture, count);
 
         protected List<ProjectsResponse.ProjectType> PrepareSourceProjectsData()
-        {
-            var projects = new List<ProjectsResponse.ProjectType>();
-
-            // This will create 5 projects
-            var numSourceProjects = 5;
-
-            // Get all users that are not support users, and all groups
-            var users = SourceApi.Data.Users.Where(u => u.SiteRole != SiteRoles.SupportUser).ToImmutableArray();
-            var groups = SourceApi.Data.Groups;
-
-            // Create the projects in a hierarchy. Project 0 is the only root project. 
-            // Every next project is a child of the previous one
-            for (var i = 0; i < numSourceProjects; i++)
-            {
-                var project = Create<ProjectsResponse.ProjectType>();
-
-                if (i >= 1)
-                    project.ParentProjectId = projects[^1].Id.ToString();
-                else
-                    project.ParentProjectId = null;
-
-                project.Owner = new() { Id = users[i % users.Length].Id };
-
-                projects.Add(project);
-                SourceApi.Data.AddProject(project);
-            }
-
-            foreach (var project in projects)
-            { // loop over all the projects created
-                foreach (var contentType in DefaultPermissionsContentTypeUrlSegments.GetAll()) // loop over all the known content types and get their default permissions
-                { // loop over all the known content types and get their default permissions
-
-                    // Add the default permissions for the given content type to the project
-                    SourceApi.Data.AddDefaultProjectPermissions(project.Id, contentType, new PermissionsType
-                    {
-                        ContentItem = new PermissionsContentItemType
-                        {
-                            Id = project.Id,
-                            Name = project.Name
-                        },
-                        GranteeCapabilities = users.Select(u => new GranteeCapabilityType
-                        {
-                            User = new GranteeCapabilityType.UserType
-                            {
-                                Id = u.Id
-                            },
-                            Capabilities = CreateMany<ICapability>(2).Select(c => new CapabilityType(c)).ToArray()
-                        })
-                        .Concat(groups.Select(g => new GranteeCapabilityType
-                        {
-                            Group = new GranteeCapabilityType.GroupType
-                            {
-                                Id = g.Id
-                            },
-                            Capabilities = CreateMany<ICapability>(2).Select(c => new CapabilityType(c)).ToArray()
-                        }))
-                        .ToArray()
-                    });
-                }
-
-                SourceApi.Data.AddProjectPermissions(project, new PermissionsType
-                {
-                    GranteeCapabilities = users.Select(u => new GranteeCapabilityType
-                    {
-                        User = new GranteeCapabilityType.UserType
-                        {
-                            Id = u.Id
-                        },
-                        Capabilities = CreateMany<ICapability>(2).Select(c => new CapabilityType(c)).ToArray()
-                    })
-                    .Concat(groups.Select(g => new GranteeCapabilityType
-                    {
-                        Group = new GranteeCapabilityType.GroupType
-                        {
-                            Id = g.Id
-                        },
-                        Capabilities = CreateMany<ICapability>(2).Select(c => new CapabilityType(c)).ToArray()
-                    }))
-                    .ToArray()
-                });
-            }
-
-            return projects;
-        }
-
-        #endregion - Prepare Source Data (Projects) -
-
-        #region - Prepare Embedded Credentials -
-
-        // Creates a number of connections and returns the simulated "workbook file data" as a byte array
-        private void CreateConnections(SimulatedDataWithConnections data, bool embed, int connectionCount = 2)
-        {
-            for (int i = 0; i < connectionCount; i++)
-            {
-                var conn = Create<SimulatedConnection>();
-                data.Connections.Add(conn);
-
-                if (embed)
-                {
-                    conn.Credentials = Create<SimulatedConnectionCredentials>();
-                    conn.Credentials.Embed = "true";
-                }
-                else if (conn.Credentials is not null)
-                {
-                    conn.Credentials.Embed = null;
-                }
-            }
-        }
-
-        private RetrieveKeychainResponse PrepareEmbeddedCredentials(ConcurrentDictionary<Guid, RetrieveKeychainResponse> keychainCollection,
-            List<UsersResponse.UserType> users, Guid itemId, int counter)
-        {
-            var keychains = (counter % 3) switch
-            {
-                0 => new RetrieveKeychainResponse(),
-                1 => new RetrieveKeychainResponse(CreateMany<string>(), [users[counter % users.Count].Id]),
-                _ => new RetrieveKeychainResponse(CreateMany<string>(), [users[counter % users.Count].Id, users[(counter + 1) % users.Count].Id])
-            };
-
-            keychainCollection.TryAdd(itemId, keychains);
-            return keychains;
-        }
-
-        #endregion
-
-        #region - Prepare Source Data (Data Sources) -
+            => ProjectsDataPreparation.PrepareServerSource(SourceApi, AutoFixture);
 
         protected List<DataSourceResponse.DataSourceType> PrepareSourceDataSourceData()
-        {
-            var dataSources = new List<DataSourceResponse.DataSourceType>();
-
-            // Get all users that are not support users, and all groups
-            var users = SourceApi.Data.Users.Where(u => u.SiteRole != SiteRoles.SupportUser).ToList();
-            var groups = SourceApi.Data.Groups;
-
-            int counter = 0;
-            foreach (var project in SourceApi.Data.Projects)
-            { // loop over all the projects and add a data source to each
-
-                var dataSource = Create<DataSourceResponse.DataSourceType>();
-                dataSource.Project = new DataSourceResponse.DataSourceType.ProjectType { Id = project.Id, Name = project.Name };
-
-                var dataSourceFileData = new SimulatedDataSourceData();
-
-                var owner = users[counter % users.Count];
-                dataSource.Owner = new DataSourceResponse.DataSourceType.OwnerType { Id = owner.Id };
-
-                SourceApi.Data.AddDataSourcePermissions(dataSource, new PermissionsType
-                {
-                    GranteeCapabilities = users.Select(u => new GranteeCapabilityType
-                    {
-                        User = new GranteeCapabilityType.UserType
-                        {
-                            Id = u.Id
-                        },
-                        Capabilities = CreateMany<ICapability>(2).Select(c => new CapabilityType(c)).ToArray()
-                    })
-                    .Concat(groups.Select(g => new GranteeCapabilityType
-                    {
-                        Group = new GranteeCapabilityType.GroupType
-                        {
-                            Id = g.Id
-                        },
-                        Capabilities = CreateMany<ICapability>(2).Select(c => new CapabilityType(c)).ToArray()
-                    }))
-                    .ToArray()
-                });
-
-                // Assert infra
-                Assert.NotNull(dataSource.Tags);
-                Assert.NotEmpty(dataSource.Tags);
-
-                PrepareEmbeddedCredentials(SourceApi.Data.DataSourceKeychains, users, dataSource.Id, counter);
-
-                var keychains = PrepareEmbeddedCredentials(SourceApi.Data.DataSourceKeychains, users, dataSource.Id, counter);
-                CreateConnections(dataSourceFileData, embed: keychains.EncryptedKeychainList.Any());
-
-                // Our data source data will just be a guid as a string, encoded to a byte array
-
-                byte[] dataSourceData = Constants.DefaultEncoding.GetBytes(dataSourceFileData.ToXml());
-                SourceApi.Data.AddDataSource(dataSource, dataSourceData);
-                dataSources.Add(dataSource);
-                counter++;
-            }
-
-            return dataSources;
-        }
-
-        #endregion - Prepare Source Data (Data Sources) -
-
-        #region - Prepare Source Data (Workbooks) -
+            => DataSourcesDataPreparation.PrepareServerSource(SourceApi, AutoFixture);
 
         protected List<WorkbookResponse.WorkbookType> PrepareSourceWorkbooksData()
-        {
-            void CreateViewsForWorkbook(WorkbookResponse.WorkbookType workbook, SimulatedWorkbookData workbookData, int viewCount = 2)
-            {
-                var users = SourceApi.Data.Users.Where(u => u.SiteRole != SiteRoles.SupportUser).ToList();
-                var groups = SourceApi.Data.Groups;
-
-                // Infra verification
-                Assert.NotNull(workbook.Views);
-
-                for (int i = 0; i < viewCount; i++)
-                {
-                    var view = Create<ViewResponse.ViewType>();
-
-                    // The view content url needs to be updated to include the workbook name.
-                    // The "Get Workbook" Rest API returns only
-                    //   the id, which will be recreated on the target
-                    //   the contentUrl, which on a real server is the name of the workbook plus the name of the sheet/view
-                    //   but not the name of the sheet/view
-                    //   as a transformer may change the name of the workbook, we need to make a reasonable valid view content url
-                    view.ContentUrl = $"{workbook.Name}{Constants.PathSeparator}{view.Name}";
-
-                    // Give the view permissions
-                    SourceApi.Data.AddViewPermissions(view.Id, new PermissionsType
-                    {
-                        GranteeCapabilities = users.Select(u => new GranteeCapabilityType
-                        {
-                            User = new GranteeCapabilityType.UserType
-                            {
-                                Id = u.Id
-                            },
-                            Capabilities = CreateMany<ICapability>(2).Select(c => new CapabilityType(c)).ToArray()
-                        })
-                        .Concat(groups.Select(g => new GranteeCapabilityType
-                        {
-                            Group = new GranteeCapabilityType.GroupType
-                            {
-                                Id = g.Id
-                            },
-                            Capabilities = CreateMany<ICapability>(2).Select(c => new CapabilityType(c)).ToArray()
-                        }))
-                        .ToArray()
-                    });
-
-                    // Every other view is hidden, first is not hidden
-                    bool hidden = i % 2 != 0;
-
-                    workbookData.Views.Add(new SimulatedWorkbookData.SimulatedViewType(view, hidden));
-
-                    // Infra verification
-                    Assert.NotNull(view.Tags);
-                    Assert.NotEmpty(view.Tags);
-                }
-            }
-
-            /*
-             * Build workbook metadata
-             * Add owner to workbook
-             * Add permissions to workbook
-             * Add views to workbook
-             * Add permissions to views
-             * Build workbook file
-               * Build workbook connections
-               * Save workbook connections to workbook file
-             */
-
-            var workbooks = new List<WorkbookResponse.WorkbookType>();
-
-            // Get all users that are not support users, and all groups
-            var users = SourceApi.Data.Users.Where(u => u.SiteRole != SiteRoles.SupportUser).ToList();
-            var groups = SourceApi.Data.Groups;
-
-            int counter = 0;
-            foreach (var project in SourceApi.Data.Projects)
-            { // loop over all the projects and add a data source to each
-
-                // Create workbook
-                var workbook = AutoFixture.Build<WorkbookResponse.WorkbookType>()
-                                // Views need to be saved in the workbook data, so created at a later step
-                                .With(x => x.Views, Array.Empty<WorkbookResponse.WorkbookType.WorkbookViewReferenceType>())
-                                .Create();
-
-                var workbookFileData = new SimulatedWorkbookData();
-
-                // Add it to the current project
-                workbook.Project = new WorkbookResponse.WorkbookType.ProjectType { Id = project.Id, Name = project.Name };
-
-                // Give the workbook an owner
-                var owner = users[counter % users.Count];
-                workbook.Owner = new WorkbookResponse.WorkbookType.OwnerType { Id = owner.Id };
-
-                // Give the workbook permissions
-                SourceApi.Data.AddWorkbookPermissions(workbook, new PermissionsType
-                {
-                    GranteeCapabilities = users.Select(u => new GranteeCapabilityType
-                    {
-                        User = new GranteeCapabilityType.UserType
-                        {
-                            Id = u.Id
-                        },
-                        Capabilities = CreateMany<ICapability>(2).Select(c => new CapabilityType(c)).ToArray()
-                    })
-                    .Concat(groups.Select(g => new GranteeCapabilityType
-                    {
-                        Group = new GranteeCapabilityType.GroupType
-                        {
-                            Id = g.Id
-                        },
-                        Capabilities = CreateMany<ICapability>(2).Select(c => new CapabilityType(c)).ToArray()
-                    }))
-                    .ToArray()
-                });
-
-                CreateViewsForWorkbook(workbook, workbookFileData);
-
-                var keychains = PrepareEmbeddedCredentials(SourceApi.Data.WorkbookKeychains, users, workbook.Id, counter);
-                CreateConnections(workbookFileData, embed: keychains.EncryptedKeychainList.Any());
-
-                CreateViewsForWorkbook(workbook, workbookFileData);
-
-                SourceApi.Data.AddWorkbook(workbook, Constants.DefaultEncoding.GetBytes(workbookFileData.ToXml()));
-                workbooks.Add(workbook);
-                counter++;
-            }
-
-            return workbooks;
-        }
-
-        #endregion - Prepare Source Data (Workbooks) -
-
-        #region - Prepare Source Data (Schedules) -
-
-        private List<Server.ScheduleResponse.ScheduleType> PrepareSchedulesData()
-        {
-            var hourlySchedule = new Server.ScheduleResponse.ScheduleType
-            {
-                Id = Guid.NewGuid(),
-                Name = ScheduleFrequencies.Hourly,
-                Type = ScheduleTypes.Extract,
-                Frequency = ScheduleFrequencies.Hourly,
-                State = "Active",
-                Priority = 50,
-                ExecutionOrder = "Parallel",
-                FrequencyDetails = new Server.ScheduleResponse.ScheduleType.FrequencyDetailsType
-                {
-                    Start = "00:25:00",
-                    End = "01:25:00",
-                    Intervals = [
-                        new Server.ScheduleResponse.ScheduleType.FrequencyDetailsType.IntervalType { Hours = "1" },
-                    ]
-                }
-            };
-            var dailySchedule = new Server.ScheduleResponse.ScheduleType
-            {
-                Id = Guid.NewGuid(),
-                Name = ScheduleFrequencies.Daily,
-                Type = ScheduleTypes.Extract,
-                Frequency = ScheduleFrequencies.Daily,
-                State = "Active",
-                Priority = 50,
-                ExecutionOrder = "Parallel",
-                FrequencyDetails = new Server.ScheduleResponse.ScheduleType.FrequencyDetailsType
-                {
-                    Start = "00:15:00",
-                    End = "12:15:00",
-                    Intervals = [
-                        new Server.ScheduleResponse.ScheduleType.FrequencyDetailsType.IntervalType { Hours = "12" },
-                        new Server.ScheduleResponse.ScheduleType.FrequencyDetailsType.IntervalType { WeekDay = WeekDays.Tuesday },
-                        new Server.ScheduleResponse.ScheduleType.FrequencyDetailsType.IntervalType { WeekDay = WeekDays.Thursday }
-                    ]
-                }
-            };
-            var weeklySchedule = new Server.ScheduleResponse.ScheduleType
-            {
-                Id = Guid.NewGuid(),
-                Name = ScheduleFrequencies.Weekly,
-                Type = ScheduleTypes.Extract,
-                Frequency = ScheduleFrequencies.Weekly,
-                State = "Active",
-                Priority = 50,
-                ExecutionOrder = "Parallel",
-                FrequencyDetails = new Server.ScheduleResponse.ScheduleType.FrequencyDetailsType
-                {
-                    Start = "03:10:00",
-                    Intervals = [new Server.ScheduleResponse.ScheduleType.FrequencyDetailsType.IntervalType { WeekDay = WeekDays.Sunday }]
-                }
-            };
-            var monthlyMultipleDaysSchedule = new Server.ScheduleResponse.ScheduleType
-            {
-                // Note: This type of schedule on Server can only be created via the UI, not the RestAPI. It is still a valid schedule though. 
-                Id = Guid.NewGuid(),
-                Name = $"{ScheduleFrequencies.Monthly}_Multiple",
-                Type = ScheduleTypes.Extract,
-                Frequency = ScheduleFrequencies.Monthly,
-                State = "Active",
-                Priority = 50,
-                ExecutionOrder = "Parallel",
-                FrequencyDetails = new Server.ScheduleResponse.ScheduleType.FrequencyDetailsType
-                {
-                    Start = "03:45:00",
-                    Intervals = [
-                        new Server.ScheduleResponse.ScheduleType.FrequencyDetailsType.IntervalType { MonthDay = "1" },
-                        new Server.ScheduleResponse.ScheduleType.FrequencyDetailsType.IntervalType { MonthDay = "10" },
-                        new Server.ScheduleResponse.ScheduleType.FrequencyDetailsType.IntervalType { MonthDay = "20" }
-                    ]
-                }
-            };
-            var monthlyLastDaySchedule = new Server.ScheduleResponse.ScheduleType
-            {
-                Id = Guid.NewGuid(),
-                Name = $"{ScheduleFrequencies.Monthly}_LastSunday",
-                Type = ScheduleTypes.Extract,
-                Frequency = ScheduleFrequencies.Monthly,
-                State = "Active",
-                Priority = 50,
-                ExecutionOrder = "Parallel",
-                FrequencyDetails = new Server.ScheduleResponse.ScheduleType.FrequencyDetailsType
-                {
-                    Start = "01:35:00",
-                    Intervals = [new Server.ScheduleResponse.ScheduleType.FrequencyDetailsType.IntervalType { MonthDay = "LastDay" }]
-                }
-            };
-            var schedules = new List<Server.ScheduleResponse.ScheduleType>
-            {
-                hourlySchedule,
-                dailySchedule,
-                weeklySchedule,
-                monthlyMultipleDaysSchedule,
-                monthlyLastDaySchedule
-            };
-
-            foreach (var schedule in schedules)
-            {
-                SourceApi.Data.AddSchedule(schedule);
-            }
-
-            return schedules;
-        }
-
-        #endregion - Prepare Source Data (Schedules) -
-
-        #region - Prepare Source Data (ExtractRefreshTasks) -
+            => WorkbooksDataPreparation.PrepareServerSource(SourceApi, AutoFixture);
 
         protected List<Server.ExtractRefreshTasksResponse.TaskType> PrepareSourceExtractRefreshTasksData()
-        {
-            var extractRefreshTasks = new List<Server.ExtractRefreshTasksResponse.TaskType>();
+            => ExtractRefreshTasksDataPreparation.PrepareServerSource(SourceApi);
 
-            var schedules = PrepareSchedulesData();
-
-            var count = 0;
-            foreach (var datasource in SourceApi.Data.DataSources)
-            {
-                extractRefreshTasks.Add(
-                    new Server.ExtractRefreshTasksResponse.TaskType
-                    {
-                        ExtractRefresh = new Server.ExtractRefreshTasksResponse.TaskType.ExtractRefreshType
-                        {
-                            Id = Guid.NewGuid(),
-                            Priority = 50,
-                            DataSource = new Server.ExtractRefreshTasksResponse.TaskType.ExtractRefreshType.DataSourceType
-                            {
-                                Id = datasource.Id
-                            },
-                            Schedule = new Server.ExtractRefreshTasksResponse.TaskType.ExtractRefreshType.ScheduleType
-                            {
-                                Id = schedules[count % schedules.Count].Id
-                            }
-                        }
-                    });
-                count++;
-            }
-
-            foreach (var workbook in SourceApi.Data.Workbooks)
-            {
-                extractRefreshTasks.Add(
-                    new Server.ExtractRefreshTasksResponse.TaskType
-                    {
-                        ExtractRefresh = new Server.ExtractRefreshTasksResponse.TaskType.ExtractRefreshType
-                        {
-                            Id = Guid.NewGuid(),
-                            Priority = 50,
-                            Workbook = new Server.ExtractRefreshTasksResponse.TaskType.ExtractRefreshType.WorkbookType
-                            {
-                                Id = workbook.Id
-                            },
-                            Schedule = new Server.ExtractRefreshTasksResponse.TaskType.ExtractRefreshType.ScheduleType
-                            {
-                                Id = schedules[count % schedules.Count].Id
-                            }
-                        }
-                    });
-                count++;
-            }
-
-            foreach (var extractRefreshTask in extractRefreshTasks)
-            {
-                var schedule = schedules.First(sch => sch.Id == extractRefreshTask.ExtractRefresh!.Schedule!.Id);
-                SourceApi.Data.ServerExtractRefreshTasks.Add(extractRefreshTask);
-                SourceApi.Data.AddExtractToSchedule(
-                    new Server.ScheduleExtractRefreshTasksResponse.ExtractType
-                    {
-                        Id = extractRefreshTask.ExtractRefresh!.Id,
-                        Type = count % 2 == 0 ? ExtractRefreshType.FullRefresh : ExtractRefreshType.ServerIncrementalRefresh
-                    },
-                    schedule);
-                count++;
-            }
-
-            return extractRefreshTasks;
-        }
-
-        #endregion - Prepare Source Data (ExtractRefreshTasks) -
-
-        #region - Prepare Source Data (Custom Views) -
         protected List<CustomViewResponse.CustomViewType> PrepareSourceCustomViewsData()
-        {
-            var customViews = new List<CustomViewResponse.CustomViewType>();
-
-            // Get all users that are not support users, and all groups
-            var users = SourceApi.Data.Users.Where(u => u.SiteRole != SiteRoles.SupportUser).ToList();
-            var groups = SourceApi.Data.Groups;
-            var workbooks = SourceApi.Data.Workbooks;
-
-            var rnd = new Random();
-
-            foreach (var workbook in workbooks)
-            {
-                var workbookViewData = SourceApi.Data.GetWorkbookFileData(workbook.Id)?.Views;
-                if (workbookViewData is null)
-                {
-                    continue;
-                }
-
-                foreach (var viewData in workbookViewData)
-                {
-                    var simulatedView = viewData?.View;
-
-                    if (simulatedView is null)
-                    {
-                        continue;
-                    }
-
-                    // pick a random user to be the custom view owner
-
-                    var owner = workbook.Owner!;
-
-                    var newCustomView = CreateCustomView(
-                        workbook,
-                        new()
-                        {
-                            Id = simulatedView.Id,
-                            Name = simulatedView.Name,
-                            ContentUrl = simulatedView.ContentUrl
-                        },
-                        owner);
-
-                    SourceApi.Data.CustomViewDefaultUsers.TryAdd(newCustomView.Id, [new() { Id = owner.Id }]);
-
-                    var customViewFileData = new SimulatedCustomViewData();
-
-                    SourceApi.Data.AddCustomView(newCustomView, Constants.DefaultEncoding.GetBytes(customViewFileData.ToJson()));
-                    customViews.Add(newCustomView);
-                }
-            }
-
-            return customViews;
-
-            CustomViewResponse.CustomViewType CreateCustomView(
-                WorkbookResponse.WorkbookType workbook,
-                WorkbookResponse.WorkbookType.WorkbookViewReferenceType view,
-                WorkbookResponse.WorkbookType.OwnerType owner)
-            {
-                return AutoFixture.Build<CustomViewResponse.CustomViewType>()
-                    .With(x
-                        => x.View,
-                        new CustomViewResponse.CustomViewType.ViewType()
-                        {
-                            Id = view.Id,
-                            Name = view.Name
-                        })
-                    .With(x
-                        => x.Workbook,
-                        new CustomViewResponse.CustomViewType.WorkbookType()
-                        {
-                            Id = workbook.Id,
-                            Name = workbook.Name
-                        })
-                    .With(x
-                        => x.Owner,
-                        new CustomViewResponse.CustomViewType.OwnerType()
-                        {
-                            Id = owner.Id
-                        })
-                    .Create();
-            }
-        }
-        #endregion
-
-        #region - Prepare Source Data (Subscriptions) -
+            => CustomViewsDataPreparation.PrepareServerSource(SourceApi, AutoFixture);
 
         protected IImmutableList<Server.GetSubscriptionsResponse.SubscriptionType> PrepareSourceSubscriptionsData()
-        {
-            var subscriptions = ImmutableArray.CreateBuilder<Server.GetSubscriptionsResponse.SubscriptionType>();
-            var schedules = PrepareSchedulesData();
+            => SubscriptionsDataPreparation.PrepareServerSource(SourceApi, AutoFixture);
 
-            foreach (var workbook in SourceApi.Data.Workbooks)
-            {
-                var workbookSubscription = Create<Server.GetSubscriptionsResponse.SubscriptionType>();
+        protected ImmutableDictionary<Guid, ConcurrentDictionary<(FavoriteContentType, Guid), string>> PrepareSourceFavoritesData()
+            => FavoritesDataPreparation.PrepareServerSource(SourceApi, AutoFixture);
 
-                var user = SourceApi.Data.Users.PickRandom();
-                workbookSubscription.User = new() { Id = user.Id, Name = user.Name };
-                workbookSubscription.Content = new() { Id = workbook.Id, Type = "workbook" };
-                subscriptions.Add(workbookSubscription);
+        protected List<GroupSetsResponse.GroupSetType> PrepareSourceGroupSetsData(List<GroupsResponse.GroupType>? groups, int? count = 3)
+            => GroupSetsDataPreparation.Prepare(groups, SourceApi, AutoFixture, count);
 
-                var schedule = SourceApi.Data.Schedules.PickRandom();
-                workbookSubscription.Schedule = new() { Id = schedule.Id, Name = schedule.Name };
+        protected List<GroupSetsResponse.GroupSetType> PrepareDestinationGroupSetsData(List<GroupsResponse.GroupType>? groups, int? count = 3)
+            => GroupSetsDataPreparation.Prepare(groups, CloudDestinationApi, AutoFixture, count);
 
-                foreach (var view in workbook.Views)
-                {
-                    var viewSubscription = Create<Server.GetSubscriptionsResponse.SubscriptionType>();
+        protected (List<GroupSetsResponse.GroupSetType> sourceGroupSets, List<GroupSetsResponse.GroupSetType> destinationGroupSets) PrepareMatchingGroupSetsData(
+            List<GroupsResponse.GroupType> sourceGroups, List<GroupsResponse.GroupType> destinationGroups)
+            => GroupSetsDataPreparation.PrepareMatching(sourceGroups, destinationGroups, SourceApi, CloudDestinationApi, AutoFixture);
 
-                    user = SourceApi.Data.Users.PickRandom();
-                    viewSubscription.User = new() { Id = user.Id, Name = user.Name };
-                    viewSubscription.Content = new() { Id = view.Id, Type = "view" };
-
-                    schedule = SourceApi.Data.Schedules.PickRandom();
-                    viewSubscription.Schedule = new() { Id = schedule.Id, Name = schedule.Name };
-
-                    subscriptions.Add(viewSubscription);
-                }
-            }
-
-            foreach (var subscription in subscriptions)
-            {
-                SourceApi.Data.ServerSubscriptions.Add(subscription);
-            }
-
-            return subscriptions.ToImmutable();
-        }
-
-        #endregion
     }
 }

@@ -21,6 +21,7 @@ using Microsoft.CodeAnalysis;
 namespace Tableau.Migration.PythonGenerator
 {
     internal sealed record PythonMethod(string Name, PythonTypeReference? ReturnType, ImmutableArray<PythonMethodArgument> Arguments,
-        bool IsStatic, PythonDocstring? Documentation, IMethodSymbol DotNetMethod)
+        bool IsStatic, bool IsAsync, PythonDocstring? Documentation, IMethodSymbol DotNetMethod,
+        ImmutableArray<PythonTypeReference> ExtraImports)
     { }
 }

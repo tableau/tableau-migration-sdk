@@ -67,6 +67,8 @@ namespace Tableau.Migration.Api
             ITasksApiClient tasksApiClient,
             ICustomViewsApiClient customViewsApiClient,
             ISubscriptionsApiClient subscriptionsApiClient,
+            IFavoritesApiClient favoritesApiClient,
+            IGroupSetsApiClient groupSetsApiClient,
             ISharedResourcesLocalizer sharedResourcesLocalizer)
             : base(restRequestBuilderFactory, finderFactory, loggerFactory, sharedResourcesLocalizer)
         {
@@ -84,9 +86,12 @@ namespace Tableau.Migration.Api
             Views = viewsApiClient;
             Flows = flowsApiClient;
             CustomViews = customViewsApiClient;
+            GroupSets = groupSetsApiClient;
 
             _tasksApiClient = tasksApiClient;
             _subscriptionsApiClient = subscriptionsApiClient;
+            
+            Favorites = favoritesApiClient;
         }
 
         private static readonly ImmutableDictionary<Type, Func<ISitesApiClient, object>> _contentTypeAccessors = new Dictionary<Type, Func<ISitesApiClient, object>>(InheritedTypeComparer.Instance)
@@ -104,6 +109,8 @@ namespace Tableau.Migration.Api
             { typeof(ICustomView), client => client.CustomViews },
             { typeof(IServerSubscription), client => client.ServerSubscriptions },
             { typeof(ICloudSubscription), client => client.CloudSubscriptions },
+            { typeof(IFavorite), client => client.Favorites },
+            { typeof(IGroupSet), client => client.GroupSets }
         }
         .ToImmutableDictionary(InheritedTypeComparer.Instance);
 
@@ -164,6 +171,12 @@ namespace Tableau.Migration.Api
         /// <inheritdoc />
         public ICloudSubscriptionsApiClient CloudSubscriptions
             => ReturnForInstanceType(TableauInstanceType.Cloud, _sessionProvider.InstanceType, _subscriptionsApiClient);
+
+        /// <inheritdoc />
+        public IFavoritesApiClient Favorites { get; }
+
+        /// <inheritdoc />
+        public IGroupSetsApiClient GroupSets { get; }
 
         /// <inheritdoc />
         public IReadApiClient<TContent>? GetReadApiClient<TContent>()
@@ -232,6 +245,17 @@ namespace Tableau.Migration.Api
                 .ConfigureAwait(false);
 
             return getSiteResult;
+        }
+
+        /// <inheritdoc />
+        public async Task<IResult<ISite>> GetCurrentSiteAsync(CancellationToken cancel)
+        {
+            if(_sessionProvider.SiteId is null)
+            {
+                return Result<ISite>.Failed(new InvalidOperationException("No current site ID."));
+            }
+            
+            return await GetSiteAsync(_sessionProvider.SiteId.Value, cancel).ConfigureAwait(false);
         }
 
         /// <inheritdoc />

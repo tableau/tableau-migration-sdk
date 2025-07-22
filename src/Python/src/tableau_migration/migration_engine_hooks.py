@@ -58,7 +58,7 @@ def _get_wrapper_from_callback_context(t: type) -> type:
     )
     from migration_engine_hooks_postpublish import PyBulkPostPublishContext, PyContentItemPostPublishContext
     from migration_engine_hooks_postpublish_interop import _PyBulkPostPublishHookWrapper, _PyContentItemPostPublishHookWrapper
-    from migration_engine_hooks_results import PyInitializeMigrationHookResult
+    from migration_engine_hooks_initializemigration import PyInitializeMigrationHookResult
     from migration_engine_migrators_batch import PyContentBatchMigrationResult
 
     types = {

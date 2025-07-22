@@ -28,7 +28,7 @@ using Tableau.Migration.Engine.Endpoints;
 using Tableau.Migration.Engine.Endpoints.Search;
 using Tableau.Migration.Engine.Hooks.PostPublish;
 using Tableau.Migration.Engine.Hooks.PostPublish.Default;
-using Tableau.Migration.Engine.Hooks.Transformers.Default;
+using Tableau.Migration.Engine.Hooks.Transformers;
 using Tableau.Migration.Engine.Manifest;
 using Tableau.Migration.Tests.Content.Permissions;
 using Xunit;
@@ -39,13 +39,13 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.PostPublish.Default
     {
         public class ProjectPostPublishHookTest : AutoFixtureTestBase
         {
-            protected readonly Mock<IMigration> MockMigration = new();
+            protected readonly Mock<IMigration> MockMigration;
             protected readonly Mock<ISourceApiEndpoint> MockSourceEndpoint = new();
             protected readonly Mock<IProjectsApiClient> MockSourceProjectsClient = new();
             protected readonly Mock<IDestinationApiEndpoint> MockDestinationEndpoint = new();
             protected readonly Mock<IProjectsApiClient> MockDestinationProjectsClient = new();
-            protected readonly Mock<IPermissionsTransformer> MockPermissionsTransformer = new();
             protected readonly Mock<ILockedProjectCache> MockProjectCache = new();
+            protected readonly Mock<IContentTransformerRunner> MockTransformerRunner;
 
             protected readonly ProjectPostPublishHook Hook;
 
@@ -54,17 +54,21 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.PostPublish.Default
                 MockSourceEndpoint.SetupGet(e => e.SiteApi.Projects).Returns(MockSourceProjectsClient.Object);
                 MockDestinationEndpoint.SetupGet(e => e.SiteApi.Projects).Returns(MockDestinationProjectsClient.Object);
 
+                MockMigration = Freeze<Mock<IMigration>>();
                 MockMigration.SetupGet(m => m.Source).Returns(MockSourceEndpoint.Object);
                 MockMigration.SetupGet(m => m.Destination).Returns(MockDestinationEndpoint.Object);
 
                 MockMigration.Setup(x => x.Pipeline.GetDestinationLockedProjectCache())
                     .Returns(MockProjectCache.Object);
 
+                MockTransformerRunner = Freeze<Mock<IContentTransformerRunner>>();
+                MockTransformerRunner.Setup(x => x.ExecuteAsync(It.IsAny<IPermissionSet>(), Cancel))
+                    .ReturnsAsync((IPermissionSet ctx, CancellationToken c) => ctx);
+
                 Hook = CreateHook();
             }
 
-            protected ProjectPostPublishHook CreateHook()
-                => new(MockMigration.Object, MockPermissionsTransformer.Object);
+            protected ProjectPostPublishHook CreateHook() => Create<ProjectPostPublishHook>();
         }
 
         public class Ctor : ProjectPostPublishHookTest
@@ -112,8 +116,8 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.PostPublish.Default
                     var transformedPermissions = Create<IPermissions>();
                     transformedDefaultPermissions.Add(contentTypeUrlSegment, transformedPermissions);
 
-                    MockPermissionsTransformer.Setup(t => t.ExecuteAsync(existingDefaultPermissions[contentTypeUrlSegment].GranteeCapabilities.ToImmutableArray(), Cancel))
-                        .ReturnsAsync(transformedPermissions.GranteeCapabilities.ToImmutableArray());
+                    MockTransformerRunner.Setup(t => t.ExecuteAsync((IPermissionSet)existingDefaultPermissions[contentTypeUrlSegment], Cancel))
+                        .ReturnsAsync(transformedPermissions);
                 }
 
                 var existingDefaultPermissionsResult = Result<IImmutableDictionary<string, IPermissions>>.Succeeded(existingDefaultPermissions.ToImmutable());
@@ -154,7 +158,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.PostPublish.Default
                 Assert.Same(context, result);
 
                 MockProjectCache.Verify(x => x.UpdateLockedProjectCache(context.DestinationItem), Times.Once);
-                MockPermissionsTransformer.VerifyNoOtherCalls();
+                MockTransformerRunner.VerifyNoOtherCalls();
             }
 
             [Fact]
@@ -173,7 +177,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.PostPublish.Default
                 Assert.Same(context, result);
 
                 MockProjectCache.Verify(x => x.UpdateLockedProjectCache(context.DestinationItem), Times.Once);
-                MockPermissionsTransformer.VerifyNoOtherCalls();
+                MockTransformerRunner.VerifyNoOtherCalls();
             }
 
             private static bool PermissionsEqual(IImmutableDictionary<string, IPermissions> expected, IReadOnlyDictionary<string, IPermissions> actual)

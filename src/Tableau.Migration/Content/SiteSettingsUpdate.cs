@@ -16,6 +16,7 @@
 //
 
 using System;
+using System.Linq;
 
 namespace Tableau.Migration.Content
 {
@@ -37,6 +38,16 @@ namespace Tableau.Migration.Content
         public string? ExtractEncryptionMode { get; set; }
 
         /// <inheritdoc />
-        public bool NeedsUpdate() => ExtractEncryptionMode is not null;
+        public bool? DisableSubscriptions { get; set; }
+
+        /// <inheritdoc />
+        public bool? GroupSetsEnabled { get; set; }
+
+        /// <inheritdoc />
+        public bool NeedsUpdate()
+        {
+            object?[] values = [ExtractEncryptionMode, DisableSubscriptions, GroupSetsEnabled];
+            return values.ExceptNulls().Any();
+        }
     }
 }

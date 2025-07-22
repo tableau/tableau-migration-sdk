@@ -20,7 +20,7 @@
 from enum import IntEnum # noqa: E402, F401
 from typing import (  # noqa: E402, F401
     Set,
-    Sequence
+    List
 )
 from uuid import UUID # noqa: E402, F401
 
@@ -32,7 +32,8 @@ from System.Collections.Generic import (  # noqa: E402, F401
 from Tableau.Migration.Content.Permissions import (  # noqa: E402, F401
     ICapability,
     IGranteeCapability,
-    IPermissions
+    IPermissions,
+    IPermissionSet
 )
 
 class PyCapability():
@@ -108,8 +109,39 @@ class PyGranteeCapability():
         """Resolves Deny in case of conflict."""
         self._dotnet.ResolveCapabilityModeConflicts()
     
-class PyPermissions():
-    """The interface for content permissions responses."""
+class PyPermissionSet():
+    """Interface for a set of permissions."""
+    
+    _dotnet_base = IPermissionSet
+    
+    def __init__(self, permission_set: IPermissionSet) -> None:
+        """Creates a new PyPermissionSet object.
+        
+        Args:
+            permission_set: A IPermissionSet object.
+        
+        Returns: None.
+        """
+        self._dotnet = permission_set
+        
+    @property
+    def grantee_capabilities(self) -> List[PyGranteeCapability]:
+        """Gets or sets the grantee capabilities of the permission set."""
+        return [] if self._dotnet.GranteeCapabilities is None else [PyGranteeCapability(x) for x in self._dotnet.GranteeCapabilities if x is not None]
+    
+    @grantee_capabilities.setter
+    def grantee_capabilities(self, value: List[PyGranteeCapability]) -> None:
+        """Gets or sets the grantee capabilities of the permission set."""
+        if value is None:
+            self._dotnet.GranteeCapabilities = DotnetList[IGranteeCapability]()
+        else:
+            dotnet_collection = DotnetList[IGranteeCapability]()
+            for x in filter(None,value):
+                dotnet_collection.Add(x._dotnet)
+            self._dotnet.GranteeCapabilities = dotnet_collection
+    
+class PyPermissions(PyPermissionSet):
+    """Interface for the permission information of a content item."""
     
     _dotnet_base = IPermissions
     
@@ -124,31 +156,32 @@ class PyPermissions():
         self._dotnet = permissions
         
     @property
-    def grantee_capabilities(self) -> Sequence[PyGranteeCapability]:
-        """The collection of Grantee Capabilities for this content item."""
-        return None if self._dotnet.GranteeCapabilities is None else list((None if x is None else PyGranteeCapability(x)) for x in self._dotnet.GranteeCapabilities)
-    
-    @grantee_capabilities.setter
-    def grantee_capabilities(self, value: Sequence[PyGranteeCapability]) -> None:
-        """The collection of Grantee Capabilities for this content item."""
-        if value is None:
-            self._dotnet.GranteeCapabilities = DotnetList[IGranteeCapability]()
-        else:
-            dotnet_collection = DotnetList[IGranteeCapability]()
-            for x in filter(None,value):
-                dotnet_collection.Add(x._dotnet)
-            self._dotnet.GranteeCapabilities = dotnet_collection.ToArray()
-    
-    @property
     def parent_id(self) -> UUID:
-        """The ID of the parent content item The parent content can be one of the types in ParentContentTypeNames."""
+        """The ID of the parent content item that is determining permissions, such as a locked project. The parent content can be one of the types in ParentContentTypeNames, and will be null if the permissions are determined by the content item directly."""
         return None if self._dotnet.ParentId is None else UUID(self._dotnet.ParentId.ToString())
-    
-    @parent_id.setter
-    def parent_id(self, value: UUID) -> None:
-        """The ID of the parent content item The parent content can be one of the types in ParentContentTypeNames."""
-        self._dotnet.ParentId = None if value is None else Guid.Parse(str(value))
     
 
 # endregion
 
+from migration_api_rest_models import PyPermissionsCapabilityModes, PyPermissionsCapabilityNames # noqa: E402, F401
+from Tableau.Migration.Content.Permissions import (  # noqa: E402, F401
+    Capability,
+    GranteeCapability,
+    GranteeType
+)
+
+def _create_capability(name: PyPermissionsCapabilityNames, mode: PyPermissionsCapabilityModes) -> PyCapability:
+    return PyCapability(Capability(str(name), str(mode)))
+
+PyCapability.create = _create_capability
+
+def _create_grantee_capability(grantee_type: PyGranteeType, grantee_id: UUID, capabilities: List[PyCapability]) -> PyGranteeCapability:
+    
+    dotnet_capabilities = DotnetList[ICapability]()
+    if capabilities is not None:
+        for x in filter(None, capabilities):
+            dotnet_capabilities.Add(x._dotnet)
+
+    return PyGranteeCapability(GranteeCapability(GranteeType(int(grantee_type)), Guid.Parse(str(grantee_id)), dotnet_capabilities))
+
+PyGranteeCapability.create = _create_grantee_capability

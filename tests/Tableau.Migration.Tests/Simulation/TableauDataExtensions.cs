@@ -111,6 +111,27 @@ namespace Tableau.Migration.Tests.Simulation
             return workbooks.ToImmutableArray();
         }
 
+        public static CollectionsResponse.CollectionType CreateCollection(
+             this TableauData data,
+             IFixture autoFixture,
+             UsersResponse.UserType user)
+        {
+            var collection = autoFixture.Build<CollectionsResponse.CollectionType>()
+                .With(coll => coll.Owner, new CollectionsResponse.CollectionType.OwnerType()
+                {
+                    Id = user.Id
+                })
+                .Create();
+
+            data.AddCollection(collection);
+            return collection;
+        }
+
+        public static CollectionsResponse.CollectionType CreateCollection(this TableauData data, IFixture autoFixture)
+        {
+            return data.CreateCollection(autoFixture, data.CreateUser(autoFixture));
+        }
+
         public static PermissionsType CreateDataSourcePermissions(
             this TableauData data,
             IFixture autoFixture,
@@ -496,6 +517,16 @@ namespace Tableau.Migration.Tests.Simulation
 
             var simulatedWorkbook = wbFileText.FromXml<SimulatedWorkbookData>();
             return simulatedWorkbook;
+        }
+
+        public static FlowsResponse.FlowType CreateFlow(this TableauData data, IFixture autoFixture)
+        {
+            var flow = autoFixture.Build<FlowsResponse.FlowType>()
+                .Create();
+
+            data.AddFlow(flow);
+
+            return flow;
         }
     }
 }

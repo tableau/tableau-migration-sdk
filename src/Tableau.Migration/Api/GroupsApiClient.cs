@@ -203,7 +203,7 @@ namespace Tableau.Migration.Api
                 return publishResult;
             }
 
-            // If there's a conflict find the existing project.
+            // If there's a conflict find the existing group.
             var filters = ImmutableArray.Create<Filter>(
                 new Filter("domainName", FilterOperator.Equal, item.Domain),
                 new Filter("name", FilterOperator.Equal, item.Name)

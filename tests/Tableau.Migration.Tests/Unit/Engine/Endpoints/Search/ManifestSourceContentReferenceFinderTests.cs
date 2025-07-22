@@ -16,6 +16,7 @@
 //
 
 using System;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -28,9 +29,9 @@ using Xunit;
 
 namespace Tableau.Migration.Tests.Unit.Engine.Endpoints.Search
 {
-    public class ManifestSourceContentReferenceFinderTests
+    public sealed class ManifestSourceContentReferenceFinderTests
     {
-        public class ManifestSourceContentReferenceFinderTest : AutoFixtureTestBase
+        public abstract class ManifestSourceContentReferenceFinderTest : AutoFixtureTestBase
         {
             protected readonly IMigrationManifestEditor Manifest;
             protected readonly Mock<IMigrationPipeline> Pipeline;
@@ -57,7 +58,9 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints.Search
             }
         }
 
-        public class FindByIdAsync : ManifestSourceContentReferenceFinderTest
+        #region - FindByIdAsync -
+
+        public sealed class FindByIdAsync : ManifestSourceContentReferenceFinderTest
         {
             [Fact]
             public async Task FindsManifestReferenceAsync()
@@ -100,7 +103,11 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints.Search
             }
         }
 
-        public class FindBySourceLocationAsync : ManifestSourceContentReferenceFinderTest
+        #endregion
+
+        #region - FindBySourceLocationAsync -
+
+        public sealed class FindBySourceLocationAsync : ManifestSourceContentReferenceFinderTest
         {
             [Fact]
             public async Task FindsManifestReferenceAsync()
@@ -142,5 +149,28 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints.Search
                 ContentReferenceCache.Verify(x => x.ForLocationAsync(It.IsAny<ContentLocation>(), Cancel), Times.Once);
             }
         }
+
+        #endregion
+
+        #region - FindAllAsync -
+
+        public sealed class FindAllAsync : ManifestSourceContentReferenceFinderTest
+        {
+            [Fact]
+            public async Task FindsAllFromManifestAsync()
+            {
+                var sourceItems = CreateMany<TestContentType>().ToImmutableArray();
+
+                var entries = Manifest.Entries.GetOrCreatePartition<TestContentType>().GetEntryBuilder(sourceItems.Length)
+                    .CreateEntries(sourceItems, (i, e) => e, 0);
+
+                var result = await Finder.FindAllAsync(Cancel);
+
+                Assert.Equal(entries.Select(e => e.Source), result);
+                ContentReferenceCache.Verify(x => x.GetAllAsync(It.IsAny<CancellationToken>()), Times.Never);
+            }
+        }
+
+        #endregion
     }
 }

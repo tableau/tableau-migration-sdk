@@ -111,7 +111,7 @@ namespace Tableau.Migration
                 .Where(f => f.IsLiteral && !f.IsInitOnly && f.FieldType == typeof(string))
                 .Select(f => (string)f.GetRawConstantValue()!));
 
-        #region - private implementations 
+        #region - Private Helper Methods - 
 
         private static List<PropertyInfo> FindAllInterfaceProperties(this Type interfaceType, BindingFlags bindingAttr = BindingFlags.Default)
         {

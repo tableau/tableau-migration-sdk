@@ -38,34 +38,40 @@ namespace Tableau.Migration.Api.Rest.Models.Responses
         public class SiteType : IRestIdentifiable, IApiContentUrl
         {
             /// <summary>
-            /// Gets or sets the ID for the response.
+            /// Gets or sets the ID of the site.
             /// </summary>
             [XmlAttribute("id")]
             public Guid Id { get; set; }
 
             /// <summary>
-            /// Gets or sets the name for the response.
+            /// Gets or sets the name of the site.
             /// </summary>
             [XmlAttribute("name")]
             public string? Name { get; set; }
 
             /// <summary>
-            /// Gets or sets the content URL for the response.
+            /// Gets or sets the content URL.
             /// </summary>
             [XmlAttribute("contentUrl")]
             public string? ContentUrl { get; set; }
 
             /// <summary>
-            /// Gets or sets the site extract encryption mode for the response.
+            /// Gets or sets the site extract encryption mode.
             /// </summary>
             [XmlAttribute("extractEncryptionMode")]
             public string? ExtractEncryptionMode { get; set; }
             
             /// <summary>
-            /// Gets or sets the site extract encryption mode for the response.
+            /// Gets or sets whether subscriptions are disabled.
             /// </summary>
             [XmlAttribute("disableSubscriptions")]
             public bool DisableSubscriptions { get; set; }
+
+            /// <summary>
+            /// Gets or sets whether group sets are enabled.
+            /// </summary>
+            [XmlAttribute("groupSetsEnabled")]
+            public bool GroupSetsEnabled { get; set; }
         }
     }
 }

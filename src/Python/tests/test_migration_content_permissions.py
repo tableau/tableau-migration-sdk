@@ -18,7 +18,7 @@
 from enum import IntEnum # noqa: E402, F401
 from typing import (  # noqa: E402, F401
     Set,
-    Sequence
+    List
 )
 from uuid import UUID # noqa: E402, F401
 
@@ -30,14 +30,16 @@ from System.Collections.Generic import (  # noqa: E402, F401
 from Tableau.Migration.Content.Permissions import (  # noqa: E402, F401
     ICapability,
     IGranteeCapability,
-    IPermissions
+    IPermissions,
+    IPermissionSet
 )
 
 from tableau_migration.migration_content_permissions import (  # noqa: E402, F401
     PyCapability,
     PyGranteeCapability,
     PyGranteeType,
-    PyPermissions
+    PyPermissions,
+    PyPermissionSet
 )
 
 
@@ -109,15 +111,27 @@ class TestPyPermissionsGenerated(AutoFixtureTestBase):
         py = PyPermissions(dotnet)
         assert py._dotnet == dotnet
     
-    def test_grantee_capabilities_getter(self):
+    def test_parent_id_getter(self):
         dotnet = self.create(IPermissions)
         py = PyPermissions(dotnet)
+        assert py.parent_id == None if dotnet.ParentId is None else UUID(dotnet.ParentId.ToString())
+    
+class TestPyPermissionSetGenerated(AutoFixtureTestBase):
+    
+    def test_ctor(self):
+        dotnet = self.create(IPermissionSet)
+        py = PyPermissionSet(dotnet)
+        assert py._dotnet == dotnet
+    
+    def test_grantee_capabilities_getter(self):
+        dotnet = self.create(IPermissionSet)
+        py = PyPermissionSet(dotnet)
         assert len(dotnet.GranteeCapabilities) != 0
         assert len(py.grantee_capabilities) == len(dotnet.GranteeCapabilities)
     
     def test_grantee_capabilities_setter(self):
-        dotnet = self.create(IPermissions)
-        py = PyPermissions(dotnet)
+        dotnet = self.create(IPermissionSet)
+        py = PyPermissionSet(dotnet)
         assert len(dotnet.GranteeCapabilities) != 0
         assert len(py.grantee_capabilities) == len(dotnet.GranteeCapabilities)
         
@@ -125,31 +139,13 @@ class TestPyPermissionsGenerated(AutoFixtureTestBase):
         dotnetCollection = DotnetList[IGranteeCapability]()
         dotnetCollection.Add(self.create(IGranteeCapability))
         dotnetCollection.Add(self.create(IGranteeCapability))
-        testCollection = None if dotnetCollection is None else list((None if x is None else PyGranteeCapability(x)) for x in dotnetCollection)
+        testCollection = [] if dotnetCollection is None else [PyGranteeCapability(x) for x in dotnetCollection if x is not None]
         
         # set property to new test value
         py.grantee_capabilities = testCollection
         
         # assert value
         assert len(py.grantee_capabilities) == len(testCollection)
-    
-    def test_parent_id_getter(self):
-        dotnet = self.create(IPermissions)
-        py = PyPermissions(dotnet)
-        assert py.parent_id == None if dotnet.ParentId is None else UUID(dotnet.ParentId.ToString())
-    
-    def test_parent_id_setter(self):
-        dotnet = self.create(IPermissions)
-        py = PyPermissions(dotnet)
-        
-        # create test data
-        testValue = self.create(Nullable[Guid])
-        
-        # set property to new test value
-        py.parent_id = None if testValue is None else UUID(testValue.ToString())
-        
-        # assert value
-        assert py.parent_id == None if testValue is None else UUID(testValue.ToString())
     
 
 # endregion

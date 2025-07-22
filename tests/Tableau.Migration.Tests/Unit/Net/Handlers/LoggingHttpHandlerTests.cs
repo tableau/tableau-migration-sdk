@@ -21,26 +21,26 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Moq;
-using Tableau.Migration.Net;
 using Tableau.Migration.Net.Handlers;
+using Tableau.Migration.Net.Logging;
 using Xunit;
 
 namespace Tableau.Migration.Tests.Unit.Net.Handlers
 {
     public class LoggingHttpHandlerTests
     {
-        private readonly Mock<INetworkTraceLogger> _mockedTraceLogger;
+        private readonly Mock<IHttpActivityLogger> _mockActivityLogger;
 
         public LoggingHttpHandlerTests()
         {
-            _mockedTraceLogger = new Mock<INetworkTraceLogger>();
+            _mockActivityLogger = new Mock<IHttpActivityLogger>();
         }
 
         [Fact]
-        public void SuccessfullySendAsync_CallTraceLogger()
+        public void SuccessfullySendAsyncCallTraceLogger()
         {
             // Arrange
-            var handler = new LoggingHttpHandler(_mockedTraceLogger.Object);
+            var handler = new LoggingHttpHandler(_mockActivityLogger.Object);
             handler.InnerHandler = Mock.Of<HttpMessageHandler>();
             var methodInfo = typeof(LoggingHttpHandler).GetMethod("SendAsync", BindingFlags.NonPublic | BindingFlags.Instance)!;
             var message = new HttpRequestMessage();
@@ -49,24 +49,27 @@ namespace Tableau.Migration.Tests.Unit.Net.Handlers
             var task = (Task<HttpResponseMessage>)methodInfo.Invoke(handler, new object[] { message, CancellationToken.None })!;
 
             // Assert
-            _mockedTraceLogger.Verify(x => x.WriteNetworkLogsAsync(
+            _mockActivityLogger.Verify(x => x.LogRequestStarted(It.IsAny<HttpRequestMessage>()), Times.Once);
+            _mockActivityLogger.Verify(x => x.LogResponseAsync(
                 It.IsAny<HttpRequestMessage>(),
                 It.IsAny<HttpResponseMessage>(),
+                It.IsAny<TimeSpan>(),
                 It.IsAny<CancellationToken>()),
-                Times.Once());
-            _mockedTraceLogger.Verify(x => x.WriteNetworkExceptionLogsAsync(
+                Times.Once);
+            _mockActivityLogger.Verify(x => x.LogExceptionAsync(
                 It.IsAny<HttpRequestMessage>(),
                 It.IsAny<Exception>(),
+                It.IsAny<TimeSpan>(),
                 It.IsAny<CancellationToken>()),
-                Times.Never());
+                Times.Never);
             Assert.Null(task.Exception);
         }
 
         [Fact]
-        public void SendAsyncWithException_CallTraceLogger()
+        public void SendAsyncWithExceptionCallTraceLogger()
         {
             // Arrange
-            var handler = new LoggingHttpHandler(_mockedTraceLogger.Object);
+            var handler = new LoggingHttpHandler(_mockActivityLogger.Object);
             var exception = new Exception("Failed to Send");
             var innerHandler = new MockDelegatingHandler(_ => throw exception);
             handler.InnerHandler = innerHandler;
@@ -77,14 +80,17 @@ namespace Tableau.Migration.Tests.Unit.Net.Handlers
             var task = (Task<HttpResponseMessage>)methodInfo.Invoke(handler, new object[] { message, CancellationToken.None })!;
 
             // Assert
-            _mockedTraceLogger.Verify(x => x.WriteNetworkLogsAsync(
+            _mockActivityLogger.Verify(x => x.LogRequestStarted(It.IsAny<HttpRequestMessage>()), Times.Once);
+            _mockActivityLogger.Verify(x => x.LogResponseAsync(
                 It.IsAny<HttpRequestMessage>(),
                 It.IsAny<HttpResponseMessage>(),
+                It.IsAny<TimeSpan>(),
                 It.IsAny<CancellationToken>()),
                 Times.Never());
-            _mockedTraceLogger.Verify(x => x.WriteNetworkExceptionLogsAsync(
+            _mockActivityLogger.Verify(x => x.LogExceptionAsync(
                 It.IsAny<HttpRequestMessage>(),
                 It.IsAny<Exception>(),
+                It.IsAny<TimeSpan>(),
                 It.IsAny<CancellationToken>()),
                 Times.Once());
             Assert.NotNull(task.Exception);

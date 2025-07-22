@@ -16,6 +16,7 @@
 //
 
 using System;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Tableau.Migration.Content.Search;
@@ -110,6 +111,10 @@ namespace Tableau.Migration.Engine.Endpoints.Search
         #endregion
 
         #region - IContentReferenceFinder Implementation -
+
+        /// <inheritdoc />
+        public async Task<IImmutableList<IContentReference>> FindAllAsync(CancellationToken cancel)
+            => await _destinationCache.GetAllAsync(cancel).ConfigureAwait(false);
 
         /// <inheritdoc />
         public async Task<IContentReference?> FindByIdAsync(Guid id, CancellationToken cancel)

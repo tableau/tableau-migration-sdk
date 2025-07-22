@@ -69,5 +69,23 @@ namespace Tableau.Migration
         /// Gets the result of the operation when successful or null when the operation is not successful.
         /// </summary>
         T? Value { get; }
+
+        /// <summary>
+        /// Casts a result to another type.
+        /// </summary>
+        /// <typeparam name="U">The type to cast to.</typeparam>
+        /// <returns>The casted result.</returns>
+        /// <exception cref="InvalidCastException">If the value cannot be casted to the target type.</exception>
+        public IResult<U> Cast<U>()
+            where U : class
+        {
+            if (!Success)
+                return CastFailure<U>();
+
+            if (Value is not U CastedValue)
+                throw new InvalidCastException($"Result of type {typeof(T)} cannot cast to type {typeof(U)}.");
+
+            return Result<U>.Succeeded(CastedValue);
+        }
     }
 }

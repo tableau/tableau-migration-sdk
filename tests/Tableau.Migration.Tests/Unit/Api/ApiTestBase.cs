@@ -16,6 +16,7 @@
 //
 
 using System;
+using System.Net;
 using System.Net.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -51,12 +52,15 @@ namespace Tableau.Migration.Tests.Unit.Api
         public Mock<ILogger> MockLogger => Dependencies.MockLogger;
         public MockSharedResourcesLocalizer MockSharedResourcesLocalizer => Dependencies.MockSharedResourcesLocalizer;
         public Mock<IContentReferenceFinderFactory> MockContentFinderFactory => Dependencies.MockContentFinderFactory;
+
+        public Mock<IContentReferenceFinder<IGroup>> MockGroupFinder => Dependencies.MockGroupFinder;
         public Mock<IContentReferenceFinder<IProject>> MockProjectFinder => Dependencies.MockProjectFinder;
         public Mock<IContentReferenceFinder<IUser>> MockUserFinder => Dependencies.MockUserFinder;
         public Mock<IContentReferenceFinder<IWorkbook>> MockWorkbookFinder => Dependencies.MockWorkbookFinder;
         public Mock<IContentReferenceFinder<IView>> MockViewFinder => Dependencies.MockViewFinder;
         public Mock<IContentReferenceFinder<IDataSource>> MockDataSourceFinder => Dependencies.MockDataSourceFinder;
         public Mock<IContentReferenceFinder<IServerSchedule>> MockScheduleFinder => Dependencies.MockScheduleFinder;
+        public Mock<IContentReferenceFinder<ITableauCollection>> MockCollectionFinder => Dependencies.MockCollectionFinder;
         public Mock<IContentCacheFactory> MockContentCacheFactory => Dependencies.MockContentCacheFactory;
         public Mock<IContentCache<IServerSchedule>> MockScheduleCache => Dependencies.MockScheduleCache;
         public Mock<IPermissionsApiClientFactory> MockPermissionsClientFactory => Dependencies.MockPermissionsClientFactory;
@@ -91,8 +95,8 @@ namespace Tableau.Migration.Tests.Unit.Api
         protected void AssertSiteUri(HttpRequestMessage request, string expectedRelativeUri)
             => request.AssertSiteUri(SiteConnectionConfiguration, MockSessionProvider.Object, expectedRelativeUri);
 
-        protected IHttpResponseMessage SetupSuccessResponse(HttpContent? content = null)
-            => MockHttpClient.SetupSuccessResponse(content);
+        protected IHttpResponseMessage SetupSuccessResponse(HttpContent? content = null, HttpStatusCode statusCode = HttpStatusCode.OK)
+            => MockHttpClient.SetupSuccessResponse(content, statusCode);
 
         protected (IHttpResponseMessage<TContent> Response, TContent Content) SetupSuccessResponse<TContent>(
             Action<TContent>? configureContent = null)

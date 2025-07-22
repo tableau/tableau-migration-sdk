@@ -28,7 +28,11 @@ using Tableau.Migration.Content;
 using Tableau.Migration.Engine.Manifest;
 using Tableau.Migration.Engine.Pipelines;
 using Tableau.Migration.TestApplication.Config;
-using Tableau.Migration.TestApplication.Hooks;
+using Tableau.Migration.TestApplication.Hooks.ActionCompleted;
+using Tableau.Migration.TestApplication.Hooks.BatchMigrationCompleted;
+using Tableau.Migration.TestApplication.Hooks.Filters;
+using Tableau.Migration.TestApplication.Hooks.Mappings;
+using Tableau.Migration.TestApplication.Hooks.Transformers;
 
 namespace Tableau.Migration.TestApplication
 {
@@ -170,7 +174,7 @@ namespace Tableau.Migration.TestApplication
             _planBuilder.Filters.Add<SkipIdsFilter<IWorkbook>, IWorkbook>();
 
 
-            var prevManifest = await LoadManifest(_options.PreviousManifestPath, cancel);
+            var prevManifest = await LoadManifestAsync(_options.PreviousManifestPath, cancel);
 
             // Start timer 
             var startTime = DateTime.Now;
@@ -222,7 +226,7 @@ namespace Tableau.Migration.TestApplication
         public Task StopAsync(CancellationToken cancel) => Task.CompletedTask;
 
 
-        private async Task<MigrationManifest?> LoadManifest(string manifestFilepath, CancellationToken cancel)
+        private async Task<MigrationManifest?> LoadManifestAsync(string manifestFilepath, CancellationToken cancel)
         {
             var manifest = await _manifestSerializer.LoadAsync(manifestFilepath, cancel);
             if (manifest is not null)

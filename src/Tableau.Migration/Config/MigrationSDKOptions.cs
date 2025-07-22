@@ -15,7 +15,9 @@
 //  limitations under the License.
 //
 
+using System;
 using System.Collections.Generic;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace Tableau.Migration.Config
 {
@@ -36,7 +38,12 @@ namespace Tableau.Migration.Config
         }
 
         /// <summary>
-        /// Get or Set content type specific options.
+        /// Gets or sets the configuration options for caches.
+        /// </summary>
+        public Dictionary<string, CacheOptions> Caches { get; set; } = new(StringComparer.OrdinalIgnoreCase);
+
+        /// <summary>
+        /// Gets or sets content type specific options.
         /// </summary>      
         public List<ContentTypesOptions> ContentTypes { get; set; } = new();
 

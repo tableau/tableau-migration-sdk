@@ -17,21 +17,33 @@
 
 using Tableau.Migration.Api.Rest;
 using Tableau.Migration.Api.Rest.Models.Responses;
+using Tableau.Migration.Api.Simulation.Rest.Net;
+using Tableau.Migration.Net.Simulation;
+
+using static Tableau.Migration.Api.Simulation.Rest.Net.Requests.RestUrlPatterns;
 
 namespace Tableau.Migration.Api.Simulation.Rest.Api
 {
     /// <summary>
     /// Object that defines simulation of Tableau REST API view permissions methods.
     /// </summary>
-    public sealed class ViewsRestApiSimulator : PermissionsRestApiSimulatorBase<WorkbookResponse.WorkbookType.WorkbookViewReferenceType>
+    public sealed class ViewsRestApiSimulator : PermissionsRestApiSimulatorBase<ViewResponse.ViewType>
     {
         /// <summary>
-        /// 
+        /// Gets the simulated view query API method.
         /// </summary>
-        /// <param name="simulator"></param>
+        public MethodSimulator QueryView { get; }
+
+        /// <summary>
+        /// Creates a new <see cref="ViewsRestApiSimulator"/> object.
+        /// </summary>
+        /// <param name="simulator">A response simulator to setup with REST API methods.</param>
         public ViewsRestApiSimulator(TableauApiResponseSimulator simulator) :
             base(simulator, RestUrlKeywords.Views, (data) => data.Views)
         {
+            QueryView = simulator.SetupRestGetById<ViewResponse, ViewResponse.ViewType>(
+             SiteEntityUrl(ContentTypeUrlPrefix),
+             (data) => data.Views);
         }
     }
 }

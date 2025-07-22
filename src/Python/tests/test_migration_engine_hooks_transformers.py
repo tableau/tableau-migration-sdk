@@ -14,10 +14,12 @@
 # limitations under the License.
 
 from typing import TypeVar
-from uuid import UUID
+from uuid import UUID, uuid4
 from xml.etree import ElementTree
 
+from tableau_migration.migration_api_rest_models import PyPermissionsCapabilityModes, PyPermissionsCapabilityNames
 from tableau_migration.migration_content import PyPublishableWorkbook, PyUser
+from tableau_migration.migration_content_permissions import PyCapability, PyGranteeCapability, PyGranteeType, PyPermissionSet
 from tableau_migration.migration_engine_hooks_transformers import PyContentTransformerBuilder
 from tableau_migration.migration_engine_hooks_transformers_interop import PyContentTransformerBase, PyXmlContentTransformerBase
 from tableau_migration.migration_services import ScopedMigrationServices
@@ -30,6 +32,7 @@ from System.Threading import CancellationToken
 from System.Xml import XmlWriter
 from System.Xml.Linq import LoadOptions, XDocument, XName
 from Tableau.Migration.Content import IPublishableWorkbook, IUser
+from Tableau.Migration.Content.Permissions import IPermissionSet
 from Tableau.Migration.Engine.Hooks import IMigrationHook
 from Tableau.Migration.Engine.Hooks.Transformers import ContentTransformerBuilder, IContentTransformer, IXmlContentTransformer
 
@@ -251,4 +254,37 @@ class TestXmlTransformerInterop(AutoFixtureTestBase):
 
         assert ctx.Description == "18.1"
         assert self._save_xml(xml) == self._clean_xml_text(_expected_twb)
+
+test_grantee_id = uuid4()
+class PyPermissionTransformer(PyContentTransformerBase[PyPermissionSet]):
+    def transform(self, item_to_transform: PyPermissionSet) -> PyPermissionSet:
+        item_to_transform.grantee_capabilities = [
+            PyGranteeCapability.create(PyGranteeType.USER, test_grantee_id, [PyCapability.create(PyPermissionsCapabilityNames.DELETE, PyPermissionsCapabilityModes.DENY)])
+        ]
+        return item_to_transform
+
+class TestPermissionTransformer(AutoFixtureTestBase):
+    def test_permission_transformer(self):
+        hook_builder = PyContentTransformerBuilder(ContentTransformerBuilder())
         
+        result = hook_builder.add(PyPermissionTransformer)
+        assert result is hook_builder
+        
+        hook_factories = hook_builder.build().get_hooks(IContentTransformer[IPermissionSet])
+        assert len(hook_factories) == 1
+
+        services = self.create(IServiceProvider)
+        ctx = self.create(IPermissionSet)
+        
+        hook = hook_factories[0].Create[IMigrationHook[IPermissionSet]](services)
+        hook_result = hook.ExecuteAsync(ctx, CancellationToken(False)).GetAwaiter().GetResult()
+
+        py_result = PyPermissionSet(hook_result)
+
+        assert len(py_result.grantee_capabilities) == 1
+        assert py_result.grantee_capabilities[0].grantee_type == PyGranteeType.USER
+        assert py_result.grantee_capabilities[0].grantee_id == test_grantee_id
+        assert len(py_result.grantee_capabilities[0].capabilities) == 1
+        for c in py_result.grantee_capabilities[0].capabilities:
+            assert c.name == str(PyPermissionsCapabilityNames.DELETE)
+            assert c.mode == str(PyPermissionsCapabilityModes.DENY)

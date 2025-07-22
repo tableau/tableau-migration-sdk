@@ -16,7 +16,6 @@
 //
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.Extensions.DependencyInjection;
 using Tableau.Migration.Config;
@@ -34,7 +33,7 @@ namespace Tableau.Migration.Engine.Pipelines
     /// <summary>
     /// <see cref="IMigrationPipeline"/> implementation to perform migrations from Tableau Server to Tableau Cloud.
     /// </summary>
-    public class ServerToCloudMigrationPipeline : MigrationPipelineBase
+    public class ServerToCloudMigrationPipeline : TableauMigrationPipelineBase
     {
         /// <summary>
         /// Content types that are supported for migrations.
@@ -43,15 +42,15 @@ namespace Tableau.Migration.Engine.Pipelines
         [
             MigrationPipelineContentType.Users,
             MigrationPipelineContentType.Groups,
+            MigrationPipelineContentType.GroupSets,
             MigrationPipelineContentType.Projects,
             MigrationPipelineContentType.DataSources,
             MigrationPipelineContentType.Workbooks,
             MigrationPipelineContentType.ServerToCloudExtractRefreshTasks,
             MigrationPipelineContentType.CustomViews,
-            MigrationPipelineContentType.ServerToCloudSubscriptions
+            MigrationPipelineContentType.ServerToCloudSubscriptions,
+            MigrationPipelineContentType.Favorites
         ];
-
-
 
         /// <summary>
         /// Creates a new <see cref="ServerToCloudMigrationPipeline"/> object.
@@ -63,25 +62,13 @@ namespace Tableau.Migration.Engine.Pipelines
             : base(services, configReader)
         { }
 
+        /// <inheritdoc />
+        protected override IMigrationAction CreateExtractRefreshTaskAction()
+            => CreateMigrateContentAction<IServerExtractRefreshTask>();
 
         /// <inheritdoc />
-        protected override IEnumerable<IMigrationAction> BuildPipeline()
-        {
-            yield return CreateAction<PreflightAction>();
-
-            //Migrate users and groups first since many content types depend on them,
-            //We migrate users before groups because group membership must use 
-            //per-user or per-group requests, and we assume in most cases
-            //there will be less groups than users.
-            yield return CreateMigrateContentAction<IUser>();
-            yield return CreateMigrateContentAction<IGroup>();
-            yield return CreateMigrateContentAction<IProject>();
-            yield return CreateMigrateContentAction<IDataSource>();
-            yield return CreateMigrateContentAction<IWorkbook>();
-            yield return CreateMigrateContentAction<IServerExtractRefreshTask>();
-            yield return CreateMigrateContentAction<ICustomView>();
-            yield return CreateMigrateContentAction<IServerSubscription>();
-        }
+        protected override IMigrationAction CreateSubscriptionAction()
+            => CreateMigrateContentAction<IServerSubscription>();
 
         /// <inheritdoc />
         public override IContentBatchMigrator<TContent> GetBatchMigrator<TContent>()

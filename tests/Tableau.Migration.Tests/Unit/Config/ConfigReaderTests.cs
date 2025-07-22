@@ -68,26 +68,18 @@ namespace Tableau.Migration.Tests.Unit.Config
                 new()
                 {
                     Type = "Workbook",
-                    BatchSize = 226,
-                    IncludeExtractEnabled = false
+                    BatchSize = 226
                 },
                 new()
                 {
                     Type = "DataSource",
-                    BatchSize = 227,
-                    IncludeExtractEnabled = false
+                    BatchSize = 227
                 }
-
             ];
 
         public void AssertCustomBatchSizeResult(ContentTypesOptions expected, ContentTypesOptions actual)
         {
             Assert.Equal(expected.BatchSize, actual.BatchSize);
-        }
-
-        public void AssertCustomIncludeExtractResult(ContentTypesOptions expected, ContentTypesOptions actual)
-        {
-            Assert.Equal(expected.IncludeExtractEnabled, actual.IncludeExtractEnabled);
         }
 
         public void AssertCustomOverwriteGroupUsersResult(ContentTypesOptions expected, ContentTypesOptions actual)
@@ -99,7 +91,6 @@ namespace Tableau.Migration.Tests.Unit.Config
         {
             Assert.Equal(ContentTypesOptions.Defaults.BATCH_SIZE, actual.BatchSize);
             Assert.Equal(ContentTypesOptions.Defaults.BATCH_PUBLISHING_ENABLED, actual.BatchPublishingEnabled);
-            Assert.Equal(ContentTypesOptions.Defaults.INCLUDE_EXTRACT_ENABLED, actual.IncludeExtractEnabled);
         }
 
         public class GetContentTypeSpecific : ConfigReaderTests
@@ -117,11 +108,7 @@ namespace Tableau.Migration.Tests.Unit.Config
                 AssertCustomBatchSizeResult(testData.First(i => i.Type == "Workbook"), Reader.Get<IWorkbook>());
                 AssertCustomBatchSizeResult(testData.First(i => i.Type == "DataSource"), Reader.Get<IDataSource>());
 
-                AssertCustomIncludeExtractResult(testData.First(i => i.Type == "Workbook"), Reader.Get<IWorkbook>());
-                AssertCustomIncludeExtractResult(testData.First(i => i.Type == "DataSource"), Reader.Get<IDataSource>());
-
                 AssertCustomOverwriteGroupUsersResult(testData.First(i => i.Type == "Group"), Reader.Get<IGroup>());
-
             }
 
             [Fact]

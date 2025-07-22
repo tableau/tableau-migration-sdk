@@ -180,7 +180,7 @@ namespace Tableau.Migration.Api
         {
             var downloadResult = await RestRequestBuilderFactory
                 .CreateUri($"{UrlPrefix}/{dataSourceId.ToUrlSegment()}/{RestUrlKeywords.Content}")
-                .WithQuery("includeExtract", _configReader.Get<IDataSource>().IncludeExtractEnabled.ToString())
+                .WithQuery("includeExtract", "true")
                 .ForGetRequest()
                 .DownloadAsync(cancel)
                 .ConfigureAwait(false);
@@ -194,18 +194,7 @@ namespace Tableau.Migration.Api
 
         /// <inheritdoc />
         public async Task<IResult<IDataSourceDetails>> PublishAsync(IPublishableDataSource item, CancellationToken cancel)
-        {
-            var fileStream = await item.File.OpenReadAsync(cancel).ConfigureAwait(false);
-
-            await using (fileStream)
-            {
-                var publishOptions = new PublishDataSourceOptions(item, fileStream.Content);
-                var publishResult = await PublishDataSourceAsync(publishOptions, cancel)
-                    .ConfigureAwait(false);
-
-                return publishResult;
-            }
-        }
+            => await PublishDataSourceAsync(new PublishDataSourceOptions(item), cancel).ConfigureAwait(false);
 
         /// <inheritdoc />
         public async Task<IResult<IUpdateDataSourceResult>> UpdateDataSourceAsync(

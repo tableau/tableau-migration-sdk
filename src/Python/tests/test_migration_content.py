@@ -121,8 +121,10 @@ class TestPyWithTags(AutoFixtureTestBase):
         assert len(py.tags) == 0
 # region _generated
 
+from enum import IntEnum # noqa: E402, F401
 from tableau_migration.migration import (  # noqa: E402, F401
     PyContentReference,
+    PyEmptyIdContentReference,
     _generic_wrapper
 )
 from tableau_migration.migration_api_rest import PyRestIdentifiable # noqa: E402, F401
@@ -156,13 +158,16 @@ from Tableau.Migration.Content import (  # noqa: E402, F401
     IDataSourceDetails,
     IDescriptionContent,
     IExtractContent,
+    IFavorite,
     IGroup,
+    IGroupSet,
     IGroupUser,
     ILabel,
     IProject,
     IPublishableCustomView,
     IPublishableDataSource,
     IPublishableGroup,
+    IPublishableGroupSet,
     IPublishableWorkbook,
     IPublishedContent,
     IServerSubscription,
@@ -191,13 +196,17 @@ from tableau_migration.migration_content import (  # noqa: E402, F401
     PyDataSourceDetails,
     PyDescriptionContent,
     PyExtractContent,
+    PyFavorite,
+    PyFavoriteContentType,
     PyGroup,
+    PyGroupSet,
     PyGroupUser,
     PyLabel,
     PyProject,
     PyPublishableCustomView,
     PyPublishableDataSource,
     PyPublishableGroup,
+    PyPublishableGroupSet,
     PyPublishableWorkbook,
     PyPublishedContent,
     PyServerSubscription,
@@ -217,8 +226,11 @@ from tableau_migration.migration_content import (  # noqa: E402, F401
 )
 
 
+from Tableau.Migration.Content import FavoriteContentType
+
 # Extra imports for tests.
 from Tableau.Migration import IContentReference # noqa: E402, F401
+from Tableau.Migration import IEmptyIdContentReference # noqa: E402, F401
 from System import (  # noqa: E402, F401
     Boolean,
     Nullable
@@ -466,6 +478,72 @@ class TestPyExtractContentGenerated(AutoFixtureTestBase):
         # assert value
         assert py.encrypt_extracts == testValue
     
+class TestPyFavoriteGenerated(AutoFixtureTestBase):
+    
+    def test_ctor(self):
+        dotnet = self.create(IFavorite)
+        py = PyFavorite(dotnet)
+        assert py._dotnet == dotnet
+    
+    def test_label_getter(self):
+        dotnet = self.create(IFavorite)
+        py = PyFavorite(dotnet)
+        assert py.label == dotnet.Label
+    
+    def test_label_setter(self):
+        dotnet = self.create(IFavorite)
+        py = PyFavorite(dotnet)
+        
+        # create test data
+        testValue = self.create(String)
+        
+        # set property to new test value
+        py.label = testValue
+        
+        # assert value
+        assert py.label == testValue
+    
+    def test_user_getter(self):
+        dotnet = self.create(IFavorite)
+        py = PyFavorite(dotnet)
+        assert py.user == None if dotnet.User is None else PyContentReference(dotnet.User)
+    
+    def test_user_setter(self):
+        dotnet = self.create(IFavorite)
+        py = PyFavorite(dotnet)
+        
+        # create test data
+        testValue = self.create(IContentReference)
+        
+        # set property to new test value
+        py.user = None if testValue is None else PyContentReference(testValue)
+        
+        # assert value
+        assert py.user == None if testValue is None else PyContentReference(testValue)
+    
+    def test_content_getter(self):
+        dotnet = self.create(IFavorite)
+        py = PyFavorite(dotnet)
+        assert py.content == None if dotnet.Content is None else PyContentReference(dotnet.Content)
+    
+    def test_content_setter(self):
+        dotnet = self.create(IFavorite)
+        py = PyFavorite(dotnet)
+        
+        # create test data
+        testValue = self.create(IContentReference)
+        
+        # set property to new test value
+        py.content = None if testValue is None else PyContentReference(testValue)
+        
+        # assert value
+        assert py.content == None if testValue is None else PyContentReference(testValue)
+    
+    def test_content_type_getter(self):
+        dotnet = self.create(IFavorite)
+        py = PyFavorite(dotnet)
+        assert py.content_type.value == (None if dotnet.ContentType is None else PyFavoriteContentType(dotnet.ContentType.value__)).value
+    
 class TestPyGroupGenerated(AutoFixtureTestBase):
     
     def test_ctor(self):
@@ -692,6 +770,37 @@ class TestPyPublishableGroupGenerated(AutoFixtureTestBase):
         
         # assert value
         assert len(py.users) == len(testCollection)
+    
+class TestPyPublishableGroupSetGenerated(AutoFixtureTestBase):
+    
+    def test_ctor(self):
+        dotnet = self.create(IPublishableGroupSet)
+        py = PyPublishableGroupSet(dotnet)
+        assert py._dotnet == dotnet
+    
+    def test_groups_getter(self):
+        dotnet = self.create(IPublishableGroupSet)
+        py = PyPublishableGroupSet(dotnet)
+        assert len(dotnet.Groups) != 0
+        assert len(py.groups) == len(dotnet.Groups)
+    
+    def test_groups_setter(self):
+        dotnet = self.create(IPublishableGroupSet)
+        py = PyPublishableGroupSet(dotnet)
+        assert len(dotnet.Groups) != 0
+        assert len(py.groups) == len(dotnet.Groups)
+        
+        # create test data
+        dotnetCollection = DotnetList[IContentReference]()
+        dotnetCollection.Add(self.create(IContentReference))
+        dotnetCollection.Add(self.create(IContentReference))
+        testCollection = [] if dotnetCollection is None else [PyContentReference(x) for x in dotnetCollection if x is not None]
+        
+        # set property to new test value
+        py.groups = testCollection
+        
+        # assert value
+        assert len(py.groups) == len(testCollection)
     
 class TestPyPublishableWorkbookGenerated(AutoFixtureTestBase):
     

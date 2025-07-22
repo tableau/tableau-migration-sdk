@@ -1,24 +1,49 @@
 name: Setup .NET
-description: 'Setup .NET'
+description: 'Setup a specific .NET SDK version and add to PATH. Ensures only the specified version is active.'
+
+inputs:
+  dotnet-version:
+    description: 'The .NET SDK version to install (e.g., 8.0.x, 9.0.x).'
+    required: true
 
 env:
   DOTNET_NOLOGO: 'true'
+  # Prevent global .NET installations from interfering.
+  # This tells .NET to not look for SDKs/runtimes in global locations.
+  DOTNET_MULTILEVEL_LOOKUP: "0"
 
 runs:
   using: "composite"
   steps:
+    - name: Setup .NET SDK
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ inputs.dotnet-version }}
+
     - name: nuget Cache
       uses: actions/cache@v4
       with:
-        path: ~/.nuget/packages
-        key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
+        path: ~/.nuget/packages # This path is standard for NuGet cache
+        key: ${{ runner.os }}-nuget-${{ inputs.dotnet-version }}-${{ hashFiles('**/packages.lock.json') }}
         restore-keys: |
+          ${{ runner.os }}-nuget-${{ inputs.dotnet-version }}-
           ${{ runner.os }}-nuget-
-    - name: Setup .NET 8.0
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: 8.0.x
-    - name: Setup .NET 9.0
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: 9.0.x
+
+    - name: Verify .NET installation
+      shell: pwsh
+      run: |
+        Write-Host "Verifying .NET installation..."
+        Write-Host "PATH: $($env:PATH)"
+        Write-Host "DOTNET_ROOT: $($env:DOTNET_ROOT)" # DOTNET_ROOT is set by setup-dotnet
+        $dotnetExists = Get-Command dotnet -ErrorAction SilentlyContinue
+        if (-not $dotnetExists) {
+            Write-Error "dotnet command could not be found!"
+            exit 1
+        }
+        Write-Host "Running dotnet --info:"
+        dotnet --info
+        Write-Host "Running dotnet --list-sdks:"
+        dotnet --list-sdks
+        Write-Host "Running dotnet --list-runtimes:"
+        dotnet --list-runtimes
+        Write-Host "Successfully set up .NET SDK ${{ inputs.dotnet-version }}"

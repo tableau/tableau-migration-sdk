@@ -16,6 +16,7 @@
 //
 
 using System;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -27,6 +28,13 @@ namespace Tableau.Migration.Content.Search
     /// <remarks>Implementations should be thread safe due to parallel migration processing.</remarks>
     public interface IContentReferenceCache
     {
+        /// <summary>
+        /// Finds all available content references.
+        /// </summary>
+        /// <param name="cancel">The cancellation token to obey.</param>
+        /// <returns>The found content references.</returns>
+        Task<IImmutableList<IContentReference>> GetAllAsync(CancellationToken cancel);
+
         /// <summary>
         /// Finds the content reference item for a given endpoint location.
         /// </summary>

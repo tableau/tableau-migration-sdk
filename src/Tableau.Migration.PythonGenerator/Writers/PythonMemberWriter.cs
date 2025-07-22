@@ -16,7 +16,9 @@
 //
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using Microsoft.CodeAnalysis;
 
 namespace Tableau.Migration.PythonGenerator.Writers
@@ -141,6 +143,7 @@ namespace Tableau.Migration.PythonGenerator.Writers
             return dotNetType switch
             {
                 INamedTypeSymbol namedSymbol => DotNetTypeName(namedSymbol),
+                ITypeParameterSymbol typeParamSymbol => typeParamSymbol.Name,
                 _ => throw new ArgumentException($"{dotNetType.GetType()} is not supported.")
             };
         }
@@ -149,15 +152,30 @@ namespace Tableau.Migration.PythonGenerator.Writers
             => dotNetType.IsGenericType ? $"{dotNetType.OriginalDefinition.Name}[{BuildDotnetGenericTypeConstraintsString(dotNetType)}]" : dotNetType.Name;
 
         protected static string PythonTypeName(PythonType type)
-            => type.DotNetType.IsGenericType ? $"{type.Name}[{BuildPythongGenericTypeConstraintsString(type.DotNetType)}]" : type.Name;
+            => type.DotNetType.IsGenericType ? $"{type.Name}[{BuildPythonGenericTypeConstraintsString(type.DotNetType)}]" : type.Name;
 
         protected static string BuildDotnetGenericTypeConstraintsString(INamedTypeSymbol dotnetType)
         {
-            var typeConstraints = dotnetType.TypeParameters.First().ConstraintTypes;
-            return string.Join(",", typeConstraints.Select(t => t.Name));
+            var typeList = new List<string>();
+            for(int i = 0; i < dotnetType.TypeArguments.Length; i++)
+            {
+                var typeArg = dotnetType.TypeArguments[i];
+                if(typeArg is ITypeParameterSymbol)
+                {
+                    var typeParam = dotnetType.TypeParameters[i];
+                    if(typeParam.ConstraintTypes.Any())
+                        typeList.Add(typeParam.ConstraintTypes.Single().Name);
+                }
+                else
+                {
+                    typeList.Add(DotNetTypeName(typeArg));
+                }
+            }
+            
+            return string.Join(",", typeList);
         }
 
-        protected static string BuildPythongGenericTypeConstraintsString(INamedTypeSymbol dotnetType)
+        protected static string BuildPythonGenericTypeConstraintsString(INamedTypeSymbol dotnetType)
         {
             var typeConstraints = dotnetType.TypeParameters.First().ConstraintTypes;
             return string.Join(",", typeConstraints.Select(PythonTypeReference.ToPythonTypeName));

@@ -33,9 +33,11 @@ namespace Tableau.Migration.Api.Rest
         public const string DefaultPermissions = "default-permissions";
         public const string ExtractRefreshes = "extractRefreshes";
         public const string Extracts = "extracts";
+        public const string Favorites = "favorites";
         public const string FileUploads = "fileUploads";
         public const string Flows = "flows";
         public const string Groups = "groups";
+        public const string GroupSets = "groupsets";
         public const string Import = "import";
         public const string Jobs = "jobs";
         public const string Labels = "labels";
@@ -61,6 +63,5 @@ namespace Tableau.Migration.Api.Rest
         public const string Workbooks = "workbooks";
 
         public static HashSet<string> All => TypeExtensions.GetAllPublicStringValues(typeof(RestUrlKeywords));
-
     }
 }

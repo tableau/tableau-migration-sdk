@@ -17,6 +17,9 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.Extensions.Options;
 using Tableau.Migration.PythonGenerator.Config;
@@ -61,8 +64,47 @@ namespace Tableau.Migration.PythonGenerator.Generators
 
             foreach (var dotNetParam in dotNetMethod.Parameters)
             {
+                if (dotNetMethod.Name.EndsWith("Async") && dotNetParam.Type.Name == nameof(CancellationToken))
+                    continue;
+
                 var pyArgument = new PythonMethodArgument(dotNetParam.Name.ToSnakeCase(), ToPythonType(dotNetParam.Type));
                 results.Add(pyArgument);
+            }
+
+            return results.ToImmutable();
+        }
+
+        private string GeneratePythonMethodName(IMethodSymbol method)
+        {
+            var name = method.Name;
+            if (name.EndsWith("Async"))
+            {
+                name = name[..^5];
+            }
+
+            return name.ToSnakeCase();
+        }
+
+        private ImmutableArray<PythonTypeReference> GetExtraImports(IMethodSymbol method)
+        {
+            var results = ImmutableArray.CreateBuilder<PythonTypeReference>();
+
+            if(method.ReturnType.Name == nameof(Task<int>))
+            {
+                results.Add(new("TaskExtensions", "Tableau.Migration", ConversionMode.Direct));
+                var taskTypes = GetDotnetGenericTypes(method.ReturnType);
+                if(taskTypes is not null)
+                {
+                    foreach(var taskType in taskTypes)
+                    {
+                        results.Add(new(taskType.Name, taskType.ContainingNamespace.ToDisplayString(), ConversionMode.Direct));
+                    }
+                }
+
+                if(method.Parameters.Any(p => p.Type.Name == nameof(CancellationToken)))
+                {
+                    results.Add(new("cancellation_token", "tableau_migration", ConversionMode.Direct));
+                }
             }
 
             return results.ToImmutable();
@@ -83,12 +125,17 @@ namespace Tableau.Migration.PythonGenerator.Generators
                 {
                     continue;
                 }
-
+                
                 var docs = _docGenerator.Generate(dotNetMethod);
                 var returnType = GetPythonReturnType(dotNetMethod);
                 var arguments = GenerateArguments(dotNetMethod);
 
-                var pyMethod = new PythonMethod(dotNetMethod.Name.ToSnakeCase(), returnType, arguments, dotNetMethod.IsStatic, docs, dotNetMethod);
+                var isAsync = dotNetMethod.ReturnType.Name == nameof(Task<int>);
+
+                var extraImports = GetExtraImports(dotNetMethod);
+
+                var pyMethod = new PythonMethod(GeneratePythonMethodName(dotNetMethod), returnType, arguments, dotNetMethod.IsStatic, isAsync, 
+                    docs, dotNetMethod, extraImports);
 
                 results.Add(pyMethod);
             }

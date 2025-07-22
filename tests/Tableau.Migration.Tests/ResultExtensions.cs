@@ -15,6 +15,8 @@
 //  limitations under the License.
 //
 
+using System;
+using System.Collections.Generic;
 using Xunit;
 
 namespace Tableau.Migration.Tests
@@ -27,10 +29,15 @@ namespace Tableau.Migration.Tests
             Assert.True(result.Success);
         }
 
-        public static void AssertFailure(this IResult result)
+        public static void AssertFailure(this IResult result, IEnumerable<Exception>? errorsToMatch = null)
         {
             Assert.False(result.Success);
             Assert.NotEmpty(result.Errors);
+
+            if(errorsToMatch is not null)
+            {
+                Assert.Equal(errorsToMatch, result.Errors);
+            }
         }
     }
 }

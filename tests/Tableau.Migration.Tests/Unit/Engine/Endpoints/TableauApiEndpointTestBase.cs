@@ -42,8 +42,13 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints
                 .AddMigrationApiClient();
             migrationServiceCollection.AddTransient(p => MockServerApi.Object);
 
+            SetupServices(migrationServiceCollection);
+
             MigrationServices = migrationServiceCollection.BuildServiceProvider();
         }
+
+        protected virtual void SetupServices(IServiceCollection services)
+        { }
 
         public void Dispose()
         {
