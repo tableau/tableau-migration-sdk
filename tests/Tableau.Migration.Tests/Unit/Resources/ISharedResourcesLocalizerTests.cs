@@ -163,6 +163,4 @@ namespace Tableau.Migration.Tests.Unit.Resources
             }
         }
     }
-
-
 }

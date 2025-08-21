@@ -48,11 +48,12 @@ namespace Tableau.Migration.Tests
         public static IFixture Create() => Customize(new Fixture());
 
         private static IFixture Customize(IFixture fixture)
-        {
-            fixture = fixture.Customize(new AutoMoqCustomization { ConfigureMembers = true });
-
+        {            
             fixture.Customizations.Add(new ImmutableCollectionSpecimenBuilder());
             fixture.Customizations.Add(new PageInfoSpecimenBuilder());
+            fixture.Customizations.Add(new LoggerSpecimenBuilder());
+
+            fixture = fixture.Customize(new AutoMoqCustomization { ConfigureMembers = true });
 
             fixture.Register<IFileSystem>(() => new MockFileSystem());
 
@@ -330,6 +331,10 @@ namespace Tableau.Migration.Tests
             #endregion
 
             fixture.Register<MemoryCacheOptions>(() => new MemoryCacheOptions());
+
+            var mockSharedLocalizer = new MockSharedResourcesLocalizer();
+            fixture.Register<ISharedResourcesLocalizer>(() => mockSharedLocalizer.Object);
+            fixture.Register<Mock<ISharedResourcesLocalizer>>(() => mockSharedLocalizer);
 
             return fixture;
         }

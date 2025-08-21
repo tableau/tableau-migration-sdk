@@ -80,18 +80,21 @@ jobs:
           if ("${{ vars.NUGET_PUBLISH_USER }}" -ne "") {
             Write-Host "Using username and API key authentication for environment: $publishEnv"
             
-            # Remove existing source if it exists to avoid conflicts
-            dotnet nuget remove source $publishEnv 2>$null
+            # Use unique source name based on GitHub run ID
+            $uniqueSourceName = "$publishEnv-${{ github.run_id }}"
             
             # Add the NuGet source configuration
             dotnet nuget add source ${{ env.NUGET_PACKAGE_REPOSITORY }} `
-              --name $publishEnv `
+              --name $uniqueSourceName `
               --username ${{ vars.NUGET_PUBLISH_USER }} `
               --password ${{ secrets.NUGET_PUBLISH_API_KEY }} `
               --store-password-in-clear-text
             
-            # Push the package using the configured source
-            dotnet nuget push Tableau.Migration.*.nupkg -s $publishEnv
+            # Push the package
+            dotnet nuget push Tableau.Migration.*.nupkg -s $uniqueSourceName
+            
+            # Clean up temporary source
+            dotnet nuget remove source $uniqueSourceName
           }
           else {
             Write-Host "Using API key only authentication for environment: $publishEnv"
