@@ -24,12 +24,20 @@ namespace Tableau.Migration.Tests
 {
     public class TestLoggerFactory : Mock<ILoggerFactory>, ILoggerFactory
     {
-        private readonly ConcurrentDictionary<string, TestLogger> _loggersByCategory = new();
+        private readonly ConcurrentDictionary<string, object> _loggersByCategory = new();
+
+        public TestLogger DefaultLogger => CreateTestLogger(string.Empty);
+
+        public TestLogger<T> CreateTestLogger<T>()
+            => (TestLogger<T>)_loggersByCategory.GetOrAdd(typeof(T).FullName ?? string.Empty, _ => new TestLogger<T>());
+
+        private TestLogger CreateTestLogger(string category)
+            => (TestLogger)_loggersByCategory.GetOrAdd(category, _ => new TestLogger());
 
         public TestLoggerFactory()
         {
             Setup(f => f.CreateLogger(It.IsAny<string>()))
-                .Returns((string category) => _loggersByCategory.GetOrAdd(category, _ => new TestLogger()));
+                .Returns((string category) => CreateTestLogger(category).Object);
         }
 
         #region - ILoggerFactory -

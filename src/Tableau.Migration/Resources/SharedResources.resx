@@ -458,7 +458,7 @@ Owner with ID {OwnerID}: {owner}</value>
     <value>Skipping migration of {ContentType} since it is disabled.</value>
   </data>
   <data name="ContentTypeDisabledReason" xml:space="preserve">
-    <value>{ContentType} are disabled at the {Endpoints}. {ContentType} will not be migrated.</value>
+    <value>{ContentType} are disabled at the {Endpoints}. No items for this content type will be migrated.</value>
   </data>
   <data name="HasManagedOAuthCredentialsWarning" xml:space="preserve">
     <value>Embedded Managed OAuth Credentials migration is not supported. They will be converted to saved credentials for {0} {1} at {2}. The connection IDs are {3}.</value>
