@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -23,6 +23,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Tableau.Migration.Api.Models;
+using Tableau.Migration.Api.Paging;
 using Tableau.Migration.Api.Publishing;
 using Tableau.Migration.Api.Rest;
 using Tableau.Migration.Api.Rest.Models;
@@ -70,15 +71,7 @@ namespace Tableau.Migration.Api
         }
 
         /// <inheritdoc />
-        public async Task<IPagedResult<ICustomView>> GetAllCustomViewsAsync(int pageNumber, int pageSize, CancellationToken cancel)
-            => await GetAllCustomViewsAsync(pageNumber, pageSize, Enumerable.Empty<Filter>(), cancel).ConfigureAwait(false);
-
-        /// <inheritdoc />
-        public async Task<IPagedResult<ICustomView>> GetAllCustomViewsAsync(
-            int pageNumber,
-            int pageSize,
-            IEnumerable<Filter> filters,
-            CancellationToken cancel)
+        private async Task<IPagedResult<ICustomView>> GetAllCustomViewsAsync(int pageNumber, int pageSize, IEnumerable<Filter> filters, CancellationToken cancel)
         {
             var getAllCustomViewsResult = await RestRequestBuilderFactory
                 .CreateUri($"{UrlPrefix}")
@@ -406,6 +399,29 @@ namespace Tableau.Migration.Api
         /// <inheritdoc />
         public async Task<IPagedResult<ICustomView>> GetPageAsync(int pageNumber, int pageSize, CancellationToken cancel)
             => await GetAllCustomViewsAsync(pageNumber, pageSize, [], cancel).ConfigureAwait(false);
+
+        #endregion
+
+        #region - IApiFilteredPageAccessor<ICustomView> Implementation -
+
+        /// <inheritdoc />
+        public async Task<IPagedResult<ICustomView>> GetPageAsync(IEnumerable<Filter> filters, int pageNumber, int pageSize, CancellationToken cancel)
+            => await GetAllCustomViewsAsync(pageNumber, pageSize, filters, cancel).ConfigureAwait(false);
+
+        #endregion
+
+        #region - IFilteredPagedListApiClient<ICustomView> Implementation -
+
+        /// <inheritdoc />
+        public IPager<ICustomView> GetPager(IEnumerable<Filter> filters, int pageSize)
+            => new ApiFilteredListPager<ICustomView>(this, filters, pageSize);
+
+        #endregion
+
+        #region - INameSearchApiClient<ICustomView> Implementation -
+
+        /// <inheritdoc />
+        FilterOperator INameSearchApiClient<ICustomView>.NameFilterOperator { get; } = FilterOperator.Equal;
 
         #endregion
 

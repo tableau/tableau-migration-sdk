@@ -1,4 +1,4 @@
-# Copyright (c) 2025, Salesforce, Inc.
+# Copyright (c) 2026, Salesforce, Inc.
 # SPDX-License-Identifier: Apache-2
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,7 +17,7 @@
 
 from typing import Callable, Generic, TypeVar
 
-from migration_engine_hooks_interop import _PyHookWrapperBase
+from migration_engine_hooks_interop import _PyHookWrapperBuilderBase
 from migration_engine_hooks_postpublish import PyBulkPostPublishContext, PyContentItemPostPublishContext
 
 from Tableau.Migration.Engine.Hooks.PostPublish import (
@@ -29,7 +29,7 @@ TSource = TypeVar("TSource")
 TPublish = TypeVar("TPublish")
 TResult = TypeVar("TResult")
 
-class _PyContentItemPostPublishHookWrapper(_PyHookWrapperBase):
+class _PyContentItemPostPublishHookWrapperBuilder(_PyHookWrapperBuilderBase):
     
     @property
     def python_publish_type(self) -> type:
@@ -47,7 +47,7 @@ class _PyContentItemPostPublishHookWrapper(_PyHookWrapperBase):
     def dotnet_result_type(self) -> type:
         return self.dotnet_generic_types[1]
 
-    def _wrapper_base_type(self) -> type:
+    def get_wrapper_base_type(self) -> type:
         return ContentItemPostPublishHookBase[self.dotnet_publish_type, self.dotnet_result_type]
 
     def _wrapper_context_type(self) -> type:
@@ -55,7 +55,7 @@ class _PyContentItemPostPublishHookWrapper(_PyHookWrapperBase):
 
     def _wrap_execute_method(self) -> Callable:
         def _wrap_execute(w):
-            return w._hook.execute
+            return w._inner.execute
         
         return _wrap_execute
     
@@ -68,7 +68,7 @@ class _PyContentItemPostPublishHookWrapper(_PyHookWrapperBase):
 class PyContentItemPostPublishHookBase(Generic[TPublish, TResult]):
     """Generic base class for single item post publish hooks."""
 
-    _wrapper = _PyContentItemPostPublishHookWrapper
+    _wrapper_builder = _PyContentItemPostPublishHookWrapperBuilder
 
     def execute(self, ctx: PyContentItemPostPublishContext[TPublish, TResult]) -> PyContentItemPostPublishContext[TPublish, TResult]:
         """Executes a hook callback.
@@ -81,7 +81,7 @@ class PyContentItemPostPublishHookBase(Generic[TPublish, TResult]):
         """
         return ctx
 
-class _PyBulkPostPublishHookWrapper(_PyHookWrapperBase):
+class _PyBulkPostPublishHookWrapperBuilder(_PyHookWrapperBuilderBase):
     
     @property
     def python_source_type(self) -> type:
@@ -91,7 +91,7 @@ class _PyBulkPostPublishHookWrapper(_PyHookWrapperBase):
     def dotnet_source_type(self) -> type:
         return self.dotnet_generic_types[0]
 
-    def _wrapper_base_type(self) -> type:
+    def get_wrapper_base_type(self) -> type:
         return BulkPostPublishHookBase[self.dotnet_source_type]
 
     def _wrapper_context_type(self) -> type:
@@ -99,7 +99,7 @@ class _PyBulkPostPublishHookWrapper(_PyHookWrapperBase):
 
     def _wrap_execute_method(self) -> Callable:
         def _wrap_execute(w):
-            return w._hook.execute
+            return w._inner.execute
         
         return _wrap_execute
     
@@ -112,7 +112,7 @@ class _PyBulkPostPublishHookWrapper(_PyHookWrapperBase):
 class PyBulkPostPublishHookBase(Generic[TSource]):
     """Generic base class for bulk post publish hooks."""
 
-    _wrapper = _PyBulkPostPublishHookWrapper
+    _wrapper_builder = _PyBulkPostPublishHookWrapperBuilder
 
     def execute(self, ctx: PyBulkPostPublishContext[TSource]) -> PyBulkPostPublishContext[TSource]:
         """Executes a hook callback.

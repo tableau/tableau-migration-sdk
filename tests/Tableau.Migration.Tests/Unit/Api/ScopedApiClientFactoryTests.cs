@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -21,6 +21,7 @@ using Tableau.Migration.Api;
 using Tableau.Migration.Content.Files;
 using Tableau.Migration.Content.Search;
 using Tableau.Migration.Net;
+using Tableau.Migration.Net.Rest;
 using Xunit;
 
 namespace Tableau.Migration.Tests.Unit.Api
@@ -33,7 +34,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             public void InitializesInput()
             {
                 var mockApiInput = Freeze<Mock<IApiClientInputInitializer>>();
-                var mockRestInput = Freeze<Mock<IRequestBuilderFactoryInputInitializer>>();
+                var mockRestInput = Freeze<Mock<IRestRequestBuilderFactoryInputInitializer>>();
                 var apiClient = Freeze<IApiClient>();
                 var mockServices = new MockServiceProvider(AutoFixture);
 
@@ -46,10 +47,10 @@ namespace Tableau.Migration.Tests.Unit.Api
 
                 mockApiInput.Verify(x => x.Initialize(config, null, null), Times.Once);
 
-                mockRestInput.Verify(x => x.Initialize(config.ServerUrl), Times.Once);
+                mockRestInput.Verify(x => x.Initialize(config.ServerUrl, config.RestApiVersion), Times.Once);
 
                 mockServices.Verify(x => x.GetService(typeof(IApiClientInputInitializer)), Times.Once);
-                mockServices.Verify(x => x.GetService(typeof(IRequestBuilderFactoryInputInitializer)), Times.Once);
+                mockServices.Verify(x => x.GetService(typeof(IRestRequestBuilderFactoryInputInitializer)), Times.Once);
                 mockServices.Verify(x => x.GetService(typeof(IApiClient)), Times.Once);
             }
 

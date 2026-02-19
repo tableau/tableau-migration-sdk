@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -16,16 +16,8 @@
 //
 
 using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
-using Tableau.Migration.Api;
 using Tableau.Migration.Api.Rest.Models;
 using Tableau.Migration.Content.Schedules;
-using Tableau.Migration.Content.Search;
-using Tableau.Migration.Resources;
 
 namespace Tableau.Migration.Content
 {
@@ -83,10 +75,10 @@ namespace Tableau.Migration.Content
             Location = new(Name);
         }
 
-        internal SubscriptionBase(ISubscriptionType response, IContentReference user, TSchedule schedule)
+        internal SubscriptionBase(ISubscriptionType response, IContentReference user, TSchedule schedule, IContentReference contentReference)
             : this(response.Id, response.Subject, response.AttachImage, response.AttachPdf,
                   response.PageOrientation, response.PageSizeOption, response.Suspended, response.Message,
-                  new SubscriptionContent(response.Content), user, schedule)
+                  new SubscriptionContent(contentReference, Guard.AgainstNull(response.Content, () => response.Content)), user, schedule)
         { }
 
         internal SubscriptionBase(ISubscription<TSchedule> response, IContentReference user, TSchedule schedule)
@@ -94,30 +86,5 @@ namespace Tableau.Migration.Content
                   response.PageOrientation, response.PageSizeOption, response.Suspended, response.Message,
                   new SubscriptionContent(response.Content), user, schedule)
         { }
-
-        protected static async Task<IImmutableList<TSubscription>> CreateManyAsync<TResponse, TSubscriptionType, TSubscription>(
-            TResponse response,
-            Func<TResponse, IEnumerable<TSubscriptionType?>> responseItemFactory,
-            Func<TSubscriptionType, IContentReference, CancellationToken, Task<TSubscription>> modelFactory,
-            IContentReferenceFinderFactory finderFactory,
-            ILogger logger, ISharedResourcesLocalizer localizer,
-            CancellationToken cancel)
-            where TResponse : ITableauServerResponse
-            where TSubscriptionType : class, ISubscriptionType
-            where TSubscription : ISubscription<TSchedule>
-        {
-            var items = responseItemFactory(response).ExceptNulls().ToImmutableArray();
-            var results = ImmutableArray.CreateBuilder<TSubscription>(items.Length);
-
-            foreach (var item in items)
-            {
-
-                var user = await finderFactory.FindUserAsync(Guard.AgainstNull(item.User, () => item.User), logger, localizer, true, cancel).ConfigureAwait(false);
-
-                results.Add(await modelFactory(item, user, cancel).ConfigureAwait(false));
-            }
-
-            return results.ToImmutable();
-        }
     }
 }

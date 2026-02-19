@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -16,6 +16,7 @@
 //
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Net;
@@ -27,6 +28,7 @@ using Tableau.Migration.Api.Rest;
 using Tableau.Migration.Api.Rest.Models.Responses;
 using Tableau.Migration.Config;
 using Tableau.Migration.Content;
+using Tableau.Migration.Net.Rest.Filtering;
 using Tableau.Migration.Tests.Unit.Api.Permissions;
 using Xunit;
 
@@ -47,17 +49,29 @@ namespace Tableau.Migration.Tests.Unit.Api
 
         #region - List -
 
-        public class ListClient : PagedListApiClientTestBase<IDataSourcesApiClient, IDataSource, DataSourcesResponse>
-        { }
+        public class ListClient : NameSearchApiClientTestBase<IDataSourcesApiClient, IDataSource, DataSourcesResponse>
+        {
+            protected override string GetExpectedFilterExpression(IEnumerable<Filter> testFilters)
+                => base.GetExpectedFilterExpression(testFilters.Append(DataSourcesApiClient.PUBLISHED_FILTER));
+        }
 
-        public class PageAccessor : ApiPageAccessorTestBase<IDataSourcesApiClient, IDataSource, DataSourcesResponse>
-        { }
+        public class ContentUrlListClient : ContentUrlSearchApiClientTestBase<IDataSourcesApiClient, IDataSource, DataSourcesResponse>
+        {
+            protected override string GetExpectedFilterExpression(IEnumerable<Filter> testFilters)
+                => base.GetExpectedFilterExpression(testFilters.Append(DataSourcesApiClient.PUBLISHED_FILTER));
+        }
+
+        public class PageAccessor : ApiFilteredPageAccessorTestBase<IDataSourcesApiClient, IDataSource, DataSourcesResponse>
+        {
+            protected override string GetExpectedFilterExpression(IEnumerable<Filter> testFilters)
+                => base.GetExpectedFilterExpression(testFilters.Append(DataSourcesApiClient.PUBLISHED_FILTER));
+        }
 
         #endregion
 
         #region - Get -
 
-        public class GetDataSourceAsync : DataSourcesApiClientTest
+        public class GetByIdAsync : DataSourcesApiClientTest
         {
             [Fact]
             public async Task ErrorAsync()
@@ -70,7 +84,7 @@ namespace Tableau.Migration.Tests.Unit.Api
 
                 var dataSourceId = Guid.NewGuid();
 
-                var result = await ApiClient.GetDataSourceAsync(dataSourceId, Cancel);
+                var result = await ApiClient.GetByIdAsync(dataSourceId, Cancel);
 
                 result.AssertFailure();
 
@@ -90,7 +104,7 @@ namespace Tableau.Migration.Tests.Unit.Api
                 var dataSourceId = Guid.NewGuid();
                 var connections = CreateMany<IConnection>().ToImmutableArray();
 
-                var result = await ApiClient.GetDataSourceAsync(dataSourceId, Cancel);
+                var result = await ApiClient.GetByIdAsync(dataSourceId, Cancel);
 
                 result.AssertFailure();
 
@@ -121,9 +135,7 @@ namespace Tableau.Migration.Tests.Unit.Api
 
                 var dataSourceId = Guid.NewGuid();
 
-                var result = await ApiClient.GetDataSourceAsync(
-                    dataSourceId,
-                    Cancel);
+                var result = await ApiClient.GetByIdAsync(dataSourceId, Cancel);
 
                 result.AssertSuccess();
                 Assert.NotNull(result.Value);

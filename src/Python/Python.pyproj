@@ -36,6 +36,7 @@
     <Compile Include="src\tableau_migration\migration_content_permissions.py" />
     <Compile Include="src\tableau_migration\migration_content_search.py" />
     <Compile Include="src\tableau_migration\migration_engine_actions.py" />
+    <Compile Include="src\tableau_migration\migration_engine_endpoints_caching.py" />
     <Compile Include="src\tableau_migration\migration_engine_endpoints_search.py" />
     <Compile Include="src\tableau_migration\migration_engine_hooks.py" />
     <Compile Include="src\tableau_migration\migration_engine_hooks_filters.py" />
@@ -53,9 +54,12 @@
     <Compile Include="src\tableau_migration\migration_engine_migrators_batch.py" />
     <Compile Include="src\tableau_migration\migration_engine_options.py" />
     <Compile Include="src\tableau_migration\migration_engine_pipelines.py" />
+    <Compile Include="src\tableau_migration\migration_engine_services.py" />
     <Compile Include="src\tableau_migration\migration_enum.py" />
+    <Compile Include="src\tableau_migration\migration_interop.py" />
     <Compile Include="src\tableau_migration\migration_logger.py" />
     <Compile Include="src\tableau_migration\migration_engine.py" />
+    <Compile Include="src\tableau_migration\migration_paging.py" />
     <Compile Include="src\tableau_migration\migration_services.py" />
     <Compile Include="src\tableau_migration\__init__.py" />
     <Compile Include="tests\helpers\autofixture.py" />
@@ -72,6 +76,8 @@
     <Compile Include="tests\test_migration_engine_manifest.py" />
     <Compile Include="tests\test_migration_engine_options.py" />
     <Compile Include="tests\test_migration_engine_pipelines.py" />
+    <Compile Include="tests\test_migration_engine_services.py" />
+    <Compile Include="tests\test_migration_paging.py" />
     <Compile Include="tests\test_migration_services.py" />
     <Compile Include="tests\test_migration_api_rest_models.py" />
     <Compile Include="tests\test_migration_content.py" />

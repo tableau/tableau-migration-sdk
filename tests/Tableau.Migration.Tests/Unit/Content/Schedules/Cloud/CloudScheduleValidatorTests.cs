@@ -1,5 +1,5 @@
 //
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -28,7 +28,7 @@ using Xunit;
 
 namespace Tableau.Migration.Tests.Unit.Content.Schedules.Cloud
 {
-    public class CloudScheduleValidatorTests
+    public class CloudScheduleValidatorTests : AutoFixtureTestBase
     {
         protected const string TIME_12_00_00 = "12:00:00";
         protected const string TIME_13_00_00 = "13:00:00";
@@ -48,7 +48,7 @@ namespace Tableau.Migration.Tests.Unit.Content.Schedules.Cloud
             services.AddTableauMigrationSdk();
             var container = services.BuildServiceProvider();
 
-            _loggerMock = new Mock<ILogger<CloudScheduleValidator>>();
+            _loggerMock = Create<Mock<ILogger<CloudScheduleValidator>>>();
             _localizer = container.GetRequiredService<ISharedResourcesLocalizer>();
             _validator = new CloudScheduleValidator(_loggerMock.Object, _localizer);
         }

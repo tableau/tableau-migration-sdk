@@ -1,5 +1,5 @@
 //
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -40,12 +40,12 @@ namespace Tableau.Migration.Tests.Unit.Api
         private readonly ServiceProvider _serviceProvider;
 
         public Mock<IApiClientInput> MockApiClientInput { get; } = new();
-        public Mock<IRequestBuilderFactoryInput> MockRequestBuilderInput { get; } = new();
+        public Mock<IRestRequestBuilderFactoryInput> MockRestRequestBuilderInput { get; } = new();
         public MockHttpClient MockHttpClient { get; } = new();
         public Mock<ITableauServerVersionProvider> MockVersionProvider { get; } = new();
         public Mock<IServerSessionProvider> MockSessionProvider { get; } = new();
         public Mock<IAuthenticationTokenProvider> MockTokenProvider { get; } = new();
-        public Mock<ILoggerFactory> MockLoggerFactory { get; } = new();
+        public Mock<ILoggerFactory> MockLoggerFactory { get; }
         public Mock<IConfigReader> MockConfigReader { get; } = new();
         public MockSharedResourcesLocalizer MockSharedResourcesLocalizer { get; } = new();
         public Mock<IContentReferenceFinderFactory> MockContentFinderFactory { get; } = new() { CallBase = true };
@@ -70,7 +70,7 @@ namespace Tableau.Migration.Tests.Unit.Api
 
         public IServiceCollection Services { get; }
 
-        public Mock<ILogger> MockLogger { get; } = new();
+        public Mock<ILogger> MockLogger { get; }
 
 
         public Mock<IContentReferenceFinder<IGroup>> MockGroupFinder { get; }
@@ -102,9 +102,11 @@ namespace Tableau.Migration.Tests.Unit.Api
                 .Create();
 
             var httpRequestBuilderFactory = new HttpRequestBuilderFactory(MockHttpClient.Object, Serializer);
-            RestRequestBuilderFactory = new RestRequestBuilderFactory(MockRequestBuilderInput.Object, MockSessionProvider.Object, httpRequestBuilderFactory);
+            RestRequestBuilderFactory = new RestRequestBuilderFactory(MockRestRequestBuilderInput.Object, MockSessionProvider.Object, httpRequestBuilderFactory);
 
-            MockLoggerFactory.Setup(f => f.CreateLogger(It.IsAny<string>())).Returns(MockLogger.Object);
+            MockLogger = _autoFixture.Create<Mock<ILogger>>();
+            MockLoggerFactory = _autoFixture.Create<Mock<ILoggerFactory>>();
+            MockLoggerFactory.Setup(x => x.CreateLogger(It.IsAny<string>())).Returns(() => MockLogger.Object);
 
             MockConfigReader
                 .Setup(x => x.Get())
@@ -132,8 +134,9 @@ namespace Tableau.Migration.Tests.Unit.Api
                     MockSessionProvider.SetupGet(p => p.Version).Returns(TableauServerVersion);
                 });
 
-            MockRequestBuilderInput.SetupGet(i => i.ServerUri).Returns(SiteConnectionConfiguration.ServerUrl);
-            MockRequestBuilderInput.SetupGet(i => i.IsInitialized).Returns(true);
+            MockRestRequestBuilderInput.SetupGet(i => i.ServerUri).Returns(SiteConnectionConfiguration.ServerUrl);
+            MockRestRequestBuilderInput.SetupGet(i => i.IsInitialized).Returns(true);
+            MockRestRequestBuilderInput.SetupGet(i => i.RestApiVersionOverride).Returns((string?)null);
 
             HttpStreamProcessor = new TestHttpStreamProcessor(MockHttpClient.Object, MockConfigReader.Object);
 
@@ -156,7 +159,7 @@ namespace Tableau.Migration.Tests.Unit.Api
         private void ReplaceServices()
         {
             ReplaceService(MockApiClientInput);
-            ReplaceService(MockRequestBuilderInput);
+            ReplaceService(MockRestRequestBuilderInput);
             ReplaceService(MockHttpClient);
             ReplaceService(MockVersionProvider);
             ReplaceService(MockSessionProvider);

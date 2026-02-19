@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -43,7 +43,7 @@ namespace Tableau.Migration.Tests.Unit.Api.Search
 
             internal ImmutableArray<TestEmptyIdContentType> EmptyIdData { get; set; }
 
-            protected readonly BulkApiContentReferenceCache<IUser> Cache;
+            internal readonly BulkApiContentReferenceCache<IUser> Cache;
 
             internal readonly BulkApiContentReferenceCache<TestEmptyIdContentType> EmptyIdCache;
 
@@ -74,6 +74,19 @@ namespace Tableau.Migration.Tests.Unit.Api.Search
                 {
                     CallBase = true
                 };
+                MockReadApiClient.Setup(x => x.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+                    .ReturnsAsync((Guid id, CancellationToken cancel) =>
+                    {
+                        var found = Data.FirstOrDefault(i => i.Id == id);
+                        if(found is not null)
+                        {
+                            return Result<IUser>.Succeeded(found);
+                        }
+                        else
+                        {
+                            return Result<IUser>.Failed(new Exception("Not Found"));
+                        }
+                    });
 
                 Data = CreateMany<IUser>().ToImmutableArray();
 
@@ -92,6 +105,8 @@ namespace Tableau.Migration.Tests.Unit.Api.Search
                     .Returns(MockApiClient.Object);
                 mockSitesApi.Setup(x => x.GetReadApiClient<IUser>())
                     .Returns(MockReadApiClient.Object);
+                mockSitesApi.Setup(x => x.GetNameSearchApiClient<IUser>())
+                    .Returns((INameSearchApiClient<IUser>?)null);
 
                 Cache = Create<BulkApiContentReferenceCache<IUser>>();
 
@@ -159,7 +174,7 @@ namespace Tableau.Migration.Tests.Unit.Api.Search
             {
                 var search = Create<IUser>();
 
-                MockReadApiClient.Setup(x => x.GetByIdAsync(search.Id, It.IsAny<CancellationToken>()))
+                MockReadApiClient.Setup(x => x.GetByIdAsync(search.Id, Cancel))
                     .ReturnsAsync(Result<IUser>.Succeeded(search));
 
                 var result = await Cache.ForIdAsync(search.Id, Cancel);

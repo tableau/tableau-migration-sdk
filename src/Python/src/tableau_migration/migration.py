@@ -1,4 +1,4 @@
-# Copyright (c) 2025, Salesforce, Inc.
+# Copyright (c) 2026, Salesforce, Inc.
 # SPDX-License-Identifier: Apache-2
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,30 +20,37 @@ Also any method required to start the sdk
 import inspect
 import sys
 
-from typing import Type, TypeVar, List
+from typing import Type, TypeVar, List, Union
 
 # region Generic Wrapper Helpers
 
 _wrapper_types = { }
 
-def _find_wrapper_type(search_type):
+def _find_wrapper_type(search_type: type) -> Union[type, None]:
     for module in list(sys.modules.values()):
         for member in inspect.getmembers(module, inspect.isclass):
             t = member[1]
-            if hasattr(t, "_dotnet_base") and t._dotnet_base == search_type:
-                return t
+            if hasattr(t, "_dotnet_base"):
+                if issubclass(type(search_type), System.Type) and search_type.Equals(t._dotnet_base):
+                    return t
+                elif t._dotnet_base == search_type:
+                    return t
     
     return None
 
+def _generic_wrapper_type(t: type) -> Union[type, None]:
+    if t not in _wrapper_types:
+        _wrapper_types[t] = _find_wrapper_type(t)
+        
+    return _wrapper_types[t]
+
 def _generic_wrapper(obj, type_override: type = None):
     t = type_override if type_override is not None else type(obj)
-    if t not in _wrapper_types:
-        wrapper_type = _find_wrapper_type(t)
-        if wrapper_type is None:
-            raise Exception("Migration SDK wrapper type not found for type" + str(t))
-        _wrapper_types[t] = wrapper_type
-        
-    return _wrapper_types[t](obj)
+    wrapper_type = _generic_wrapper_type(t)
+    if wrapper_type is None:
+        raise Exception("Migration SDK wrapper type not found for type" + str(t))
+    
+    return wrapper_type(obj)
 
 # endregion
 
@@ -365,8 +372,39 @@ class PyResult():
         """Gets any exceptions encountered during the operation."""
         return None if self._dotnet.Errors is None else list(self._dotnet.Errors)
     
+    def errors_to_exception(self) -> System.Exception:
+        """Gets the single exception in the result, or builds an Errors collection.
+        
+        Returns: Null if AggregateException.
+        """
+        result = self._dotnet.ErrorsToException()
+        return result
+    
 
 # endregion
+
+from System.Collections.Generic import (  # noqa: E402, F401
+    List as DotnetList
+)
+
+def _create_content_location(cls, path_separator: str, segments: Sequence[str]) -> PyContentLocation:
+    """Creates a new PyContentLocation value.
+
+    Args:
+        cls: The class.
+        path_separator: The separator between path segments to use.
+        segments: The location path segments.
+
+    Returns:
+        A new PyContentLocation value.
+    """
+    dotnet_segments = DotnetList[str]()
+    for s in segments:
+        dotnet_segments.Add(s)
+
+    return PyContentLocation(ContentLocation(path_separator, dotnet_segments))
+
+setattr(PyContentLocation, "create", classmethod(_create_content_location))
 
 class PyMigrationManifest():
     """Interface for an object that describes the various Tableau data items found to migrate and their migration results."""

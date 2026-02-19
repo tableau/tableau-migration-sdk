@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -29,7 +29,6 @@ using Tableau.Migration.Content;
 using Tableau.Migration.Content.Permissions;
 using Tableau.Migration.Engine.Endpoints.Search;
 using Tableau.Migration.Engine.Hooks.Transformers.Default;
-using Tableau.Migration.Resources;
 using Xunit;
 
 namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
@@ -41,6 +40,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
             protected readonly Mock<IDestinationContentReferenceFinderFactory> MockDestinationFinderFactory;
             protected readonly Mock<IDestinationContentReferenceFinder<IUser>> MockUserContentFinder = new();
             protected readonly Mock<IDestinationContentReferenceFinder<IGroup>> MockGroupContentFinder = new();
+            protected readonly Mock<IDestinationContentReferenceFinder<IGroupSet>> MockGroupSetContentFinder = new();
             protected readonly MockSharedResourcesLocalizer MockLocalizer;
             protected readonly Mock<ILogger<PermissionsTransformer>> MockLogger;
 
@@ -52,6 +52,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
 
                 MockDestinationFinderFactory.Setup(p => p.ForDestinationContentType<IUser>()).Returns(MockUserContentFinder.Object);
                 MockDestinationFinderFactory.Setup(p => p.ForDestinationContentType<IGroup>()).Returns(MockGroupContentFinder.Object);
+                MockDestinationFinderFactory.Setup(p => p.ForDestinationContentType<IGroupSet>()).Returns(MockGroupSetContentFinder.Object);
 
                 MockLocalizer = Freeze<MockSharedResourcesLocalizer>();
                 MockLogger = Freeze<Mock<ILogger<PermissionsTransformer>>>();
@@ -88,6 +89,16 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
                         else
                             return null;
                     });
+
+                MockGroupSetContentFinder
+                    .Setup(f => f.FindBySourceIdAsync(It.IsAny<Guid>(), Cancel))
+                    .ReturnsAsync((Guid id, CancellationToken cancel) =>
+                    {
+                        if (_idMap.TryGetValue(id, out var destinationId))
+                            return CreateContentReference(destinationId);
+                        else
+                            return null;
+                    });
             }
 
             private IContentReference CreateContentReference(Guid? id = null)
@@ -102,16 +113,19 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
             {
                 foreach (var granteeCapability in result.GranteeCapabilities)
                 {
-                    var idMapEntry = _idMap.Single(kvp => kvp.Value == granteeCapability.GranteeId);
+                    var idMapEntry = _idMap.Single(kvp => kvp.Value == granteeCapability.Grantee.Id);
                     var sourceId = idMapEntry.Key;
 
                     switch(granteeCapability.GranteeType)
                     {
                         case GranteeType.Group:
-                            MockGroupContentFinder.Verify(f => f.FindBySourceIdAsync(sourceId, Cancel), Times.Once);
+                            MockGroupContentFinder.Verify(f => f.FindBySourceIdAsync(sourceId, Cancel), Times.AtLeastOnce);
+                            break;
+                        case GranteeType.GroupSet:
+                            MockGroupSetContentFinder.Verify(f => f.FindBySourceIdAsync(sourceId, Cancel), Times.AtLeastOnce);
                             break;
                         case GranteeType.User:
-                            MockUserContentFinder.Verify(f => f.FindBySourceIdAsync(sourceId, Cancel), Times.Once);
+                            MockUserContentFinder.Verify(f => f.FindBySourceIdAsync(sourceId, Cancel), Times.AtLeastOnce);
                             break;
                         default:
                             throw new NotSupportedException($"Grantee type {granteeCapability.GranteeType} is not supported in tests. Add support to {nameof(VerifyGranteeMapping)}.");
@@ -120,16 +134,18 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
             }
 
             [Fact]
-            public async Task Transforms()
+            public async Task TransformsAllGranteeTypesAsync()
             {
-                var originalGranteeCapabilities = CreateMany<IGranteeCapability>(5).ToImmutableArray();
+                var allGranteeTypes = Enum.GetValues<GranteeType>();
+                var mockCapabilities = CreateMany<Mock<IGranteeCapability>>(allGranteeTypes.Length).ToImmutableArray();
 
-                foreach (var granteeCapability in originalGranteeCapabilities)
+                for(int i = 0; i < mockCapabilities.Length; i++)
                 {
-                    _idMap.Add(granteeCapability.GranteeId, Create<Guid>());
+                    mockCapabilities[i].SetupGet(x => x.GranteeType).Returns(allGranteeTypes[i]);
+                    _idMap.Add(mockCapabilities[i].Object.Grantee.Id, Create<Guid>());
                 }
 
-                var permissions = new Permissions(null, originalGranteeCapabilities);
+                var permissions = new Permissions(null, mockCapabilities.Select(x => x.Object).ToList());
 
                 var result = await Transformer.ExecuteAsync(permissions, Cancel);
 
@@ -140,7 +156,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
             }
 
             [Fact]
-            public async Task Resolves_duplicates()
+            public async Task ResolvesDuplicatesAsync()
             {
                 var granteeCapabilities = CreateMany<IGranteeCapability>(5);
 
@@ -150,9 +166,9 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
 
                 foreach (var granteeCapability in originalGranteeCapabilities)
                 {
-                    if (!_idMap.ContainsKey(granteeCapability.GranteeId))
+                    if (!_idMap.ContainsKey(granteeCapability.Grantee.Id))
                     {
-                        _idMap.Add(granteeCapability.GranteeId, Create<Guid>());
+                        _idMap.Add(granteeCapability.Grantee.Id, Create<Guid>());
                     }
                 }
 
@@ -167,27 +183,27 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
             }
 
             [Fact]
-            public async Task Resolves_conflicts()
+            public async Task ResolvesConflictsAsync()
             {
                 var conflictingCapabilityName = Create<string>();
 
                 var granteeCapabilities = CreateMany<IGranteeCapability>(5);
 
                 // Add multiple conflicting grantee capabilities with the same group id
-                var groupId = Create<Guid>();
+                var group = Create<IContentReference>();
                 var originalGranteeCapabilities = new List<IGranteeCapability>()
                 {
-                    new GranteeCapability(GranteeType.Group, groupId,[new Capability(conflictingCapabilityName, PermissionsCapabilityModes.Allow)]),
-                    new GranteeCapability(GranteeType.Group, groupId, [new Capability(conflictingCapabilityName, PermissionsCapabilityModes.Deny)])
+                    new GranteeCapability(GranteeType.Group, group,[new Capability(conflictingCapabilityName, PermissionsCapabilityModes.Allow)]),
+                    new GranteeCapability(GranteeType.Group, group, [new Capability(conflictingCapabilityName, PermissionsCapabilityModes.Deny)])
                 };
 
                 originalGranteeCapabilities.AddRange(granteeCapabilities);
 
                 foreach (var granteeCapability in originalGranteeCapabilities)
                 {
-                    if (!_idMap.ContainsKey(granteeCapability.GranteeId))
+                    if (!_idMap.ContainsKey(granteeCapability.Grantee.Id))
                     {
-                        _idMap.Add(granteeCapability.GranteeId, Create<Guid>());
+                        _idMap.Add(granteeCapability.Grantee.Id, Create<Guid>());
                     }
                 }
 
@@ -201,7 +217,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
                 VerifyGranteeMapping(result);
 
                 // Check if the conflicting capability modes were resolved
-                var resolvedGranteeCapability = result.GranteeCapabilities.Where(g => g.GranteeId == _idMap[groupId]);
+                var resolvedGranteeCapability = result.GranteeCapabilities.Where(g => g.Grantee.Id == _idMap[group.Id]);
                 Assert.Single(resolvedGranteeCapability);
 
                 // Check if the capability modes were resolved by preferring deny.
@@ -215,7 +231,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
             }
 
             [Fact]
-            public async Task Excludes_unfound_source_grantees()
+            public async Task ThrowsOnUnfoundGranteesAsync()
             {
                 var originalGranteeCapabilities = CreateMany<IGranteeCapability>(5).ToImmutableArray();
                 var foundGranteeCapabilities = originalGranteeCapabilities.SkipLast(1);
@@ -229,27 +245,20 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
 
                 var permissions = new Permissions(null, originalGranteeCapabilities);
 
-                var result = await Transformer.ExecuteAsync(permissions, Cancel);
-
-                Assert.NotNull(result);
-                Assert.Same(permissions, result);
-
-                Assert.DoesNotContain(unfoundGranteeCapability, result.GranteeCapabilities);
-
-                MockLocalizer.Verify(x => x[SharedResourceKeys.PermissionsTransformerGranteeNotFoundWarning], Times.Once);
+                await Assert.ThrowsAsync<Exception>(() => Transformer.ExecuteAsync(permissions, Cancel));
             }
 
             [Fact]
-            public async Task Excludes_project_leader_deny()
+            public async Task ExcludesProjectLeaderDenyAsync()
             {
                 var capabilities = CreateMany<ICapability>()
                     .Append(new Capability(new CapabilityType { Name = PermissionsCapabilityNames.ProjectLeader, Mode = PermissionsCapabilityModes.Allow }))
                     .Append(new Capability(new CapabilityType { Name = PermissionsCapabilityNames.ProjectLeader, Mode = PermissionsCapabilityModes.Deny }))
                     .ToImmutableArray();
 
-                var grantee = new GranteeCapability(GranteeType.User, Guid.NewGuid(), capabilities);
+                var grantee = new GranteeCapability(GranteeType.User, Create<IContentReference>(), capabilities);
 
-                _idMap.Add(grantee.GranteeId, Guid.NewGuid());
+                _idMap.Add(grantee.Grantee.Id, Guid.NewGuid());
 
                 var permissions = new Permissions(null, [grantee]);
                 var result = await Transformer.ExecuteAsync(permissions, Cancel);
@@ -264,15 +273,15 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
             }
 
             [Fact]
-            public async Task Excludes_inherited_project_leader()
+            public async Task ExcludesInheritedProjectLeaderAsync()
             {
                 var capabilities = CreateMany<ICapability>()
                     .Append(new Capability(new CapabilityType { Name = PermissionsCapabilityNames.InheritedProjectLeader, Mode = PermissionsCapabilityModes.Allow }))
                     .ToImmutableArray();
 
-                var grantee = new GranteeCapability(GranteeType.User, Guid.NewGuid(), capabilities);
+                var grantee = new GranteeCapability(GranteeType.User, Create<IContentReference>(), capabilities);
 
-                _idMap.Add(grantee.GranteeId, Guid.NewGuid());
+                _idMap.Add(grantee.Grantee.Id, Guid.NewGuid());
 
                 var permissions = new Permissions(null, [grantee]);
 
@@ -288,15 +297,15 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
             }
 
             [Fact]
-            public async Task Excludes_Obsolete_Capability()
+            public async Task ExcludesObsoleteCapabilityAsync()
             {
                 var capabilities = CreateMany<ICapability>()
                     .Append(new Capability(new CapabilityType { Name = PermissionsCapabilityNames.CreateRefreshMetrics, Mode = PermissionsCapabilityModes.Allow }))
                     .ToImmutableArray();
 
-                var grantee = new GranteeCapability(GranteeType.User, Guid.NewGuid(), capabilities);
+                var grantee = new GranteeCapability(GranteeType.User, Create<IContentReference>(), capabilities);
 
-                _idMap.Add(grantee.GranteeId, Guid.NewGuid());
+                _idMap.Add(grantee.Grantee.Id, Guid.NewGuid());
 
                 var permissions = new Permissions(null, [grantee]);
 

@@ -1,4 +1,4 @@
-# Copyright (c) 2025, Salesforce, Inc.
+# Copyright (c) 2026, Salesforce, Inc.
 # SPDX-License-Identifier: Apache-2
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,6 +24,11 @@ import Moq
 
 from tests.helpers.autofixture import AutoFixtureTestBase
 from System import String
+
+class TestPyTag():
+    def test_create(self):
+        py = PyTag.create("test")
+        assert "test" == py.label
 
 class TestPyUsernameContent():
     def test_init(self):
@@ -133,7 +138,6 @@ from tableau_migration.migration_content_schedules_cloud import PyCloudSchedule 
 from tableau_migration.migration_content_schedules_server import PyServerSchedule # noqa: E402, F401
 from typing import (  # noqa: E402, F401
     Sequence,
-    List,
     Generic,
     TypeVar
 )
@@ -171,6 +175,7 @@ from Tableau.Migration.Content import (  # noqa: E402, F401
     IPublishableWorkbook,
     IPublishedContent,
     IServerSubscription,
+    ISizeContent,
     ISubscription,
     ISubscriptionContent,
     ITag,
@@ -210,6 +215,7 @@ from tableau_migration.migration_content import (  # noqa: E402, F401
     PyPublishableWorkbook,
     PyPublishedContent,
     PyServerSubscription,
+    PySizeContent,
     PySubscription,
     PySubscriptionContent,
     PyTag,
@@ -873,6 +879,18 @@ class TestPyPublishedContentGenerated(AutoFixtureTestBase):
         py = PyPublishedContent(dotnet)
         assert py.webpage_url == dotnet.WebpageUrl
     
+class TestPySizeContentGenerated(AutoFixtureTestBase):
+    
+    def test_ctor(self):
+        dotnet = self.create(ISizeContent)
+        py = PySizeContent(dotnet)
+        assert py._dotnet == dotnet
+    
+    def test_size_getter(self):
+        dotnet = self.create(ISizeContent)
+        py = PySizeContent(dotnet)
+        assert py.size == dotnet.Size
+    
 class TestPySubscriptionGenerated(AutoFixtureTestBase):
     
     def test_ctor(self):
@@ -1030,24 +1048,6 @@ class TestPySubscriptionContentGenerated(AutoFixtureTestBase):
         dotnet = self.create(ISubscriptionContent)
         py = PySubscriptionContent(dotnet)
         assert py._dotnet == dotnet
-    
-    def test_id_getter(self):
-        dotnet = self.create(ISubscriptionContent)
-        py = PySubscriptionContent(dotnet)
-        assert py.id == None if dotnet.Id is None else UUID(dotnet.Id.ToString())
-    
-    def test_id_setter(self):
-        dotnet = self.create(ISubscriptionContent)
-        py = PySubscriptionContent(dotnet)
-        
-        # create test data
-        testValue = self.create(Guid)
-        
-        # set property to new test value
-        py.id = None if testValue is None else UUID(testValue.ToString())
-        
-        # assert value
-        assert py.id == None if testValue is None else UUID(testValue.ToString())
     
     def test_type_getter(self):
         dotnet = self.create(ISubscriptionContent)
@@ -1351,11 +1351,6 @@ class TestPyWorkbookGenerated(AutoFixtureTestBase):
         
         # assert value
         assert py.show_tabs == testValue
-    
-    def test_size_getter(self):
-        dotnet = self.create(IWorkbook)
-        py = PyWorkbook(dotnet)
-        assert py.size == dotnet.Size
     
 class TestPyWorkbookDetailsGenerated(AutoFixtureTestBase):
     

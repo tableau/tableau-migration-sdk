@@ -1,4 +1,4 @@
-# Copyright (c) 2025, Salesforce, Inc.
+# Copyright (c) 2026, Salesforce, Inc.
 # SPDX-License-Identifier: Apache-2
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,7 +20,7 @@ from typing import Callable, Generic, TypeVar
 from xml.etree import ElementTree
 
 from migration import _generic_wrapper
-from migration_engine_hooks_interop import _PyHookWrapperBase
+from migration_engine_hooks_interop import _PyHookWrapperBuilderBase
 
 import System # System.Xml.Linq must be imported as System
 from System.Threading.Tasks import Task
@@ -32,7 +32,7 @@ TPublish = TypeVar("TPublish")
 # This ensures that namespace declarations are preserved in XML transformers.
 ElementTree.register_namespace("user", "http://www.tableausoftware.com/xml/user")
 
-class _PyTransformerWrapper(_PyHookWrapperBase):
+class _PyTransformerWrapperBuilder(_PyHookWrapperBuilderBase):
     
     @property
     def python_publish_type(self) -> type:
@@ -42,7 +42,7 @@ class _PyTransformerWrapper(_PyHookWrapperBase):
     def dotnet_publish_type(self) -> type:
         return self.dotnet_generic_types[0]
 
-    def _wrapper_base_type(self) -> type:
+    def get_wrapper_base_type(self) -> type:
         return ContentTransformerBase[self.dotnet_publish_type]
 
     @property
@@ -54,7 +54,7 @@ class _PyTransformerWrapper(_PyHookWrapperBase):
 
     def _wrap_execute_method(self) -> Callable:
         def _wrap_transform(w):
-            return w._hook.transform
+            return w._inner.transform
         
         return _wrap_transform
     
@@ -67,7 +67,7 @@ class _PyTransformerWrapper(_PyHookWrapperBase):
 class PyContentTransformerBase(Generic[TPublish]):
     """Generic base class for transformers."""
 
-    _wrapper = _PyTransformerWrapper
+    _wrapper_builder = _PyTransformerWrapperBuilder
 
     def transform(self, item_to_transform: TPublish) -> TPublish:
         """Executes the transformation.
@@ -80,7 +80,7 @@ class PyContentTransformerBase(Generic[TPublish]):
         """
         return item_to_transform
     
-class _PyXmlTransformerWrapper(_PyTransformerWrapper):
+class _PyXmlTransformerWrapperBuilder(_PyTransformerWrapperBuilder):
 
     @classmethod
     def read_xml(cls, xml: System.Xml.Linq.XDocument) -> ElementTree.Element:
@@ -93,12 +93,12 @@ class _PyXmlTransformerWrapper(_PyTransformerWrapper):
         new_root = System.Xml.Linq.XElement.Parse(s, System.Xml.Linq.LoadOptions.PreserveWhitespace)
         orig_xml.Root.ReplaceWith(new_root)
 
-    def _wrapper_base_type(self) -> type:
+    def get_wrapper_base_type(self) -> type:
         return IXmlContentTransformer[self.dotnet_publish_type]
 
     def _wrap_execute_method(self) -> Callable:
         def _wrap_transform_xml(w):
-            return w._hook._transform_xml
+            return w._inner._transform_xml
         
         return _wrap_transform_xml
     
@@ -129,14 +129,14 @@ class _PyXmlTransformerWrapper(_PyTransformerWrapper):
     def set_extra_wrapper_members(self, members: dict, wrap_context: Callable) -> None:
         
         def _wrap_needs_transforming(w, ctx):
-            return w._hook.needs_xml_transforming(wrap_context(ctx))
+            return w._inner.needs_xml_transforming(wrap_context(ctx))
 
         members["NeedsXmlTransforming"] = _wrap_needs_transforming
     
 class PyXmlContentTransformerBase(Generic[TPublish]):
     """Generic base class for XML transformers."""
 
-    _wrapper = _PyXmlTransformerWrapper
+    _wrapper_builder = _PyXmlTransformerWrapperBuilder
     
     def needs_xml_transforming(self, ctx: TPublish) -> bool:
         """Finds whether the content item needs any XML changes, returning false prevents file IO from occurring.
@@ -149,9 +149,9 @@ class PyXmlContentTransformerBase(Generic[TPublish]):
         return True
     
     def _transform_xml(self, ctx: TPublish, xml) -> None:
-        py_xml = _PyXmlTransformerWrapper.read_xml(xml)
+        py_xml = _PyXmlTransformerWrapperBuilder.read_xml(xml)
         self.transform(ctx, py_xml)
-        _PyXmlTransformerWrapper.write_xml(xml, py_xml)
+        _PyXmlTransformerWrapperBuilder.write_xml(xml, py_xml)
 
     def transform(self, ctx: TPublish, xml: ElementTree.Element) -> None:
         """Transforms the XML of the content item.

@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -61,6 +61,20 @@ namespace Tableau.Migration.Content.Schedules.Server
                 finderFactory, logger, localizer,
                 cancel)
                 .ConfigureAwait(false);
+
+        public static async Task<IServerExtractRefreshTask> CreateAsync(
+            ExtractRefreshTaskResponse response,
+            IContentReferenceFinderFactory finderFactory,
+            IContentCacheFactory contentCacheFactory,
+            ILogger logger, ISharedResourcesLocalizer localizer,
+            CancellationToken cancel)
+            => (await CreateManyAsync<ExtractRefreshTaskResponse, ExtractRefreshTaskResponse.TaskType.ExtractRefreshType, IServerExtractRefreshTask>(
+                response,
+                response => [Guard.AgainstNull(response?.Item?.ExtractRefresh, nameof(response.Item.ExtractRefresh))],
+                async (r, c, cnl) => await CreateAsync(r, c, contentCacheFactory, cnl).ConfigureAwait(false),
+                finderFactory, logger, localizer,
+                cancel)
+                .ConfigureAwait(false)).Single();
 
         private static async Task<IServerExtractRefreshTask> CreateAsync(
             IServerExtractRefreshType response,

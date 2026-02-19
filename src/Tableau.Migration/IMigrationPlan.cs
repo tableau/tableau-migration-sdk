@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -20,6 +20,7 @@ using Tableau.Migration.Engine.Endpoints;
 using Tableau.Migration.Engine.Hooks;
 using Tableau.Migration.Engine.Options;
 using Tableau.Migration.Engine.Pipelines;
+using Tableau.Migration.Engine.Services;
 
 namespace Tableau.Migration
 {
@@ -52,6 +53,11 @@ namespace Tableau.Migration
         /// Gets the defined destination endpoint configuration.
         /// </summary>
         IMigrationPlanEndpointConfiguration Destination { get; }
+
+        /// <summary>
+        /// Gets the collection of registered migration service overrides.
+        /// </summary>
+        IMigrationServiceFactoryCollection Services { get; }
 
         /// <summary>
         /// Gets the collection of registered hooks for each hook type.

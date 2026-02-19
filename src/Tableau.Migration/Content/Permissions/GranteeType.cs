@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -30,6 +30,11 @@ namespace Tableau.Migration.Content.Permissions
         /// <summary>
         /// The user grantee type.
         /// </summary>
-        User
+        User,
+
+        /// <summary>
+        /// The group set grantee type.
+        /// </summary>
+        GroupSet
     }
 }

@@ -1,5 +1,5 @@
 //
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -232,6 +232,14 @@ namespace Tableau.Migration.Api
         public IDeleteApiClient GetDeleteApiClient<TContent>()
             where TContent : IDelible
             => GetApiClientFromContentType<IDeleteApiClient>(typeof(TContent))!; //TODO: Better resolution logic based on content/publish types
+
+        /// <inheritdoc />
+        public IContentUrlSearchApiClient<TContent>? GetContentUrlSearchApiClient<TContent>()
+            => GetApiClientFromContentType<IContentUrlSearchApiClient<TContent>>(typeof(TContent));
+
+        /// <inheritdoc />
+        public INameSearchApiClient<TContent>? GetNameSearchApiClient<TContent>()
+            => GetApiClientFromContentType<INameSearchApiClient<TContent>>(typeof(TContent));
 
         private async Task<IResult<ISite>> GetSiteAsync(Func<IRestRequestBuilder, IRestRequestBuilder> setKey, CancellationToken cancel)
         {

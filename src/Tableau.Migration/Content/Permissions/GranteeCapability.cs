@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -15,7 +15,6 @@
 //  limitations under the License.
 //
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Tableau.Migration.Api.Rest.Models.Types;
@@ -25,21 +24,14 @@ namespace Tableau.Migration.Content.Permissions
     /// <inheritdoc/>
     public class GranteeCapability : IGranteeCapability
     {
-        /// <summary>
-        /// Constructor to convert from <see cref="GranteeCapabilityType"/>.
-        /// </summary>
-        /// <param name="response"></param>
-        internal GranteeCapability(GranteeCapabilityType response)
-            : this(response.GranteeType, response.GranteeId, response.Capabilities.Select(c => new Capability(c)))
+        internal GranteeCapability(IContentReference grantee, GranteeCapabilityType response)
+            : this(response.GranteeType, grantee, response.Capabilities.Select(c => new Capability(c)))
         { }
 
-        internal GranteeCapability(
-            GranteeType granteeType,
-            Guid granteeId,
-            IEnumerable<ICapability> capabilities)
+        internal GranteeCapability(GranteeType granteeType, IContentReference grantee, IEnumerable<ICapability> capabilities)
         {
             GranteeType = granteeType;
-            GranteeId = granteeId;
+            Grantee = grantee;
 
             Capabilities = new HashSet<ICapability>(capabilities, ICapabilityComparer.Instance);
         }
@@ -52,7 +44,7 @@ namespace Tableau.Migration.Content.Permissions
         public GranteeType GranteeType { get; set; }
 
         /// <inheritdoc/>
-        public Guid GranteeId { get; set; }
+        public IContentReference Grantee { get; set; }
 
         /// <inheritdoc/>
         public HashSet<ICapability> Capabilities { get; set; }

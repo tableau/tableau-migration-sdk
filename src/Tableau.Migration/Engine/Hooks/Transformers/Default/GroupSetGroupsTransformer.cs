@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -15,12 +15,12 @@
 //  limitations under the License.
 //
 
-using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Tableau.Migration.Content;
+using Tableau.Migration.Content.Search;
 using Tableau.Migration.Engine.Endpoints.Search;
 using Tableau.Migration.Resources;
 
@@ -39,8 +39,7 @@ namespace Tableau.Migration.Engine.Hooks.Transformers.Default
         /// <param name="destinationFinderFactory">The destination finder factory.</param>
         /// <param name="localizer"><inheritdoc /></param>
         /// <param name="logger"><inheritdoc /></param>
-        public GroupSetGroupsTransformer(
-            IDestinationContentReferenceFinderFactory destinationFinderFactory,
+        public GroupSetGroupsTransformer(IDestinationContentReferenceFinderFactory destinationFinderFactory,
             ISharedResourcesLocalizer localizer, ILogger<GroupSetGroupsTransformer> logger)
             : base(localizer, logger)
         {
@@ -51,7 +50,7 @@ namespace Tableau.Migration.Engine.Hooks.Transformers.Default
         public override async Task<IPublishableGroupSet?> TransformAsync(IPublishableGroupSet sourceGroupSet, CancellationToken cancel)
         {
             var transformedGroups = new List<IContentReference>(sourceGroupSet.Groups.Count);
-            var missingGroups = new List<string>();
+            var missingGroups = new List<ContentLocation>();
 
             foreach (var group in sourceGroupSet.Groups)
             {
@@ -60,20 +59,14 @@ namespace Tableau.Migration.Engine.Hooks.Transformers.Default
 
                 if (destinationGroup is null)
                 {
-                    missingGroups.Add(group.Name);
+                    missingGroups.Add(group.Location);
                     continue;
                 }
 
                 transformedGroups.Add(destinationGroup);
             }
 
-            if (missingGroups.Count > 0)
-            {
-                var msg = string.Format(Localizer[SharedResourceKeys.GroupSetGroupsTransformerMissingGroupsException],
-                    sourceGroupSet.Name, string.Join(", ", missingGroups));
-
-                throw new InvalidOperationException(msg);
-            }
+            missingGroups.ThrowOnMissingContentReferences<IGroup>(Localizer, "group set groups");
 
             sourceGroupSet.Groups = transformedGroups;
             return sourceGroupSet;

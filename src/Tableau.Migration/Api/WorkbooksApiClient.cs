@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -16,12 +16,14 @@
 //
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Tableau.Migration.Api.EmbeddedCredentials;
 using Tableau.Migration.Api.Models;
+using Tableau.Migration.Api.Paging;
 using Tableau.Migration.Api.Permissions;
 using Tableau.Migration.Api.Publishing;
 using Tableau.Migration.Api.Rest;
@@ -33,6 +35,7 @@ using Tableau.Migration.Content;
 using Tableau.Migration.Content.Files;
 using Tableau.Migration.Content.Search;
 using Tableau.Migration.Net.Rest;
+using Tableau.Migration.Net.Rest.Filtering;
 using Tableau.Migration.Net.Rest.Sorting;
 using Tableau.Migration.Paging;
 using Tableau.Migration.Resources;
@@ -99,15 +102,13 @@ namespace Tableau.Migration.Api
         public IEmbeddedCredentialsApiClient EmbeddedCredentials { get; }
 
         #endregion
-        /// <inheritdoc />
-        public async Task<IPagedResult<IWorkbook>> GetAllWorkbooksAsync(
-            int pageNumber,
-            int pageSize,
-            CancellationToken cancel)
+
+        private async Task<IPagedResult<IWorkbook>> GetAllWorkbooksAsync(int pageNumber, int pageSize, IEnumerable<Filter> filters, CancellationToken cancel)
         {
             var getAllResult = await RestRequestBuilderFactory
                 .CreateUri(UrlPrefix)
                 .WithPage(pageNumber, pageSize)
+                .WithFilters(filters)
                 .WithSorts(new Sort("size", false))
                 .ForGetRequest()
                 .SendAsync<WorkbooksResponse>(cancel)
@@ -227,11 +228,8 @@ namespace Tableau.Migration.Api
         #region - IApiPageAccessor<IWorkbook> Implementation -
 
         /// <inheritdoc />
-        public async Task<IPagedResult<IWorkbook>> GetPageAsync(
-            int pageNumber,
-            int pageSize,
-            CancellationToken cancel)
-            => await GetAllWorkbooksAsync(pageNumber, pageSize, cancel).ConfigureAwait(false);
+        public async Task<IPagedResult<IWorkbook>> GetPageAsync(int pageNumber, int pageSize, CancellationToken cancel)
+            => await GetAllWorkbooksAsync(pageNumber, pageSize, [], cancel).ConfigureAwait(false);
 
         #endregion
 
@@ -239,6 +237,45 @@ namespace Tableau.Migration.Api
 
         /// <inheritdoc />
         public IPager<IWorkbook> GetPager(int pageSize) => new ApiListPager<IWorkbook>(this, pageSize);
+
+        #endregion
+
+        #region - IApiFilteredPageAccessor<IWorkbook> Implementation -
+
+        /// <inheritdoc />
+        public async Task<IPagedResult<IWorkbook>> GetPageAsync(IEnumerable<Filter> filters, int pageNumber, int pageSize, CancellationToken cancel)
+            => await GetAllWorkbooksAsync(pageNumber, pageSize, filters, cancel).ConfigureAwait(false);
+
+        #endregion
+
+        #region - IFilteredPagedListApiClient<IWorkbook> Implementation -
+
+        /// <inheritdoc />
+        public IPager<IWorkbook> GetPager(IEnumerable<Filter> filters, int pageSize)
+            => new ApiFilteredListPager<IWorkbook>(this, filters, pageSize);
+
+        #endregion
+
+        #region - INameSearchApiClient<IWorkbook> Implementation -
+
+        /// <inheritdoc />
+        FilterOperator INameSearchApiClient<IWorkbook>.NameFilterOperator { get; } = FilterOperator.Equal;
+
+        #endregion
+
+        #region - IReadApiClient<IWorkbook> Implementation -
+
+        /// <inheritdoc />
+        async Task<IResult<IWorkbook>> IReadApiClient<IWorkbook>.GetByIdAsync(Guid contentId, CancellationToken cancel)
+            => (await GetWorkbookAsync(contentId, cancel).ConfigureAwait(false)).Cast<IWorkbook>();
+
+        #endregion
+
+        #region - IReadApiClient<IWorkbookDetails> Implementation -
+
+        /// <inheritdoc />
+        public async Task<IResult<IWorkbookDetails>> GetByIdAsync(Guid contentId, CancellationToken cancel)
+            => await GetWorkbookAsync(contentId, cancel).ConfigureAwait(false);
 
         #endregion
 
@@ -333,5 +370,29 @@ namespace Tableau.Migration.Api
                 .ConfigureAwait(false);
 
         #endregion
+
+        /// <inheritdoc />
+        public async Task<IResult<IImmutableList<IWorkbookView>>> GetWorkbookViewsAsync(Guid workbookId, CancellationToken cancel)
+        {
+            var getViewsResult = await RestRequestBuilderFactory
+                .CreateUri($"{UrlPrefix}/{workbookId.ToUrlSegment()}/{RestUrlKeywords.Views}")
+                .ForGetRequest()
+                .SendAsync<WorkbookViewsResponse>(cancel)
+                .ToResultAsync((response, cancel) =>
+                {
+                    var results = ImmutableArray.CreateBuilder<IWorkbookView>(response.Items.Length);
+
+                    foreach (var viewResponse in response.Items)
+                    {
+                        var view = new WorkbookView(viewResponse);
+                        results.Add(view);
+                    }
+
+                    return Task.FromResult((IImmutableList<IWorkbookView>)results.ToImmutable());
+                }, SharedResourcesLocalizer, cancel)
+                .ConfigureAwait(false);
+
+            return getViewsResult;
+        }
     }
 }

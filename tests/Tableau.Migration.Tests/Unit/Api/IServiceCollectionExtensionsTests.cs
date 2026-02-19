@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -58,17 +58,20 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async Task Registers_expected_services()
+            public async Task RegistersExpectedServicesAsync()
             {
                 await AssertServiceAsync<IFileSystem, FileSystem>(ServiceLifetime.Singleton);
                 await AssertServiceAsync<ITaskDelayer, TaskDelayer>(ServiceLifetime.Singleton);
-                await AssertServiceAsync<IPermissionsApiClientFactory, PermissionsApiClientFactory>(ServiceLifetime.Scoped);
-                await AssertServiceAsync<ITagsApiClientFactory, TagsApiClientFactory>(ServiceLifetime.Scoped);
-                await AssertServiceAsync<IEmbeddedCredentialsApiClientFactory, EmbeddedCredentialsApiClientFactory>(ServiceLifetime.Scoped);
+
+                await using var scope = InitializeApiScope();
+
+                AssertService<IPermissionsApiClientFactory, PermissionsApiClientFactory>(scope, ServiceLifetime.Scoped);
+                AssertService<ITagsApiClientFactory, TagsApiClientFactory>(scope, ServiceLifetime.Scoped);
+                AssertService<IEmbeddedCredentialsApiClientFactory, EmbeddedCredentialsApiClientFactory>(scope, ServiceLifetime.Scoped);
             }
 
             [Fact]
-            public async Task RegistersScopedApiClientInputAndInitializer()
+            public async Task RegistersScopedApiClientInputAndInitializerAsync()
             {
                 await using var scope1 = ServiceProvider.CreateAsyncScope();
                 await using var scope2 = ServiceProvider.CreateAsyncScope();
@@ -102,7 +105,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async Task RegistersScopedApiClients()
+            public async Task RegistersScopedApiClientsAsync()
             {
                 await using var scope = InitializeApiScope();
 
@@ -162,7 +165,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async Task Uses_existing_DefaultPermissionsContentTypeOptions()
+            public async Task Uses_existing_DefaultPermissionsContentTypeOptionsAsync()
             {
                 var existingOptions = new DefaultPermissionsContentTypeOptions();
 
@@ -178,13 +181,13 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async Task RegistersSingletonPathResolver()
+            public async Task RegistersSingletonPathResolverAsync()
             {
                 await AssertServiceAsync<IContentFilePathResolver, ContentTypeFilePathResolver>(ServiceLifetime.Singleton);
             }
 
             [Fact]
-            public async Task RegistersSingletonEncryptionFactory()
+            public async Task RegistersSingletonEncryptionFactoryAsync()
             {
                 await AssertServiceAsync<ISymmetricEncryptionFactory, Aes256EncryptionFactory>(ServiceLifetime.Singleton);
             }
@@ -209,19 +212,19 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async Task Registers_content_caches()
+            public async Task RegistersContentCacheFallbacksAsync()
             {
                 await using var scope = InitializeApiScope();
 
                 AssertService<IContentCacheFactory, ContentCacheFactory>(scope, ServiceLifetime.Scoped);
-                AssertService<IContentCache<IServerSchedule>, ApiContentCache<IServerSchedule>>(scope, ServiceLifetime.Scoped);
-                AssertService<BulkApiContentReferenceCache<IServerSchedule>, ApiContentCache<IServerSchedule>>(scope, ServiceLifetime.Scoped);
+                AssertService<IContentCache<IServerSchedule>, BulkApiContentCache<IServerSchedule>>(scope, ServiceLifetime.Scoped);
+                AssertService<BulkApiContentReferenceCache<IServerSchedule>, BulkApiContentCache<IServerSchedule>>(scope, ServiceLifetime.Scoped);
 
                 var serverScheduleCache = scope.ServiceProvider.GetRequiredService<BulkApiContentReferenceCache<IServerSchedule>>();
 
                 var caches = new object[]
                 {
-                    scope.ServiceProvider.GetRequiredService<ApiContentCache<IServerSchedule>>(),
+                    scope.ServiceProvider.GetRequiredService<BulkApiContentCache<IServerSchedule>>(),
                     scope.ServiceProvider.GetRequiredService<IContentCache<IServerSchedule>>(),
                     scope.ServiceProvider.GetRequiredService<BulkApiContentReferenceCache<IServerSchedule>>()
                 };

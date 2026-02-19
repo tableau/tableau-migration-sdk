@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -18,6 +18,7 @@
 using Microsoft.Extensions.Logging;
 using Tableau.Migration.Api.Rest;
 using Tableau.Migration.Config;
+using Tableau.Migration.Content.Search;
 using Tableau.Migration.Net;
 using Tableau.Migration.Net.Rest;
 using Tableau.Migration.Resources;
@@ -28,6 +29,7 @@ namespace Tableau.Migration.Api.Permissions
     {
         private readonly IRestRequestBuilderFactory _restRequestBuilderFactory;
         private readonly IHttpContentSerializer _serializer;
+        private readonly IContentReferenceFinderFactory _contentReferenceFinderFactory;
         private readonly ISharedResourcesLocalizer _sharedResourcesLocalizer;
         private readonly IConfigReader _configReader;
         private readonly ILoggerFactory _loggerFactory;
@@ -35,12 +37,14 @@ namespace Tableau.Migration.Api.Permissions
         public PermissionsApiClientFactory(
             IRestRequestBuilderFactory restRequestBuilderFactory,
             IHttpContentSerializer serializer,
+            IContentReferenceFinderFactory contentReferenceFinderFactory,
             ISharedResourcesLocalizer sharedResourcesLocalizer,
             IConfigReader configReader,
             ILoggerFactory loggerFactory)
         {
             _restRequestBuilderFactory = restRequestBuilderFactory;
             _serializer = serializer;
+            _contentReferenceFinderFactory = contentReferenceFinderFactory;
             _sharedResourcesLocalizer = sharedResourcesLocalizer;
             _configReader = configReader;
             _loggerFactory = loggerFactory;
@@ -52,7 +56,7 @@ namespace Tableau.Migration.Api.Permissions
 
         /// <inheritdoc />
         public IPermissionsApiClient Create(IPermissionsUriBuilder uriBuilder)
-            => new PermissionsApiClient(_restRequestBuilderFactory, _serializer, uriBuilder, _sharedResourcesLocalizer);
+            => new PermissionsApiClient(_restRequestBuilderFactory, _serializer, uriBuilder, _sharedResourcesLocalizer, _contentReferenceFinderFactory);
 
         /// <inheritdoc />
         public IDefaultPermissionsApiClient CreateDefaultPermissionsClient()

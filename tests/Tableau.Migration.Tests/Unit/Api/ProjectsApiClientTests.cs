@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -19,10 +19,12 @@ using System;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using Moq;
 using Tableau.Migration.Api;
 using Tableau.Migration.Api.Models;
+using Tableau.Migration.Api.Paging;
 using Tableau.Migration.Api.Permissions;
 using Tableau.Migration.Api.Rest;
 using Tableau.Migration.Api.Rest.Models;
@@ -30,6 +32,7 @@ using Tableau.Migration.Api.Rest.Models.Requests;
 using Tableau.Migration.Api.Rest.Models.Responses;
 using Tableau.Migration.Content;
 using Tableau.Migration.Net;
+using Tableau.Migration.Net.Rest.Filtering;
 using Tableau.Migration.Paging;
 using Tableau.Migration.Tests.Unit.Api.Permissions;
 using Xunit;
@@ -69,7 +72,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async Task Returns_success()
+            public async Task SuccessAsync()
             {
                 var options = CreateOptions();
 
@@ -103,7 +106,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async Task Returns_failure()
+            public async Task FailureAsync()
             {
                 var options = CreateOptions();
 
@@ -128,7 +131,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async Task Publishes_samples()
+            public async Task PublishesSamplesAsync()
             {
                 var options = CreateOptions(m => m.SetupGet(o => o.PublishSamples).Returns(true));
 
@@ -368,6 +371,51 @@ namespace Tableau.Migration.Tests.Unit.Api
 
         #endregion
 
+        #region - GetPager (Filtered) -
+
+        public sealed class GetPagerFiltered : ProjectsApiClientTest
+        {
+            [Fact]
+            public void GetsFilteredPager()
+            {
+                // Act
+                var pager = ProjectsApiClient.GetPager(CreateMany<Filter>(), 123);
+
+                // Assert
+                Assert.IsType<ProjectFilteredListPager>(pager);
+            }
+        }
+
+        #endregion
+
+        #region - SearchAsync (Name) -
+
+        public sealed class SearchAsyncName : ProjectsApiClientTest
+        {
+            [Fact]
+            public async Task SearchesByNameAsync()
+            {
+                var (response, content) = SetupSuccessResponse<ProjectsResponse>();
+
+                MockProjectFinder.Setup(x => x.FindByIdAsync(It.IsAny<Guid>(), Cancel))
+                    .ReturnsAsync((Guid id, CancellationToken c) => new ContentReferenceStub(id, Create<string>(), Create<ContentLocation>()));
+
+                // Act
+                var result = await ((INameSearchApiClient<IProject>)ProjectsApiClient).SearchByNameAsync("testName", 123, Cancel);
+
+                // Assert
+                result.AssertSuccess();
+
+                Assert.NotNull(result.Value);
+                Assert.Equal(content.Items.Length, result.Value.Count);
+
+                var request = MockHttpClient.AssertSingleRequest();
+                request.AssertQuery("filter", "name:eq:testName");
+            }
+        }
+
+        #endregion
+
         #region - UpdateProjectAsync -
 
         public class UpdateProjectAsync : ProjectsApiClientTest
@@ -467,7 +515,7 @@ namespace Tableau.Migration.Tests.Unit.Api
         {
 
             [Fact]
-            public async Task Returns_success()
+            public async Task SuccessAsync()
             {
                 var projectId = Guid.NewGuid();
 
@@ -485,7 +533,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async Task Returns_failure()
+            public async Task FailureAsync()
             {
                 var projectId = Guid.NewGuid();
 

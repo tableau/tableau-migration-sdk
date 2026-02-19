@@ -1,4 +1,4 @@
-# Copyright (c) 2025, Salesforce, Inc.
+# Copyright (c) 2026, Salesforce, Inc.
 # SPDX-License-Identifier: Apache-2
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,7 +19,7 @@ from typing import Callable, Generic, TypeVar
 
 from migration_content import PyUser
 from migration_engine_hooks_mappings import PyContentMappingContext
-from migration_engine_hooks_interop import _PyHookWrapperBase
+from migration_engine_hooks_interop import _PyHookWrapperBuilderBase
 
 from Tableau.Migration.Engine.Hooks.Mappings import ContentMappingBase, ContentMappingContext
 from Tableau.Migration.Engine.Hooks.Mappings.Default import ITableauCloudUsernameMapping
@@ -40,7 +40,7 @@ class PyContentMappingBase(Generic[TContent]):
         """
         return ctx
 
-class _PyMappingWrapper(_PyHookWrapperBase):
+class _PyMappingWrapperBuilder(_PyHookWrapperBuilderBase):
     
     @property
     def python_content_type(self) -> type:
@@ -50,7 +50,7 @@ class _PyMappingWrapper(_PyHookWrapperBase):
     def dotnet_content_type(self) -> type:
         return self.dotnet_generic_types[0]
 
-    def _wrapper_base_type(self) -> type:
+    def get_wrapper_base_type(self) -> type:
         return ContentMappingBase[self.dotnet_content_type]
 
     @property
@@ -62,7 +62,7 @@ class _PyMappingWrapper(_PyHookWrapperBase):
 
     def _wrap_execute_method(self) -> Callable:
         def _wrap_execute(w):
-            return w._hook.map
+            return w._inner.map
         
         return _wrap_execute
     
@@ -76,6 +76,6 @@ class PyTableauCloudUsernameMappingBase(PyContentMappingBase[PyUser]):
     """Base class for mapping users to supply a Tableau Cloud compatible usernames."""
     pass
 
-class _PyTableauCloudUsernameMappingWrapper(_PyMappingWrapper):
-    def set_extra_base_types(self, types: tuple) -> tuple:
+class _PyTableauCloudUsernameMappingWrapperBuilder(_PyMappingWrapperBuilder):
+    def add_extra_wrapper_base_types(self, types: tuple) -> tuple:
         return types + (ITableauCloudUsernameMapping,)

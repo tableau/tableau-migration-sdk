@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -21,6 +21,7 @@ using Tableau.Migration.Engine.Endpoints;
 using Tableau.Migration.Engine.Hooks;
 using Tableau.Migration.Engine.Options;
 using Tableau.Migration.Engine.Pipelines;
+using Tableau.Migration.Engine.Services;
 
 namespace Tableau.Migration.Engine
 {
@@ -37,6 +38,7 @@ namespace Tableau.Migration.Engine
     /// <param name="Filters"><inheritdoc /></param>
     /// <param name="Transformers"><inheritdoc /></param>
     /// <param name="PipelineFactoryOverride"><inheritdoc /></param>
+    /// <param name="Services"><inheritdoc /></param>
     public record MigrationPlan(
         Guid PlanId,
         [property: EnumDataType(typeof(PipelineProfile))] PipelineProfile PipelineProfile,
@@ -47,7 +49,8 @@ namespace Tableau.Migration.Engine
         IMigrationHookFactoryCollection Mappings,
         IMigrationHookFactoryCollection Filters,
         IMigrationHookFactoryCollection Transformers,
-        Func<IServiceProvider, IMigrationPipelineFactory>? PipelineFactoryOverride
+        Func<IServiceProvider, IMigrationPipelineFactory>? PipelineFactoryOverride,
+        IMigrationServiceFactoryCollection Services
     ) : IMigrationPlan
     { }
 }

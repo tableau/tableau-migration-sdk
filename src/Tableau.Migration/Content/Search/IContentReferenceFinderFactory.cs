@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -16,6 +16,7 @@
 //
 
 using System;
+using Tableau.Migration.Content.Permissions;
 using Tableau.Migration.Content.Schedules;
 
 namespace Tableau.Migration.Content.Search
@@ -37,7 +38,7 @@ namespace Tableau.Migration.Content.Search
         /// <summary>
         /// Gets or creates a content reference finder for a given extract refresh content type. 
         /// </summary>
-        /// <param name="contentType">The extract refresh content type</param>
+        /// <param name="contentType">The extract refresh content type.</param>
         /// <returns>The content reference finder.</returns>
         public IContentReferenceFinder ForExtractRefreshContent(ExtractRefreshContentType contentType)
         {
@@ -52,7 +53,7 @@ namespace Tableau.Migration.Content.Search
         /// <summary>
         /// Gets or creates a content reference finder for a given favorite content type. 
         /// </summary>
-        /// <param name="contentType">The favorite content type</param>
+        /// <param name="contentType">The favorite content type.</param>
         /// <returns>The content reference finder.</returns>
         public IContentReferenceFinder ForFavoriteContentType(FavoriteContentType contentType)
         {
@@ -64,6 +65,22 @@ namespace Tableau.Migration.Content.Search
                 FavoriteContentType.Workbook => ForContentType<IWorkbook>(),  
                 FavoriteContentType.Collection => ForContentType<ITableauCollection>(),
                 _ => throw new NotSupportedException($"Favorite content type {contentType} is not supported.")
+            };
+        }
+
+        /// <summary>
+        /// Gets or creates a content reference finder for a given grantee type.
+        /// </summary>
+        /// <param name="granteeType">The grantee type.</param>
+        /// <returns>The content reference finder.</returns>
+        public IContentReferenceFinder ForGranteeType(GranteeType granteeType)
+        {
+            return granteeType switch
+            {
+                GranteeType.Group => ForContentType<IGroup>(),
+                GranteeType.GroupSet => ForContentType<IGroupSet>(),
+                GranteeType.User => ForContentType<IUser>(),
+                _ => throw new NotSupportedException($"Grantee content type {granteeType} is not supported.")
             };
         }
     }

@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -68,8 +68,6 @@ namespace Tableau.Migration.Engine.Hooks.Mappings.Default
             }
             else
             {
-                //return context.MapTo(ContentLocation.ForUsername(newDomain, context.MappedLocation.Name));
-
                 ContentMappingContext<T> ret = context.MapTo(ContentLocation.ForUsername(newDomain, context.MappedLocation.Name));
 
                 if (_logger is not null && _localizer is not null && ret is not null)

@@ -1,4 +1,4 @@
-# Copyright (c) 2025, Salesforce, Inc.
+# Copyright (c) 2026, Salesforce, Inc.
 # SPDX-License-Identifier: Apache-2
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -44,38 +44,38 @@ class TestUsernameMapping(TableauCloudUsernameMappingBase):
 
 class TestPyServerToCloudMigrationPlanBuilder(AutoFixtureTestBase):
     def test_with_saml_authentication_type_auth_type(self):
-        mockBuilder = Moq.Mock[IServerToCloudMigrationPlanBuilder]()
-        builder = PyServerToCloudMigrationPlanBuilder(mockBuilder.Object)
+        dotnet_builder = self.create(IServerToCloudMigrationPlanBuilder)
+        builder = PyServerToCloudMigrationPlanBuilder(dotnet_builder)
         
         builder.with_saml_authentication_type("userDomain")
 
     def test_with_saml_authentication_type_idp_name(self):
-        mockBuilder = Moq.Mock[IServerToCloudMigrationPlanBuilder]()
-        builder = PyServerToCloudMigrationPlanBuilder(mockBuilder.Object)
+        dotnet_builder = self.create(IServerToCloudMigrationPlanBuilder)
+        builder = PyServerToCloudMigrationPlanBuilder(dotnet_builder)
         
         builder.with_saml_authentication_type("userDomain", "idp name")
 
     def test_with_tableau_id_authentication_type_auth_type(self):
-        mockBuilder = Moq.Mock[IServerToCloudMigrationPlanBuilder]()
-        builder = PyServerToCloudMigrationPlanBuilder(mockBuilder.Object)
+        dotnet_builder = self.create(IServerToCloudMigrationPlanBuilder)
+        builder = PyServerToCloudMigrationPlanBuilder(dotnet_builder)
         
         builder.with_tableau_id_authentication_type()
 
     def test_with_tableau_id_authentication_type_idp_name(self):
-        mockBuilder = Moq.Mock[IServerToCloudMigrationPlanBuilder]()
-        builder = PyServerToCloudMigrationPlanBuilder(mockBuilder.Object)
+        dotnet_builder = self.create(IServerToCloudMigrationPlanBuilder)
+        builder = PyServerToCloudMigrationPlanBuilder(dotnet_builder)
         
         builder.with_tableau_id_authentication_type(True, "idp name")
     
     def test_with_authentication_type_string_arg_auth_type(self):
-        mockBuilder = Moq.Mock[IServerToCloudMigrationPlanBuilder]()
-        builder = PyServerToCloudMigrationPlanBuilder(mockBuilder.Object)
+        dotnet_builder = self.create(IServerToCloudMigrationPlanBuilder)
+        builder = PyServerToCloudMigrationPlanBuilder(dotnet_builder)
         
         builder.with_authentication_type("auth", "userDomain", "groupDomain")
 
     def test_with_tableau_cloud_usernames_string_arg(self):
-        mockBuilder = Moq.Mock[IServerToCloudMigrationPlanBuilder]()
-        builder = PyServerToCloudMigrationPlanBuilder(mockBuilder.Object)
+        dotnet_builder = self.create(IServerToCloudMigrationPlanBuilder)
+        builder = PyServerToCloudMigrationPlanBuilder(dotnet_builder)
         
         builder.with_tableau_cloud_usernames("test.com")
 

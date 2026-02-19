@@ -51,7 +51,7 @@ on:
 env:
   DOTNET_NOLOGO: "true"
   # Centralized .NET version for building and deploying
-  DOTNET_BUILD_VERSION: '9.0.x'
+  DOTNET_BUILD_VERSION: '10.0.x'
 
 jobs:
   # Define version job
@@ -64,7 +64,7 @@ jobs:
       dotnet-build-version: ${{ steps.set-versions.outputs.dotnet-build-version }}
     if: github.event.pull_request.draft == false
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Get Beta Version
         id: get-beta-version
         shell: bash

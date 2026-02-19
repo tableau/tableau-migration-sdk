@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -90,11 +90,11 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
 
                 var missingGroups = ImmutableArray.Create(groupSet.Groups.First(), groupSet.Groups.Last());
 
-                var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => Transformer.TransformAsync(groupSet, Cancel));
+                var ex = await Assert.ThrowsAsync<Exception>(() => Transformer.TransformAsync(groupSet, Cancel));
 
                 foreach (var missingGroup in missingGroups)
                 {
-                    Assert.Contains(missingGroup.Name, ex.Message);
+                    Assert.Contains(missingGroup.Location.ToString(), ex.Message);
                 }
             }
         }

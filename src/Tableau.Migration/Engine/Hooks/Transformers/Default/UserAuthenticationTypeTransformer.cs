@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -23,7 +23,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Tableau.Migration.Api.Rest.Models.Types;
 using Tableau.Migration.Content;
-using Tableau.Migration.Engine.Endpoints.Search;
+using Tableau.Migration.Engine.Endpoints.Caching;
 using Tableau.Migration.Engine.Options;
 using Tableau.Migration.Resources;
 
@@ -99,10 +99,10 @@ namespace Tableau.Migration.Engine.Hooks.Transformers.Default
 
             if (configsByName.Length > 1 || configByAuthSetting.Length > 1)
             {
-                throw new ArgumentException($"Multiple authentication configurations were found with name or auth setting \"{_authenticationType}\".");
+                throw new ArgumentException($"Multiple authentication configurations were found with name or auth setting \"{_authenticationType}\". Supply a unique authentication configuration name when configuring the authentication method in the migration plan.");
             }
 
-            throw new ArgumentException($"No authentication configurations were found with name or auth setting \"{_authenticationType}\".");
+            throw new ArgumentException($"No authentication configurations were found with name or auth setting \"{_authenticationType}\". Ensure the authentication configuration name is correct.");
         }
     }
 }

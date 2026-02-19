@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -16,13 +16,11 @@
 //
 
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 using Moq;
 using Tableau.Migration.Content;
 using Tableau.Migration.Engine.Hooks.Mappings;
 using Tableau.Migration.Engine.Hooks.Mappings.Default;
 using Tableau.Migration.Engine.Options;
-using Tableau.Migration.Resources;
 using Xunit;
 
 namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Mappings.Default
@@ -31,19 +29,16 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Mappings.Default
     {
         public class ExecuteAsync : AutoFixtureTestBase
         {
-            private readonly Mock<ISharedResourcesLocalizer> _mockLocalizer = new();
-            private readonly Mock<ILogger<AuthenticationTypeDomainMapping>> _mockLogger = new();
-
             [Fact]
             public async Task MapsUserDomainAsync()
             {
-                var mockOptions = Create<Mock<IMigrationPlanOptionsProvider<AuthenticationTypeDomainMappingOptions>>>();
+                var mockOptions = Freeze<Mock<IMigrationPlanOptionsProvider<AuthenticationTypeDomainMappingOptions>>>();
                 mockOptions.Setup(x => x.Get()).Returns(new AuthenticationTypeDomainMappingOptions
                 {
                     UserDomain = "userDomain"
                 });
 
-                var mapping = new AuthenticationTypeDomainMapping(mockOptions.Object, _mockLocalizer.Object, _mockLogger.Object);
+                var mapping = Create<AuthenticationTypeDomainMapping>();
 
                 var ctx = Create<ContentMappingContext<IUser>>();
                 var result = await mapping.ExecuteAsync(ctx, new());
@@ -59,13 +54,13 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Mappings.Default
             [Fact]
             public async Task MapsGroupDomainAsync()
             {
-                var mockOptions = Create<Mock<IMigrationPlanOptionsProvider<AuthenticationTypeDomainMappingOptions>>>();
+                var mockOptions = Freeze<Mock<IMigrationPlanOptionsProvider<AuthenticationTypeDomainMappingOptions>>>();
                 mockOptions.Setup(x => x.Get()).Returns(new AuthenticationTypeDomainMappingOptions
                 {
                     GroupDomain = "groupDomain"
                 });
 
-                var mapping = new AuthenticationTypeDomainMapping(mockOptions.Object, _mockLocalizer.Object, _mockLogger.Object);
+                var mapping = Create<AuthenticationTypeDomainMapping>();
 
                 var ctx = Create<ContentMappingContext<IGroup>>();
                 var result = await mapping.ExecuteAsync(ctx, new());

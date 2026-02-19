@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -31,5 +31,11 @@ namespace Tableau.Migration.Engine.Actions
         /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>An awaitable task for the overall action result.</returns>
         Task<IMigrationActionResult> ExecuteAsync(CancellationToken cancel);
+
+        /// <summary>
+        /// Gets the display name for this action.
+        /// </summary>
+        /// <returns>The action display name.</returns>
+        string DisplayName { get; }
     }
 }

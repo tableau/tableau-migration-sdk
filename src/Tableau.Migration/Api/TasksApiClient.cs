@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -21,6 +21,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Tableau.Migration.Api.Models.Cloud;
+using Tableau.Migration.Api.Paging;
 using Tableau.Migration.Api.Rest;
 using Tableau.Migration.Api.Rest.Models.Requests.Cloud;
 using Tableau.Migration.Api.Rest.Models.Responses;
@@ -195,6 +196,36 @@ namespace Tableau.Migration.Api
 
         #endregion
 
+        #region - IReadApiClient<IServerExtractRefreshTask> Implementation -
+
+        /// <inheritdoc />
+        async Task<IResult<IServerExtractRefreshTask>> IReadApiClient<IServerExtractRefreshTask>.GetByIdAsync(Guid contentId, CancellationToken cancel)
+        {
+            AssertInstanceType(TableauInstanceType.Server, _sessionProvider.InstanceType, throwOnFailure: true);
+
+            return await GetExtractRefreshTaskAsync<ServerResponses.ExtractRefreshTaskResponse, IServerExtractRefreshTask, IServerSchedule>(
+                contentId,
+                (r, c) => ServerExtractRefreshTask.CreateAsync(r, ContentFinderFactory, _contentCacheFactory, Logger, SharedResourcesLocalizer, c),
+                cancel).ConfigureAwait(false);
+        }
+
+        #endregion
+
+        #region - IReadApiClient<ICloudExtractRefreshTask> Implementation -
+
+        /// <inheritdoc />
+        async Task<IResult<ICloudExtractRefreshTask>> IReadApiClient<ICloudExtractRefreshTask>.GetByIdAsync(Guid contentId, CancellationToken cancel)
+        {
+            AssertInstanceType(TableauInstanceType.Cloud, _sessionProvider.InstanceType, throwOnFailure: true);
+
+            return await GetExtractRefreshTaskAsync<CloudResponses.ExtractRefreshTaskResponse, ICloudExtractRefreshTask, ICloudSchedule>(
+                contentId,
+                (r, c) => CloudExtractRefreshTask.CreateAsync(r, ContentFinderFactory, Logger, SharedResourcesLocalizer, c),
+                cancel).ConfigureAwait(false);
+        }
+
+        #endregion
+
         private async Task<IResult<IImmutableList<TExtractRefreshTask>>> GetAllExtractRefreshTasksAsync<TResponse, TExtractRefreshTask, TSchedule>(
             Func<TResponse, CancellationToken, Task<IImmutableList<TExtractRefreshTask>>> responseItemFactory,
             CancellationToken cancel)
@@ -204,6 +235,24 @@ namespace Tableau.Migration.Api
         {
             return await RestRequestBuilderFactory
                 .CreateUri($"{UrlPrefix}/{RestUrlKeywords.ExtractRefreshes}")
+                .ForGetRequest()
+                .SendAsync<TResponse>(cancel)
+                .ToResultAsync(
+                    (r, c) => responseItemFactory(r, c),
+                    SharedResourcesLocalizer,
+                    cancel)
+                .ConfigureAwait(false);
+        }
+
+        private async Task<IResult<TExtractRefreshTask>> GetExtractRefreshTaskAsync<TResponse, TExtractRefreshTask, TSchedule>(Guid id,
+            Func<TResponse, CancellationToken, Task<TExtractRefreshTask>> responseItemFactory,
+            CancellationToken cancel)
+            where TResponse : TableauServerResponse
+            where TExtractRefreshTask : class, IExtractRefreshTask<TSchedule>
+            where TSchedule : ISchedule
+        {
+            return await RestRequestBuilderFactory
+                .CreateUri($"{UrlPrefix}/{RestUrlKeywords.ExtractRefreshes}/{id.ToUrlSegment()}")
                 .ForGetRequest()
                 .SendAsync<TResponse>(cancel)
                 .ToResultAsync(

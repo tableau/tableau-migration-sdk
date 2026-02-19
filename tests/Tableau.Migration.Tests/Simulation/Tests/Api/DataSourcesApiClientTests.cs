@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -15,7 +15,6 @@
 //  limitations under the License.
 //
 
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Moq;
@@ -36,10 +35,10 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
         public class DataSourcesApiClientTest : ApiClientTestBase<IDataSourcesApiClient, DataSourceResponse.DataSourceType>
         { }
 
-        public class GetAllPublishedDataSourcesAsync : DataSourcesApiClientTest
+        public class GetPageAsync : DataSourcesApiClientTest
         {
             [Fact]
-            public async Task Returns_success_on_success()
+            public async Task SucceedsAsync()
             {
                 // Arrange 
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
@@ -60,7 +59,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
                 }
 
                 // Act
-                var result = await sitesClient.DataSources.GetAllPublishedDataSourcesAsync(1, 5, Cancel);
+                var result = await sitesClient.DataSources.GetPageAsync(1, 5, Cancel);
 
                 // Assert                
                 Assert.Empty(result.Errors);
@@ -69,7 +68,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
                 Assert.Equal(5, result.Value.Count);
 
                 // Act
-                result = await sitesClient.DataSources.GetAllPublishedDataSourcesAsync(2, 5, Cancel);
+                result = await sitesClient.DataSources.GetPageAsync(2, 5, Cancel);
 
                 // Assert                
                 Assert.Empty(result.Errors);
@@ -78,7 +77,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
                 Assert.Equal(5, result.Value.Count);
 
                 // Act
-                result = await sitesClient.DataSources.GetAllPublishedDataSourcesAsync(3, 5, Cancel);
+                result = await sitesClient.DataSources.GetPageAsync(3, 5, Cancel);
 
                 // Assert                
                 Assert.Empty(result.Errors);
@@ -91,7 +90,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
         public class PublishDataSourceAsync : DataSourcesApiClientTest
         {
             [Fact]
-            public async Task Returns_success_on_success()
+            public async Task SucceedsAsync()
             {
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
 
@@ -117,7 +116,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
         public class PublishAsync : DataSourcesApiClientTest
         {
             [Fact]
-            public async Task Returns_success_on_success()
+            public async Task SucceedsAsync()
             {
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
 
@@ -144,31 +143,27 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
             }
         }
 
-        public class GetDataSourceAsync : DataSourcesApiClientTest
+        public class GetByIdAsync : DataSourcesApiClientTest
         {
             [Fact]
-            public async Task Returns_success_on_success()
+            public async Task SucceedsAsync()
             {
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
 
                 var dataSource = Api.Data.CreateDataSource(AutoFixture);
 
-                var result = await sitesClient.DataSources.GetDataSourceAsync(
-                    dataSource.Id,
-                    Cancel);
+                var result = await sitesClient.DataSources.GetByIdAsync(dataSource.Id, Cancel);
 
                 Assert.Empty(result.Errors);
                 Assert.True(result.Success);
                 Assert.NotNull(result.Value);
-                Assert.NotNull(result.Value.CertificationNote);
-                Assert.Equal(dataSource.CertificationNote, result.Value.CertificationNote);
             }
         }
 
         public class UpdateDataSourceAsync : DataSourcesApiClientTest
         {
             [Fact]
-            public async Task No_changes_returns_success()
+            public async Task NoChangesAsync()
             {
                 // Arrange
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
@@ -193,7 +188,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
             }
 
             [Fact]
-            public async Task Set_name_returns_success()
+            public async Task SetNameAsync()
             {
                 // Arrange
                 var newName = "Test1234";
@@ -220,7 +215,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
             }
 
             [Fact]
-            public async Task Set_certification_returns_success()
+            public async Task SetCertificationAsync()
             {
                 // Arrange
                 var newCertification = "New Certification Note";
@@ -248,7 +243,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
             }
 
             [Fact]
-            public async Task Clear_certification_returns_success()
+            public async Task ClearCertificationAsync()
             {
                 // Arrange
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
@@ -276,7 +271,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
             }
 
             [Fact]
-            public async Task Set_encrypt_extracts_returns_success()
+            public async Task SetEncryptExtractsAsync()
             {
                 // Arrange
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
@@ -303,7 +298,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
             }
 
             [Fact]
-            public async Task Set_project_returns_success()
+            public async Task SetProjectAsync()
             {
                 // Arrange
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
@@ -341,7 +336,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
             }
 
             [Fact]
-            public async Task Set_owner_returns_success()
+            public async Task SetOwnerAsync()
             {
                 // Arrange
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
@@ -381,7 +376,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
         public class AddTagsAsync : DataSourcesApiClientTest
         {
             [Fact]
-            public async Task Returns_success_on_success()
+            public async Task SucceedsAsync()
             {
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
 
@@ -402,9 +397,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
                 Assert.Empty(result.Errors);
                 Assert.True(result.Success);
 
-                var getResult = await sitesClient.DataSources.GetDataSourceAsync(
-                    dataSource.Id,
-                    Cancel);
+                var getResult = await sitesClient.DataSources.GetByIdAsync(dataSource.Id, Cancel);
 
                 Assert.Empty(getResult.Errors);
                 Assert.True(getResult.Success);
@@ -413,7 +406,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
             }
 
             [Fact]
-            public async Task No_Duplicates_Inserted()
+            public async Task NoDuplicatesAsync()
             {
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
 
@@ -433,9 +426,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
                 Assert.Empty(result.Errors);
                 Assert.True(result.Success);
 
-                var getResult = await sitesClient.DataSources.GetDataSourceAsync(
-                    dataSource.Id,
-                    Cancel);
+                var getResult = await sitesClient.DataSources.GetByIdAsync(dataSource.Id, Cancel);
 
                 Assert.Empty(getResult.Errors);
                 Assert.True(getResult.Success);
@@ -449,7 +440,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
         public class RemoveTagsAsync : DataSourcesApiClientTest
         {
             [Fact]
-            public async Task Returns_success_on_success()
+            public async Task SucceedsAsync()
             {
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
 
@@ -467,9 +458,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
                 Assert.Empty(result.Errors);
                 Assert.True(result.Success);
 
-                var getResult = await sitesClient.DataSources.GetDataSourceAsync(
-                    dataSource.Id,
-                    Cancel);
+                var getResult = await sitesClient.DataSources.GetByIdAsync(dataSource.Id, Cancel);
 
                 Assert.Empty(getResult.Errors);
                 Assert.True(getResult.Success);
@@ -481,7 +470,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
         public class PullAsync : DataSourcesApiClientTest
         {
             [Fact]
-            public async Task Returns_success_on_success()
+            public async Task SucceedsAsync()
             {
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
 
@@ -507,7 +496,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
         public class ListConnectionsAsync : DataSourcesApiClientTest
         {
             [Fact]
-            public async Task Returns_success_on_success()
+            public async Task SucceedsAsync()
             {
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
                 var project = Create<ProjectsResponse.ProjectType>();
@@ -527,7 +516,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
         public class UpdateConnectionAsync : DataSourcesApiClientTest
         {
             [Fact]
-            public async Task Returns_success_on_success()
+            public async Task SucceedsAsync()
             {
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
                 var project = Create<ProjectsResponse.ProjectType>();

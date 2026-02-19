@@ -82,6 +82,10 @@ import tableau_migration
 # load_dotenv()
 ```
 
+### Default Permissions for Virtual Connections and Flows
+
+When migrating from Tableau Server to Tableau Cloud without Data Management Add-on, applying default permissions for `All Users` for Virtual Connections and Flows may not be desired. To skip applying default permissions to these specific content types, the migration must be configured using `DefaultPermissionsContentTypeOptions`. See [DefaultPermissionsContentTypeOptions](~/articles/configuration/index.md#defaultpermissionscontenttype) for further details on configuration.
+
 ## Errors and Warnings
 
 This section provides a list of potential error and warning log messages that you may encounter in the logs. Each entry includes a description to assist you in debugging.

@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -21,6 +21,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Tableau.Migration.Config;
+using Tableau.Migration.Net.Resilience;
 using Tableau.Migration.Resources;
 
 namespace Tableau.Migration.Net.Logging
@@ -44,7 +45,7 @@ namespace Tableau.Migration.Net.Logging
         public void LogRequestStarted(HttpRequestMessage request)
         {
             var config = _configReader.Get().Network;
-            if(!config.RequestsLoggingEnabled)
+            if (!config.RequestsLoggingEnabled)
             {
                 return;
             }
@@ -62,14 +63,14 @@ namespace Tableau.Migration.Net.Logging
         {
             var config = _configReader.Get().Network;
             var detailsBuilder = new HttpActivityDetailsBuilder(config, _contentRedactor, _localizer);
-                
+
             detailsBuilder.AddHttpHeaderDetails(request, response);
             await detailsBuilder.AddHttpContentDetailsAsync(request, response, cancel).ConfigureAwait(false);
 
             var correlationId = response.Headers.GetCorrelationId();
 
             _logger.Log(
-                response.IsSuccessStatusCode ? LogLevel.Information : LogLevel.Warning,
+                DetermineLogLevel(response, config.Resilience),
                 _localizer[SharedResourceKeys.HttpActivityLogMessage],
                 request.Method,
                 request.RequestUri,
@@ -77,13 +78,24 @@ namespace Tableau.Migration.Net.Logging
                 correlationId,
                 duration.TotalMilliseconds,
                 detailsBuilder.Build());
+
+            static LogLevel DetermineLogLevel(HttpResponseMessage response, ResilienceOptions resilienceOptions)
+            {
+                if (response.IsSuccessStatusCode)
+                {
+                    return LogLevel.Information;
+                }
+
+                return RetryStrategyBuilder.IsStatusCodeRetriable(response.StatusCode, resilienceOptions) ? LogLevel.Warning : LogLevel.Error;
+            }
         }
+
 
         public async Task LogExceptionAsync(HttpRequestMessage request, Exception exception, TimeSpan duration, CancellationToken cancel)
         {
             var config = _configReader.Get().Network;
             var detailsBuilder = new HttpActivityDetailsBuilder(config, _contentRedactor, _localizer);
-                
+
             detailsBuilder.AddHttpHeaderDetails(request);
             await detailsBuilder.AddHttpContentDetailsAsync(request, null, cancel).ConfigureAwait(false);
             detailsBuilder.AddHttpExceptionDetails(exception);

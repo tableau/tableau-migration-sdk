@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -19,6 +19,8 @@ using System.Collections.Immutable;
 using Tableau.Migration.Content.Search;
 using Tableau.Migration.Engine.Actions;
 using Tableau.Migration.Engine.Conversion;
+using Tableau.Migration.Engine.Endpoints;
+using Tableau.Migration.Engine.Endpoints.Caching;
 using Tableau.Migration.Engine.Endpoints.Search;
 using Tableau.Migration.Engine.Migrators;
 using Tableau.Migration.Engine.Migrators.Batch;
@@ -43,6 +45,13 @@ namespace Tableau.Migration.Engine.Pipelines
         /// <returns>The content type level migrator.</returns>
         IContentMigrator<TContent> GetMigrator<TContent>()
             where TContent : class, IContentReference;
+
+        /// <summary>
+        /// Gets a loader for the given content type.
+        /// </summary>
+        /// <typeparam name="TContent">The content type.</typeparam>
+        /// <returns>The content loader.</returns>
+        IMigrationContentLoader<TContent> GetContentLoader<TContent>();
 
         /// <summary>
         /// Gets a batch level migrator for the given content type.
@@ -73,6 +82,38 @@ namespace Tableau.Migration.Engine.Pipelines
         IContentItemConverter<TPrepare, TPublish> GetItemConverter<TPrepare, TPublish>()
             where TPrepare : class
             where TPublish : class;
+
+        /// <summary>
+        /// Gets the source content finder for the given content type.
+        /// </summary>
+        /// <typeparam name="TContent">The content type.</typeparam>
+        /// <returns>The source content finder.</returns>
+        ISourceContentReferenceFinder<TContent> CreateSourceContentReferenceFinder<TContent>()
+            where TContent : IContentReference;
+
+        /// <summary>
+        /// Gets the destination content finder for the given content type.
+        /// </summary>
+        /// <typeparam name="TContent">The content type.</typeparam>
+        /// <returns>The destination content finder.</returns>
+        IDestinationContentReferenceFinder<TContent> CreateDestinationContentReferenceFinder<TContent>()
+            where TContent : IContentReference;
+
+        /// <summary>
+        /// Gets the source cache loading strategy for the given content type.
+        /// </summary>
+        /// <typeparam name="TContent">The content type.</typeparam>
+        /// <returns>The source cache loading strategy.</returns>
+        IContentReferenceCacheLoadStrategy<TContent> CreateSourceCacheLoadStrategy<TContent>()
+            where TContent : IContentReference;
+
+        /// <summary>
+        /// Gets the destination cache loading strategy for the given content type.
+        /// </summary>
+        /// <typeparam name="TContent">The content type.</typeparam>
+        /// <returns>The destination cache loading strategy.</returns>
+        IContentReferenceCacheLoadStrategy<TContent> CreateDestinationCacheLoadStrategy<TContent>()
+            where TContent : IContentReference;
 
         /// <summary>
         /// Gets the source cache for the given content type.

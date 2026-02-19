@@ -14,7 +14,7 @@ It will also log every errored **Request**/**Response** as an **Error** message 
 > Tableau.Migration.Net.NetworkTraceLogger: Error: HTTP GET "https://localhost/api/2.4/serverinfo" failed. Error: "An error occurred while sending the request.".
 ```
 
-As part of the included tracings, it is possible to [configure](configuration.md) the level of details for each log message by setting the following configuration parameters:
+As part of the included tracings, it is possible to [configure](~/articles/configuration/index.md) the level of details for each log message by setting the following configuration parameters:
 
 - [Network.RequestsLoggingEnabled](xref:Tableau.Migration.Config.NetworkOptions#Tableau_Migration_Config_NetworkOptions_RequestsLoggingEnabled): Indicates whether the SDK logs request start events. The default value is enabled.
 - [Network.HeadersLoggingEnabled](xref:Tableau.Migration.Config.NetworkOptions#Tableau_Migration_Config_NetworkOptions_HeadersLoggingEnabled): Indicates whether the SDK logs request/response headers. The default value is disabled.

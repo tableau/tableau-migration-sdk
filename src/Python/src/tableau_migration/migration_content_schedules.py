@@ -1,4 +1,4 @@
-# Copyright (c) 2025, Salesforce, Inc.
+# Copyright (c) 2026, Salesforce, Inc.
 # SPDX-License-Identifier: Apache-2
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,7 +26,7 @@ from tableau_migration.migration import (  # noqa: E402, F401
 from typing import (  # noqa: E402, F401
     Generic,
     TypeVar,
-    List
+    Sequence
 )
 
 from System import TimeOnly # noqa: E402, F401
@@ -189,12 +189,12 @@ class PyFrequencyDetails():
         self._dotnet.EndAt = None if value is None else TimeOnly.Parse(str(value))
     
     @property
-    def intervals(self) -> List[PyInterval]:
+    def intervals(self) -> Sequence[PyInterval]:
         """Gets the schedule's intervals."""
         return [] if self._dotnet.Intervals is None else [PyInterval(x) for x in self._dotnet.Intervals if x is not None]
     
     @intervals.setter
-    def intervals(self, value: List[PyInterval]) -> None:
+    def intervals(self, value: Sequence[PyInterval]) -> None:
         """Gets the schedule's intervals."""
         if value is None:
             self._dotnet.Intervals = DotnetList[IInterval]()

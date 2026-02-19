@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -32,7 +32,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
         public abstract class MappedReferenceExtractRefreshTaskTransformerTest : AutoFixtureTestBase
         {
             protected readonly Mock<IDestinationContentReferenceFinderFactory> MockDestinationContentReferenceFinderFactory = new();
-            protected readonly Mock<ILogger<MappedReferenceExtractRefreshTaskTransformer>> MockLogger = new();
+            protected readonly Mock<ILogger<MappedReferenceExtractRefreshTaskTransformer>> MockLogger;
             protected readonly MockSharedResourcesLocalizer MockSharedResourcesLocalizer = new();
             protected readonly Mock<IDestinationContentReferenceFinder<IWorkbook>> MockWorkbookContentFinder = new();
             protected readonly Mock<IDestinationContentReferenceFinder<IDataSource>> MockDatasourceContentFinder = new();
@@ -41,6 +41,8 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
 
             public MappedReferenceExtractRefreshTaskTransformerTest()
             {
+                MockLogger = Create<Mock<ILogger<MappedReferenceExtractRefreshTaskTransformer>>>();
+
                 MockDestinationContentReferenceFinderFactory.Setup(p => p.ForDestinationContentType<IWorkbook>()).Returns(MockWorkbookContentFinder.Object);
                 MockDestinationContentReferenceFinderFactory.Setup(p => p.ForDestinationContentType<IDataSource>()).Returns(MockDatasourceContentFinder.Object);
 
@@ -51,19 +53,25 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
         public class ExecuteAsync : MappedReferenceExtractRefreshTaskTransformerTest
         {
             [Fact]
-            public async Task Returns_the_same_object()
+            public async Task ReturnsSameObjectAsync()
             {
                 var extractRefreshTask = Create<ICloudExtractRefreshTask>();
+
+                var sourceWorkbook = Create<IContentReference>();
+                extractRefreshTask.ContentType = ExtractRefreshContentType.Workbook;
+                extractRefreshTask.Content = sourceWorkbook;
+
+                var destinationWorkbook = Create<IContentReference>();
+                MockWorkbookContentFinder.Setup(f => f.FindBySourceIdAsync(sourceWorkbook.Id, Cancel)).ReturnsAsync(destinationWorkbook);
 
                 var result = await Transformer.TransformAsync(extractRefreshTask, Cancel);
 
                 Assert.NotNull(result);
                 Assert.Same(extractRefreshTask, result);
-                MockLogger.VerifyWarnings(Times.Once);
             }
 
             [Fact]
-            public async Task Returns_destination_workbook_when_found()
+            public async Task ReturnsDestinationWorkbookWhenFoundAsync()
             {
                 var extractRefreshTask = Create<ICloudExtractRefreshTask>();
                 var sourceWorkbook = Create<IContentReference>();
@@ -82,7 +90,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
             }
 
             [Fact]
-            public async Task Returns_destination_datasource_when_found()
+            public async Task ReturnsDestinationDatasourceWhenFoundAsync()
             {
                 var extractRefreshTask = Create<ICloudExtractRefreshTask>();
                 var sourceDataSource = Create<IContentReference>();

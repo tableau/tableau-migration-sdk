@@ -1,5 +1,5 @@
 //
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -48,6 +48,8 @@ using Tableau.Migration.Engine.Migrators.Batch;
 using Tableau.Migration.Engine.Options;
 using Tableau.Migration.Engine.Pipelines;
 using Tableau.Migration.Engine.Preparation;
+using Tableau.Migration.Engine.Services;
+using static Tableau.Migration.Engine.Services.MigrationServices;
 
 namespace Tableau.Migration.Engine
 {
@@ -108,6 +110,8 @@ namespace Tableau.Migration.Engine
             .AddScoped<IContentTransformerRunner, ContentTransformerRunner>();
 
         private static IServiceCollection AddPlanBuildingServices(this IServiceCollection services) => services
+            .AddSingleton<IMigrationServiceBuilderFactory, MigrationServiceBuilderFactory>()
+            .AddTransient<IMigrationPlanEndpointBuilder, MigrationPlanEndpointBuilder>()
             .AddSingleton<IMigrationPlanBuilderFactory, MigrationPlanBuilderFactory>()
             .AddTransient<IMigrationPlanBuilder, MigrationPlanBuilder>()
             .AddTransient<IMigrationPlanOptionsBuilder, MigrationPlanOptionsBuilder>()
@@ -142,19 +146,24 @@ namespace Tableau.Migration.Engine
 
         private static IServiceCollection AddCacheServices(this IServiceCollection services) => services
             //Register concrete types so that the easy way to get interface types is through IMigrationPipeline.
-            .AddScoped(typeof(BulkSourceCache<>))
-            .AddScoped(typeof(BulkDestinationCache<>))
-            .AddScoped<BulkDestinationProjectCache>()
+            .AddSingleton(typeof(LazyContentReferenceCacheLoadStrategyProvider<>))
+            .AddSingleton(typeof(IContentReferenceCacheLoadStrategyProvider<>), typeof(BulkContentReferenceCacheLoadStrategyProvider<>))
+            .AddScoped(typeof(SourceCache<>))
+            .AddScoped(typeof(IManifestUpdateSourceContentReferenceCache<>), typeof(SourceCache<>))
+            .AddScoped(typeof(DestinationCache<>))
+            .AddScoped<DestinationProjectCache>()
             .AddScoped<IUserSavedCredentialsCache, UserSavedCredentialsCache>()
             .AddScoped<IDestinationAuthenticationConfigurationsCache, BulkApiAuthenticationConfigurationsCache>()
             .AddScoped<IEndpointViewCache, TableauApiEndpointViewCache>()
             .AddScoped<IEndpointWorkbookViewsCache, TableauApiEndpointWorkbookViewsCache>();
 
         private static IServiceCollection AddContentFinderServices(this IServiceCollection services) => services
+            .AddSingleton(typeof(EmptyMigrationContentLoader<>))
+            .AddScoped(typeof(IMigrationContentLoader<>), typeof(SourceEndpointMigrationContentLoader<>))
             .AddScoped(typeof(ISourceContentReferenceFinder<>), typeof(ManifestSourceContentReferenceFinder<>))
-            .AddScoped<ISourceContentReferenceFinderFactory, ManifestSourceContentReferenceFinderFactory>()
+            .AddScoped<ISourceContentReferenceFinderFactory, SourceContentReferenceFinderFactory>()
             .AddScoped(typeof(IDestinationContentReferenceFinder<>), typeof(ManifestDestinationContentReferenceFinder<>))
-            .AddScoped<IDestinationContentReferenceFinderFactory, ManifestDestinationContentReferenceFinderFactory>()
+            .AddScoped<IDestinationContentReferenceFinderFactory, DestinationContentReferenceFinderFactory>()
             .AddScoped<IDestinationViewReferenceFinder, DestinationViewReferenceFinder>();
 
         private static IServiceCollection AddPipelineServices(this IServiceCollection services) => services
@@ -178,10 +187,13 @@ namespace Tableau.Migration.Engine
 
         private static IServiceCollection AddDefaultFilterServices(this IServiceCollection services) => services
             .AddScoped(typeof(PreviouslyMigratedFilter<>))
+            .AddScoped(typeof(SkipAllFilter<>))
             .AddScoped<GroupAllUsersFilter>()
             .AddScoped<UserSiteRoleSupportUserFilter>()
             .AddScoped(typeof(SystemOwnershipFilter<>))
-            .AddScoped<FavoriteFilter>();
+            .AddScoped<FavoriteFilter>()
+            .AddScoped(typeof(LargeContentFilter<>))
+            .AddScoped<ServerSubscriptionFilter>();
 
         private static IServiceCollection AddDefaultMappingServices(this IServiceCollection services) => services
             .AddScoped<AuthenticationTypeDomainMapping>()
@@ -198,7 +210,6 @@ namespace Tableau.Migration.Engine
             .AddScoped<MappedReferenceExtractRefreshTaskTransformer>()
             .AddScoped(typeof(EncryptExtractTransformer<>))
             .AddScoped<PermissionsTransformer>()
-            .AddScoped<IMappedUserTransformer, MappedUserTransformer>()
             .AddScoped(typeof(WorkbookReferenceTransformer<>))
             .AddScoped<CustomViewDefaultUserReferencesTransformer>()
             .AddScoped<SubscriptionTransformer>()
@@ -215,7 +226,8 @@ namespace Tableau.Migration.Engine
             .AddScoped<CustomViewDefaultUsersPostPublishHook>()
             .AddScoped(typeof(EmbeddedCredentialsItemPostPublishHook<,>))
             .AddScoped<DeleteUserFavoritesPostPublishHook>()
-            .AddScoped<PopulateViewCachePostPublishHook>();
+            .AddScoped<PopulateViewCachePostPublishHook>()
+            .AddScoped<CleanupViewsPostPublishHook>();
 
         private static IServiceCollection AddFileStoreServices(this IServiceCollection services) => services
             .AddScoped<MigrationDirectoryContentFileStore>()

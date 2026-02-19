@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -63,10 +63,10 @@ namespace Tableau.Migration.Tests.Unit.Api
 
         #region - List -
 
-        public class ListClient : PagedListApiClientTestBase<ICustomViewsApiClient, ICustomView, CustomViewsResponse>
+        public class ListClient : NameSearchApiClientTestBase<ICustomViewsApiClient, ICustomView, CustomViewsResponse>
         { }
 
-        public class PageAccessor : ApiPageAccessorTestBase<ICustomViewsApiClient, ICustomView, CustomViewsResponse>
+        public class PageAccessor : ApiFilteredPageAccessorTestBase<ICustomViewsApiClient, ICustomView, CustomViewsResponse>
         { }
 
         #endregion
@@ -497,6 +497,7 @@ namespace Tableau.Migration.Tests.Unit.Api
         #endregion
 
         #region - PullAsync -
+
         public class PullAsync : CustomViewsApiClientTest
         {
             private ByteArrayContent? SetupFileDownloadResponse(
@@ -575,7 +576,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async Task FileDownloadFailureResponse()
+            public async Task FileDownloadFailureResponseAsync()
             {
                 // Setup mocking for file download
                 var exception = new Exception();
@@ -597,7 +598,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async Task DefaultUsersFailureResponse()
+            public async Task DefaultUsersFailureResponseAsync()
             {
                 // Setup mocking for file download
                 SetupFileDownloadResponse();
@@ -618,6 +619,7 @@ namespace Tableau.Migration.Tests.Unit.Api
                 var requests = MockHttpClient.AssertRequestCount(2);
             }
         }
+
         #endregion
 
         #region - DeleteCustomViewAsync -
@@ -625,7 +627,7 @@ namespace Tableau.Migration.Tests.Unit.Api
         public class DeleteCustomViewAsync : CustomViewsApiClientTest
         {
             [Fact]
-            public async Task Success()
+            public async Task SuccessAsync()
             {
                 //Setup
                 var customViewId = Guid.NewGuid();
@@ -646,7 +648,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async Task Failure()
+            public async Task FailureAsync()
             {
                 //Setup
                 var customViewId = Guid.NewGuid();
@@ -768,6 +770,7 @@ namespace Tableau.Migration.Tests.Unit.Api
         #endregion
 
         #region - PublishCustomViewAsync -
+
         public class PublishCustomViewAsync : CustomViewsApiClientTest
         {
             public PublishCustomViewAsync()
@@ -819,7 +822,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async Task Publish_fails()
+            public async Task PublishFailsAsync()
             {
                 SetupErrorResponse<FileUploadResponse>();
 
@@ -832,7 +835,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async Task Publish_succeeds_on_existing_custom_view()
+            public async Task ExistingCustomViewAsync()
             {
                 SetupFileUploadErrorResponse(RestErrorCodes.CUSTOM_VIEW_ALREADY_EXISTS);
                 SetupSuccessResponse();
@@ -852,7 +855,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async Task Publish_fails_for_reasons_other_than_existing_custom_view()
+            public async Task UploadErrorAsync()
             {
                 SetupFileUploadErrorResponse(CreateString());
 

@@ -1,4 +1,4 @@
-# Copyright (c) 2025, Salesforce, Inc.
+# Copyright (c) 2026, Salesforce, Inc.
 # SPDX-License-Identifier: Apache-2
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -52,9 +52,12 @@ if os.environ.get('MIG_SDK_PYTHON_BUILD', 'false').lower() == 'true':
 else:
     print("MIG_SDK_PYTHON_BUILD set to false. Skipping dotnet build for python tests.")
 
+_test_bin_path = abspath(Path(__file__).parent.resolve().__str__() + "/../../../dist/tests")
+sys.path.append(_test_bin_path)
+
 def add_assembly_reference(name,add_by_path):        
     if add_by_path:
-        assemblyPath = _bin_path+ "/"+ name + ".dll"
+        assemblyPath = _test_bin_path+ "/"+ name + ".dll"
         assembly = Assembly.LoadFile(assemblyPath)
         print(f"Added reference to {assembly.GetName().Name} v{assembly.GetName().Version} Full Name: {assembly.FullName}")
     else:

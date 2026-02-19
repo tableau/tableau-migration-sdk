@@ -15,7 +15,7 @@ The action that migrates Content Items of a certain Content Type.
 
 ## Migration Plan
 
-A migration plan describes how a migration should be done and what customizations must be done inflight. The [`IMigrationPlan`](xref:Tableau.Migration.IMigrationPlan) interface defines the Migration Plan structure. See [Basic Configuration](~/articles/configuration.md#basic-configuration) for more guidance on the Migration Plan and how to use it.
+A migration plan describes how a migration should be done and what customizations must be done inflight. The [`IMigrationPlan`](xref:Tableau.Migration.IMigrationPlan) interface defines the Migration Plan structure. See [Basic Configuration](~/articles/configuration/index.md#basic-configuration) for more guidance on the Migration Plan and how to use it.
 
 ## Plan Builder
 

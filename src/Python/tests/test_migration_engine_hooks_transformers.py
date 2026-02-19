@@ -1,4 +1,4 @@
-# Copyright (c) 2025, Salesforce, Inc.
+# Copyright (c) 2026, Salesforce, Inc.
 # SPDX-License-Identifier: Apache-2
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,6 +17,7 @@ from typing import TypeVar
 from uuid import UUID, uuid4
 from xml.etree import ElementTree
 
+from tableau_migration.migration import PyContentReference
 from tableau_migration.migration_api_rest_models import PyPermissionsCapabilityModes, PyPermissionsCapabilityNames
 from tableau_migration.migration_content import PyPublishableWorkbook, PyUser
 from tableau_migration.migration_content_permissions import PyCapability, PyGranteeCapability, PyGranteeType, PyPermissionSet
@@ -258,6 +259,7 @@ class TestXmlTransformerInterop(AutoFixtureTestBase):
 test_grantee_id = uuid4()
 class PyPermissionTransformer(PyContentTransformerBase[PyPermissionSet]):
     def transform(self, item_to_transform: PyPermissionSet) -> PyPermissionSet:
+
         item_to_transform.grantee_capabilities = [
             PyGranteeCapability.create(PyGranteeType.USER, test_grantee_id, [PyCapability.create(PyPermissionsCapabilityNames.DELETE, PyPermissionsCapabilityModes.DENY)])
         ]

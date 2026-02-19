@@ -1,4 +1,4 @@
-# Copyright (c) 2025, Salesforce, Inc.
+# Copyright (c) 2026, Salesforce, Inc.
 # SPDX-License-Identifier: Apache-2
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,8 +35,20 @@ if os.environ.get('MIG_SDK_PYTHON_BUILD', 'false').lower() == 'true':
 else:
     print("MIG_SDK_PYTHON_BUILD set to false. Skipping dotnet build for python tests.")
 
+_test_bin_path = abspath(Path(__file__).parent.resolve().__str__() + "/../../../dist/tests")
+
 from tableau_migration import clr
-clr.AddReference("AutoFixture")
-clr.AddReference("AutoFixture.AutoMoq")
-clr.AddReference("Moq")
-clr.AddReference("Tableau.Migration.Tests")
+
+sys.path.append(_test_bin_path)
+
+# Load test assemblies
+assemblies_to_load = [
+    "AutoFixture",
+    "AutoFixture.AutoMoq",
+    "Moq",
+    "Tableau.Migration.Tests"
+]
+
+for assembly_name in assemblies_to_load:
+    assembly_path = os.path.join(_test_bin_path, assembly_name)
+    clr.AddReference(assembly_path)

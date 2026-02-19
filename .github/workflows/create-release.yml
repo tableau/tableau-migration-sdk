@@ -24,6 +24,10 @@ on:
         description: "The github environment that has the variables and secrets"
         required: true
         type: string
+      dotnet-build-version:
+        description: "The .NET version used for building"
+        required: true
+        type: string
 
 jobs:
   create-release:
@@ -34,7 +38,7 @@ jobs:
       # Create Release
       - name: Create Release
         id: create-release
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         env:
           RELEASE_VERSION: ${{ inputs.release-version }}
         with:
@@ -67,31 +71,31 @@ jobs:
 
       # Download Docs
       - name: Download Docs
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: docs
 
       # Download NuGet Package
       - name: Download NuGet Package
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
-          name: nuget-package
+          name: nuget-package-Release-net${{ inputs.dotnet-build-version }}
 
       # Download PyPI Package
       - name: Download PyPI Package
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: pypi-package-bundle
 
       # Generate Bundle
       - name: Generate Bundle
         run: |
-          zip -r bundle.zip ./Tableau.Migration.${{ inputs.release-version }}.nupkg docs.zip tableau_migration-pypi.zip
+          zip -r bundle.zip Tableau.Migration.${{ inputs.release-version }}.nupkg docs.zip tableau_migration-pypi.zip
 
       # Attach Release Artifacts
       - name: Attach Artifacts to Github Release
         id: upload-docs
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         env:
           RELEASE_VERSION: ${{ inputs.release-version }}
           RELEASE_ID: ${{ steps.create-release.outputs.result }}

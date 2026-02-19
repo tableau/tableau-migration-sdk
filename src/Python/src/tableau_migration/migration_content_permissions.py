@@ -1,4 +1,4 @@
-# Copyright (c) 2025, Salesforce, Inc.
+# Copyright (c) 2026, Salesforce, Inc.
 # SPDX-License-Identifier: Apache-2
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,9 +18,10 @@
 # region _generated
 
 from enum import IntEnum # noqa: E402, F401
+from tableau_migration.migration import PyContentReference # noqa: E402, F401
 from typing import (  # noqa: E402, F401
     Set,
-    List
+    Sequence
 )
 from uuid import UUID # noqa: E402, F401
 
@@ -70,6 +71,9 @@ class PyGranteeType(IntEnum):
     """The user grantee type."""
     USER = 1
     
+    """The group set grantee type."""
+    GROUP_SET = 2
+    
 class PyGranteeCapability():
     """Interface for the grantee of permissions."""
     
@@ -92,17 +96,22 @@ class PyGranteeCapability():
     
     @property
     def grantee_id(self) -> UUID:
-        """The Id for the User or Group grantee."""
+        """Gets the ID for grantee."""
         return None if self._dotnet.GranteeId is None else UUID(self._dotnet.GranteeId.ToString())
     
-    @grantee_id.setter
-    def grantee_id(self, value: UUID) -> None:
-        """The Id for the User or Group grantee."""
-        self._dotnet.GranteeId = None if value is None else Guid.Parse(str(value))
+    @property
+    def grantee(self) -> PyContentReference:
+        """Gets the grantee content reference."""
+        return None if self._dotnet.Grantee is None else PyContentReference(self._dotnet.Grantee)
+    
+    @grantee.setter
+    def grantee(self, value: PyContentReference) -> None:
+        """Gets the grantee content reference."""
+        self._dotnet.Grantee = None if value is None else value._dotnet
     
     @property
     def capabilities(self) -> Set[PyCapability]:
-        """The collection of capabilities of the grantee."""
+        """Gets the collection of capabilities of the grantee."""
         return [] if self._dotnet.Capabilities is None else [PyCapability(x) for x in self._dotnet.Capabilities if x is not None]
     
     def resolve_capability_mode_conflicts(self) -> None:
@@ -125,12 +134,12 @@ class PyPermissionSet():
         self._dotnet = permission_set
         
     @property
-    def grantee_capabilities(self) -> List[PyGranteeCapability]:
+    def grantee_capabilities(self) -> Sequence[PyGranteeCapability]:
         """Gets or sets the grantee capabilities of the permission set."""
         return [] if self._dotnet.GranteeCapabilities is None else [PyGranteeCapability(x) for x in self._dotnet.GranteeCapabilities if x is not None]
     
     @grantee_capabilities.setter
-    def grantee_capabilities(self, value: List[PyGranteeCapability]) -> None:
+    def grantee_capabilities(self, value: Sequence[PyGranteeCapability]) -> None:
         """Gets or sets the grantee capabilities of the permission set."""
         if value is None:
             self._dotnet.GranteeCapabilities = DotnetList[IGranteeCapability]()
@@ -163,7 +172,15 @@ class PyPermissions(PyPermissionSet):
 
 # endregion
 
+from typing import Union # noqa: E402, F401
+
 from migration_api_rest_models import PyPermissionsCapabilityModes, PyPermissionsCapabilityNames # noqa: E402, F401
+from Tableau.Migration import (  # noqa: E402, F401
+    ContentLocation
+)
+from Tableau.Migration.Content import (  # noqa: E402, F401
+    ContentReferenceStub
+)
 from Tableau.Migration.Content.Permissions import (  # noqa: E402, F401
     Capability,
     GranteeCapability,
@@ -175,13 +192,18 @@ def _create_capability(name: PyPermissionsCapabilityNames, mode: PyPermissionsCa
 
 PyCapability.create = _create_capability
 
-def _create_grantee_capability(grantee_type: PyGranteeType, grantee_id: UUID, capabilities: List[PyCapability]) -> PyGranteeCapability:
+def _create_grantee_capability(grantee_type: PyGranteeType, grantee: Union[PyContentReference, UUID], capabilities: Sequence[PyCapability]) -> PyGranteeCapability:
     
     dotnet_capabilities = DotnetList[ICapability]()
     if capabilities is not None:
         for x in filter(None, capabilities):
             dotnet_capabilities.Add(x._dotnet)
 
-    return PyGranteeCapability(GranteeCapability(GranteeType(int(grantee_type)), Guid.Parse(str(grantee_id)), dotnet_capabilities))
+    if isinstance(grantee, UUID):
+        dotnet_grantee = ContentReferenceStub(Guid.Parse(str(grantee)), "", ContentLocation(DotnetList[str]()))
+    else:
+        dotnet_grantee = grantee._dotnet
+
+    return PyGranteeCapability(GranteeCapability(GranteeType(int(grantee_type)), dotnet_grantee, dotnet_capabilities))
 
 PyGranteeCapability.create = _create_grantee_capability

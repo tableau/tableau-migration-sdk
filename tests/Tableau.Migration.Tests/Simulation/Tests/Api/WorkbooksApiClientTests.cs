@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -15,10 +15,11 @@
 //  limitations under the License.
 //
 
+using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoFixture;
 using Moq;
 using Tableau.Migration.Api;
 using Tableau.Migration.Api.Models;
@@ -42,12 +43,12 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
             protected override ICollection<WorkbookResponse.WorkbookType> GetContentData() => Api.Data.Workbooks;
         }
 
-        #region - GetAllWorkbooksAsync -
+        #region - GetPageAsync -
 
-        public class GetAllWorkbooksAsync : WorkbooksApiClientTest
+        public class GetPageAsync : WorkbooksApiClientTest
         {
             [Fact]
-            public async Task Returns_success_on_success()
+            public async Task SucceedsAsync()
             {
                 // Arrange 
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
@@ -55,7 +56,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
                 Api.Data.CreateWorkbooks(AutoFixture, 11);
 
                 // Act
-                var result = await sitesClient.Workbooks.GetAllWorkbooksAsync(1, 5, Cancel);
+                var result = await sitesClient.Workbooks.GetPageAsync(1, 5, Cancel);
 
                 // Assert                
                 Assert.Empty(result.Errors);
@@ -64,7 +65,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
                 Assert.Equal(5, result.Value.Count);
 
                 // Act
-                result = await sitesClient.Workbooks.GetAllWorkbooksAsync(2, 5, Cancel);
+                result = await sitesClient.Workbooks.GetPageAsync(2, 5, Cancel);
 
                 // Assert                
                 Assert.Empty(result.Errors);
@@ -73,7 +74,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
                 Assert.Equal(5, result.Value.Count);
 
                 // Act
-                result = await sitesClient.Workbooks.GetAllWorkbooksAsync(3, 5, Cancel);
+                result = await sitesClient.Workbooks.GetPageAsync(3, 5, Cancel);
 
                 // Assert                
                 Assert.Empty(result.Errors);
@@ -85,12 +86,12 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
 
         #endregion
 
-        #region - GetWorkbookAsync -
+        #region - GetByIdAsync -
 
-        public class GetWorkbookAsync : WorkbooksApiClientTest
+        public class GetByIdAsync : WorkbooksApiClientTest
         {
             [Fact]
-            public async Task Returns_success_on_success()
+            public async Task SucceedsAsync()
             {
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
                 var workbook = Api.Data.CreateWorkbook(AutoFixture);
@@ -107,7 +108,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
                     Api.Data.CreateViewPermissions(AutoFixture, view, view.Id, view.Name);
                 }
 
-                var result = await sitesClient.Workbooks.GetWorkbookAsync(workbook.Id, Cancel);
+                var result = await ((IReadApiClient<IWorkbookDetails>)sitesClient.Workbooks).GetByIdAsync(workbook.Id, Cancel);
 
                 Assert.Empty(result.Errors);
                 Assert.True(result.Success);
@@ -122,7 +123,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
         public class DownloadWorkbookAsync : WorkbooksApiClientTest
         {
             [Fact]
-            public async Task Returns_success_on_success()
+            public async Task SucceedsAsync()
             {
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
 
@@ -145,7 +146,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
         public class PublishWorkbookAsync : WorkbooksApiClientTest
         {
             [Fact]
-            public async Task Returns_success_on_success()
+            public async Task SucceedsAsync()
             {
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
 
@@ -175,7 +176,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
         public class PublishAsync : WorkbooksApiClientTest
         {
             [Fact]
-            public async Task Returns_success_on_success()
+            public async Task SucceedsAsync()
             {
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
 
@@ -209,7 +210,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
         public class UpdateWorkbookAsync : WorkbooksApiClientTest
         {
             [Fact]
-            public async Task No_changes_returns_success()
+            public async Task NoChangesSucceedsAsync()
             {
                 // Arrange
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
@@ -245,7 +246,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
             }
 
             [Fact]
-            public async Task Set_name_returns_success()
+            public async Task SetNameSucceedsAsync()
             {
                 // Arrange
                 var newName = "Test1234";
@@ -282,7 +283,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
             }
 
             [Fact]
-            public async Task Set_show_tabs_returns_success()
+            public async Task SetShowTabsSucceedsAsync()
             {
                 // Arrange
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
@@ -320,7 +321,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
             }
 
             [Fact]
-            public async Task Clear_show_tabs_returns_success()
+            public async Task ClearShowTabsSucceedsAsync()
             {
                 // Arrange
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
@@ -358,7 +359,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
             }
 
             [Fact]
-            public async Task Set_excrypt_extracts_returns_success()
+            public async Task SetEncryptedExtractsSucceedsAsync()
             {
                 // Arrange
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
@@ -396,7 +397,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
             }
 
             [Fact]
-            public async Task Set_project_returns_success()
+            public async Task SetProjectSucceedsAsync()
             {
                 // Arrange
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
@@ -437,7 +438,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
             }
 
             [Fact]
-            public async Task Set_owner_returns_success()
+            public async Task SetOwnerSucceedsAsync()
             {
                 // Arrange
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
@@ -496,7 +497,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
         public class AddTagsAsync : WorkbooksApiClientTest
         {
             [Fact]
-            public async Task Returns_success_on_success()
+            public async Task SucceedsAsync()
             {
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
 
@@ -534,7 +535,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
                 Assert.Empty(result.Errors);
                 Assert.True(result.Success);
 
-                var getResult = await sitesClient.Workbooks.GetWorkbookAsync(workbook.Id, Cancel);
+                var getResult = await ((IReadApiClient<IWorkbookDetails>)sitesClient.Workbooks).GetByIdAsync(workbook.Id, Cancel);
                 Assert.Empty(getResult.Errors);
                 Assert.True(getResult.Success);
                 Assert.NotNull(getResult.Value);
@@ -542,7 +543,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
             }
 
             [Fact]
-            public async Task No_Duplicates_Inserted()
+            public async Task NoDuplicatesInsertedAsync()
             {
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
 
@@ -582,7 +583,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
                 Assert.Empty(result.Errors);
                 Assert.True(result.Success);
 
-                var getResult = await sitesClient.Workbooks.GetWorkbookAsync(workbook.Id, Cancel);
+                var getResult = await ((IReadApiClient<IWorkbookDetails>)sitesClient.Workbooks).GetByIdAsync(workbook.Id, Cancel);
                 Assert.Empty(getResult.Errors);
                 Assert.True(getResult.Success);
                 Assert.NotNull(getResult.Value);
@@ -597,7 +598,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
         public class RemoveTagsAsync : WorkbooksApiClientTest
         {
             [Fact]
-            public async Task Returns_success_on_success()
+            public async Task SucceedsAsync()
             {
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
 
@@ -636,7 +637,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
                 Assert.Empty(result.Errors);
                 Assert.True(result.Success);
 
-                var getResult = await sitesClient.Workbooks.GetWorkbookAsync(workbook.Id, Cancel);
+                var getResult = await ((IReadApiClient<IWorkbookDetails>)sitesClient.Workbooks).GetByIdAsync(workbook.Id, Cancel);
                 Assert.Empty(getResult.Errors);
                 Assert.True(getResult.Success);
                 Assert.NotNull(getResult.Value);
@@ -651,7 +652,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
         public class ListConnectionsAsync : WorkbooksApiClientTest
         {
             [Fact]
-            public async Task Returns_success_on_success()
+            public async Task SucceedsAsync()
             {
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
                 var project = Create<ProjectsResponse.ProjectType>();
@@ -671,7 +672,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
         public class UpdateConnectionAsync : WorkbooksApiClientTest
         {
             [Fact]
-            public async Task Returns_success_on_success()
+            public async Task SucceedsAsync()
             {
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
                 var project = Create<ProjectsResponse.ProjectType>();
@@ -699,6 +700,103 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
                 Assert.Equal(updateOptions.ServerPort, updatedConnection.ServerPort);
                 Assert.Equal(updateOptions.ConnectionUsername, updatedConnection.ConnectionUsername);
                 Assert.Equal(updateOptions.QueryTaggingEnabled, updatedConnection.QueryTaggingEnabled);
+            }
+        }
+
+        #endregion
+
+        #region - GetWorkbookViewsAsync -
+
+        public class GetWorkbookViewsAsync : WorkbooksApiClientTest
+        {
+            [Fact]
+            public async Task SuccessAsync()
+            {
+                // Arrange
+                await using var sitesClient = await GetSitesClientAsync(Cancel);
+
+                var project = Api.Data.CreateProject(AutoFixture);
+                var owner = Api.Data.CreateUser(AutoFixture);
+                var workbook = Api.Data.CreateWorkbook(AutoFixture, project, owner);
+
+                // Create simulated workbook data with views
+                var simulatedWorkbook = new SimulatedWorkbookData();
+
+                simulatedWorkbook.Views.Add(new SimulatedWorkbookData.SimulatedViewType
+                {
+                    View = AutoFixture.Build<ViewResponse.ViewType>()
+                    .With(v => v.Name, "Test View 1")
+                    .With(v => v.ContentUrl, "test-view-1")
+                    .With(v => v.ViewUrlName, "test-view-1")
+                    .Create()
+
+                });
+                simulatedWorkbook.Views.Add(new SimulatedWorkbookData.SimulatedViewType
+                {
+                    View = AutoFixture.Build<ViewResponse.ViewType>()
+                    .With(v => v.Name, "Test View 2")
+                    .With(v => v.ContentUrl, "test-view-2")
+                    .With(v => v.ViewUrlName, "test-view-2")
+                    .Create()
+                });
+
+                // Add workbook with simulated data
+                Api.Data.AddWorkbook(workbook, Constants.DefaultEncoding.GetBytes(simulatedWorkbook.ToXml()));
+
+                // Act
+                var result = await sitesClient.Workbooks.GetWorkbookViewsAsync(workbook.Id, Cancel);
+
+                // Assert
+                Assert.True(result.Success);
+                Assert.Empty(result.Errors);
+                Assert.NotNull(result.Value);
+                Assert.Equal(2, result.Value.Count);
+
+                var views = result.Value.ToList();
+                Assert.Equal("Test View 1", views[0].Name);
+                Assert.Equal("test-view-1", views[0].ContentUrl);
+                Assert.Equal("Test View 2", views[1].Name);
+                Assert.Equal("test-view-2", views[1].ContentUrl);
+            }
+
+            [Fact]
+            public async Task ReturnsEmptyWhenNoViewsAsync()
+            {
+                // Arrange
+                await using var sitesClient = await GetSitesClientAsync(Cancel);
+
+                var project = Api.Data.CreateProject(AutoFixture);
+                var owner = Api.Data.CreateUser(AutoFixture);
+                var workbook = Api.Data.CreateWorkbook(AutoFixture, project, owner);
+
+                // Create simulated workbook data with no views
+                var simulatedWorkbook = new SimulatedWorkbookData();
+                Api.Data.AddWorkbook(workbook, Constants.DefaultEncoding.GetBytes(simulatedWorkbook.ToXml()));
+
+                // Act
+                var result = await sitesClient.Workbooks.GetWorkbookViewsAsync(workbook.Id, Cancel);
+
+                // Assert
+                Assert.True(result.Success);
+                Assert.Empty(result.Errors);
+                Assert.NotNull(result.Value);
+                Assert.Empty(result.Value);
+            }
+
+            [Fact]
+            public async Task ReturnsEmptyWhenWorkbookNotFoundAsync()
+            {
+                // Arrange
+                await using var sitesClient = await GetSitesClientAsync(Cancel);
+
+                // Act
+                var result = await sitesClient.Workbooks.GetWorkbookViewsAsync(Create<Guid>(), Cancel);
+
+                // Assert
+                Assert.True(result.Success);
+                Assert.Empty(result.Errors);
+                Assert.NotNull(result.Value);
+                Assert.Empty(result.Value);
             }
         }
 

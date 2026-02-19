@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -21,21 +21,23 @@ namespace Tableau.Migration.Net.Rest
 {
     internal sealed class RestRequestBuilderFactory : RequestBuilderFactory<IRestRequestBuilder>, IRestRequestBuilderFactory
     {
+        private readonly IRestRequestBuilderFactoryInput _input;
         private readonly IServerSessionProvider _sessionProvider;
         private readonly IHttpRequestBuilderFactory _requestBuilderFactory;
 
         public RestRequestBuilderFactory(
-            IRequestBuilderFactoryInput input,
+            IRestRequestBuilderFactoryInput input,
             IServerSessionProvider sessionProvider,
             IHttpRequestBuilderFactory requestBuilderFactory)
             : base(input)
         {
+            _input = input;
             _sessionProvider = sessionProvider;
             _requestBuilderFactory = requestBuilderFactory;
         }
 
         private string? GetApiVersion()
-            => _sessionProvider.Version?.RestApiVersion;
+            => _input.RestApiVersionOverride ?? _sessionProvider.Version?.RestApiVersion;
 
         private string? GetSiteId()
             => _sessionProvider.SiteId?.ToUrlSegment();

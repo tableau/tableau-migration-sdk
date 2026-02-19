@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -26,6 +26,7 @@ using Tableau.Migration.Api.Rest.Models.Responses;
 using Tableau.Migration.Api.Rest.Models.Types;
 using Tableau.Migration.Api.Simulation;
 using Tableau.Migration.Api.Simulation.Rest.Net.Responses;
+using Tableau.Migration.Content;
 using Tableau.Migration.Content.Permissions;
 using Tableau.Migration.Net;
 using Tableau.Migration.Net.Rest;
@@ -58,8 +59,8 @@ namespace Tableau.Migration.Tests.Unit.Api.Simulation.Rest.Net.Responses
                     d => d.Projects);
 
                 var capability = new Capability(new CapabilityType { Name = PermissionsCapabilityNames.ProjectLeader, Mode = PermissionsCapabilityModes.Deny });
-                var grantee = new GranteeCapability(GranteeType.User, data.SignIn.User!.Id, new[] { capability });
-                var permissions = new Migration.Content.Permissions.Permissions(proj.Id, new[] { grantee });
+                var grantee = new GranteeCapability(GranteeType.User, new ContentReferenceStub(data.SignIn.User!.Id, Create<string>(), Create<ContentLocation>()), [capability]);
+                var permissions = new Migration.Content.Permissions.Permissions(proj.Id, [grantee]);
                 var requestContent = new PermissionsAddRequest(permissions);
 
                 var request = new HttpRequestMessage(HttpMethod.Put, $"https://localhost/api/1.0/sites/{siteId.ToUrlSegment()}/projects/{proj.Id.ToUrlSegment()}/permissions");

@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -65,7 +65,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Mappings
 
             private readonly IMigrationPlan _plan;
 
-            private readonly Mock<ILogger<ContentMappingRunner>> _mockLogger = new();
+            private readonly Mock<ILogger<ContentMappingRunner>> _mockLogger;
 
             private readonly ContentMappingRunner _runner;
 
@@ -73,6 +73,8 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Mappings
             {
                 _mappingExecutionContexts = new();
                 _mappingFactories = new();
+
+                _mockLogger = Create<Mock<ILogger<ContentMappingRunner>>>();
 
                 var mockMappings = AutoFixture.Create<Mock<IMigrationHookFactoryCollection>>();
                 mockMappings
@@ -91,7 +93,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Mappings
                 _runner = new(
                     _plan,
                     new Mock<IServiceProvider>().Object,
-                    new Mock<ISharedResourcesLocalizer>().Object,
+                    Create<ISharedResourcesLocalizer>(),
                     _mockLogger.Object);
             }
 

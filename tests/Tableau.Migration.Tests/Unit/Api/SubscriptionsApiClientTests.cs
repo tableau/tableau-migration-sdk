@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -19,9 +19,11 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Moq;
 using Tableau.Migration.Api;
+using Tableau.Migration.Api.Rest.Models;
 using Tableau.Migration.Api.Rest.Models.Responses;
 using Tableau.Migration.Content;
 using Tableau.Migration.Content.Schedules;
@@ -43,7 +45,21 @@ namespace Tableau.Migration.Tests.Unit.Api
             protected TableauInstanceType CurrentInstanceType { get; set; }
 
             public SubscriptionsApiClientTest()
-                => MockSessionProvider.SetupGet(p => p.InstanceType).Returns(() => CurrentInstanceType);
+            {
+                MockSessionProvider.SetupGet(p => p.InstanceType).Returns(() => CurrentInstanceType);
+
+                Task<IContentReference?> CreateStubReferenceAsync(Guid id, CancellationToken cancel)
+                    => Task.FromResult((IContentReference?)new ContentReferenceStub(id, Create<string>(), Create<ContentLocation>()));
+
+                MockUserFinder.Setup(x => x.FindByIdAsync(It.IsAny<Guid>(), Cancel))
+                    .Returns(CreateStubReferenceAsync);
+
+                MockWorkbookFinder.Setup(x => x.FindByIdAsync(It.IsAny<Guid>(), Cancel))
+                    .Returns(CreateStubReferenceAsync);
+
+                MockViewFinder.Setup(x => x.FindByIdAsync(It.IsAny<Guid>(), Cancel))
+                    .Returns(CreateStubReferenceAsync);
+            }
 
             protected static List<TSubscription> AssertSuccess<TSubscription, TSchedule>(
                 IResult<IImmutableList<TSubscription>> result)
@@ -58,13 +74,17 @@ namespace Tableau.Migration.Tests.Unit.Api
                 return actualSubscriptions;
             }
 
-            protected TResponse CreateGetResponse<TResponse>(string contentType)
-                where TResponse : TableauServerResponse
+            protected TResponse CreateGetResponse<TResponse, TItem>(string contentType)
+                where TResponse : PagedTableauServerResponse<TItem>
+                where TItem: ISubscriptionType
             {
-                AutoFixture.Customize<ISubscriptionContentType>(
-                    composer => composer.With(j => j.Type, () => contentType));
+                var response = AutoFixture.CreateResponse<TResponse>();
+                foreach(var item in response.Items)
+                {
+                    item.Content!.Type = contentType;
+                }
 
-                return AutoFixture.CreateResponse<TResponse>();
+                return response;
             }
         }
 
@@ -147,9 +167,9 @@ namespace Tableau.Migration.Tests.Unit.Api
             public class GetAllSubscriptionsAsync : CloudSubscriptionsApiClientTest
             {
                 [Fact]
-                public async Task Gets_view_subscriptions()
+                public async Task GetsViewSubscriptionsAsync()
                 {
-                    var response = CreateGetResponse<CloudResponses.GetSubscriptionsResponse>("view");
+                    var response = CreateGetResponse<CloudResponses.GetSubscriptionsResponse, CloudResponses.GetSubscriptionsResponse.SubscriptionType>("view");
 
                     SetupSuccessResponse(response);
 
@@ -162,9 +182,9 @@ namespace Tableau.Migration.Tests.Unit.Api
                 }
 
                 [Fact]
-                public async Task Gets_workbook_subscriptions()
+                public async Task GetsWorkbookSubscriptionsAsync()
                 {
-                    var response = CreateGetResponse<CloudResponses.GetSubscriptionsResponse>("workbook");
+                    var response = CreateGetResponse<CloudResponses.GetSubscriptionsResponse, CloudResponses.GetSubscriptionsResponse.SubscriptionType>("workbook");
 
                     SetupSuccessResponse(response);
 
@@ -186,7 +206,7 @@ namespace Tableau.Migration.Tests.Unit.Api
                 [Fact]
                 public async Task CreatesSubscriptionAsync()
                 {
-                    SetupSuccessResponse<CloudResponses.CreateSubscriptionResponse>();
+                    SetupSuccessResponse<CloudResponses.CreateSubscriptionResponse>(r => r.Item!.Content!.Type = SubscriptionContentType.Workbook.ToString());
 
                     var sub = Create<ICloudSubscription>();
 
@@ -217,7 +237,7 @@ namespace Tableau.Migration.Tests.Unit.Api
                 [Fact]
                 public async Task UpdatesSubscriptionAsync()
                 {
-                    SetupSuccessResponse<CloudResponses.UpdateSubscriptionResponse>();
+                    SetupSuccessResponse<CloudResponses.UpdateSubscriptionResponse>(r => r.Item!.Content!.Type = SubscriptionContentType.Workbook.ToString());
 
                     var sub = Create<ICloudSubscription>();
 
@@ -288,11 +308,11 @@ namespace Tableau.Migration.Tests.Unit.Api
             public class GetAllSubscriptionsAsync : ServerSubscriptionsApiClientTest
             {
                 [Fact]
-                public async Task Gets_view_subscriptions()
+                public async Task GetsViewSubscriptionsAsync()
                 {
                     MockSessionProvider.SetupGet(p => p.InstanceType).Returns(TableauInstanceType.Server);
 
-                    var response = CreateGetResponse<ServerResponses.GetSubscriptionsResponse>("view");
+                    var response = CreateGetResponse<ServerResponses.GetSubscriptionsResponse, ServerResponses.GetSubscriptionsResponse.SubscriptionType>("view");
 
                     SetupSuccessResponse(response);
 
@@ -305,9 +325,9 @@ namespace Tableau.Migration.Tests.Unit.Api
                 }
 
                 [Fact]
-                public async Task Gets_workbook_subscriptions()
+                public async Task GetsWorkbookSubscriptionsAsync()
                 {
-                    var response = CreateGetResponse<ServerResponses.GetSubscriptionsResponse>("workbook");
+                    var response = CreateGetResponse<ServerResponses.GetSubscriptionsResponse, ServerResponses.GetSubscriptionsResponse.SubscriptionType>("workbook");
 
                     SetupSuccessResponse(response);
 

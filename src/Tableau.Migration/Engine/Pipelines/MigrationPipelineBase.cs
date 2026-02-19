@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -26,6 +26,8 @@ using Tableau.Migration.Content.Schedules.Server;
 using Tableau.Migration.Content.Search;
 using Tableau.Migration.Engine.Actions;
 using Tableau.Migration.Engine.Conversion;
+using Tableau.Migration.Engine.Endpoints;
+using Tableau.Migration.Engine.Endpoints.Caching;
 using Tableau.Migration.Engine.Endpoints.Search;
 using Tableau.Migration.Engine.Migrators;
 using Tableau.Migration.Engine.Migrators.Batch;
@@ -44,6 +46,14 @@ namespace Tableau.Migration.Engine.Pipelines
         protected IServiceProvider Services { get; }
 
         /// <summary>
+        /// Gets the current migration plan.
+        /// </summary>
+        /// <remarks>
+        /// Lazy evaluates the plan to avoid creating a DI cycle with the <see cref="IMigration"/> object.
+        /// </remarks>
+        protected IMigrationPlan Plan => Services.GetRequiredService<IMigrationPlan>();
+
+        /// <summary>
         /// Gets the config reader.
         /// </summary>
         protected readonly IConfigReader ConfigReader;
@@ -53,9 +63,7 @@ namespace Tableau.Migration.Engine.Pipelines
         /// </summary>
         /// <param name="services">A DI service provider to create actions with.</param>
         /// <param name="configReader">The config reader.</param>
-        protected MigrationPipelineBase(
-            IServiceProvider services,
-            IConfigReader configReader)
+        protected MigrationPipelineBase(IServiceProvider services, IConfigReader configReader)
         {
             Services = services;
             ConfigReader = configReader;
@@ -97,9 +105,11 @@ namespace Tableau.Migration.Engine.Pipelines
         /// <inheritdoc />
         public virtual IContentMigrator<TContent> GetMigrator<TContent>()
             where TContent : class, IContentReference
-        {
-            return Services.GetRequiredService<ContentMigrator<TContent>>();
-        }
+            => Services.GetRequiredService<ContentMigrator<TContent>>();
+
+        /// <inheritdoc />
+        public virtual IMigrationContentLoader<TContent> GetContentLoader<TContent>()
+            => Plan.Services.GetService<IMigrationContentLoader<TContent>>(Services);
 
         /// <inheritdoc />
         public virtual IContentBatchMigrator<TContent> GetBatchMigrator<TContent>()
@@ -163,9 +173,29 @@ namespace Tableau.Migration.Engine.Pipelines
             => Services.GetRequiredService<DirectContentItemConverter<TPrepare, TPublish>>();
 
         /// <inheritdoc />
+        public virtual ISourceContentReferenceFinder<TContent> CreateSourceContentReferenceFinder<TContent>()
+            where TContent : IContentReference
+            => Plan.Services.GetService<ISourceContentReferenceFinder<TContent>>(Services);
+
+        /// <inheritdoc />
+        public virtual IDestinationContentReferenceFinder<TContent> CreateDestinationContentReferenceFinder<TContent>()
+            where TContent : IContentReference
+            => Plan.Services.GetService<IDestinationContentReferenceFinder<TContent>>(Services);
+
+        /// <inheritdoc />
+        public virtual IContentReferenceCacheLoadStrategy<TContent> CreateSourceCacheLoadStrategy<TContent>()
+            where TContent : IContentReference
+            => Plan.Services.GetService<IContentReferenceCacheLoadStrategyProvider<TContent>>(Services).GetSourceCacheLoadStrategy();
+
+        /// <inheritdoc />
+        public virtual IContentReferenceCacheLoadStrategy<TContent> CreateDestinationCacheLoadStrategy<TContent>()
+            where TContent : IContentReference
+            => Plan.Services.GetService<IContentReferenceCacheLoadStrategyProvider<TContent>>(Services).GetDestinationCacheLoadStrategy();
+
+        /// <inheritdoc />
         public virtual IContentReferenceCache CreateSourceCache<TContent>()
             where TContent : class, IContentReference
-            => Services.GetRequiredService<BulkSourceCache<TContent>>();
+            => Services.GetRequiredService<SourceCache<TContent>>();
 
         /// <inheritdoc />
         public virtual IContentReferenceCache CreateDestinationCache<TContent>()
@@ -174,15 +204,15 @@ namespace Tableau.Migration.Engine.Pipelines
             switch (typeof(TContent))
             {
                 case Type project when project == typeof(IProject):
-                    return Services.GetRequiredService<BulkDestinationProjectCache>();
+                    return Services.GetRequiredService<DestinationProjectCache>();
                 default:
-                    return Services.GetRequiredService<BulkDestinationCache<TContent>>();
+                    return Services.GetRequiredService<DestinationCache<TContent>>();
             }
         }
 
         /// <inheritdoc />
         public virtual ILockedProjectCache GetDestinationLockedProjectCache()
-            => Services.GetRequiredService<BulkDestinationProjectCache>();
+            => Services.GetRequiredService<DestinationProjectCache>();
 
         #endregion
     }

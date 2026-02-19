@@ -39,6 +39,8 @@ To register the transformer in C#, follow the guidance provided in the [document
 
 ### Dependency Injection
 
-Learn more about dependency injection [here](~/articles/dependency_injection.md).
+Learn more about dependency injection [here](~/articles/dependency_injection/index.md).
 
 [!code-csharp[](../../../../examples/Csharp.ExampleApplication/Program.cs#MigratedTagTransformer-DI)]
+
+---

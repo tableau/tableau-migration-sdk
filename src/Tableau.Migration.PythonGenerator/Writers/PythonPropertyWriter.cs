@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -133,7 +133,7 @@ namespace Tableau.Migration.PythonGenerator.Writers
                             ?? throw new InvalidOperationException("Dotnet types are necessary for wrapping mutable collections.");
                         var dotnetType = dotnetTypes[0];
 
-                        var collectionTypeAlias = GetCollectionTypeAlias(conversionMode, typeRef.Name);
+                        var collectionTypeAlias = GetCollectionTypeAlias(conversionMode, typeRef);
 
                         BuildIfBlock(setterBuilder, $"{paramName} is None", (builder) =>
                         {
@@ -186,7 +186,7 @@ namespace Tableau.Migration.PythonGenerator.Writers
                     }
             }
 
-            static string? GetCollectionTypeAlias(ConversionMode conversionMode, string typeRefName)
+            static string? GetCollectionTypeAlias(ConversionMode conversionMode, PythonTypeReference typeRef)
             {
                 string? collectionTypeAlias;
                 if (conversionMode is ConversionMode.WrapArray)
@@ -195,11 +195,16 @@ namespace Tableau.Migration.PythonGenerator.Writers
                 }
                 else
                 {
-                    collectionTypeAlias = typeRefName switch
+                    // Check if this is a HashSet-backed sequence by looking at ExtraImports
+                    if (typeRef.ExtraImports is not null && 
+                        typeRef.ExtraImports.Value.Any(import => import.ImportAlias == PythonMemberGenerator.HASH_SET_REFERENCE.ImportAlias))
                     {
-                        Py.Types.SEQUENCE => PythonMemberGenerator.HASH_SET_REFERENCE.ImportAlias,
-                        _ => PythonMemberGenerator.LIST_REFERENCE.ImportAlias,
-                    };
+                        collectionTypeAlias = PythonMemberGenerator.HASH_SET_REFERENCE.ImportAlias;
+                    }
+                    else
+                    {
+                        collectionTypeAlias = PythonMemberGenerator.LIST_REFERENCE.ImportAlias;
+                    }
                 }
 
                 return collectionTypeAlias;

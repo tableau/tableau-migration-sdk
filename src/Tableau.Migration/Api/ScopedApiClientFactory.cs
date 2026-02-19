@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -19,7 +19,7 @@ using System;
 using Microsoft.Extensions.DependencyInjection;
 using Tableau.Migration.Content.Files;
 using Tableau.Migration.Content.Search;
-using Tableau.Migration.Net;
+using Tableau.Migration.Net.Rest;
 
 namespace Tableau.Migration.Api
 {
@@ -40,8 +40,8 @@ namespace Tableau.Migration.Api
             var apiClientInput = _services.GetRequiredService<IApiClientInputInitializer>();
             apiClientInput.Initialize(scopedSiteConnection, finderFactoryOverride, fileStoreOverride);
 
-            var requestFactoryInput = _services.GetRequiredService<IRequestBuilderFactoryInputInitializer>();
-            requestFactoryInput.Initialize(scopedSiteConnection.ServerUrl);
+            var requestFactoryInput = _services.GetRequiredService<IRestRequestBuilderFactoryInputInitializer>();
+            requestFactoryInput.Initialize(scopedSiteConnection.ServerUrl, scopedSiteConnection.RestApiVersion);
 
             return _services.GetRequiredService<IApiClient>();
         }

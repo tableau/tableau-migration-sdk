@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -15,34 +15,35 @@
 //  limitations under the License.
 //
 
-using System;
 using Tableau.Migration.Api.Rest.Models.Responses;
 
 namespace Tableau.Migration.Content
 {
-    internal class SubscriptionContent : ISubscriptionContent
+    internal class SubscriptionContent : ContentBase, ISubscriptionContent
     {
-        public Guid Id { get; set; }
+        /// <inheritdoc />
         public string Type { get; set; }
+
+        /// <inheritdoc />
         public bool SendIfViewEmpty { get; set; }
 
-        public SubscriptionContent(Guid id, string type, bool sendIfViewEmpty)
+        public SubscriptionContent(IContentReference contentReference, string type, bool sendIfViewEmpty)
+            : base(contentReference)
         {
-            Id = id;
             Type = type;
             SendIfViewEmpty = sendIfViewEmpty;
         }
 
-        public SubscriptionContent(ISubscriptionContentType? response)
-        {
-            Guard.AgainstNull(response, () => response);
-            Id = Guard.AgainstDefaultValue(response.Id, () => response.Id);
-            Type = Guard.AgainstNull(response.Type, () => response.Type);
-            SendIfViewEmpty = response.SendIfViewEmpty;
-        }
+        public SubscriptionContent(IContentReference contentReference, ISubscriptionContentType response)
+            : this(contentReference, Guard.AgainstNull(response.Type, () => response.Type), response.SendIfViewEmpty)
+        { }
 
         public SubscriptionContent(ISubscriptionContent content)
-            : this(content.Id, content.Type, content.SendIfViewEmpty)
+            : this(content, content.Type, content.SendIfViewEmpty)
         { }
+
+        /// <inheritdoc />
+        public ISubscriptionContent ForReference(IContentReference reference)
+            => new SubscriptionContent(reference, Type, SendIfViewEmpty);
     }
 }

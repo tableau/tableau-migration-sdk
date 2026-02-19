@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -15,7 +15,6 @@
 //  limitations under the License.
 //
 
-using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Tableau.Migration.Api.Rest.Models.Responses;
@@ -49,11 +48,12 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
             {
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
 
-                var wb = Create<WorkbookResponse.WorkbookType>();
-                Api.Data.AddWorkbook(wb, null);
+                var wb = Api.Data.CreateWorkbook(AutoFixture);
+
+                var wbRef = new ContentReferenceStub(wb.Id, wb.ContentUrl!, new([wb.Name!]));
 
                 var subscription = Create<ICloudSubscription>();
-                subscription.Content = new SubscriptionContent(wb.Id, "Workbook", false);
+                subscription.Content = new SubscriptionContent(wbRef, "Workbook", false);
                 subscription.Owner = new ContentReferenceStub(Api.Data.Users.First().Id, "", new());
 
                 var result = await sitesClient.CloudSubscriptions.CreateSubscriptionAsync(subscription, Cancel);
@@ -71,7 +71,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
 
                 var subscription = Create<ICloudSubscription>();
-                subscription.Content = new SubscriptionContent(Guid.NewGuid(), "Workbook", false);
+                subscription.Content = new SubscriptionContent(Create<IContentReference>(), "Workbook", false);
                 subscription.Owner = new ContentReferenceStub(Api.Data.Users.First().Id, "", new());
 
                 var result = await sitesClient.CloudSubscriptions.CreateSubscriptionAsync(subscription, Cancel);
@@ -84,13 +84,14 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
             {
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
 
-                var wb = Create<WorkbookResponse.WorkbookType>();
-                Api.Data.AddWorkbook(wb, null);
+                var wb = Api.Data.CreateWorkbook(AutoFixture);
 
                 var view = wb.Views.First();
 
+                var viewRef = new ContentReferenceStub(view.Id, view.ContentUrl!, new([view.Name!]));
+
                 var subscription = Create<ICloudSubscription>();
-                subscription.Content = new SubscriptionContent(view.Id, "View", false);
+                subscription.Content = new SubscriptionContent(viewRef, "View", false);
                 subscription.Owner = new ContentReferenceStub(Api.Data.Users.First().Id, "", new());
 
                 var result = await sitesClient.CloudSubscriptions.CreateSubscriptionAsync(subscription, Cancel);
@@ -108,7 +109,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
 
                 var subscription = Create<ICloudSubscription>();
-                subscription.Content = new SubscriptionContent(Guid.NewGuid(), "View", false);
+                subscription.Content = new SubscriptionContent(Create<IContentReference>(), "View", false);
                 subscription.Owner = new ContentReferenceStub(Api.Data.Users.First().Id, "", new());
 
                 var result = await sitesClient.CloudSubscriptions.CreateSubscriptionAsync(subscription, Cancel);
@@ -127,7 +128,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
                 : base(true)
             { }
 
-            public async Task UpdatesSubscription()
+            public async Task UpdatesSubscriptionAsync()
             {
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
 

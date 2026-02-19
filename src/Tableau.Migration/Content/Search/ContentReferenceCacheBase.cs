@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -20,19 +20,48 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 namespace Tableau.Migration.Content.Search
 {
     /// <summary>
-    /// Thread-safe <see cref="IContentReferenceCache"/> implementation.
+    /// Abstract base class for thread-safe <see cref="IContentReferenceCache"/> implementations.
     /// </summary>
-    public abstract class ContentReferenceCacheBase : IContentReferenceCache
+    public abstract class ContentReferenceCacheBase<TContent> : IContentReferenceCache
+        where TContent : IContentReference
     {
         private readonly Dictionary<ContentLocation, ContentReferenceStub?> _locationCache = new();
         private readonly Dictionary<Guid, ContentReferenceStub?> _idCache = new();
+        private readonly Dictionary<string, ContentReferenceStub?> _contentUrlCache = new();
 
         private readonly SemaphoreSlim _writeSemaphore = new(1, 1);
-        private bool _loaded = false;
+
+        private readonly IContentReferenceCacheLoadStrategy<TContent> _loadStrategy;
+        private readonly ILogger<ContentReferenceCacheBase<TContent>> _logger;
+
+        /// <summary>
+        /// Gets the content reference store.
+        /// </summary>
+        protected IContentReferenceStore<TContent> Store { get; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        protected abstract string Name { get; }
+
+        /// <summary>
+        /// Creates a new <see cref="ContentReferenceCacheBase{TContent}"/> object.
+        /// </summary>
+        /// <param name="loadStrategy">The loading strategy.</param>
+        /// <param name="store">The content reference store.</param>
+        /// <param name="logger">The logger.</param>
+        public ContentReferenceCacheBase(IContentReferenceCacheLoadStrategy<TContent> loadStrategy, 
+            IContentReferenceStore<TContent> store, ILogger<ContentReferenceCacheBase<TContent>> logger)
+        {
+            _loadStrategy = loadStrategy;
+            Store = store;
+            _logger = logger;
+        }
 
         /// <summary>
         /// Gets the count of items in the cache.
@@ -40,68 +69,64 @@ namespace Tableau.Migration.Content.Search
         public int Count => _locationCache.Count;
 
         /// <summary>
-        /// Searches for all items.
+        /// Gets whether <see cref="SearchAllAsync"/> has been called before from any source.
         /// </summary>
-        /// <param name="cancel">The cancellation token to obey.</param>
-        /// <returns>The content references to cache.</returns>
-        protected abstract ValueTask<IEnumerable<ContentReferenceStub>> SearchAllAsync(CancellationToken cancel);
+        protected bool LoadedAll { get; private set; }
 
         /// <summary>
-        /// Searches for content at the given location, possibly returning more locations to opportunistically cache.
+        /// Called after one or more items have been loaded into the cache from the store.
         /// </summary>
-        /// <param name="searchLocation">The primary location to search for.</param>
+        /// <param name="items">The items that were loaded.</param>
         /// <param name="cancel">The cancellation token to obey.</param>
-        /// <returns>The content references to cache.</returns>
-        protected abstract ValueTask<IEnumerable<ContentReferenceStub>> SearchAsync(ContentLocation searchLocation, CancellationToken cancel);
+        /// <returns>A task to await.</returns>
+        protected virtual Task ItemsLoadedAsync(IImmutableList<TContent> items, CancellationToken cancel) => Task.CompletedTask;
 
-        /// <summary>
-        /// Searches for content at the given ID, possibly returning more references to opportunistically cache.
-        /// </summary>
-        /// <param name="searchId">The primary ID to search for.</param>
-        /// <param name="cancel">The cancellation token to obey.</param>
-        /// <returns>The content references to cache.</returns>
-        protected abstract ValueTask<IEnumerable<ContentReferenceStub>> SearchAsync(Guid searchId, CancellationToken cancel);
-
-        /// <summary>
-        /// Searches for content at the given location.
-        /// </summary>
-        /// <param name="searchLocation">The primary location to search for.</param>
-        /// <param name="cancel">The cancellation token to obey.</param>
-        /// <returns>The content reference to cache, or null.</returns>
-        protected virtual Task<ContentReferenceStub?> IndividualSearchAsync(ContentLocation searchLocation, CancellationToken cancel)
-            => Task.FromResult<ContentReferenceStub?>(null);
-
-        /// <summary>
-        /// Searches for content at the given ID.
-        /// </summary>
-        /// <param name="searchId">The primary ID to search for.</param>
-        /// <param name="cancel">The cancellation token to obey.</param>
-        /// <returns>The content reference to cache, or null.</returns>
-        protected virtual Task<ContentReferenceStub?> IndividualSearchAsync(Guid searchId, CancellationToken cancel)
-            => Task.FromResult<ContentReferenceStub?>(null);
-
-        private void ProcessSearchResult(ContentReferenceStub searchResult)
+        private async Task ProcessLoadResultsAsync(IImmutableList<TContent> loadResults, CancellationToken cancel)
         {
-            if (searchResult.Id != Guid.Empty)
+            foreach(var loadResult in loadResults)
             {
-                _idCache[searchResult.Id] = searchResult;
-            }
+                var stub = loadResult.ToStub();
 
-            _locationCache[searchResult.Location] = searchResult;
+                if (loadResult.Id != Guid.Empty)
+                {
+                    _idCache[loadResult.Id] = stub;
+                }
+
+                if (!string.IsNullOrEmpty(loadResult.ContentUrl))
+                {
+                    _contentUrlCache[loadResult.ContentUrl] = stub;
+                }
+
+                _locationCache[loadResult.Location] = stub;
+            }            
+
+            await ItemsLoadedAsync(loadResults, cancel).ConfigureAwait(false);
+
+            _logger.LogDebug("{Name} content reference cache processed {Count} items.", Name, loadResults.Count);
         }
 
-        private async Task<IContentReference?> SearchCacheAsync<TKey>(
-            Dictionary<TKey, ContentReferenceStub?> cache, TKey search,
-            Func<TKey, CancellationToken, ValueTask<IEnumerable<ContentReferenceStub>>> searchAsync,
-            Func<TKey, CancellationToken, Task<ContentReferenceStub?>> individualSearchAsync,
+        private async ValueTask<IContentReference?> SearchCacheAsync<TKey>(Dictionary<TKey, ContentReferenceStub?> cache, TKey search,
+            Func<TKey, CancellationToken, ValueTask<ContentReferenceLoadResult<TContent>>> loadByKeyAsync,
             CancellationToken cancel)
             where TKey : notnull
         {
+            // A wrapper local callback to do individual item loading that ensures found items are properly populated in the cache.
+            async ValueTask<ContentReferenceLoadResult<TContent>> SearchByKeyAsync(CancellationToken c)
+            {
+                _logger.LogDebug("{Name} content reference cache making individual search for key {Key}.", Name, search);
+                var loadResult = await loadByKeyAsync(search, c).ConfigureAwait(false);
+                await ProcessLoadResultsAsync(loadResult.Items, c).ConfigureAwait(false);
+
+                return loadResult;
+            }
+
+            // First-chance cache test.
             if (cache.TryGetValue(search, out var cachedResult))
             {
                 return cachedResult;
             }
 
+            // Cache miss, obtain a write lock to populate cache.
             await _writeSemaphore.WaitAsync(cancel).ConfigureAwait(false);
 
             try
@@ -112,41 +137,21 @@ namespace Tableau.Migration.Content.Search
                     return cachedResult;
                 }
 
-                if (!_loaded)
+                _logger.LogInformation("{Name} content reference cache miss on search key {Key}.", Name, search);
+
+                // Run the load strategy to call the store and perform fall-back operations.
+                var loadAttempt = new ContentReferenceCacheLoadAttempt<TContent>(() => cache.ContainsKey(search), SearchAllAsync, SearchByKeyAsync);
+                await _loadStrategy.LoadAsync(loadAttempt, cancel).ConfigureAwait(false);
+
+                // Retry lookup now that this attempt populated.
+                if (cache.TryGetValue(search, out cachedResult))
                 {
-                    // Load the cache with list values just once
-                    var searchResults = await searchAsync(search, cancel).ConfigureAwait(false);
-                    foreach (var searchResult in searchResults)
-                    {
-                        ProcessSearchResult(searchResult);
-                    }
-
-                    _loaded = true;
-
-                    // Retry lookup now that this attempt populated.
-                    if (cache.TryGetValue(search, out cachedResult))
-                    {
-                        return cachedResult;
-                    }
-                }
-                // No cached results. Retry individual search.
-                cachedResult = await individualSearchAsync(search, cancel).ConfigureAwait(false);
-
-                // Checks the individual search result.
-                if (cachedResult is null)
-                {
-                    // Assign an explicit null if this fails to avoid repeated populations that will fail.
-                    cache[search] = null;
+                    return cachedResult;
                 }
                 else
                 {
-                    // Sets the cache with the individual search result.
-                    if (cachedResult.Id != Guid.Empty)
-                    {
-                        _idCache[cachedResult.Id] = cachedResult;
-                    }
-
-                    _locationCache[cachedResult.Location] = cachedResult;
+                    // Assign an explicit null if load failed, to avoid repeated loading that will likely also fail.
+                    cache[search] = null;
                 }
 
                 return cachedResult;
@@ -157,27 +162,37 @@ namespace Tableau.Migration.Content.Search
             }
         }
 
+        /// <summary>
+        /// Performs a one-time bulk search, loading all items into the cache if this is the first bulk search,
+        /// and returning all cached items.
+        /// </summary>
+        /// <param name="cancel">The cancellation token to obey.</param>
+        /// <returns>A <see cref="ValueTask"/> to await.</returns>
+        protected async ValueTask SearchAllAsync(CancellationToken cancel)
+        {
+            if (!LoadedAll)
+            {
+                _logger.LogDebug("{Name} content reference cache making bulk search.", Name);
+
+                var searchResults = await Store.LoadAllAsync(cancel).ConfigureAwait(false);
+                await ProcessLoadResultsAsync(searchResults, cancel).ConfigureAwait(false);
+
+                LoadedAll = true;
+            }
+        }
+
         #region - IContentReferenceCache Implementation -
 
         /// <inheritdoc />
         public async Task<IImmutableList<IContentReference>> GetAllAsync(CancellationToken cancel)
         {
-            if(!_loaded)
+            if (!LoadedAll)
             {
                 await _writeSemaphore.WaitAsync(cancel).ConfigureAwait(false);
 
                 try
                 {
-                    if (!_loaded)
-                    {
-                        var searchResults = await SearchAllAsync(cancel).ConfigureAwait(false);
-                        foreach (var searchResult in searchResults)
-                        {
-                            ProcessSearchResult(searchResult);
-                        }
-
-                        _loaded = true;
-                    }
+                    await SearchAllAsync(cancel).ConfigureAwait(false);
                 }
                 finally
                 {
@@ -193,17 +208,28 @@ namespace Tableau.Migration.Content.Search
         }
 
         /// <inheritdoc />
-        public async Task<IContentReference?> ForLocationAsync(ContentLocation location, CancellationToken cancel)
-            => await SearchCacheAsync(_locationCache, location, SearchAsync, IndividualSearchAsync, cancel).ConfigureAwait(false);
+        public virtual async Task<IContentReference?> ForLocationAsync(ContentLocation location, CancellationToken cancel)
+            => await SearchCacheAsync(_locationCache, location, Store.LoadAsync, cancel).ConfigureAwait(false);
 
         /// <inheritdoc />
-        public async Task<IContentReference?> ForIdAsync(Guid id, CancellationToken cancel)
+        public virtual async Task<IContentReference?> ForIdAsync(Guid id, CancellationToken cancel)
         {
             if (id == Guid.Empty)
             {
                 return null;
             }
-            return await SearchCacheAsync(_idCache, id, SearchAsync, IndividualSearchAsync, cancel).ConfigureAwait(false);
+            return await SearchCacheAsync(_idCache, id, Store.LoadAsync, cancel).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc />
+        public virtual async Task<IContentReference?> ForContentUrlAsync(string contentUrl, CancellationToken cancel)
+        {
+            if (string.IsNullOrEmpty(contentUrl))
+            {
+                return null;
+            }
+
+            return await SearchCacheAsync(_contentUrlCache, contentUrl, Store.LoadAsync, cancel).ConfigureAwait(false);
         }
 
         #endregion

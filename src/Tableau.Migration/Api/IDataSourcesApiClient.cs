@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -21,59 +21,34 @@ using System.Threading.Tasks;
 using Tableau.Migration.Api.EmbeddedCredentials;
 using Tableau.Migration.Api.Labels;
 using Tableau.Migration.Api.Models;
+using Tableau.Migration.Api.Paging;
 using Tableau.Migration.Api.Permissions;
 using Tableau.Migration.Api.Tags;
 using Tableau.Migration.Content;
-using Tableau.Migration.Paging;
 
 namespace Tableau.Migration.Api
 {
     /// <summary>
     /// Interface for API client data source operations.
     /// </summary>
-    public interface IDataSourcesApiClient
-        : IPagedListApiClient<IDataSource>,
+    public interface IDataSourcesApiClient :
+        IApiFilteredPageAccessor<IDataSource>, IContentUrlSearchApiClient<IDataSource>, INameSearchApiClient<IDataSource>,
+        IReadApiClient<IDataSource>, IPullApiClient<IDataSource, IPublishableDataSource>,
         IPublishApiClient<IPublishableDataSource, IDataSourceDetails>,
-        IPullApiClient<IDataSource, IPublishableDataSource>,
         IOwnershipApiClient,
         ITagsContentApiClient,
-        IApiPageAccessor<IDataSource>,
         IPermissionsContentApiClient,
         IConnectionsApiClient,
         ILabelsContentApiClient<IDataSource>,
         IEmbeddedCredentialsContentApiClient
     {
         /// <summary>
-        /// Gets all published data sources in the current site.
-        /// </summary>
-        /// <param name="pageNumber">The 1-indexed page number.</param>
-        /// <param name="pageSize">The size of the page.</param>
-        /// <param name="cancel">The cancellation token to obey.</param>
-        /// <returns>A list of a page of data sources in the current site.</returns>
-        Task<IPagedResult<IDataSource>> GetAllPublishedDataSourcesAsync(
-            int pageNumber,
-            int pageSize,
-            CancellationToken cancel);
-
-        /// <summary>
-        /// Gets a data source by the given ID.
-        /// </summary>
-        /// <param name="dataSourceId">The ID to get the data source for.</param>
-        /// <param name="cancel">The cancellation token to obey.</param>
-        /// <returns>The data source result.</returns>
-        Task<IResult<IDataSourceDetails>> GetDataSourceAsync(
-             Guid dataSourceId,
-             CancellationToken cancel);
-
-        /// <summary>
         /// Downloads the data source file for the given ID.
         /// </summary>
         /// <param name="dataSourceId">The ID to download the data source file for.</param>
         /// <param name="cancel">A cancellation token to obey.</param>
         /// <returns>The file download result.</returns>
-        Task<IAsyncDisposableResult<FileDownload>> DownloadDataSourceAsync(
-            Guid dataSourceId,
-            CancellationToken cancel);
+        Task<IAsyncDisposableResult<FileDownload>> DownloadDataSourceAsync(Guid dataSourceId, CancellationToken cancel);
 
         /// <summary>
         /// Uploads the input data source file.
@@ -81,9 +56,7 @@ namespace Tableau.Migration.Api
         /// <param name="options">The new data source's details.</param>
         /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>The published data source.</returns>
-        Task<IResult<IDataSourceDetails>> PublishDataSourceAsync(
-            IPublishDataSourceOptions options,
-            CancellationToken cancel);
+        Task<IResult<IDataSourceDetails>> PublishDataSourceAsync(IPublishDataSourceOptions options, CancellationToken cancel);
 
         /// <summary>
         /// Updates the data source after publishing.

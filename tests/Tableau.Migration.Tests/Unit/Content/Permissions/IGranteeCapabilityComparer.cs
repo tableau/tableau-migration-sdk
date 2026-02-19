@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -31,7 +31,7 @@ namespace Tableau.Migration.Tests.Content.Permissions
 
         protected override int CompareItems(IGranteeCapability x, IGranteeCapability y)
         {
-            var granteeIdResult = _compareGranteeIds ? x.GranteeId.CompareTo(y.GranteeId) : 0;
+            var granteeIdResult = _compareGranteeIds ? x.Grantee.Id.CompareTo(y.Grantee.Id) : 0;
 
             if (granteeIdResult != 0)
                 return granteeIdResult;
@@ -45,6 +45,6 @@ namespace Tableau.Migration.Tests.Content.Permissions
         }
 
         public override int GetHashCode([DisallowNull] IGranteeCapability obj)
-            => HashCode.Combine(_compareGranteeIds ? obj.GranteeId : Guid.Empty, obj.GranteeType, ICapabilityComparer.Instance.GetHashCode(obj.Capabilities));
+            => HashCode.Combine(_compareGranteeIds ? obj.Grantee.Id : Guid.Empty, obj.GranteeType, ICapabilityComparer.Instance.GetHashCode(obj.Capabilities));
     }
 }

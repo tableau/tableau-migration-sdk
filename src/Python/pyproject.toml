@@ -12,7 +12,7 @@ authors = [
 description = "Tableau Migration SDK"
 readme = "README.md"
 # https://devguide.python.org/versions/
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 classifiers = [
     "Programming Language :: Python :: 3",
     "Operating System :: OS Independent",
@@ -20,9 +20,9 @@ classifiers = [
 license = "Apache-2.0"
 
 dependencies = [
-    "typing_extensions==4.14.1",
-    "cffi==1.17.1",
-    "pycparser==2.22",
+    "typing_extensions==4.15.0",
+    "cffi==2.0.0",
+    "pycparser==2.23",
     "pythonnet==3.0.5"
 ]
 
@@ -35,7 +35,7 @@ validate-bump = false
 
 [tool.hatch.envs.docs]
 dependencies = [
-  "sphinx-markdown-builder==0.6.7"
+  "sphinx-markdown-builder==0.6.8"
 ]
 
 [tool.hatch.envs.docs.scripts]
@@ -45,18 +45,27 @@ docs = "sphinx-build -M markdown .\\Documentation\\ ..\\Documentation\\python\\ 
 detached = true
 
 dependencies = [
-  "ruff==0.12.4"
+  "ruff==0.14.8"
 ]
 
 [tool.hatch.envs.lint.scripts]
-lint = "ruff check ." 
+lint = "ruff check ."
+
+[tool.hatch.envs.deploy]
+detached = true
+
+dependencies = [
+  "hatch",
+  "click==8.2",
+  "twine>=6.1.0"
+] 
 
 [tool.hatch.envs.test]
 dev-mode = false
 dependencies = [
-  "pytest>=8.4.1",
-  "pytest-cov>=6.2.1",
-  "pytest-env>=1.1.5"
+  "pytest>=9.0.1",
+  "pytest-cov>=7.0.0",
+  "pytest-env>=1.2.0"
 ]
 
 [tool.hatch.envs.test.scripts]
@@ -64,7 +73,7 @@ test = "pytest -vv"
 testcov = "test --cov-config=pyproject.toml --cov=src/tableau_migration --cov-report term --cov-report xml:TestResults/coverage-{matrix:python}.xml"
 
 [[tool.hatch.envs.test.matrix]]
-python = ["3.9", "3.10", "3.11", "3.12", "3.13"]
+python = ["3.10", "3.11", "3.12", "3.13"]
 
 [project.urls]
 "Homepage" = "http://www.tableau.com"
@@ -90,14 +99,14 @@ exclude = [
 # https://beta.ruff.rs/docs/rules/
 # Enable pycodestyle (`E`) and Pyflakes (`F`) codes by default.
 # TODO: Look into turning "ANN" on once we understand why type hinting does't work for dotnet types
-select = ["D", "E", "F", "N"]
-ignore = ["D401", "D407", "E501"]
+lint.select = ["D", "E", "F", "N"]
+lint.ignore = ["D401", "D407", "E501"]
 
 exclude = [
   "tests"
 ]
 
-[tool.ruff.pydocstyle]
+[tool.ruff.lint.pydocstyle]
 # Use Google-style docstrings.
 convention = "google"
 

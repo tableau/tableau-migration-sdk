@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -21,6 +21,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Tableau.Migration.Api.Models;
+using Tableau.Migration.Api.Paging;
 using Tableau.Migration.Content;
 using Tableau.Migration.Paging;
 
@@ -29,26 +30,11 @@ namespace Tableau.Migration.Api
     /// <summary>
     /// Interface for API client Custom View operations.
     /// </summary>
-    public interface ICustomViewsApiClient :
-        IContentApiClient,
-        IPagedListApiClient<ICustomView>,
-        IApiPageAccessor<ICustomView>,
-        IReadApiClient<ICustomView>,
-        IPullApiClient<ICustomView, IPublishableCustomView>,
+    public interface ICustomViewsApiClient : IContentApiClient,
+        IApiFilteredPageAccessor<ICustomView>, INameSearchApiClient<ICustomView>,
+        IReadApiClient<ICustomView>, IPullApiClient<ICustomView, IPublishableCustomView>,
         IPublishApiClient<IPublishableCustomView, ICustomView>
     {
-        /// <summary>
-        /// Gets all custom views in the current site.
-        /// </summary>
-        /// <param name="pageNumber">The 1-indexed page number.</param>
-        /// <param name="pageSize">The size of the page.</param>
-        /// <param name="cancel">The cancellation token to obey.</param>
-        /// <returns>A list of a page of custom views in the current site.</returns>
-        Task<IPagedResult<ICustomView>> GetAllCustomViewsAsync(
-            int pageNumber,
-            int pageSize,
-            CancellationToken cancel);
-
         /// <summary>
         /// Changes the owner of an existing custom view.
         /// </summary>

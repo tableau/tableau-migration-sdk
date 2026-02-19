@@ -1,4 +1,4 @@
-# Copyright (c) 2025, Salesforce, Inc.
+# Copyright (c) 2026, Salesforce, Inc.
 # SPDX-License-Identifier: Apache-2
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,7 +31,6 @@ from tableau_migration.migration_content_schedules_cloud import PyCloudSchedule 
 from tableau_migration.migration_content_schedules_server import PyServerSchedule # noqa: E402, F401
 from typing import (  # noqa: E402, F401
     Sequence,
-    List,
     Generic,
     TypeVar
 )
@@ -69,6 +68,7 @@ from Tableau.Migration.Content import (  # noqa: E402, F401
     IPublishableWorkbook,
     IPublishedContent,
     IServerSubscription,
+    ISizeContent,
     ISubscription,
     ISubscriptionContent,
     ITag,
@@ -111,7 +111,7 @@ class PyWithOwner(PyContentReference):
         """Gets or sets the owner for the content item."""
         self._dotnet.Owner = None if value is None else value._dotnet
     
-class PySubscriptionContent():
+class PySubscriptionContent(PyContentReference):
     """The content of the subscription."""
     
     _dotnet_base = ISubscriptionContent
@@ -126,16 +126,6 @@ class PySubscriptionContent():
         """
         self._dotnet = subscription_content
         
-    @property
-    def id(self) -> UUID:
-        """The ID of the content item tied to the subscription."""
-        return None if self._dotnet.Id is None else UUID(self._dotnet.Id.ToString())
-    
-    @id.setter
-    def id(self, value: UUID) -> None:
-        """The ID of the content item tied to the subscription."""
-        self._dotnet.Id = None if value is None else Guid.Parse(str(value))
-    
     @property
     def type(self) -> str:
         """The content type of the subscription."""
@@ -155,6 +145,17 @@ class PySubscriptionContent():
     def send_if_view_empty(self, value: bool) -> None:
         """Whether or not send the notification if the view is empty."""
         self._dotnet.SendIfViewEmpty = value
+    
+    def for_reference(self, reference: PyContentReference) -> Self:
+        """Creates a new ISubscriptionContent object of the same type for the new content reference.
+        
+        Args:
+            reference: The new content reference.
+        
+        Returns: The created ISubscriptionContent.
+        """
+        result = self._dotnet.ForReference(None if reference is None else reference._dotnet)
+        return None if result is None else PySubscriptionContent(result)
     
 class PySubscription(Generic[TSchedule], PyWithSchedule[TSchedule], PyWithOwner):
     """Interface for a subscription."""
@@ -511,6 +512,26 @@ class PyDescriptionContent():
         """Gets or sets the description."""
         self._dotnet.Description = value
     
+class PySizeContent():
+    """Interface for a content item that has a file size."""
+    
+    _dotnet_base = ISizeContent
+    
+    def __init__(self, size_content: ISizeContent) -> None:
+        """Creates a new PySizeContent object.
+        
+        Args:
+            size_content: A ISizeContent object.
+        
+        Returns: None.
+        """
+        self._dotnet = size_content
+        
+    @property
+    def size(self) -> int:
+        """Gets the file size."""
+        return self._dotnet.Size
+    
 class PyExtractContent():
     """Interface for a content item that has an extract."""
     
@@ -577,12 +598,12 @@ class PyWithTags():
         self._dotnet = with_tags
         
     @property
-    def tags(self) -> List[PyTag]:
+    def tags(self) -> Sequence[PyTag]:
         """Gets or sets the tags for the content item."""
         return [] if self._dotnet.Tags is None else [PyTag(x) for x in self._dotnet.Tags if x is not None]
     
     @tags.setter
-    def tags(self, value: List[PyTag]) -> None:
+    def tags(self, value: Sequence[PyTag]) -> None:
         """Gets or sets the tags for the content item."""
         if value is None:
             self._dotnet.Tags = DotnetList[ITag]()
@@ -592,7 +613,7 @@ class PyWithTags():
                 dotnet_collection.Add(x._dotnet)
             self._dotnet.Tags = dotnet_collection
     
-class PyDataSource(PyPublishedContent, PyDescriptionContent, PyExtractContent, PyWithTags, PyContainerContent, PyWithOwner):
+class PyDataSource(PyPublishedContent, PyDescriptionContent, PySizeContent, PyExtractContent, PyWithTags, PyContainerContent, PyWithOwner):
     """Interface for a data source content item."""
     
     _dotnet_base = IDataSource
@@ -653,13 +674,13 @@ class PyFavoriteContentType(IntEnum):
     """Unknown content type."""
     UNKNOWN = 0
     
-    """Workbook content type."""
+    """Project content type."""
     PROJECT = 1
     
     """Workbook content type."""
     WORKBOOK = 2
     
-    """Workbook content type."""
+    """View content type."""
     VIEW = 3
     
     """Data source content type."""
@@ -718,7 +739,7 @@ class PyFavorite(PyEmptyIdContentReference):
     
     @property
     def content_type(self) -> PyFavoriteContentType:
-        """Gets or sets the content type for the favorite."""
+        """Gets the content type for the favorite."""
         return None if self._dotnet.ContentType is None else PyFavoriteContentType(self._dotnet.ContentType.value__)
     
 class PyWithDomain():
@@ -952,12 +973,12 @@ class PyPublishableCustomView(PyCustomView):
         self._dotnet = publishable_custom_view
         
     @property
-    def default_users(self) -> List[PyContentReference]:
+    def default_users(self) -> Sequence[PyContentReference]:
         """The list of users for whom the Custom View is the default."""
         return [] if self._dotnet.DefaultUsers is None else [PyContentReference(x) for x in self._dotnet.DefaultUsers if x is not None]
     
     @default_users.setter
-    def default_users(self, value: List[PyContentReference]) -> None:
+    def default_users(self, value: Sequence[PyContentReference]) -> None:
         """The list of users for whom the Custom View is the default."""
         if value is None:
             self._dotnet.DefaultUsers = DotnetList[IContentReference]()
@@ -998,12 +1019,12 @@ class PyPublishableGroup(PyGroup):
         self._dotnet = publishable_group
         
     @property
-    def users(self) -> List[PyGroupUser]:
+    def users(self) -> Sequence[PyGroupUser]:
         """Gets or sets the users assigned to the group."""
         return [] if self._dotnet.Users is None else [PyGroupUser(x) for x in self._dotnet.Users if x is not None]
     
     @users.setter
-    def users(self, value: List[PyGroupUser]) -> None:
+    def users(self, value: Sequence[PyGroupUser]) -> None:
         """Gets or sets the users assigned to the group."""
         if value is None:
             self._dotnet.Users = DotnetList[IGroupUser]()
@@ -1029,12 +1050,12 @@ class PyPublishableGroupSet(PyGroupSet):
         self._dotnet = publishable_group_set
         
     @property
-    def groups(self) -> List[PyContentReference]:
+    def groups(self) -> Sequence[PyContentReference]:
         """Gets or sets the groups belonging to the group set."""
         return [] if self._dotnet.Groups is None else [PyContentReference(x) for x in self._dotnet.Groups if x is not None]
     
     @groups.setter
-    def groups(self, value: List[PyContentReference]) -> None:
+    def groups(self, value: Sequence[PyContentReference]) -> None:
         """Gets or sets the groups belonging to the group set."""
         if value is None:
             self._dotnet.Groups = DotnetList[IContentReference]()
@@ -1044,7 +1065,7 @@ class PyPublishableGroupSet(PyGroupSet):
                 dotnet_collection.Add(x._dotnet)
             self._dotnet.Groups = dotnet_collection
     
-class PyWorkbook(PyPublishedContent, PyDescriptionContent, PyExtractContent, PyWithTags, PyContainerContent, PyWithOwner):
+class PyWorkbook(PyPublishedContent, PyDescriptionContent, PySizeContent, PyExtractContent, PyWithTags, PyContainerContent, PyWithOwner):
     """Interface for a workbook content item."""
     
     _dotnet_base = IWorkbook
@@ -1068,11 +1089,6 @@ class PyWorkbook(PyPublishedContent, PyDescriptionContent, PyExtractContent, PyW
     def show_tabs(self, value: bool) -> None:
         """Gets or sets whether tabs are shown."""
         self._dotnet.ShowTabs = value
-    
-    @property
-    def size(self) -> int:
-        """Gets the file size."""
-        return self._dotnet.Size
     
 class PyView(PyWithTags, PyContentReference, PyContainerContent):
     """Interface for view associated with the content item."""
@@ -1306,4 +1322,22 @@ class PyUser(PyUsernameContent):
     
 
 # endregion
+
+from Tableau.Migration.Content import (  # noqa: E402, F401
+    Tag
+)
+
+def _create_tag(cls, label: str) -> PyTag:
+    """Creates a new PyTag object from a string label.
+    
+    Args:
+        cls: The class.
+        label: The tag label.
+        
+    Returns:
+        A new PyTag object.
+    """
+    return PyTag(Tag(label))
+
+setattr(PyTag, "create", classmethod(_create_tag))
 

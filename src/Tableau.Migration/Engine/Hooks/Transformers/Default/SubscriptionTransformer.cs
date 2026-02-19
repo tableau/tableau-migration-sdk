@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -20,6 +20,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Tableau.Migration.Content;
+using Tableau.Migration.Content.Search;
 using Tableau.Migration.Engine.Endpoints.Search;
 using Tableau.Migration.Resources;
 
@@ -45,35 +46,24 @@ namespace Tableau.Migration.Engine.Hooks.Transformers.Default
 
         public override async Task<ICloudSubscription?> TransformAsync(ICloudSubscription itemToTransform, CancellationToken cancel)
         {
+            IContentReference destinationItem;
+
             switch (itemToTransform.Content.Type.ToLowerInvariant())
             {
                 case "view":
-                    await TransformViewSubscriptionAsync(itemToTransform, cancel).ConfigureAwait(false);
+                    destinationItem = (await _destinationViewFinder.FindBySourceIdAsync(itemToTransform.Content.Id, cancel).ConfigureAwait(false))
+                        .ThrowOnMissingContentReference<IView>(Localizer, "subscription view", itemToTransform.Content.Id);
                     break;
                 case "workbook":
-                    await TransformWorkbookSubscriptionAsync(itemToTransform, cancel).ConfigureAwait(false);
+                    destinationItem = (await _destinationWorkbookFinder.FindBySourceIdAsync(itemToTransform.Content.Id, cancel).ConfigureAwait(false))
+                        .ThrowOnMissingContentReference<IWorkbook>(Localizer, "subscription workbook", itemToTransform.Content.Id);
                     break;
                 default:
-                    throw new NotSupportedException($"Unsupported subscription content type: {itemToTransform.Content.Type}");
+                    throw new NotSupportedException($"Unable to transform unsupported subscription content reference type: {itemToTransform.Content.Type}. Update {nameof(SubscriptionTransformer)} to support the content reference type.");
             }
 
+            itemToTransform.Content = itemToTransform.Content.ForReference(destinationItem);
             return itemToTransform;
-        }
-
-        private async Task TransformViewSubscriptionAsync(ICloudSubscription itemToTransform, CancellationToken cancel)
-        {
-            var destinationView = (await _destinationViewFinder.FindBySourceIdAsync(itemToTransform.Content.Id, cancel).ConfigureAwait(false))
-                .ThrowOnMissingContentReference("Missing destination subscription view reference.");
-
-            itemToTransform.Content.Id = destinationView.Id;
-        }
-
-        private async Task TransformWorkbookSubscriptionAsync(ICloudSubscription itemToTransform, CancellationToken cancel)
-        {
-            var destinationWorkbook = (await _destinationWorkbookFinder.FindBySourceIdAsync(itemToTransform.Content.Id, cancel).ConfigureAwait(false))
-                .ThrowOnMissingContentReference("Missing destination subscription workbook reference.");
-
-            itemToTransform.Content.Id = destinationWorkbook.Id;
         }
     }
 }

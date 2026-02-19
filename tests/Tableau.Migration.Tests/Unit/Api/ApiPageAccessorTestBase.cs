@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -19,6 +19,7 @@ using System;
 using System.Net;
 using System.Threading.Tasks;
 using Tableau.Migration.Api;
+using Tableau.Migration.Api.Paging;
 using Tableau.Migration.Api.Rest.Models.Responses;
 using Xunit;
 
@@ -29,7 +30,7 @@ namespace Tableau.Migration.Tests.Unit.Api
         where TResponse : TableauServerResponse, new()
     {
         [Fact]
-        public async Task GetPage_success()
+        public async Task GetPageSuccessAsync()
         {
             // Arrange
             var response = AutoFixture.CreateResponse<TResponse>();
@@ -52,7 +53,7 @@ namespace Tableau.Migration.Tests.Unit.Api
         }
 
         [Fact]
-        public async Task GetPage_failure()
+        public async Task GetPageFailureAsync()
         {
             // Arrange
             var exception = new Exception();

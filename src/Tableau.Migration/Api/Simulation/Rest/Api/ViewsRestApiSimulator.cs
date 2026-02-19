@@ -1,5 +1,5 @@
 //
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -15,9 +15,13 @@
 //  limitations under the License.
 //
 
+using System.Linq;
+using System.Net;
 using Tableau.Migration.Api.Rest;
 using Tableau.Migration.Api.Rest.Models.Responses;
 using Tableau.Migration.Api.Simulation.Rest.Net;
+using Tableau.Migration.Api.Simulation.Rest.Net.Requests;
+using Tableau.Migration.Api.Simulation.Rest.Net.Responses;
 using Tableau.Migration.Net.Simulation;
 
 using static Tableau.Migration.Api.Simulation.Rest.Net.Requests.RestUrlPatterns;
@@ -35,6 +39,11 @@ namespace Tableau.Migration.Api.Simulation.Rest.Api
         public MethodSimulator QueryView { get; }
 
         /// <summary>
+        /// Gets the simulated view delete API method.
+        /// </summary>
+        public MethodSimulator DeleteView { get; }
+
+        /// <summary>
         /// Creates a new <see cref="ViewsRestApiSimulator"/> object.
         /// </summary>
         /// <param name="simulator">A response simulator to setup with REST API methods.</param>
@@ -44,6 +53,20 @@ namespace Tableau.Migration.Api.Simulation.Rest.Api
             QueryView = simulator.SetupRestGetById<ViewResponse, ViewResponse.ViewType>(
              SiteEntityUrl(ContentTypeUrlPrefix),
              (data) => data.Views);
+
+            DeleteView = simulator.SetupRestDelete(
+                SiteEntityUrl(ContentTypeUrlPrefix),
+                new RestDeleteResponseBuilder(simulator.Data, (data, request) =>
+                {
+                    var viewId = request.GetRequestIdFromUri();
+                    var view = data.Views.FirstOrDefault(v => v.Id == viewId);
+                    if (view == null)
+                    {
+                        return HttpStatusCode.NotFound;
+                    }
+                    data.Views.Remove(view);
+                    return HttpStatusCode.NoContent;
+                }, simulator.Serializer));
         }
     }
 }

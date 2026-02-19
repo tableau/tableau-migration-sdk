@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -15,6 +15,7 @@
 //  limitations under the License.
 //
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -23,6 +24,7 @@ using Moq;
 using Tableau.Migration.Content;
 using Tableau.Migration.Engine.Endpoints.Search;
 using Tableau.Migration.Engine.Hooks.Transformers.Default;
+using Tableau.Migration.Resources;
 using Xunit;
 
 namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
@@ -32,8 +34,6 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
         public abstract class GroupUsersTransformerTest : AutoFixtureTestBase
         {
             protected readonly Mock<IDestinationContentReferenceFinderFactory> MockDestinationContentReferenceFinderFactory = new();
-            protected readonly Mock<ILogger<GroupUsersTransformer>> MockLogger = new();
-            protected readonly MockSharedResourcesLocalizer MockSharedResourcesLocalizer = new();
             protected readonly Mock<IDestinationContentReferenceFinder<IUser>> MockUserContentFinder = new();
 
             protected readonly GroupUsersTransformer Transformer;
@@ -42,47 +42,42 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
             {
                 MockDestinationContentReferenceFinderFactory.Setup(p => p.ForDestinationContentType<IUser>()).Returns(MockUserContentFinder.Object);
 
-                Transformer = new(MockDestinationContentReferenceFinderFactory.Object, MockSharedResourcesLocalizer.Object, MockLogger.Object);
+                Transformer = new(MockDestinationContentReferenceFinderFactory.Object,
+                    Create<ISharedResourcesLocalizer>(), Create<ILogger<GroupUsersTransformer>>());
             }
         }
 
         public class ExecuteAsync : GroupUsersTransformerTest
         {
             [Fact]
-            public async Task Returns_the_same_object()
+            public async Task ReturnsSameObjectAsync()
             {
                 var group = Create<IPublishableGroup>();
-                var users = new List<IContentReference>();
+                group.Users = CreateMany<GroupUser>().Cast<IGroupUser>().ToList();
+
+                var destinationUsers = new List<IContentReference>();
                 foreach (var user in group.Users)
                 {
-                    users.Add(user.User);
+                    var destinationUser = Create<IContentReference>();
+                    destinationUsers.Add(destinationUser);
+
+                    MockUserContentFinder.Setup(x => x.FindBySourceLocationAsync(user.User.Location, Cancel))
+                        .ReturnsAsync(destinationUser);
                 }
+
                 var result = await Transformer.TransformAsync(group, Cancel);
 
                 Assert.NotNull(result);
                 Assert.Same(group, result);
-                Assert.Equal(users, result.Users.Select(u => u.User));
-                MockLogger.VerifyDebug(Times.Once());
+                Assert.Equal(destinationUsers, result.Users.Select(u => u.User).ToList());
             }
 
             [Fact]
-            public async Task Returns_destination_user_when_found()
+            public async Task ThrowsWhenUserFoundAsync()
             {
                 var group = Create<IPublishableGroup>();
-                var sourceUser = Create<IContentReference>();
-                var destinationUser = Create<IContentReference>();
-                group.Users.Add(new GroupUser(sourceUser));
 
-                MockUserContentFinder.Setup(f
-                    => f.FindBySourceLocationAsync(sourceUser.Location, Cancel))
-                    .ReturnsAsync(destinationUser);
-
-                var result = await Transformer.TransformAsync(group, Cancel);
-
-                Assert.NotNull(result);
-                Assert.Same(group, result);
-                MockLogger.VerifyDebug(Times.Once());
-                Assert.Equal(destinationUser, result.Users.Last().User);
+                await Assert.ThrowsAsync<Exception>(() => Transformer.TransformAsync(group, Cancel));
             }
         }
     }

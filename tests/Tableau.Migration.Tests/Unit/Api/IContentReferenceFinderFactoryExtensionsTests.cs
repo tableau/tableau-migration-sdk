@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -75,11 +75,13 @@ namespace Tableau.Migration.Tests.Unit.Api
             protected readonly Mock<IContentReferenceFinder<IUser>> MockUserFinder = new();
             protected readonly Mock<IContentReferenceFinder<IWorkbook>> MockWorkbookFinder = new();
             protected readonly Mock<IContentReferenceFinder<IView>> MockViewFinder = new();
-            protected readonly Mock<ILogger> MockLogger = new();
+            protected readonly Mock<ILogger> MockLogger;
             protected readonly ISharedResourcesLocalizer SharedResourcesLocalizer = new TestSharedResourcesLocalizer();
 
             public IContentReferenceFinderFactoryExtensionsTest()
             {
+                MockLogger = Create<Mock<ILogger>>();
+
                 MockFinderFactory.Setup(f => f.ForContentType<IGroup>()).Returns(MockGroupFinder.Object);
                 MockFinderFactory.Setup(f => f.ForContentType<IProject>()).Returns(MockProjectFinder.Object);
                 MockFinderFactory.Setup(f => f.ForContentType<IUser>()).Returns(MockUserFinder.Object);

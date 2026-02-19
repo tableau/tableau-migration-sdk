@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -25,7 +25,7 @@ using Tableau.Migration.Content;
 using Tableau.Migration.Content.Permissions;
 using Tableau.Migration.Engine;
 using Tableau.Migration.Engine.Endpoints;
-using Tableau.Migration.Engine.Endpoints.Search;
+using Tableau.Migration.Engine.Endpoints.Caching;
 using Tableau.Migration.Engine.Hooks.PostPublish;
 using Tableau.Migration.Engine.Hooks.PostPublish.Default;
 using Tableau.Migration.Engine.Hooks.Transformers;

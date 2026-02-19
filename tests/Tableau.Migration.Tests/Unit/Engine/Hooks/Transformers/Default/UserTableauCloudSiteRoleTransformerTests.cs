@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -43,10 +43,12 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
         private readonly ContentTransformerRunner _runner;
 
         private readonly MockSharedResourcesLocalizer _mockLocalizer = new();
-        private readonly Mock<ILogger<UserTableauCloudSiteRoleTransformer>> _mockLogger = new();
+        private readonly Mock<ILogger<UserTableauCloudSiteRoleTransformer>> _mockLogger;
 
         public UserTableauCloudSiteRoleTransformerTests()
         {
+            _mockLogger = Create<Mock<ILogger<UserTableauCloudSiteRoleTransformer>>>();
+
             _transformerExecutionContexts = new();
             _transformerFactories = new();
 
@@ -57,7 +59,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
             mockPlan.SetupGet(x => x.Transformers).Returns(mockTransformers.Object);
             _plan = mockPlan.Object;
             Assert.NotNull(_plan.Transformers);
-            _runner = new(_plan, new Mock<IServiceProvider>().Object, new Mock<ISharedResourcesLocalizer>().Object, new Mock<ILogger<ContentTransformerRunner>>().Object);
+            _runner = new(_plan, new Mock<IServiceProvider>().Object, new Mock<ISharedResourcesLocalizer>().Object, Create<ILogger<ContentTransformerRunner>>());
         }
 
         [Theory]

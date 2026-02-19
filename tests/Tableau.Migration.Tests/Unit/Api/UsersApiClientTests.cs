@@ -1,5 +1,5 @@
 //
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -47,10 +47,10 @@ namespace Tableau.Migration.Tests.Unit.Api
 
         #region - List -
 
-        public sealed class ListClient : PagedListApiClientTestBase<IUsersApiClient, IUser, UsersResponse>
+        public sealed class ListClient : NameSearchApiClientTestBase<IUsersApiClient, IUser, UsersResponse>
         { }
 
-        public sealed class PageAccessor : ApiPageAccessorTestBase<IUsersApiClient, IUser, UsersResponse>
+        public sealed class PageAccessor : ApiFilteredPageAccessorTestBase<IUsersApiClient, IUser, UsersResponse>
         { }
 
         #endregion
@@ -60,7 +60,7 @@ namespace Tableau.Migration.Tests.Unit.Api
         public sealed class ImportUsersAsync : UsersApiClientTest
         {
             [Fact]
-            public async Task MultipleAuthTypes()
+            public async Task MultipleAuthTypesAsync()
             {
                 var users = AutoFixture.CreateMany<IUser>();
                 foreach (var u in users)
@@ -106,7 +106,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async Task SingleAuthType()
+            public async Task SingleAuthTypeAsync()
             {
                 var users = AutoFixture.CreateMany<IUser>();
                 foreach (var user in users)
@@ -151,7 +151,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async Task NoAuthTypes()
+            public async Task NoAuthTypesAsync()
             {
                 var users = AutoFixture.CreateMany<IUser>();
                 foreach (var user in users)
@@ -196,7 +196,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async Task ReturnsFailure()
+            public async Task ReturnsFailureAsync()
             {
                 var exception = new Exception();
 
@@ -226,7 +226,7 @@ namespace Tableau.Migration.Tests.Unit.Api
         public sealed class AddUserAsync : UsersApiClientTest
         {
             [Fact]
-            public async Task Success()
+            public async Task SuccessAsync()
             {
                 //Setup
                 var addResponse = AutoFixture.CreateResponse<AddUserResponse>();
@@ -263,7 +263,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async Task Failure()
+            public async Task FailureAsync()
             {
                 //Setup                
                 MockHttpClient.SetupResponse(new MockHttpResponseMessage<AddUserResponse>(HttpStatusCode.InternalServerError, null));
@@ -279,7 +279,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async Task Succeeds_when_user_exists()
+            public async Task UserExistsAsync()
             {
                 // Setup
                 var existingUserResponse = new UsersResponse
@@ -329,7 +329,7 @@ namespace Tableau.Migration.Tests.Unit.Api
         public sealed class UpdateUserAsync : UsersApiClientTest
         {
             [Fact]
-            public async Task Success_With_Required_Params()
+            public async Task RequireParamsAsync()
             {
                 //Setup
                 var updateResponse = AutoFixture.CreateResponse<UpdateUserResponse>();
@@ -367,7 +367,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async Task Success_With_All_Params()
+            public async Task AllParamsAsync()
             {
                 //Setup
                 var updateResponse = AutoFixture.CreateResponse<UpdateUserResponse>();
@@ -410,7 +410,7 @@ namespace Tableau.Migration.Tests.Unit.Api
                 Assert.Equal(expectedAuthSetting, addUserResult.Authentication.AuthenticationType);
             }
             [Fact]
-            public async Task Failure()
+            public async Task FailureAsync()
             {
                 //Setup
                 MockHttpClient.SetupResponse(new MockHttpResponseMessage<UpdateUserResponse>(HttpStatusCode.InternalServerError, null));
@@ -439,7 +439,7 @@ namespace Tableau.Migration.Tests.Unit.Api
         public sealed class DeleteUserAsync : UsersApiClientTest
         {
             [Fact]
-            public async Task Success()
+            public async Task SuccessAsync()
             {
                 //Setup
                 var userId = Guid.NewGuid();
@@ -460,7 +460,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async Task Failure()
+            public async Task FailureAsync()
             {
                 //Setup
                 var userId = Guid.NewGuid();
@@ -488,7 +488,7 @@ namespace Tableau.Migration.Tests.Unit.Api
         public sealed class RetrieveUserSavedCredentialsAsync : UsersApiClientTest
         {
             [Fact]
-            public async Task Returns_success()
+            public async Task SuccessAsync()
             {
                 var userId = Create<Guid>();
                 var options = Create<IDestinationSiteInfo>();
@@ -517,7 +517,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async Task Returns_failure()
+            public async Task FailureAsync()
             {
                 var userId = Create<Guid>();
                 var exception = new Exception();

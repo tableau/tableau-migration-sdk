@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -28,7 +28,7 @@ namespace Tableau.Migration.Tests.Unit.Net.Rest
     {
         public abstract class RestRequestBuilderFactoryTest : AutoFixtureTestBase
         {
-            protected readonly Mock<IRequestBuilderFactoryInput> MockInput = new();
+            protected readonly Mock<IRestRequestBuilderFactoryInput> MockInput = new();
             protected readonly Mock<IServerSessionProvider> MockSessionProvider = new();
             protected readonly Mock<IHttpRequestBuilderFactory> MockHttpRequestBuilderFactory = new();
 
@@ -69,7 +69,23 @@ namespace Tableau.Migration.Tests.Unit.Net.Rest
             }
 
             [Fact]
-            public void Sets_default_Api_version_from_session()
+            public void SetsDefaultApiVersionFromSession()
+            {
+                var version = Create<TableauServerVersion>();
+
+                MockInput.SetupGet(x => x.RestApiVersionOverride).Returns("override");
+                MockSessionProvider.SetupGet(p => p.Version).Returns(version);
+
+                var builder = Factory.CreateUri(DefaultPath);
+
+                Assert.NotNull(builder);
+                var restUriBuilder = Assert.IsType<RestRequestBuilder>(builder);
+
+                Assert.Equal("override", GetApiVersion(restUriBuilder));
+            }
+
+            [Fact]
+            public void UsesApiVersionOverride()
             {
                 var version = Create<TableauServerVersion>();
 
@@ -85,7 +101,7 @@ namespace Tableau.Migration.Tests.Unit.Net.Rest
             }
 
             [Fact]
-            public void Sets_experimental_api_version()
+            public void SetsExperimentalApiVersion()
             {
                 var version = Create<TableauServerVersion>();
 
@@ -100,7 +116,7 @@ namespace Tableau.Migration.Tests.Unit.Net.Rest
             }
 
             [Fact]
-            public void Sets_default_site_ID_from_session()
+            public void SetsDefaultSiteIdFromSession()
             {
                 var siteId = Create<Guid>();
 

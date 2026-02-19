@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -93,8 +93,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Filters
 
             private readonly IMigrationPlan _plan;
 
-            private readonly Mock<ISharedResourcesLocalizer> _mockLocalizer = new();
-            private readonly Mock<ILogger<ContentFilterRunner>> _mockLogger = new();
+            private readonly Mock<ILogger<ContentFilterRunner>> _mockLogger;
 
             private readonly ContentFilterRunner _runner;
 
@@ -102,6 +101,8 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Filters
             {
                 _filterExecutionContexts = new();
                 _filterFactories = new();
+
+                _mockLogger = Create<Mock<ILogger<ContentFilterRunner>>>();
 
                 var mockFilters = AutoFixture.Create<Mock<IMigrationHookFactoryCollection>>();
                 mockFilters.Setup(x => x.GetHooks<IContentFilter<IUser>>()).Returns(() => _filterFactories.ToImmutableArray());
@@ -111,7 +112,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Filters
                 _plan = mockPlan.Object;
                 Assert.NotNull(_plan.Filters);
 
-                _runner = new(_plan, new Mock<IServiceProvider>().Object, _mockLocalizer.Object, _mockLogger.Object);
+                _runner = new(_plan, new Mock<IServiceProvider>().Object, Create<ISharedResourcesLocalizer>(), _mockLogger.Object);
             }
 
             private void AddFilterWithResult(TestMigrationItems? result)

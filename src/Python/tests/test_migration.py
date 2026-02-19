@@ -1,4 +1,4 @@
-# Copyright (c) 2025, Salesforce, Inc.
+# Copyright (c) 2026, Salesforce, Inc.
 # SPDX-License-Identifier: Apache-2
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -41,21 +41,24 @@ from Tableau.Migration.Engine.Manifest import (
     MigrationManifest, 
     IMigrationManifestEditor)
 import Moq
+
+from tests.helpers.autofixture import AutoFixtureTestBase
         
 
-class TestPyMigrator():
+class TestPyMigrator(AutoFixtureTestBase):
+
     def test_init(self):
         from tableau_migration.migration_engine_migrators import PyMigrator
         PyMigrator()
     
     def test_migration_migrator_execute_without_manifest(self):
         migrator_mock = Moq.Mock[IMigrator]()
-        plan_mock = Moq.Mock[IMigrationPlan]()
+        plan_mock = self.create(IMigrationPlan)
 
         migrator = PyMigrator()
         migrator._migrator = migrator_mock.Object
     
-        plan = PyMigrationPlan(plan_mock.Object)
+        plan = PyMigrationPlan(plan_mock)
 
         migrator.execute(plan)
 
@@ -67,14 +70,14 @@ class TestPyMigrator():
     def test_migration_migrator_execute_with_manifest(self):
         migrator_mock = Moq.Mock[IMigrator]()
         manifest_mock = Moq.Mock[IMigrationManifest]()
-        plan_mock = Moq.Mock[IMigrationPlan]()
+        plan_mock = self.create(IMigrationPlan)
 
         migrator = PyMigrator()
         migrator._migrator = migrator_mock.Object
 
         manifest = PyMigrationManifest(manifest_mock.Object)
 
-        plan = PyMigrationPlan(plan_mock.Object)
+        plan = PyMigrationPlan(plan_mock)
     
         migrator.execute(plan, previous_manifest=manifest)
 
@@ -145,6 +148,11 @@ class TestPyContentLocation():
         
         path = py.path_segments
         assert path == ["parent", "child", "item"]
+
+    def test_create(self):
+        py = PyContentLocation.create("|", ["parent", "child", "item"])
+        assert "parent|child|item" == py.path
+
 # region _generated
 
 from enum import IntEnum # noqa: E402, F401

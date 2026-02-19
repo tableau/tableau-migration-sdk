@@ -1,5 +1,5 @@
 //
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -55,6 +55,11 @@ namespace Tableau.Migration.Config
             /// The default overwrite group set groups flag.
             /// </summary>
             public const bool OVERWRITE_GROUP_SET_GROUPS = true;
+
+            /// <summary>
+            /// The default maximum content size in bytes.
+            /// </summary>
+            public static readonly long? MAX_CONTENT_SIZE = null;
         }
 
         /// <summary>
@@ -120,6 +125,17 @@ namespace Tableau.Migration.Config
             set => _overwriteGroupSetGroupsEnabled = value;
         }
         private bool? _overwriteGroupSetGroupsEnabled;
+
+        /// <summary>
+        /// Gets or sets the maximum content size in bytes.
+        /// When null, no size filtering is applied.
+        /// </summary>
+    public long? MaxContentSize
+        {
+            get => _maxContentSize ?? Defaults.MAX_CONTENT_SIZE;
+            set => _maxContentSize = value;
+        }
+        private long? _maxContentSize;
 
         /// <summary>
         /// Checks if the content type in <see cref="Type"/> is valid.

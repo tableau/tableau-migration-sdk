@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -21,14 +21,12 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Moq;
 using Tableau.Migration.Engine;
 using Tableau.Migration.Engine.Endpoints;
 using Tableau.Migration.Engine.Manifest;
 using Tableau.Migration.Engine.Migrators;
 using Tableau.Migration.Engine.Pipelines;
-using Tableau.Migration.Resources;
 using Xunit;
 
 namespace Tableau.Migration.Tests.Unit.Engine.Migrators
@@ -39,8 +37,6 @@ namespace Tableau.Migration.Tests.Unit.Engine.Migrators
         {
             private readonly Mock<IServiceProvider> _mockServices;
             private readonly Mock<IServiceScopeFactory> _mockServiceScopeFactory;
-            private readonly Mock<ILogger<Migrator>> _mockLog;
-            private readonly Mock<ISharedResourcesLocalizer> _mockLocalizer;
             private readonly Migrator _migrator;
 
             private readonly IMigrationPlan _plan;
@@ -52,7 +48,6 @@ namespace Tableau.Migration.Tests.Unit.Engine.Migrators
             private readonly Mock<IMigrationManifestFactory> _mockManifestFactory;
             private readonly Mock<IMigrationManifestEditor> _mockManifest;
             private readonly Mock<IMigrationManifestEditor> _mockErrorManifest;
-            private readonly Mock<IMigrationPipelineFactory> _mockPipelineFactory;
             private readonly Mock<IMigrationPipelineRunner> _mockPipelineRunner;
             private readonly Mock<IMigrationPipeline> _mockPipeline;
 
@@ -76,7 +71,6 @@ namespace Tableau.Migration.Tests.Unit.Engine.Migrators
                 _mockManifestFactory.Setup(x => x.Create(It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<PipelineProfile>()))
                     .Returns(_mockErrorManifest.Object);
 
-                _mockPipelineFactory = Freeze<Mock<IMigrationPipelineFactory>>();
                 _mockPipelineRunner = Freeze<Mock<IMigrationPipelineRunner>>();
                 _mockPipeline = Freeze<Mock<IMigrationPipeline>>();
 
@@ -89,8 +83,6 @@ namespace Tableau.Migration.Tests.Unit.Engine.Migrators
                 mockMigration.SetupGet(x => x.Manifest).Returns(_mockManifest.Object);
 
                 _mockServiceScopeFactory = Freeze<Mock<IServiceScopeFactory>>();
-                _mockLog = Freeze<Mock<ILogger<Migrator>>>();
-                _mockLocalizer = Freeze<Mock<ISharedResourcesLocalizer>>();
                 _migrator = Create<Migrator>();
 
                 _plan = Create<IMigrationPlan>();

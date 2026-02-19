@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -15,6 +15,7 @@
 //  limitations under the License.
 //
 
+using System;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -30,7 +31,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
         public abstract class WorkbookReferenceTransformerTest : AutoFixtureTestBase
         {
             protected readonly Mock<IDestinationContentReferenceFinderFactory> MockDestinationFinderFactory = new();
-            protected readonly Mock<ILogger<WorkbookReferenceTransformer<IWithWorkbook>>> MockLogger = new();
+            protected readonly Mock<ILogger<WorkbookReferenceTransformer<IWithWorkbook>>> MockLogger;
             protected readonly MockSharedResourcesLocalizer MockSharedResourcesLocalizer = new();
             protected readonly Mock<IDestinationContentReferenceFinder<IWorkbook>> MockWorkbookContentFinder = new();
 
@@ -38,6 +39,8 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
 
             public WorkbookReferenceTransformerTest()
             {
+                MockLogger = Create<Mock<ILogger<WorkbookReferenceTransformer<IWithWorkbook>>>>();
+
                 MockDestinationFinderFactory
                     .Setup(p => p.ForDestinationContentType<IWorkbook>())
                     .Returns(MockWorkbookContentFinder.Object);
@@ -52,18 +55,14 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
         public class ExecuteAsync : WorkbookReferenceTransformerTest
         {
             [Fact]
-            public async Task Returns_same_when_workbook_not_found()
+            public async Task ThrowsOnMappedWorkbookNotFoundAsync()
             {
                 var sourceContentType = Create<IWithWorkbook>();
-                var result = await Transformer.TransformAsync(sourceContentType, Cancel);
-
-                Assert.NotNull(result);
-                MockLogger.VerifyDebug(Times.AtLeastOnce());
-                Assert.Same(sourceContentType.Workbook, result.Workbook);
+                await Assert.ThrowsAsync<Exception>(() => Transformer.TransformAsync(sourceContentType, Cancel));
             }
 
             [Fact]
-            public async Task Returns_destination_workbook_when_found()
+            public async Task ReturnsDestinationWorkbookWhenFoundAsync()
             {
                 var sourceContentType = Create<IWithWorkbook>();
                 var destinationWorkbook = Create<IWorkbook>();

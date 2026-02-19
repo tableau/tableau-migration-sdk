@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -34,7 +34,12 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Filters.Default
         public abstract class GroupAllUsersFilterTest : OptionsHookTestBase<GroupAllUsersFilterOptions>
         {
             protected readonly MockSharedResourcesLocalizer MockLocalizer = new();
-            protected readonly Mock<ILogger<IContentFilter<IGroup>>> MockLogger = new();
+            protected readonly Mock<ILogger<IContentFilter<IGroup>>> MockLogger;
+
+            public GroupAllUsersFilterTest()
+            {
+                MockLogger = Create<Mock<ILogger<IContentFilter<IGroup>>>>();
+            }
         }
 
         public class Ctor : GroupAllUsersFilterTest

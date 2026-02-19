@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -79,15 +79,12 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Filters
             }
         }
 
-        public class AddMappingGenericInstance
+        public class AddMappingGenericInstance : AutoFixtureTestBase
         {
-            protected readonly MockSharedResourcesLocalizer _mockLocalizer = new();
-            protected readonly Mock<ILogger<IContentFilter<IUser>>> _mockLogger = new();
-
             [Fact]
             public void AddFromType()
             {
-                var genericFilter = new GenericFilter<IUser>(_mockLocalizer.Object, _mockLogger.Object);
+                var genericFilter = Create<GenericFilter<IUser>>();
                 var builder = new ContentFilterBuilder().Add(genericFilter);
 
                 var result = builder.Build();
@@ -157,7 +154,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Filters
             }
 
             [Fact]
-            public async Task IgnoresRawHookInterface()
+            public async Task IgnoresRawHookInterfaceAsync()
             {
                 // Arrange
                 var users = new List<ContentMigrationItem<IUser>>();
@@ -179,10 +176,15 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Filters
 
         #region - Lifetime -
 
-        public class Lifetime
+        public class Lifetime : AutoFixtureTestBase
         {
             private readonly MockSharedResourcesLocalizer _mockLocalizer = new();
-            private readonly Mock<ILogger<IContentFilter<IUser>>> _mockLogger = new();
+            private readonly Mock<ILogger<IContentFilter<IUser>>> _mockLogger;
+
+            public Lifetime()
+            {
+                _mockLogger = Create<Mock<ILogger<IContentFilter<IUser>>>>();
+            }
 
             [Fact]
             public void BuildAndCreateObject()

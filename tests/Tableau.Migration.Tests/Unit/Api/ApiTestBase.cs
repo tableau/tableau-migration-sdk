@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -42,7 +42,7 @@ namespace Tableau.Migration.Tests.Unit.Api
         #region - IApiClientTestDependencies -
 
         public Mock<IApiClientInput> MockApiClientInput => Dependencies.MockApiClientInput;
-        public Mock<IRequestBuilderFactoryInput> MockRequestBuilderInput => Dependencies.MockRequestBuilderInput;
+        public Mock<IRestRequestBuilderFactoryInput> MockRestRequestBuilderInput => Dependencies.MockRestRequestBuilderInput;
         public MockHttpClient MockHttpClient => Dependencies.MockHttpClient;
         public Mock<ITableauServerVersionProvider> MockVersionProvider => Dependencies.MockVersionProvider;
         public Mock<IServerSessionProvider> MockSessionProvider => Dependencies.MockSessionProvider;

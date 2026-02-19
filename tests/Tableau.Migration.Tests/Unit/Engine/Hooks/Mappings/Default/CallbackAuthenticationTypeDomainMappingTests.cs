@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -18,7 +18,6 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Moq;
 using Tableau.Migration.Content;
 using Tableau.Migration.Engine.Hooks.Mappings;
 using Tableau.Migration.Engine.Hooks.Mappings.Default;
@@ -31,21 +30,16 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Mappings.Default
     {
         public class ExecuteAsync : AutoFixtureTestBase
         {
-            private readonly CancellationToken _cancel = new();
-
-            private readonly Mock<ISharedResourcesLocalizer> _mockLocalizer = new();
-            private readonly Mock<ILogger<CallbackAuthenticationTypeDomainMapping>> _mockLogger = new();
-
             [Fact]
             public async Task MapsDomainAsync()
             {
                 var callback = (ContentMappingContext<IUsernameContent> ctx, CancellationToken cancel)
                     => Task.FromResult("myDomain");
 
-                var mapper = new CallbackAuthenticationTypeDomainMapping(callback, _mockLocalizer.Object, _mockLogger.Object);
+                var mapper = new CallbackAuthenticationTypeDomainMapping(callback, Create<ISharedResourcesLocalizer>(), Create<ILogger<CallbackAuthenticationTypeDomainMapping>>());
 
                 var ctx = Create<ContentMappingContext<IUser>>();
-                var result = await mapper.ExecuteAsync(ctx, _cancel);
+                var result = await mapper.ExecuteAsync(ctx, Cancel);
 
                 Assert.NotNull(result);
                 Assert.NotSame(ctx, result);
@@ -61,10 +55,10 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Mappings.Default
                 var callback = (ContentMappingContext<IUsernameContent> ctx, CancellationToken cancel)
                     => Task.FromResult((string?)null);
 
-                var mapper = new CallbackAuthenticationTypeDomainMapping(callback, _mockLocalizer.Object, _mockLogger.Object);
+                var mapper = new CallbackAuthenticationTypeDomainMapping(callback, Create<ISharedResourcesLocalizer>(), Create<ILogger<CallbackAuthenticationTypeDomainMapping>>());
 
                 var ctx = Create<ContentMappingContext<IUser>>();
-                var result = await mapper.ExecuteAsync(ctx, _cancel);
+                var result = await mapper.ExecuteAsync(ctx, Cancel);
 
                 Assert.NotNull(result);
                 Assert.Same(ctx, result);

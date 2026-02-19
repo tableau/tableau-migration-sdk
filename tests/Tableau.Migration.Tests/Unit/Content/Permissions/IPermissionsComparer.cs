@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -18,7 +18,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using Tableau.Migration.Api.Rest.Models.Types;
 using Tableau.Migration.Content.Permissions;
 
 namespace Tableau.Migration.Tests.Content.Permissions
@@ -36,8 +35,6 @@ namespace Tableau.Migration.Tests.Content.Permissions
 
             return IGranteeCapabilityComparer.Instance.Compare(x.GranteeCapabilities, y.GranteeCapabilities);
         }
-
-        public bool Equals(PermissionsType x, IPermissions y) => Equals(new Migration.Content.Permissions.Permissions(x), y);
 
         public override int GetHashCode([DisallowNull] IPermissions obj)
             => HashCode.Combine(

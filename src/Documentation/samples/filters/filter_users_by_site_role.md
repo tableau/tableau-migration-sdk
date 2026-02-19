@@ -32,6 +32,8 @@ See [hook registration](~/samples/index.md?tabs=Python#hook-registration) for mo
 
 #### Dependency Injection
 
-[Learn more.](~/articles/dependency_injection.md)
+[Learn more.](~/articles/dependency_injection/index.md)
 
 [!code-csharp[](../../../../examples/Csharp.ExampleApplication/Program.cs#UnlicensedUsersFilter-DI)]
+
+---

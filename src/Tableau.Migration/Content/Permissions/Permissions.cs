@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -18,7 +18,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Tableau.Migration.Api.Rest.Models.Responses;
 using Tableau.Migration.Api.Rest.Models.Types;
 
 namespace Tableau.Migration.Content.Permissions
@@ -31,20 +30,8 @@ namespace Tableau.Migration.Content.Permissions
         /// <inheritdoc/>
         public Guid? ParentId { get; set; }
 
-        public Permissions(PermissionsResponse response)
-            : this(response.ParentId, response.Item?.GranteeCapabilities)
-        { }
-
-        public Permissions(PermissionsType permissions)
-            : this(permissions.ContentItem?.Id, permissions.GranteeCapabilities)
-        { }
-
         public Permissions(IPermissions permissions)
             : this(permissions.ParentId, permissions.GranteeCapabilities.ToList())
-        { }
-
-        public Permissions(Guid? parentId, params IEnumerable<GranteeCapabilityType>? grantees)
-            : this(parentId, grantees?.Select(c => (IGranteeCapability)new GranteeCapability(c))?.ToList())
         { }
 
         public Permissions(Guid? parentId, IList<IGranteeCapability>? granteeCapabilities = null)

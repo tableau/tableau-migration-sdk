@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -244,7 +244,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
             }
 
             [Fact]
-            public async Task WarnsMissingReferenceSingleTimePerWorkbookAndContentUrl()
+            public async Task ErrorOnMissingReferenceAsync()
             {
                 var ds1Repo = XElement.Parse("<repository-location id='MyDataSource' />");
                 var ds1Conn = XElement.Parse("<connection class='sqlproxy' dbname='MyDataSource' />");
@@ -269,14 +269,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
 
                 var xml = new XDocument(wb);
 
-                //Transform
-                await Transformer.TransformAsync(MockWorkbook.Object, xml, Cancel);
-
-                var mockWorkbook2 = Create<Mock<IPublishableWorkbook>>();
-                await Transformer.TransformAsync(mockWorkbook2.Object, xml, Cancel);
-
-                //Assert
-                MockLog.VerifyWarnings(Times.Exactly(4));
+                await Assert.ThrowsAsync<Exception>(() => Transformer.TransformAsync(MockWorkbook.Object, xml, Cancel));
             }
         }
     }

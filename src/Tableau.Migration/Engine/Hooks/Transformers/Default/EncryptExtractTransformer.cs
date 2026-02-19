@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -15,6 +15,7 @@
 //  limitations under the License.
 //
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -67,10 +68,9 @@ namespace Tableau.Migration.Engine.Hooks.Transformers.Default
                 if (_siteExtractEncryptionMode is null)
                 {
                     var session = await _migration.Destination.GetSessionAsync(cancel).ConfigureAwait(false);
-
                     if (!session.Success || session.Value?.Settings?.ExtractEncryptionMode is null)
                     {
-                        throw new System.Exception("Unable to determine site data source encryption mode.");
+                        throw new Exception("Unable to determine destination data source encryption mode. Ensure the destination site configuration is correct.", session.ErrorsToException());
                     }
 
                     _siteExtractEncryptionMode = session.Value.Settings.ExtractEncryptionMode;

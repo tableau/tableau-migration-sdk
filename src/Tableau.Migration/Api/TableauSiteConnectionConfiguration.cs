@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -27,11 +27,13 @@ namespace Tableau.Migration.Api
     /// <param name="SiteContentUrl">The content URL of the site to connect to. Can be empty string for default site.</param>
     /// <param name="AccessTokenName">The name of the personal access token to use to sign into the site.</param>
     /// <param name="AccessToken">The personal access token to use to sign into the site.</param>
+    /// <param name="RestApiVersion">The REST API version to use, or null to use the default version.</param>
     public readonly record struct TableauSiteConnectionConfiguration(
         Uri ServerUrl,
         string SiteContentUrl,
         [property: Required] string AccessTokenName,
-        [property: Required] string AccessToken
+        [property: Required] string AccessToken,
+        string? RestApiVersion = null
     )
     {
         /// <summary>

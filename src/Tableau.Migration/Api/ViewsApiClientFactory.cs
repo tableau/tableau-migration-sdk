@@ -1,5 +1,5 @@
 //
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -19,6 +19,7 @@ using Microsoft.Extensions.Logging;
 using Tableau.Migration.Api.Permissions;
 using Tableau.Migration.Api.Tags;
 using Tableau.Migration.Content.Search;
+using Tableau.Migration.Net;
 using Tableau.Migration.Net.Rest;
 using Tableau.Migration.Resources;
 
@@ -32,6 +33,7 @@ namespace Tableau.Migration.Api
         private readonly ILoggerFactory _loggerFactory;
         private readonly ISharedResourcesLocalizer _sharedResourcesLocalizer;
         private readonly ITagsApiClientFactory _tagsClientFactory;
+        private readonly IHttpContentSerializer _serializer;
 
         public ViewsApiClientFactory(
             IRestRequestBuilderFactory restRequestBuilderFactory,
@@ -39,7 +41,8 @@ namespace Tableau.Migration.Api
             IContentReferenceFinderFactory finderFactory,
             ILoggerFactory loggerFactory,
             ISharedResourcesLocalizer sharedResourcesLocalizer,
-            ITagsApiClientFactory tagsClientFactory)
+            ITagsApiClientFactory tagsClientFactory,
+            IHttpContentSerializer serializer)
         {
             _restRequestBuilderFactory = restRequestBuilderFactory;
             _permissionsClientFactory = permissionsClientFactory;
@@ -47,6 +50,7 @@ namespace Tableau.Migration.Api
             _loggerFactory = loggerFactory;
             _sharedResourcesLocalizer = sharedResourcesLocalizer;
             _tagsClientFactory = tagsClientFactory;
+            _serializer = serializer;
         }
 
         public IViewsApiClient Create()
@@ -56,6 +60,7 @@ namespace Tableau.Migration.Api
                 _finderFactory,
                 _loggerFactory,
                 _sharedResourcesLocalizer,
-                _tagsClientFactory);
+                _tagsClientFactory,
+                _serializer);
     }
 }

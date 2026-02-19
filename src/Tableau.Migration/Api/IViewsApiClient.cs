@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -24,6 +24,7 @@ namespace Tableau.Migration.Api
     /// <summary>
     /// Interface for an API client view operations.
     /// </summary>
-    public interface IViewsApiClient : IPermissionsContentApiClient, ITagsContentApiClient, IReadApiClient<IView>, IContentApiClient
+    public interface IViewsApiClient
+        : IPermissionsContentApiClient, ITagsContentApiClient, IReadApiClient<IView>, IContentApiClient, IDeleteApiClient
     { }
 }

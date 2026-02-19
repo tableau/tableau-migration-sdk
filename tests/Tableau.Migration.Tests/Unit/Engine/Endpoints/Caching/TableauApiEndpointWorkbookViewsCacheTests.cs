@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -49,7 +49,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints.Caching
                 var id = Guid.NewGuid();
                 var wb = Create<IWorkbookDetails>();
 
-                MockWorkbooksApiClient.Setup(x => x.GetWorkbookAsync(id, Cancel))
+                MockWorkbooksApiClient.As<IReadApiClient<IWorkbookDetails>>().Setup(x => x.GetByIdAsync(id, Cancel))
                     .ReturnsAsync(Result<IWorkbookDetails>.Succeeded(wb));
 
                 var result = await Cache.GetOrAddAsync(id, Cancel);
@@ -57,7 +57,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints.Caching
                 result.AssertSuccess();
                 Assert.Equal(wb.Views, result.Value);
 
-                MockWorkbooksApiClient.Verify(x => x.GetWorkbookAsync(id, Cancel), Times.Once);
+                MockWorkbooksApiClient.As<IReadApiClient<IWorkbookDetails>>().Verify(x => x.GetByIdAsync(id, Cancel), Times.Once);
             }
 
             [Fact]
@@ -66,13 +66,13 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints.Caching
                 var id = Guid.NewGuid();
                 var errors = CreateMany<Exception>();
 
-                MockWorkbooksApiClient.Setup(x => x.GetWorkbookAsync(id, Cancel))
+                MockWorkbooksApiClient.As<IReadApiClient<IWorkbookDetails>>().Setup(x => x.GetByIdAsync(id, Cancel))
                     .ReturnsAsync(Result<IWorkbookDetails>.Failed(errors));
 
                 var result = await Cache.GetOrAddAsync(id, Cancel);
 
                 result.AssertFailure(errors);
-                MockWorkbooksApiClient.Verify(x => x.GetWorkbookAsync(id, Cancel), Times.Once);
+                MockWorkbooksApiClient.As<IReadApiClient<IWorkbookDetails>>().Verify(x => x.GetByIdAsync(id, Cancel), Times.Once);
             }
         }
     }

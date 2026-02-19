@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -86,13 +86,13 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers
             }
         }
 
-        public class AddMappingGenericInstance
+        public class AddMappingGenericInstance : AutoFixtureTestBase
         {
             [Fact]
             public void AddFromType()
             {
                 var mockLocalizer = new MockSharedResourcesLocalizer();
-                var mockLogger = new Mock<ILogger<GenericTransformer<IUser>>>();
+                var mockLogger = Create<Mock<ILogger<GenericTransformer<IUser>>>>();
 
                 var genericTransformer = new GenericTransformer<IUser>(mockLocalizer.Object, mockLogger.Object);
                 var builder = new ContentTransformerBuilder().Add(genericTransformer);
@@ -182,7 +182,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers
             }
 
             [Fact]
-            public async Task IgnoresRawHookInterface()
+            public async Task IgnoresRawHookInterfaceAsync()
             {
                 // Arrange
                 var mockedContext = Create<IUser>();
@@ -204,10 +204,15 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers
 
         #region - Lifetime -
 
-        public class Lifetime
+        public class Lifetime : AutoFixtureTestBase
         {
-            MockSharedResourcesLocalizer _mockLocalizer = new();
-            Mock<ILogger<TestUserTransformer>> _mockLogger = new();
+            private readonly MockSharedResourcesLocalizer _mockLocalizer = new();
+            private readonly Mock<ILogger<TestUserTransformer>> _mockLogger;
+
+            public Lifetime()
+            {
+                _mockLogger = Create<Mock<ILogger<TestUserTransformer>>>();
+            }
 
             [Fact]
             public void BuildAndCreateObject()

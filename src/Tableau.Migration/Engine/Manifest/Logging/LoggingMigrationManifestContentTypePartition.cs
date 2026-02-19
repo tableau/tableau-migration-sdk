@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -17,6 +17,7 @@
 
 using System;
 using Microsoft.Extensions.Logging;
+using Tableau.Migration.Engine.Pipelines;
 using Tableau.Migration.Resources;
 
 namespace Tableau.Migration.Engine.Manifest.Logging
@@ -47,7 +48,7 @@ namespace Tableau.Migration.Engine.Manifest.Logging
         {
             foreach (var error in entry.Errors)
             {
-                _logger.LogError(_localizer[SharedResourceKeys.MigrationItemErrorLogMessage], ContentType, entry.Source.Location, error, error.Data.GetContentsAsString());
+                _logger.LogError(_localizer[SharedResourceKeys.MigrationItemErrorLogMessage], MigrationPipelineContentType.GetDisplayNameForType(ContentType), entry.Source.Location, error, error.Data.GetContentsAsString());
             }
         }
     }

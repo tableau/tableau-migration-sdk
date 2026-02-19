@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -49,7 +49,7 @@ namespace Tableau.Migration.Engine.Endpoints.Caching
         /// <inheritdoc />
         protected override async Task<IResult<IImmutableList<IView>>> FindCacheMissAsync(Guid key, CancellationToken cancel)
         {
-            var workbook = await _workbooksApiClient.GetWorkbookAsync(key, cancel).ConfigureAwait(false);
+            var workbook = await ((IReadApiClient<IWorkbookDetails>)_workbooksApiClient).GetByIdAsync(key, cancel).ConfigureAwait(false);
 
             if (!workbook.Success)
             {

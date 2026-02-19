@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -18,6 +18,7 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Tableau.Migration.Api.Paging;
 using Tableau.Migration.Content.Schedules.Server;
 
 namespace Tableau.Migration.Api
@@ -28,6 +29,7 @@ namespace Tableau.Migration.Api
     public interface IServerTasksApiClient :
         IContentApiClient,
         IApiPageAccessor<IServerExtractRefreshTask>,
+        IReadApiClient<IServerExtractRefreshTask>,
         IPagedListApiClient<IServerExtractRefreshTask>
     {
         /// <summary>

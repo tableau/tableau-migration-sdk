@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -75,6 +75,11 @@ namespace Tableau.Migration.Api.Simulation.Rest.Api
         public MethodSimulator UpdateConnectionAsync { get; }
 
         /// <summary>
+        /// Gets the simulated get workbook views API method.
+        /// </summary>
+        public MethodSimulator QueryWorkbookViews { get; }
+
+        /// <summary>
         /// Creates a new <see cref="WorkbooksRestApiSimulator"/> object.
         /// </summary>
         /// <param name="simulator">A response simulator to setup with REST API methods.</param>
@@ -120,9 +125,66 @@ namespace Tableau.Migration.Api.Simulation.Rest.Api
                     simulator.Serializer,
                     ContentTypeUrlPrefix));
 
+            QueryWorkbookViews = simulator.SetupRestGetList<WorkbookViewsResponse, WorkbookViewsResponse.ViewType>(
+                SiteEntityUrl(ContentTypeUrlPrefix, RestUrlKeywords.Views),
+                BuildGetWorkbookViewsDelegate());
+
         }
 
         #region - Response Delegates -
+
+        private Func<TableauData, HttpRequestMessage, ICollection<WorkbookViewsResponse.ViewType>> BuildGetWorkbookViewsDelegate()
+        {
+            return (data, request) =>
+            {
+                var workbookId = request.GetIdAfterSegment(ContentTypeUrlPrefix);
+                if (workbookId is null)
+                {
+                    return Array.Empty<WorkbookViewsResponse.ViewType>();
+                }
+
+                // Get the workbook file data to extract views
+                if (!data.WorkbookFiles.ContainsKey(workbookId.Value))
+                {
+                    return Array.Empty<WorkbookViewsResponse.ViewType>();
+                }
+
+                var workbookFileData = data.WorkbookFiles[workbookId.Value];
+                if (workbookFileData.Length == 0)
+                {
+                    return Array.Empty<WorkbookViewsResponse.ViewType>();
+                }
+
+                var workbookFileText = Encoding.Default.GetString(workbookFileData);
+                if (string.IsNullOrEmpty(workbookFileText))
+                {
+                    return Array.Empty<WorkbookViewsResponse.ViewType>();
+                }
+
+                var simulatedWorkbook = workbookFileText.FromXml<SimulatedWorkbookData>();
+                if (simulatedWorkbook?.Views is null)
+                {
+                    return Array.Empty<WorkbookViewsResponse.ViewType>();
+                }
+
+                // Convert simulated views to WorkbookViewsResponse.ViewType
+                var workbookViews = simulatedWorkbook.Views
+                    .Where(sv => sv.View is not null)
+                    .Select(sv => new WorkbookViewsResponse.ViewType
+                    {
+                        Id = sv.View!.Id,
+                        Name = sv.View.Name,
+                        ContentUrl = sv.View.ContentUrl,
+                        ViewUrlName = sv.View.ViewUrlName,
+                        CreatedAt = sv.View.CreatedAt,
+                        UpdatedAt = sv.View.UpdatedAt,
+                        Tags = sv.View.Tags?.Select(t => new WorkbookViewsResponse.ViewType.TagType { Label = t.Label }).ToArray() ?? Array.Empty<WorkbookViewsResponse.ViewType.TagType>()
+                    })
+                    .ToArray();
+
+                return workbookViews;
+            };
+        }
 
         private Func<TableauData, HttpRequestMessage, ICollection<ConnectionsResponse.ConnectionType>> BuildListConnectionsDelegate()
         {

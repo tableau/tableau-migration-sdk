@@ -1,4 +1,4 @@
-# Copyright (c) 2025, Salesforce, Inc.
+# Copyright (c) 2026, Salesforce, Inc.
 # SPDX-License-Identifier: Apache-2
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -59,7 +59,7 @@ class TestTableauCloudUsernameMapping(TableauCloudUsernameMappingBase):
 
         test_email = f'{self._base_username}+{item_name}@{self._base_domain}'
         ctx = ctx.map_to(parent_domain.append(test_email))
-        self._logger.debug('Mapped %s to %s', ctx.content_item.email, str(ctx.mapped_location))
+        self._logger.debug('Mapped %s to %s', ctx.content_item.email, ctx.mapped_location.path)
 
         return ctx
 
@@ -76,7 +76,7 @@ class SpecialUserMapping(ContentMappingBase[IUser]):
     def map(self, ctx: ContentMappingContext[IUser]) -> ContentMappingContext[IUser]:
         if ctx.content_item.email in helper.config['special_users']['emails']:
             ctx = ctx.map_to(self._admin_username)        
-            self._logger.debug('Mapped %s to %s', ctx.content_item.email, str(ctx.mapped_location))
+            self._logger.debug('Mapped %s to %s', ctx.content_item.email, ctx.mapped_location.path)
         return ctx
     
 class UnlicensedUserMapping(ContentMappingBase[IUser]):
@@ -92,7 +92,7 @@ class UnlicensedUserMapping(ContentMappingBase[IUser]):
     def map(self, ctx: ContentMappingContext[IUser]) -> ContentMappingContext[IUser]:
         if ctx.content_item.license_level == LicenseLevels.UNLICENSED:
             ctx = ctx.map_to(self._admin_username)        
-            self._logger.debug('Mapped %s to %s', ctx.content_item.email, str(ctx.mapped_location))
+            self._logger.debug('Mapped %s to %s', ctx.content_item.email, ctx.mapped_location.path)
 
         return ctx
 

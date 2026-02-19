@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -16,6 +16,7 @@
 //
 
 using System;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Threading;
@@ -78,6 +79,16 @@ namespace Tableau.Migration.Api.Publishing
         {
             static IResult<TPublishResult> GetFailedResult(IResult failedResult)
                 => Result<TPublishResult>.Failed(failedResult.Errors);
+
+            // Check file size and warn if it exceeds 15GB
+            const long maxFileSizeBytes = 15L * 1024 * 1024 * 1024;
+            var fileInfo = new FileInfo(options.File.Path);
+            if (fileInfo.Exists && fileInfo.Length > maxFileSizeBytes)
+            {
+                Logger.LogWarning(SharedResourcesLocalizer[SharedResourceKeys.FileSizeTooLargeWarning],
+                    options.FileName,
+                    fileInfo.Length);
+            }
 
             var initiateResult = await InitiateFileUpload(cancel)
                 .ToResultAsync(r => r, SharedResourcesLocalizer)

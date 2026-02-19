@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -16,6 +16,7 @@
 //
 
 using System;
+using System.Threading;
 using Microsoft.Extensions.DependencyInjection;
 using Tableau.Migration.Engine.Endpoints;
 using Tableau.Migration.Engine.Manifest;
@@ -28,6 +29,9 @@ namespace Tableau.Migration.Engine
     /// </summary>
     public class Migration : IMigration
     {
+        private readonly Lazy<ISourceEndpoint> _lazySource;
+        private readonly Lazy<IDestinationEndpoint> _lazyDestination;
+
         /// <summary>
         /// Creates a new <see cref="Migration"/> object.
         /// </summary>
@@ -41,9 +45,9 @@ namespace Tableau.Migration.Engine
             var pipelineFactory = Plan.PipelineFactoryOverride?.Invoke(services) ?? services.GetRequiredService<IMigrationPipelineFactory>();
             Pipeline = pipelineFactory.Create(Plan);
 
-            var endpointFactory = services.GetRequiredService<IMigrationEndpointFactory>();
-            Source = endpointFactory.CreateSource(Plan);
-            Destination = endpointFactory.CreateDestination(Plan);
+            // Lazy initialize endpoints to avoid DI loops with the pipeline.
+            _lazySource = new(() => services.GetRequiredService<IMigrationEndpointFactory>().CreateSource(Plan), LazyThreadSafetyMode.ExecutionAndPublication);
+            _lazyDestination = new(() => services.GetRequiredService<IMigrationEndpointFactory>().CreateDestination(Plan), LazyThreadSafetyMode.ExecutionAndPublication);
 
             var manifestFactory = services.GetRequiredService<IMigrationManifestFactory>();
             Manifest = manifestFactory.Create(input, Id);
@@ -53,10 +57,10 @@ namespace Tableau.Migration.Engine
         public Guid Id { get; }
 
         /// <inheritdoc />
-        public ISourceEndpoint Source { get; }
+        public ISourceEndpoint Source => _lazySource.Value;
 
         /// <inheritdoc />
-        public IDestinationEndpoint Destination { get; }
+        public IDestinationEndpoint Destination => _lazyDestination.Value;
 
         /// <inheritdoc />
         public IMigrationPlan Plan { get; }

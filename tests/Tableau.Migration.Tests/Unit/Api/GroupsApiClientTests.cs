@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -50,10 +50,10 @@ namespace Tableau.Migration.Tests.Unit.Api
 
         #region - List -
 
-        public class ListClient : PagedListApiClientTestBase<IGroupsApiClient, IGroup, GroupsResponse>
+        public class ListClient : NameSearchApiClientTestBase<IGroupsApiClient, IGroup, GroupsResponse>
         { }
 
-        public class PageAccessor : ApiPageAccessorTestBase<IGroupsApiClient, IGroup, GroupsResponse>
+        public class PageAccessor : ApiFilteredPageAccessorTestBase<IGroupsApiClient, IGroup, GroupsResponse>
         { }
 
         #endregion
@@ -61,7 +61,7 @@ namespace Tableau.Migration.Tests.Unit.Api
         public class CreateLocalGroupAsync : GroupsApiClientTest
         {
             [Fact]
-            public async Task Returns_success()
+            public async Task SuccessAsync()
             {
                 var groupName = Create<string>();
                 var siteRole = Create<string>();
@@ -91,7 +91,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async Task Returns_failure()
+            public async Task FailureAsync()
             {
                 var exception = new Exception();
 
@@ -117,7 +117,7 @@ namespace Tableau.Migration.Tests.Unit.Api
         public class AddUserToGroupAsync : GroupsApiClientTest
         {
             [Fact]
-            public async Task Success()
+            public async Task SuccessAsync()
             {
                 //Setup
                 var addResponse = AutoFixture.CreateResponse<AddUserResponse>();
@@ -141,7 +141,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async Task Failure()
+            public async Task FailureAsync()
             {
                 //Setup
                 MockHttpClient.SetupResponse(new MockHttpResponseMessage<AddUserResponse>(HttpStatusCode.InternalServerError, null));
@@ -158,7 +158,7 @@ namespace Tableau.Migration.Tests.Unit.Api
         public class RemoveUserFromGroupAsync : GroupsApiClientTest
         {
             [Fact]
-            public async Task Success()
+            public async Task SuccessAsync()
             {
                 //Setup
                 var groupId = Guid.NewGuid();
@@ -180,7 +180,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async Task Failure()
+            public async Task FailureAsync()
             {
                 //Setup
                 MockHttpClient.SetupResponse(new MockHttpResponseMessage(HttpStatusCode.InternalServerError, null));
@@ -196,7 +196,7 @@ namespace Tableau.Migration.Tests.Unit.Api
         public class ImportAdGroupAsync : GroupsApiClientTest
         {
             [Fact]
-            public async Task Success()
+            public async Task SuccessAsync()
             {
                 //Setup
                 var addResponse = AutoFixture.CreateResponse<CreateGroupResponse>();
@@ -216,7 +216,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async Task Failure()
+            public async Task FailureAsync()
             {
                 //Setup
                 MockHttpClient.SetupResponse(new MockHttpResponseMessage<CreateGroupResponse>(HttpStatusCode.InternalServerError, null));
@@ -235,7 +235,7 @@ namespace Tableau.Migration.Tests.Unit.Api
         public class DeleteGroupAsync : GroupsApiClientTest
         {
             [Fact]
-            public async Task Success()
+            public async Task SuccessAsync()
             {
                 //Setup
                 var groupId = Guid.NewGuid();
@@ -256,7 +256,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async Task Failure()
+            public async Task FailureAsync()
             {
                 //Setup
                 var groupId = Guid.NewGuid();
@@ -307,7 +307,7 @@ namespace Tableau.Migration.Tests.Unit.Api
 
 
             [Fact]
-            public async Task Returns_success()
+            public async Task SuccessAsync()
             {
                 SetupAddUsersToGroup();
 
@@ -333,7 +333,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async Task Succeeds_when_group_exists()
+            public async Task GroupExistsAsync()
             {
                 SetupAddUsersToGroup();
 
@@ -370,7 +370,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async Task Removes_extra_users()
+            public async Task RemovesExtraUsersAsync()
             {
                 SetupAddUsersToGroup();
 
@@ -409,7 +409,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async Task Keeps_extra_users_when_overwrite_disabled()
+            public async Task KeepsExtraUsersWhenOverwriteDisabledAsync()
             {
                 SetupAddUsersToGroup();
 
@@ -455,7 +455,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async Task Returns_failure()
+            public async Task FailureAsync()
             {
                 var group = CreateGroup();
 
@@ -477,8 +477,6 @@ namespace Tableau.Migration.Tests.Unit.Api
 
                 request.AssertRelativeUri($"/api/{TableauServerVersion.RestApiVersion}/sites/{SiteId}/groups");
             }
-
-
 
             #region - Assert Helpers -
 
@@ -552,7 +550,7 @@ namespace Tableau.Migration.Tests.Unit.Api
         public class PublishAsync_Cancellation : GroupsApiClientTest
         {
             [Fact]
-            public async Task Publish_cancel_after_create_group()
+            public async Task CancelAfterCreateGroupAsync()
             {
                 var existingGroup = CreateGroup();
 
@@ -604,7 +602,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async Task Publish_cancel_during_delete_user_from_group()
+            public async Task CancelDuringDeleteUserAsync()
             {
                 var existingGroup = CreateGroup();
 
@@ -652,7 +650,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async Task Publish_cancel_during_add_user_to_group()
+            public async Task CancelDuringAddUserAsync()
             {
                 var existingGroup = CreateGroup();
 

@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -30,8 +30,6 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.InitializeMigration.Capabili
     {
         internal readonly SubscriptionsCapabilityManager SubscriptionsCapabilityManager;
         internal readonly Mock<MigrationCapabilities> MockMigrationCapabilities;
-        internal readonly Mock<ISharedResourcesLocalizer> MockLocalizer = new();
-        internal readonly Mock<ILogger<SubscriptionsCapabilityManager>> MockLogger = new();
 
         protected readonly Mock<ISiteSettings> MockSourceSettings;
         protected readonly Mock<ISiteSettings> MockDestinationSettings;
@@ -41,11 +39,10 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.InitializeMigration.Capabili
         public SubscriptionsCapabilityManagerTests()
         {
             MockMigrationCapabilities = new Mock<MigrationCapabilities> { CallBase = true };
-                
+
             SubscriptionsCapabilityManager = new SubscriptionsCapabilityManager(
                 MockMigrationCapabilities.Object,
-                MockLocalizer.Object,
-                MockLogger.Object);
+                Create<ISharedResourcesLocalizer>(), Create<ILogger<SubscriptionsCapabilityManager>>());
 
             MockSourceSettings = Create<Mock<ISiteSettings>>();
             MockDestinationSettings = Create<Mock<ISiteSettings>>();

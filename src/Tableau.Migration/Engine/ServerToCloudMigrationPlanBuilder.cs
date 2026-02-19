@@ -1,5 +1,5 @@
-﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -33,6 +33,7 @@ using Tableau.Migration.Engine.Hooks.Transformers;
 using Tableau.Migration.Engine.Hooks.Transformers.Default;
 using Tableau.Migration.Engine.Options;
 using Tableau.Migration.Engine.Pipelines;
+using Tableau.Migration.Engine.Services;
 using Tableau.Migration.Resources;
 
 namespace Tableau.Migration.Engine
@@ -65,54 +66,99 @@ namespace Tableau.Migration.Engine
             _innerBuilder = innerBuilder;
         }
 
-        #region - General Plan Builder Wrapper -
+        #region - Fluent API Wrapper -
 
-        IMigrationPlanOptionsBuilder IMigrationPlanBuilder.Options => _innerBuilder.Options;
+        IMigrationPlanEndpointBuilder IMigrationPlanBuilder<IServerToCloudMigrationPlanBuilder>.Source => _innerBuilder.Source;
 
-        IMigrationHookBuilder IMigrationPlanBuilder.Hooks => _innerBuilder.Hooks;
+        IMigrationPlanEndpointBuilder IMigrationPlanBuilder<IServerToCloudMigrationPlanBuilder>.Destination => _innerBuilder.Destination;
 
-        IContentMappingBuilder IMigrationPlanBuilder.Mappings => _innerBuilder.Mappings;
+        IMigrationPlanOptionsBuilder IMigrationPlanBuilder<IServerToCloudMigrationPlanBuilder>.Options => _innerBuilder.Options;
 
-        IContentFilterBuilder IMigrationPlanBuilder.Filters => _innerBuilder.Filters;
+        IMigrationServiceBuilder IMigrationPlanBuilder<IServerToCloudMigrationPlanBuilder>.Services => _innerBuilder.Services;
 
-        IContentTransformerBuilder IMigrationPlanBuilder.Transformers => _innerBuilder.Transformers;
+        IMigrationHookBuilder IMigrationPlanBuilder<IServerToCloudMigrationPlanBuilder>.Hooks => _innerBuilder.Hooks;
 
-        PipelineProfile IMigrationPlanBuilder.PipelineProfile => _innerBuilder.PipelineProfile;
+        IContentMappingBuilder IMigrationPlanBuilder<IServerToCloudMigrationPlanBuilder>.Mappings => _innerBuilder.Mappings;
 
-        IMigrationPlan IMigrationPlanBuilder.Build()
+        IContentFilterBuilder IMigrationPlanBuilder<IServerToCloudMigrationPlanBuilder>.Filters => _innerBuilder.Filters;
+
+        IContentTransformerBuilder IMigrationPlanBuilder<IServerToCloudMigrationPlanBuilder>.Transformers => _innerBuilder.Transformers;
+
+        PipelineProfile IMigrationPlanBuilder<IServerToCloudMigrationPlanBuilder>.PipelineProfile => _innerBuilder.PipelineProfile;
+
+        IMigrationPlan IMigrationPlanBuilder<IServerToCloudMigrationPlanBuilder>.Build()
             => _innerBuilder.Build();
 
-        IMigrationPlanBuilder IMigrationPlanBuilder.ClearExtensions()
-            => _innerBuilder.ClearExtensions();
+        IServerToCloudMigrationPlanBuilder IMigrationPlanBuilder<IServerToCloudMigrationPlanBuilder>.ClearExtensions()
+        {
+            _innerBuilder.ClearExtensions();
+            return this;
+        }
 
-        IMigrationPlanBuilder IMigrationPlanBuilder.AppendDefaultExtensions()
-            => _innerBuilder.AppendDefaultExtensions();
+        IServerToCloudMigrationPlanBuilder IMigrationPlanBuilder<IServerToCloudMigrationPlanBuilder>.AppendDefaultExtensions()
+        {
+            _innerBuilder.AppendDefaultExtensions();
+            return this;
+        }
 
-        IServerToCloudMigrationPlanBuilder IMigrationPlanBuilder.ForServerToCloud()
-            => _innerBuilder.ForServerToCloud();
+        IServerToCloudMigrationPlanBuilder IMigrationPlanBuilder<IServerToCloudMigrationPlanBuilder>.ForServerToCloud()
+            => this;
 
-        IMigrationPlanBuilder IMigrationPlanBuilder.ForCustomPipelineFactory(Func<IServiceProvider, IMigrationPipelineFactory> pipelineFactoryOverride, params IEnumerable<MigrationPipelineContentType> supportedContentTypes)
-            => _innerBuilder.ForCustomPipelineFactory(pipelineFactoryOverride, supportedContentTypes);
+        IServerToCloudMigrationPlanBuilder IMigrationPlanBuilder<IServerToCloudMigrationPlanBuilder>.ForCustomPipelineFactory(Func<IServiceProvider, IMigrationPipelineFactory> pipelineFactoryOverride, params IEnumerable<MigrationPipelineContentType> supportedContentTypes)
+        {
+            _innerBuilder.ForCustomPipelineFactory(pipelineFactoryOverride, supportedContentTypes);
+            return this;
+        }
 
-        IMigrationPlanBuilder IMigrationPlanBuilder.ForCustomPipelineFactory<T>(params IEnumerable<MigrationPipelineContentType> supportedContentTypes)
-            => _innerBuilder.ForCustomPipelineFactory<T>(supportedContentTypes);
+        IServerToCloudMigrationPlanBuilder IMigrationPlanBuilder<IServerToCloudMigrationPlanBuilder>.ForCustomPipelineFactory<T>(params IEnumerable<MigrationPipelineContentType> supportedContentTypes)
+        {
+            _innerBuilder.ForCustomPipelineFactory<T>(supportedContentTypes);
+            return this;
+        }
 
-        IMigrationPlanBuilder IMigrationPlanBuilder.ForCustomPipeline<T>(params IEnumerable<MigrationPipelineContentType> supportedContentTypes)
-            => _innerBuilder.ForCustomPipeline<T>(supportedContentTypes);
+        IServerToCloudMigrationPlanBuilder IMigrationPlanBuilder<IServerToCloudMigrationPlanBuilder>.ForCustomPipeline<T>(params IEnumerable<MigrationPipelineContentType> supportedContentTypes)
+        {
+            _innerBuilder.ForCustomPipeline<T>(supportedContentTypes);
+            return this;
+        }
 
-        IMigrationPlanBuilder IMigrationPlanBuilder.FromSource(IMigrationPlanEndpointConfiguration config)
-            => _innerBuilder.FromSource(config);
+        IServerToCloudMigrationPlanBuilder IMigrationPlanBuilder<IServerToCloudMigrationPlanBuilder>.FromSource(IMigrationPlanEndpointConfiguration config)
+        {
+            _innerBuilder.FromSource(config);
+            return this;
+        }
 
-        IMigrationPlanBuilder IMigrationPlanBuilder.FromSourceTableauServer(Uri serverUrl, string siteContentUrl, string accessTokenName, string accessToken, bool createApiSimulator)
-            => _innerBuilder.FromSourceTableauServer(serverUrl, siteContentUrl, accessTokenName, accessToken, createApiSimulator);
+        IServerToCloudMigrationPlanBuilder IMigrationPlanBuilder<IServerToCloudMigrationPlanBuilder>.FromSourceTableauServer(Uri serverUrl, string siteContentUrl, string accessTokenName, string accessToken, bool createApiSimulator, string? restApiVersion)
+        {
+            _innerBuilder.FromSourceTableauServer(serverUrl, siteContentUrl, accessTokenName, accessToken, createApiSimulator, restApiVersion);
+            return this;
+        }
 
-        IMigrationPlanBuilder IMigrationPlanBuilder.ToDestination(IMigrationPlanEndpointConfiguration config)
-            => _innerBuilder.ToDestination(config);
+        IServerToCloudMigrationPlanBuilder IMigrationPlanBuilder<IServerToCloudMigrationPlanBuilder>.ToDestination(IMigrationPlanEndpointConfiguration config)
+        {
+            _innerBuilder.ToDestination(config);
+            return this;
+        }
 
-        IMigrationPlanBuilder IMigrationPlanBuilder.ToDestinationTableauCloud(Uri podUrl, string siteContentUrl, string accessTokenName, string accessToken, bool createApiSimulator)
-            => _innerBuilder.ToDestinationTableauCloud(podUrl, siteContentUrl, accessTokenName, accessToken, createApiSimulator);
+        IServerToCloudMigrationPlanBuilder IMigrationPlanBuilder<IServerToCloudMigrationPlanBuilder>.ToDestinationTableauCloud(Uri podUrl, string siteContentUrl, string accessTokenName, string accessToken, bool createApiSimulator, string? restApiVersion)
+        {
+            _innerBuilder.ToDestinationTableauCloud(podUrl, siteContentUrl, accessTokenName, accessToken, createApiSimulator, restApiVersion);
+            return this;
+        }
 
-        IResult IMigrationPlanBuilder.Validate()
+        IServerToCloudMigrationPlanBuilder IMigrationPlanBuilder<IServerToCloudMigrationPlanBuilder>.SkipContentType<TContent>(bool preCache)
+        {
+            _innerBuilder.SkipContentType<TContent>(preCache);
+            return this;
+        }
+
+        IServerToCloudMigrationPlanBuilder IMigrationPlanBuilder<IServerToCloudMigrationPlanBuilder>.SkipContentType(Type contentType, bool preCache)
+        {
+            _innerBuilder.SkipContentType(contentType, preCache);
+            return this;
+        }
+
+        IResult IMigrationPlanBuilder<IServerToCloudMigrationPlanBuilder>.Validate()
             => _innerBuilder.Validate();
 
         #endregion

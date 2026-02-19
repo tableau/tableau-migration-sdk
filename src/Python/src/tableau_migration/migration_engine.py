@@ -1,4 +1,4 @@
-# Copyright (c) 2025, Salesforce, Inc.
+# Copyright (c) 2026, Salesforce, Inc.
 # SPDX-License-Identifier: Apache-2
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,14 +24,14 @@ from tableau_migration.migration import (
     get_service_provider,
     get_service
 )
+
 from tableau_migration.migration import PyResult
 from tableau_migration.migration_engine_hooks import PyMigrationHookBuilder, PyMigrationHookFactoryCollection
 from tableau_migration.migration_engine_hooks_filters import PyContentFilterBuilder
 from tableau_migration.migration_engine_hooks_mappings import PyContentMappingBuilder
 from tableau_migration.migration_engine_hooks_transformers import PyContentTransformerBuilder
-from tableau_migration.migration_engine_options import PyMigrationPlanOptionsBuilder
-
-from tableau_migration.migration_engine_options import PyMigrationPlanOptionsCollection
+from tableau_migration.migration_engine_options import PyMigrationPlanOptionsBuilder, PyMigrationPlanOptionsCollection
+from tableau_migration.migration_engine_services import PyMigrationServiceBuilder, PyMigrationServiceFactoryCollection
 
 from System import Func, IServiceProvider, Uri
 from Tableau.Migration import (
@@ -39,7 +39,57 @@ from Tableau.Migration import (
     IMigrationPlan, 
     IServerToCloudMigrationPlanBuilder
 )
-from Tableau.Migration.Engine.Endpoints import IMigrationPlanEndpointConfiguration
+from Tableau.Migration.Engine.Endpoints import IMigrationPlanEndpointBuilder, IMigrationPlanEndpointConfiguration
+
+class PyMigrationPlanEndpointConfiguration():
+    """Interface for configuration necessary to connect to a migration endpoint defined in the IMigrationPlan."""
+
+    _dotnet_base = IMigrationPlanEndpointConfiguration
+
+    def __init__(self, config: IMigrationPlanEndpointConfiguration) -> None:
+        """Default init.
+
+        Args:
+            config: A IMigrationPlanEndpointConfiguration object.
+
+        Returns: None.
+        """
+        self._dotnet = config
+        self._services = PyMigrationPlanOptionsCollection(self._dotnet.Services)
+
+    @property
+    def services(self) -> PyMigrationPlanOptionsCollection:
+        """Gets the collection of registered service overrides for this endpoint."""
+        return self._services
+
+
+class PyMigrationPlanEndpointBuilder():
+    """Interface for an object that can edit endpoints during plan building."""
+
+    _dotnet_base = IMigrationPlanEndpointBuilder
+
+    def __init__(self, builder: IMigrationPlanEndpointBuilder) -> None:
+        """Default init.
+
+        Args:
+            builder: A IMigrationPlanEndpointBuilder object.
+
+        Returns: None.
+        """
+        self._dotnet = builder
+        self._config = PyMigrationPlanEndpointConfiguration(self._dotnet.Configuration)
+        self._services = PyMigrationServiceBuilder(self._dotnet.Services)
+
+    @property
+    def configuration(self) -> PyMigrationPlanEndpointConfiguration:
+        """Gets the endpoint configuration."""
+        return self._config
+
+    @property
+    def services(self) -> PyMigrationServiceBuilder:
+        """Gets the endpoint service overrides."""
+        return self._services
+
 
 class PyMigrationPlan():
     """Default IMigrationPlan implementation."""
@@ -55,7 +105,10 @@ class PyMigrationPlan():
         Returns: None.
         """
         self._migration_plan = migration_plan
-
+        self._options = PyMigrationPlanOptionsCollection(migration_plan.Options)
+        self._source = PyMigrationPlanEndpointConfiguration(migration_plan.Source)
+        self._destination = PyMigrationPlanEndpointConfiguration(migration_plan.Destination)
+        self._services = PyMigrationServiceFactoryCollection(migration_plan.Services)
     
     @property
     def plan_id(self) -> UUID:
@@ -68,19 +121,24 @@ class PyMigrationPlan():
         return self._migration_plan.PipelineProfile 
 
     @property
-    def options(self):
+    def options(self) -> PyMigrationPlanOptionsCollection:
         """Gets the per-plan options."""
-        return PyMigrationPlanOptionsCollection(self._migration_plan.Options)
+        return self._options
 
     @property
-    def source(self):
+    def source(self) -> PyMigrationPlanEndpointConfiguration:
         """Gets the defined source endpoint configuration."""
-        return self._migration_plan.Source # TODO: IMigrationPlanEndpointConfiguration needs python wrapper
+        return self._source
 
     @property
-    def destination(self):
+    def destination(self) -> PyMigrationPlanEndpointConfiguration:
         """Gets the defined destination endpoint configuration."""
-        return self._migration_plan.Destination # TODO: IMigrationPlanEndpointConfiguration needs python wrapper
+        return self._destination
+
+    @property
+    def services(self) -> PyMigrationServiceFactoryCollection:
+        """Gets the collection of registered migration service overrides."""
+        return self._services
 
     @property
     def hooks(self) -> PyMigrationHookFactoryCollection:
@@ -116,11 +174,24 @@ class PyServerToCloudMigrationPlanBuilder():
         Returns: None.
         """
         self._plan_builder = _plan_builder
+        self._source = PyMigrationPlanEndpointBuilder(_plan_builder.Source)
+        self._destination = PyMigrationPlanEndpointBuilder(_plan_builder.Destination)
+        self._services = PyMigrationServiceBuilder(_plan_builder.Services)
         self._hooks = PyMigrationHookBuilder(_plan_builder.Hooks)
         self._filters = PyContentFilterBuilder(_plan_builder.Filters)
         self._mappings = PyContentMappingBuilder(_plan_builder.Mappings)
         self._transformers = PyContentTransformerBuilder(_plan_builder.Transformers)
         self._options = PyMigrationPlanOptionsBuilder(_plan_builder.Options)
+
+    @property
+    def source(self) -> PyMigrationPlanEndpointBuilder:
+        """Gets the source endpoint builder."""
+        return self._source
+
+    @property
+    def destination(self) -> PyMigrationPlanEndpointBuilder:
+        """Gets the destination endpoint builder."""
+        return self._destination
 
     @property
     def filters(self) -> PyContentFilterBuilder:
@@ -138,6 +209,11 @@ class PyServerToCloudMigrationPlanBuilder():
         return self._options
 
     @property
+    def services(self) -> PyMigrationServiceBuilder:
+        """Gets the migration service overrides."""
+        return self._services
+
+    @property
     def hooks(self) -> PyMigrationHookBuilder:
         """Gets the hooks to execute at various points during the migration, determined by hook type."""
         return self._hooks
@@ -152,7 +228,7 @@ class PyServerToCloudMigrationPlanBuilder():
         """Gets the profile of the pipeline that will be built and executed."""
         return self._plan_builder.PipelineProfile 
 
-    def from_source_tableau_server(self, server_url: str, site_content_url: str, access_token_name: str, access_token: str, create_api_simulator: bool = False) -> Self:
+    def from_source_tableau_server(self, server_url: str, site_content_url: str, access_token_name: str, access_token: str, create_api_simulator: bool = False, rest_api_version: Union[str, None] = None) -> Self:
         """Sets or overwrites the configuration for the source Tableau Server site to migrate content from.
 
         Args:
@@ -161,13 +237,14 @@ class PyServerToCloudMigrationPlanBuilder():
             access_token_name: The name of the personal access token to use to sign into the site.
             access_token: The personal access token to use to sign into the site.
             create_api_simulator: Whether or not to create an API simulator for the server_url.
+            rest_api_version: The REST API version to use, or null to use the default version.
     
         Returns: The same plan builder object for fluent API calls.
         """
-        self._plan_builder.FromSourceTableauServer(Uri(server_url), site_content_url, access_token_name, access_token, create_api_simulator)
+        self._plan_builder.FromSourceTableauServer(Uri(server_url), site_content_url, access_token_name, access_token, create_api_simulator, rest_api_version)
         return self
 
-    def to_destination_tableau_cloud(self, pod_url: str, site_content_url: str, access_token_name: str, access_token: str, create_api_simulator: bool = False) -> Self:
+    def to_destination_tableau_cloud(self, pod_url: str, site_content_url: str, access_token_name: str, access_token: str, create_api_simulator: bool = False, rest_api_version: Union[str, None] = None) -> Self:
         """Sets or overwrites the configuration for the destination Tableau Cloud site to migrate content to.
 
         Args:
@@ -176,10 +253,24 @@ class PyServerToCloudMigrationPlanBuilder():
             access_token_name: The name of the personal access token to use to sign into the site.
             access_token: The personal access token to use to sign into the site.
             create_api_simulator: Whether or not to create an API simulator for the server_url.
+            rest_api_version: The REST API version to use, or null to use the default version.
         
         Returns: The same plan builder object for fluent API calls.
         """
-        self._plan_builder.ToDestinationTableauCloud(Uri(pod_url), site_content_url, access_token_name, access_token, create_api_simulator)
+        self._plan_builder.ToDestinationTableauCloud(Uri(pod_url), site_content_url, access_token_name, access_token, create_api_simulator, rest_api_version)
+        return self
+
+    def skip_content_type(self, content_type: type, pre_cache: bool = True) -> Self:
+        """Configures the migration plan to skip migration of all items of a particular content type.
+
+        Args:
+            content_type: The content type to skip.
+            pre_cache: True to find and map all source items so references in dependent content types can be efficiently updated. False to find and map items individually when they are referenced in dependent content types to avoid listing all items.
+
+        Returns: The same plan builder object for fluent API calls.
+        """
+        dotnet_content_type = content_type._dotnet_base if hasattr(content_type, "_dotnet_base") else content_type
+        self._plan_builder.SkipContentType[dotnet_content_type](pre_cache)
         return self
 
     def for_server_to_cloud(self) -> Self:
@@ -308,14 +399,14 @@ class PyServerToCloudMigrationPlanBuilder():
             self._plan_builder.WithTableauCloudUsernames(input_0, use_existing_email)
         else:
             from migration_content import PyUser
-            from migration_engine_hooks_mappings_interop import _PyTableauCloudUsernameMappingWrapper
+            from migration_engine_hooks_mappings_interop import _PyTableauCloudUsernameMappingWrapperBuilder
 
             if isclass(input_0):
-                wrapper = _PyTableauCloudUsernameMappingWrapper(input_0)
+                wrapper_builder = _PyTableauCloudUsernameMappingWrapperBuilder(input_0)
             else:
-                wrapper = _PyTableauCloudUsernameMappingWrapper([PyUser], input_0)
+                wrapper_builder = _PyTableauCloudUsernameMappingWrapperBuilder([PyUser], input_0)
             
-            self._plan_builder.WithTableauCloudUsernames[wrapper.wrapper_type](Func[IServiceProvider, wrapper.wrapper_type](wrapper.factory))
+            self._plan_builder.WithTableauCloudUsernames[wrapper_builder.wrapper_type](Func[IServiceProvider, wrapper_builder.wrapper_type](wrapper_builder.factory))
 
         return self
 
@@ -329,14 +420,26 @@ class PyMigrationPlanBuilder():
         
         Returns: None.
         """
-        self._services = get_service_provider()
-        self._plan_builder = get_service(self._services, IMigrationPlanBuilder)
+        self._plan_builder = get_service(get_service_provider(), IMigrationPlanBuilder)
+        self._source = PyMigrationPlanEndpointBuilder(self._plan_builder.Source)
+        self._destination = PyMigrationPlanEndpointBuilder(self._plan_builder.Destination)
+        self._services = PyMigrationServiceBuilder(self._plan_builder.Services)
         self._hooks = PyMigrationHookBuilder(self._plan_builder.Hooks)
         self._filters = PyContentFilterBuilder(self._plan_builder.Filters)
         self._mappings = PyContentMappingBuilder(self._plan_builder.Mappings)
         self._transformers = PyContentTransformerBuilder(self._plan_builder.Transformers)
         self._options = PyMigrationPlanOptionsBuilder(self._plan_builder.Options)
 
+
+    @property
+    def source(self) -> PyMigrationPlanEndpointBuilder:
+        """Gets the source endpoint builder."""
+        return self._source
+
+    @property
+    def destination(self) -> PyMigrationPlanEndpointBuilder:
+        """Gets the destination endpoint builder."""
+        return self._destination
 
     @property
     def filters(self) -> PyContentFilterBuilder:
@@ -354,6 +457,11 @@ class PyMigrationPlanBuilder():
         return self._options
 
     @property
+    def services(self) -> PyMigrationServiceBuilder:
+        """Gets the migration service overrides."""
+        return self._services
+
+    @property
     def hooks(self) -> PyMigrationHookBuilder:
         """Gets the hooks to execute at various points during the migration, determined by hook type."""
         return self._hooks
@@ -367,7 +475,7 @@ class PyMigrationPlanBuilder():
         """Gets the pipeline profile to execute."""
         return self._plan_builder.PipelineProfile
 
-    def from_source_tableau_server(self, server_url: str, site_content_url: str, access_token_name: str, access_token: str, create_api_simulator: bool = False) -> Self:
+    def from_source_tableau_server(self, server_url: str, site_content_url: str, access_token_name: str, access_token: str, create_api_simulator: bool = False, rest_api_version: Union[str, None] = None) -> Self:
         """Sets or overwrites the configuration for the source Tableau Server site to migrate content from.
 
         Args:
@@ -376,13 +484,14 @@ class PyMigrationPlanBuilder():
             access_token_name: The name of the personal access token to use to sign into the site.
             access_token: The personal access token to use to sign into the site.
             create_api_simulator: Whether or not to create an API simulator for the server_url.
+            rest_api_version: The REST API version to use, or null to use the default version.
     
         Returns: The same plan builder object for fluent API calls.
         """
-        self._plan_builder.FromSourceTableauServer(Uri(server_url), site_content_url, access_token_name, access_token, create_api_simulator)
+        self._plan_builder.FromSourceTableauServer(Uri(server_url), site_content_url, access_token_name, access_token, create_api_simulator, rest_api_version)
         return self
 
-    def to_destination_tableau_cloud(self, pod_url: str, site_content_url: str, access_token_name: str, access_token: str, create_api_simulator: bool = False) -> Self:
+    def to_destination_tableau_cloud(self, pod_url: str, site_content_url: str, access_token_name: str, access_token: str, create_api_simulator: bool = False, rest_api_version: Union[str, None] = None) -> Self:
         """Sets or overwrites the configuration for the destination Tableau Cloud site to migrate content to.
 
         Args:
@@ -391,10 +500,24 @@ class PyMigrationPlanBuilder():
             access_token_name: The name of the personal access token to use to sign into the site.
             access_token: The personal access token to use to sign into the site.
             create_api_simulator: Whether or not to create an API simulator for the server_url.
+            rest_api_version: The REST API version to use, or null to use the default version.
         
         Returns: The same plan builder object for fluent API calls.
         """
-        self._plan_builder.ToDestinationTableauCloud(Uri(pod_url), site_content_url, access_token_name, access_token, create_api_simulator)
+        self._plan_builder.ToDestinationTableauCloud(Uri(pod_url), site_content_url, access_token_name, access_token, create_api_simulator, rest_api_version)
+        return self
+
+    def skip_content_type(self, content_type: type, pre_cache: bool = True) -> Self:
+        """Configures the migration plan to skip migration of all items of a particular content type.
+
+        Args:
+            content_type: The content type to skip.
+            pre_cache: True to find and map all source items so references in dependent content types can be efficiently updated. False to find and map items individually when they are referenced in dependent content types to avoid listing all items.
+
+        Returns: The same plan builder object for fluent API calls.
+        """
+        dotnet_content_type = content_type._dotnet_base if hasattr(content_type, "_dotnet_base") else content_type
+        self._plan_builder.SkipContentType[dotnet_content_type](pre_cache)
         return self
 
     def for_server_to_cloud(self) -> PyServerToCloudMigrationPlanBuilder:

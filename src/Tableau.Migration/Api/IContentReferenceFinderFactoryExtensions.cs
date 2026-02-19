@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -55,7 +55,7 @@ namespace Tableau.Migration.Api
                     cancel)
                 .ConfigureAwait(false);
 
-        #endregion - User Find Methods -
+        #endregion
 
         #region - Project Find Methods -
 
@@ -101,7 +101,7 @@ namespace Tableau.Migration.Api
                     cancel)
                 .ConfigureAwait(false);
 
-        #endregion - Project Find Methods -
+        #endregion
 
         #region - User Find Methods -
 
@@ -128,7 +128,7 @@ namespace Tableau.Migration.Api
                     cancel)
                 .ConfigureAwait(false);
 
-        #endregion - User Find Methods -
+        #endregion
 
         #region - Owner Find Methods -
 
@@ -156,7 +156,7 @@ namespace Tableau.Migration.Api
                     cancel)
                 .ConfigureAwait(false);
 
-        #endregion - Owner Find Methods -
+        #endregion
 
         #region - Workbook Find Methods -
 
@@ -199,6 +199,28 @@ namespace Tableau.Migration.Api
                     throwIfNotFound,
                     SharedResourceKeys.WorkbookReferenceNotFoundException,
                     SharedResourceKeys.WorkbookReferenceNotFoundException,
+                    cancel)
+                .ConfigureAwait(false);
+
+        #endregion
+
+        #region - View Find Methods -
+
+        public static async Task<IContentReference?> FindViewByIdAsync(
+            this IContentReferenceFinderFactory finderFactory,
+            Guid Id,
+            ILogger logger,
+            ISharedResourcesLocalizer localizer,
+            [DoesNotReturnIf(true)] bool throwIfNotFound,
+            CancellationToken cancel)
+            => await finderFactory
+                .FindByIdAsync<IView>(
+                    Id,
+                    logger,
+                    localizer,
+                    throwIfNotFound,
+                    SharedResourceKeys.ViewReferenceNotFoundMessage,
+                    SharedResourceKeys.ViewReferenceNotFoundException,
                     cancel)
                 .ConfigureAwait(false);
 
@@ -258,7 +280,7 @@ namespace Tableau.Migration.Api
             where TContent : class, IContentReference
         {
             var finder = finderFactory.ForContentType<TContent>();
-
+            
             var foundContent = await finder.FindByIdAsync(Id, cancel).ConfigureAwait(false);
 
             if (foundContent is not null)
@@ -276,6 +298,6 @@ namespace Tableau.Migration.Api
                 : null;
         }
 
-        #endregion - Base Find Methods -
+        #endregion
     }
 }

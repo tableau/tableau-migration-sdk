@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -19,6 +19,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Tableau.Migration.Api.Models;
+using Tableau.Migration.Api.Paging;
 using Tableau.Migration.Content;
 using Tableau.Migration.Paging;
 
@@ -27,8 +28,10 @@ namespace Tableau.Migration.Api
     /// <summary>
     /// Interface for API client group operations.
     /// </summary>
-    public interface IGroupsApiClient :
-        IContentApiClient, IPagedListApiClient<IGroup>, IPublishApiClient<IPublishableGroup, IGroup>, IPullApiClient<IGroup, IPublishableGroup>, IApiPageAccessor<IGroup>
+    public interface IGroupsApiClient : IContentApiClient,
+        IApiFilteredPageAccessor<IGroup>, INameSearchApiClient<IGroup>,
+        IPullApiClient<IGroup, IPublishableGroup>,
+        IPublishApiClient<IPublishableGroup, IGroup>
     {
         /// <summary>
         /// Creates a local group
@@ -70,15 +73,6 @@ namespace Tableau.Migration.Api
             string minimumSiteRole,
             string? grantLicenseMode,
             CancellationToken cancel);
-
-        /// <summary>
-        /// Gets all groups in the current site.
-        /// </summary>
-        /// <param name="pageNumber">The 1-indexed page number.</param>
-        /// <param name="pageSize">The size of the page.</param>
-        /// <param name="cancel">The cancellation token to obey.</param>
-        /// <returns>A list of a page of groups in the current site.</returns>
-        Task<IPagedResult<IGroup>> GetAllGroupsAsync(int pageNumber, int pageSize, CancellationToken cancel);
 
         /// <summary>
         /// Gets the users belonging to a group

@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -19,6 +19,7 @@ using Tableau.Migration.Api;
 using Tableau.Migration.Api.Rest.Models.Responses;
 using Tableau.Migration.Api.Simulation;
 using Tableau.Migration.Engine.Endpoints;
+using Tableau.Migration.Engine.Services;
 
 namespace Tableau.Migration.Tests.Simulation
 {
@@ -43,11 +44,11 @@ namespace Tableau.Migration.Tests.Simulation
         {
             SourceApi = RegisterTableauServerApiSimulator(sourceUrl, Create<UsersResponse.UserType>());
             SourceSiteConfig = BuildSiteConnectionConfiguration(SourceApi);
-            SourceEndpointConfig = new(SourceSiteConfig);
+            SourceEndpointConfig = new(SourceSiteConfig, MigrationServiceBuilder.Empty);
 
             DestinationApi = RegisterTableauServerApiSimulator(destinationUrl, Create<UsersResponse.UserType>());
             DestinationSiteConfig = BuildSiteConnectionConfiguration(DestinationApi);
-            DestinationEndpointConfig = new(DestinationSiteConfig);
+            DestinationEndpointConfig = new(DestinationSiteConfig, MigrationServiceBuilder.Empty);
         }
     }
 }

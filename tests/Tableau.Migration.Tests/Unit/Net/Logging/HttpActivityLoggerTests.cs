@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -37,7 +37,8 @@ namespace Tableau.Migration.Tests.Unit.Net.Logging
         public abstract class HttpActivityLoggerTestsBase : AutoFixtureTestBase
         {
             private const LogLevel DefaultLogLevel = LogLevel.Information;
-            private const LogLevel DefaultUnsuccessfulReqLogLevel = LogLevel.Warning;
+            private const LogLevel RetriableErrorLogLevel = LogLevel.Warning;
+            private const LogLevel NonRetriableErrorLogLevel = LogLevel.Error;
             private const LogLevel ExceptionLogLevel = LogLevel.Error;
 
             private readonly Mock<ILogger<HttpActivityLogger>> _mockLogger;
@@ -64,18 +65,35 @@ namespace Tableau.Migration.Tests.Unit.Net.Logging
                 HttpLogger = Create<HttpActivityLogger>();
             }
 
-            protected void VerifyDefaultLogging(bool isSucess = true)
+            protected void VerifyDefaultLogging()
             {
-                if (isSucess)
-                {
-                    _mockLogger.VerifyLogging(DefaultLogLevel, Times.Once);
-                }
-                else
-                {
-                    _mockLogger.VerifyLogging(DefaultUnsuccessfulReqLogLevel, Times.Once);
-                }
+
+                _mockLogger.VerifyLogging(DefaultLogLevel, Times.Once);
+                _mockLogger.VerifyLogging(RetriableErrorLogLevel, Times.Never);
+                _mockLogger.VerifyLogging(NonRetriableErrorLogLevel, Times.Never);
+                _mockLogger.VerifyLogging(ExceptionLogLevel, Times.Never);
+
+                MockLocalizer.Verify(x => x[SharedResourceKeys.HttpActivityLogMessage], Times.Once);
+                MockLocalizer.Verify(x => x[SharedResourceKeys.HttpActivityExceptionLogMessage], Times.Never);
+            }
+
+            protected void VerifyRetriableErrorLogging()
+            {
+                _mockLogger.VerifyLogging(DefaultLogLevel, Times.Never);
+                _mockLogger.VerifyLogging(RetriableErrorLogLevel, Times.Once);
+                _mockLogger.VerifyLogging(NonRetriableErrorLogLevel, Times.Never);
                 _mockLogger.VerifyLogging(ExceptionLogLevel, Times.Never);
                 MockLocalizer.Verify(x => x[SharedResourceKeys.HttpActivityLogMessage], Times.Once);
+            }
+
+            protected void VerifyNonRetriableErrorLogging()
+            {
+                _mockLogger.VerifyLogging(DefaultLogLevel, Times.Never);
+                _mockLogger.VerifyLogging(RetriableErrorLogLevel, Times.Never);
+                _mockLogger.VerifyLogging(NonRetriableErrorLogLevel, Times.Once);
+
+                MockLocalizer.Verify(x => x[SharedResourceKeys.HttpActivityLogMessage], Times.Once);
+                MockLocalizer.Verify(x => x[SharedResourceKeys.HttpActivityExceptionLogMessage], Times.Never);
             }
 
             protected void VerifyExceptionLogging()
@@ -150,17 +168,33 @@ namespace Tableau.Migration.Tests.Unit.Net.Logging
             }
 
             [Fact]
-            public async Task WriteDefaultWarningLogsAsync()
+            public async Task WriteNonRetriableErrorLogsAsync()
             {
                 // Arrange
                 var request = new HttpRequestMessage();
-                var response = new HttpResponseMessage() { StatusCode = HttpStatusCode.BadRequest };
+                var response = new HttpResponseMessage() { StatusCode = HttpStatusCode.BadRequest }; // 400 is not retriable
 
                 // Act
                 await HttpLogger.LogResponseAsync(request, response, Create<TimeSpan>(), Cancel);
 
                 // Assert
-                VerifyDefaultLogging(false);
+                VerifyNonRetriableErrorLogging();
+                VerifyLocalizerInvocationCount(2);
+                VerifyHttpContentRedactor();
+            }
+
+            [Fact]
+            public async Task WriteRetriableErrorLogsAsync()
+            {
+                // Arrange
+                var request = new HttpRequestMessage();
+                var response = new HttpResponseMessage() { StatusCode = HttpStatusCode.InternalServerError }; // 500 is retriable
+
+                // Act
+                await HttpLogger.LogResponseAsync(request, response, Create<TimeSpan>(), Cancel);
+
+                // Assert
+                VerifyRetriableErrorLogging();
                 VerifyLocalizerInvocationCount(2);
                 VerifyHttpContentRedactor();
             }

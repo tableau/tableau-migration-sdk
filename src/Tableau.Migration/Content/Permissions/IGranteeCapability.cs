@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -32,12 +32,17 @@ namespace Tableau.Migration.Content.Permissions
         GranteeType GranteeType { get; }
 
         /// <summary>
-        /// The Id for the User or Group grantee.
+        /// Gets the ID for grantee.
         /// </summary>
-        Guid GranteeId { get; set; }
+        public Guid GranteeId => Grantee.Id;
 
         /// <summary>
-        /// The collection of capabilities of the grantee.
+        /// Gets the grantee content reference.
+        /// </summary>
+        IContentReference Grantee { get; set; }
+
+        /// <summary>
+        /// Gets the collection of capabilities of the grantee.
         /// </summary>
         HashSet<ICapability> Capabilities { get; }
 

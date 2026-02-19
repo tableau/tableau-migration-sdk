@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -52,9 +52,8 @@ namespace Tableau.Migration.Engine.Pipelines
         /// Creates a new <see cref="ServerToServerMigrationPipeline"/> object.
         /// </summary>
         /// <param name="services"><inheritdoc /></param>
-        /// <param name="configReader">A config reader to get the REST API configuration.</param>
-        public ServerToServerMigrationPipeline(IServiceProvider services,
-            IConfigReader configReader)
+        /// <param name="configReader"><inheritdoc /></param>
+        public ServerToServerMigrationPipeline(IServiceProvider services, IConfigReader configReader)
             : base(services, configReader)
         { }
 

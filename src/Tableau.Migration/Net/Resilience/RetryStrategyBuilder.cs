@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -39,6 +39,13 @@ namespace Tableau.Migration.Net.Resilience
             typeof(RateLimiterRejectedException)
         }.ToImmutableArray();
 
+        public static bool IsStatusCodeRetriable(HttpStatusCode status, ResilienceOptions resilienceOptions)
+        {
+            return resilienceOptions.RetryOverrideResponseCodes.IsNullOrEmpty()
+                ? (int)status >= 500 || status is HttpStatusCode.RequestTimeout
+                : resilienceOptions.RetryOverrideResponseCodes.Contains((int)status);
+
+        }
         private static bool ShouldRetry(RetryPredicateArguments<HttpResponseMessage> args, ResilienceOptions resilienceOptions)
         {
             if (args.Outcome.Exception is null)
@@ -49,14 +56,7 @@ namespace Tableau.Migration.Net.Resilience
                     return false;
                 }
 
-                if (resilienceOptions.RetryOverrideResponseCodes.IsNullOrEmpty())
-                {
-                    return (int)response.StatusCode >= 500 || response.StatusCode is HttpStatusCode.RequestTimeout;
-                }
-                else
-                {
-                    return resilienceOptions.RetryOverrideResponseCodes.Contains((int)response.StatusCode);
-                }
+                return IsStatusCodeRetriable(response.StatusCode, resilienceOptions);
             }
 
             return _standardRetryExceptions.Contains(args.Outcome.Exception.GetType());

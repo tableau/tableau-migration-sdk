@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -39,13 +39,10 @@ namespace Tableau.Migration.Tests.Unit.Engine
             protected readonly Mock<IMigrationPlanBuilder> MockInnerBuilder;
             protected readonly ServerToCloudMigrationPlanBuilder Builder;
 
-            private readonly Mock<LoggerFactory> _mockLoggerFactory = new();
-
-
             public ServerToCloudMigrationPlanBuilderTest()
             {
                 MockInnerBuilder = Create<Mock<IMigrationPlanBuilder>>();
-                Builder = new(new TestSharedResourcesLocalizer(), _mockLoggerFactory.Object, MockInnerBuilder.Object);
+                Builder = new(new TestSharedResourcesLocalizer(), Create<ILoggerFactory>(), MockInnerBuilder.Object);
             }
 
             protected void AssertRequiredAuthTypeExtensions(string authType, string userDomain, string groupDomain)
@@ -77,9 +74,33 @@ namespace Tableau.Migration.Tests.Unit.Engine
         public class Wrapper : ServerToCloudMigrationPlanBuilderTest
         {
             [Fact]
+            public void Services()
+            {
+                var s = ((IServerToCloudMigrationPlanBuilder)Builder).Services;
+
+                MockInnerBuilder.VerifyGet(x => x.Services, Times.Once);
+            }
+
+            [Fact]
+            public void SourceBuilder()
+            {
+                var b = ((IServerToCloudMigrationPlanBuilder)Builder).Source;
+
+                MockInnerBuilder.VerifyGet(x => x.Source, Times.Once);
+            }
+
+            [Fact]
+            public void DestinationBuilder()
+            {
+                var b = ((IServerToCloudMigrationPlanBuilder)Builder).Destination;
+
+                MockInnerBuilder.VerifyGet(x => x.Destination, Times.Once);
+            }
+
+            [Fact]
             public void Options()
             {
-                var o = ((IMigrationPlanBuilder)Builder).Options;
+                var o = ((IServerToCloudMigrationPlanBuilder)Builder).Options;
 
                 MockInnerBuilder.VerifyGet(x => x.Options, Times.Once);
             }
@@ -87,7 +108,7 @@ namespace Tableau.Migration.Tests.Unit.Engine
             [Fact]
             public void Hooks()
             {
-                var h = ((IMigrationPlanBuilder)Builder).Hooks;
+                var h = ((IServerToCloudMigrationPlanBuilder)Builder).Hooks;
 
                 MockInnerBuilder.VerifyGet(x => x.Hooks, Times.Once);
             }
@@ -95,7 +116,7 @@ namespace Tableau.Migration.Tests.Unit.Engine
             [Fact]
             public void Mappings()
             {
-                var m = ((IMigrationPlanBuilder)Builder).Mappings;
+                var m = ((IServerToCloudMigrationPlanBuilder)Builder).Mappings;
 
                 MockInnerBuilder.VerifyGet(x => x.Mappings, Times.Once);
             }
@@ -103,7 +124,7 @@ namespace Tableau.Migration.Tests.Unit.Engine
             [Fact]
             public void Filters()
             {
-                var f = ((IMigrationPlanBuilder)Builder).Filters;
+                var f = ((IServerToCloudMigrationPlanBuilder)Builder).Filters;
 
                 MockInnerBuilder.VerifyGet(x => x.Filters, Times.Once);
             }
@@ -111,7 +132,7 @@ namespace Tableau.Migration.Tests.Unit.Engine
             [Fact]
             public void Transformers()
             {
-                var t = ((IMigrationPlanBuilder)Builder).Transformers;
+                var t = ((IServerToCloudMigrationPlanBuilder)Builder).Transformers;
 
                 MockInnerBuilder.VerifyGet(x => x.Transformers, Times.Once);
             }
@@ -119,7 +140,7 @@ namespace Tableau.Migration.Tests.Unit.Engine
             [Fact]
             public void Build()
             {
-                var p = ((IMigrationPlanBuilder)Builder).Build();
+                var p = ((IServerToCloudMigrationPlanBuilder)Builder).Build();
 
                 MockInnerBuilder.Verify(x => x.Build(), Times.Once);
             }
@@ -127,7 +148,7 @@ namespace Tableau.Migration.Tests.Unit.Engine
             [Fact]
             public void ClearExtensions()
             {
-                var b = ((IMigrationPlanBuilder)Builder).ClearExtensions();
+                var b = ((IServerToCloudMigrationPlanBuilder)Builder).ClearExtensions();
 
                 MockInnerBuilder.Verify(x => x.ClearExtensions(), Times.Once);
             }
@@ -135,7 +156,7 @@ namespace Tableau.Migration.Tests.Unit.Engine
             [Fact]
             public void AppendDefaultExtensions()
             {
-                var b = ((IMigrationPlanBuilder)Builder).AppendDefaultExtensions();
+                var b = ((IServerToCloudMigrationPlanBuilder)Builder).AppendDefaultExtensions();
 
                 MockInnerBuilder.Verify(x => x.AppendDefaultExtensions(), Times.Once);
             }
@@ -143,9 +164,10 @@ namespace Tableau.Migration.Tests.Unit.Engine
             [Fact]
             public void ForServerToCloud()
             {
-                var b = ((IMigrationPlanBuilder)Builder).ForServerToCloud();
+                var b = ((IServerToCloudMigrationPlanBuilder)Builder).ForServerToCloud();
 
-                MockInnerBuilder.Verify(x => x.ForServerToCloud(), Times.Once);
+                Assert.Same(b, Builder);
+                MockInnerBuilder.Verify(x => x.ForServerToCloud(), Times.Never);
             }
 
             private IMigrationPipelineFactory CreateFactory(IServiceProvider services) => Create<IMigrationPipelineFactory>();
@@ -155,9 +177,9 @@ namespace Tableau.Migration.Tests.Unit.Engine
             {
                 var contentTypes = CreateMany<MigrationPipelineContentType>();
 
-                var b = ((IMigrationPlanBuilder)Builder).ForCustomPipelineFactory<MigrationPipelineFactory>(contentTypes);
+                var b = ((IServerToCloudMigrationPlanBuilder)Builder).ForCustomPipelineFactory<MigrationPipelineFactory>(contentTypes);
 
-                b = ((IMigrationPlanBuilder)Builder).ForCustomPipelineFactory(CreateFactory, contentTypes);
+                b = ((IServerToCloudMigrationPlanBuilder)Builder).ForCustomPipelineFactory(CreateFactory, contentTypes);
 
                 MockInnerBuilder.Verify(x => x.ForCustomPipelineFactory<MigrationPipelineFactory>(contentTypes), Times.Once);
                 MockInnerBuilder.Verify(x => x.ForCustomPipelineFactory(CreateFactory, contentTypes), Times.Once);
@@ -168,7 +190,7 @@ namespace Tableau.Migration.Tests.Unit.Engine
             {
                 var contentTypes = CreateMany<MigrationPipelineContentType>();
 
-                var b = ((IMigrationPlanBuilder)Builder).ForCustomPipeline<ServerToCloudMigrationPipeline>(contentTypes);
+                var b = ((IServerToCloudMigrationPlanBuilder)Builder).ForCustomPipeline<ServerToCloudMigrationPipeline>(contentTypes);
 
                 MockInnerBuilder.Verify(x => x.ForCustomPipeline<ServerToCloudMigrationPipeline>(contentTypes), Times.Once);
             }
@@ -176,7 +198,7 @@ namespace Tableau.Migration.Tests.Unit.Engine
             [Fact]
             public void FromSource()
             {
-                var b = ((IMigrationPlanBuilder)Builder)
+                var b = ((IServerToCloudMigrationPlanBuilder)Builder)
                     .FromSource(Create<Mock<IMigrationPlanEndpointConfiguration>>().Object);
 
                 MockInnerBuilder.Verify(x => x.FromSource(It.IsAny<IMigrationPlanEndpointConfiguration>()), Times.Once);
@@ -185,7 +207,7 @@ namespace Tableau.Migration.Tests.Unit.Engine
             [Fact]
             public void ToDestination()
             {
-                var b = ((IMigrationPlanBuilder)Builder)
+                var b = ((IServerToCloudMigrationPlanBuilder)Builder)
                     .ToDestination(Create<Mock<IMigrationPlanEndpointConfiguration>>().Object);
 
                 MockInnerBuilder.Verify(x => x.ToDestination(It.IsAny<IMigrationPlanEndpointConfiguration>()), Times.Once);
@@ -194,9 +216,25 @@ namespace Tableau.Migration.Tests.Unit.Engine
             [Fact]
             public void Validate()
             {
-                var r = ((IMigrationPlanBuilder)Builder).Validate();
+                var r = ((IServerToCloudMigrationPlanBuilder)Builder).Validate();
 
                 MockInnerBuilder.Verify(x => x.Validate(), Times.Once);
+            }
+
+            [Fact]
+            public void SkipContentTypeGeneric()
+            {
+                var r = ((IServerToCloudMigrationPlanBuilder)Builder).SkipContentType<IUser>(true);
+
+                MockInnerBuilder.Verify(x => x.SkipContentType<IUser>(true), Times.Once);
+            }
+
+            [Fact]
+            public void SkipContentType()
+            {
+                var r = ((IServerToCloudMigrationPlanBuilder)Builder).SkipContentType(typeof(IUser), true);
+
+                MockInnerBuilder.Verify(x => x.SkipContentType(typeof(IUser), true), Times.Once);
             }
         }
 

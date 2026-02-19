@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -20,9 +20,9 @@ using Xunit;
 
 namespace Tableau.Migration.Tests
 {
-    public class IResultTests
+    public sealed class IResultTests
     {
-        public class CastFailure
+        public sealed class CastFailure
         {
             [Fact]
             public void CastsFailure()
@@ -42,6 +42,38 @@ namespace Tableau.Migration.Tests
                 IResult<TestContentType> success = Result<TestContentType>.Succeeded(new());
 
                 Assert.Throws<InvalidOperationException>(() => success.CastFailure<TestFileContentType>());
+            }
+        }
+
+        public sealed class ErrorsToException : AutoFixtureTestBase
+        {
+            [Fact]
+            public void NoErrors()
+            {
+                IResult result = Result.Succeeded();
+
+                Assert.Null(result.ErrorsToException());
+            }
+
+            [Fact]
+            public void SingleError()
+            {
+                var ex = new Exception();
+                IResult result = Result.FromErrors([ex]);
+
+                Assert.Same(ex, result.ErrorsToException());
+            }
+
+            [Fact]
+            public void MultipleErrors()
+            {
+                var exs = CreateMany<Exception>();
+                IResult result = Result.FromErrors(exs);
+
+                var ex = result.ErrorsToException();
+                var aggregate = Assert.IsType<AggregateException>(ex);
+
+                Assert.Equal(exs, aggregate.InnerExceptions);
             }
         }
     }
