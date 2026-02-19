@@ -1,5 +1,5 @@
 //
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -70,6 +70,28 @@ namespace Tableau.Migration.Engine.Manifest
         /// Top-level information is not copied.
         /// </param>
         public MigrationManifest(Guid planId, Guid migrationId, PipelineProfile pipelineProfile, IMigrationManifest? copyEntriesManifest = null)
+            : this(planId, migrationId, pipelineProfile, copyEntriesManifest, copy => CreateEntryCollection(copy))
+        { }
+
+        /// <summary>
+        /// Protected constructor that allows derived classes to provide a factory for creating entry collections.
+        /// This allows derived classes to use their own dependencies without the base class needing to know about them.
+        /// </summary>
+        /// <param name="planId"><inheritdoc cref="IMigrationManifest.PlanId"/></param>
+        /// <param name="migrationId"><inheritdoc cref="IMigrationManifest.MigrationId"/></param>
+        /// <param name="pipelineProfile"><inheritdoc cref="IMigrationManifest.PipelineProfile"/></param>
+        /// <param name="copyEntriesManifest">
+        /// An optional manifest to copy entries from.
+        /// Null will initialize the manifest with an empty set of entries. 
+        /// Top-level information is not copied.
+        /// </param>
+        /// <param name="createEntryCollection">Factory function to create the entry collection.</param>
+        protected MigrationManifest(
+            Guid planId,
+            Guid migrationId,
+            PipelineProfile pipelineProfile,
+            IMigrationManifest? copyEntriesManifest,
+            Func<IMigrationManifestEntryCollection?, MigrationManifestEntryCollection> createEntryCollection)
         {
             _errors = new();
 
@@ -86,8 +108,17 @@ namespace Tableau.Migration.Engine.Manifest
 
             PipelineProfile = pipelineProfile;
 
-            _entries = new(copyEntriesManifest?.Entries);
+            _entries = createEntryCollection(copyEntriesManifest?.Entries);
         }
+
+        /// <summary>
+        /// Creates a new entry collection. Override in derived classes to create a custom entry collection type.
+        /// This method is used by the public constructor to create the default entry collection.
+        /// Derived classes should use the protected constructor with a factory delegate instead.
+        /// </summary>
+        /// <param name="copy">An optional collection to copy entries from.</param>
+        /// <returns>The newly created entry collection.</returns>
+        protected static MigrationManifestEntryCollection CreateEntryCollection(IMigrationManifestEntryCollection? copy) => new(copy);
 
         #region - IMigrationManifest Implementation -
 

@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -16,6 +16,7 @@
 //
 
 using System;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -38,6 +39,28 @@ namespace Tableau.Migration.Engine.Endpoints.ContentClients
         {
             _viewCache = viewCache;
         }
+
+        #region - IContentReferenceFinder Implementation -
+
+        /// <inheritdoc/>
+        public Task<IImmutableList<IContentReference>> FindAllAsync(CancellationToken cancel)
+        {
+            throw new NotSupportedException();
+        }
+
+        /// <inheritdoc/>
+        public async Task<IContentReference?> FindByIdAsync(Guid id, CancellationToken cancel)
+        {
+            var result = await GetByIdAsync(id, cancel).ConfigureAwait(false);
+            if (!result.Success)
+            {
+                return null;
+            }
+
+            return result.Value;
+        }
+
+        #endregion
 
         /// <inheritdoc/>
         public async Task<IResult<IView>> GetByIdAsync(Guid id, CancellationToken cancel)

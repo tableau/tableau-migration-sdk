@@ -1,5 +1,5 @@
 //
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -249,5 +249,19 @@ namespace Tableau.Migration.Api
         /// <exception cref="ArgumentException">If a delete API client for the given content type is not supported.</exception>
         IDeleteApiClient GetDeleteApiClient<TContent>()
             where TContent : IDelible;
+
+        /// <summary>
+        /// Gets the <see cref="INameSearchApiClient{TContent}"/> for the given content type.
+        /// </summary>
+        /// <typeparam name="TContent">The content type.</typeparam>
+        /// <returns>The name search API client for the given content type, or null if the given content type is not supported.</returns>
+        INameSearchApiClient<TContent>? GetNameSearchApiClient<TContent>();
+
+        /// <summary>
+        /// Gets the <see cref="IContentUrlSearchApiClient{TContent}"/> for the given content type.
+        /// </summary>
+        /// <typeparam name="TContent">The content type.</typeparam>
+        /// <returns>The content URL search API client for the given content type, or null if the given content type is not supported.</returns>
+        IContentUrlSearchApiClient<TContent>? GetContentUrlSearchApiClient<TContent>();
     }
 }

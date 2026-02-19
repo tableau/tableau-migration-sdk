@@ -53,7 +53,8 @@
         "files": [
           "images/**",
           "*.svg",
-          "*.ico"
+          "*.ico",
+          "scripts/**/*.js"
         ]
       }
     ],

@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -19,20 +19,21 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Tableau.Migration.Content;
+using Tableau.Migration.Content.Search;
 
 namespace Tableau.Migration.Engine.Endpoints.ContentClients
 {
     /// <summary>
-    /// Interface for a client that can interact with workbooks.
+    /// Interface for a client that can interact with views.
     /// </summary>
-    public interface IViewsContentClient : IContentClient<IView>
+    public interface IViewsContentClient : IContentClient<IView>, IContentReferenceFinder<IView>
     {
         /// <summary>
-        /// Get the View by Id.
+        /// Get the view by ID.
         /// </summary>
-        /// <param name="id">Id of the view to get</param>
-        /// <param name="cancel">Cancellation token to obey</param>
-        /// <returns></returns>
+        /// <param name="id">The ID of the view to get.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
+        /// <returns>The result with the view.</returns>
         Task<IResult<IView>> GetByIdAsync(Guid id, CancellationToken cancel);
     }
 }

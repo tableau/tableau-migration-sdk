@@ -35,7 +35,7 @@ jobs:
       ## SETUP
 
       # Checkout the repository
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       # Setup .NET environment
       - name: Setup .NET ${{ inputs.dotnet-sdk-version }}
@@ -45,7 +45,7 @@ jobs:
 
       # Cache NuGet packages based on the lock file and .NET version
       - name: Cache NuGet packages
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.nuget/packages
           key: ${{ runner.os }}-nuget-${{ inputs.dotnet-sdk-version }}-${{ hashFiles('**/packages.lock.json') }}
@@ -109,17 +109,16 @@ jobs:
       # Upload product artifacts
       - name: Upload product artifacts for python library
         if: ${{ env.SHOULD_PUBLISH == 'true' }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: product-${{ matrix.config }}-net${{ inputs.dotnet-sdk-version }}
           path: "./src/Python/src/tableau_migration/bin/**"
           retention-days: 15 # This is not required to stick around very long as it's not pushed to production.
 
       # Upload test artifacts
-      # TODO: [W-18497981: CI/CD Improvements: Python tests should test final package | Work](https://gus.lightning.force.com/lightning/r/ADM_Work__c/a07EE00002EIUwKYAX/view)
       - name: Upload Tests Artifacts
         if: ${{ env.SHOULD_PUBLISH == 'true' }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: tests-${{ matrix.config }}-net${{ inputs.dotnet-sdk-version }}
           path: "./dist/tests/**"
@@ -128,7 +127,7 @@ jobs:
       # Upload NuGet package artifact
       - name: Upload NuGet Artifact
         if: ${{ env.SHOULD_PUBLISH == 'true' }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: nuget-package-${{ matrix.config }}-net${{ inputs.dotnet-sdk-version }}
           path: "./src/${{ vars.NUGET_PACKAGE_FOLDER }}/bin/${{ matrix.config }}/*.nupkg"
@@ -137,7 +136,7 @@ jobs:
       # Upload build output for tests
       - name: Upload Build Output
         if: ${{ env.SHOULD_PUBLISH == 'true' }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: build-output-${{ matrix.config }}-net${{ inputs.dotnet-sdk-version }}
           path: |

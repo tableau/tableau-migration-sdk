@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -80,15 +80,12 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Mappings
             }
         }
 
-        public class AddMappingGenericInstance
+        public class AddMappingGenericInstance : AutoFixtureTestBase
         {
             [Fact]
             public void AddFromType()
             {
-                MockSharedResourcesLocalizer mockLocalizer = new MockSharedResourcesLocalizer();
-                Mock<ILogger<GenericMapping<IUser>>> mockLogger = new();
-
-                var genericMapping = new GenericMapping<IUser>(mockLocalizer.Object, mockLogger.Object);
+                var genericMapping = Create<GenericMapping<IUser>>();
                 var builder = new ContentMappingBuilder().Add(genericMapping);
 
                 var result = builder.Build();
@@ -157,7 +154,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Mappings
             }
 
             [Fact]
-            public async Task IgnoresRawHookInterface()
+            public async Task IgnoresRawHookInterfaceAsync()
             {
                 // Arrange
                 var mockedContext = Create<ContentMappingContext<IUser>>();
@@ -179,10 +176,15 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Mappings
 
         #region - Lifetime -
 
-        public class Lifetime
+        public class Lifetime : AutoFixtureTestBase
         {
             private readonly MockSharedResourcesLocalizer _mockLocalizer = new();
-            private readonly Mock<ILogger<UserMapping>> _mockLogger = new();
+            private readonly Mock<ILogger<UserMapping>> _mockLogger;
+
+            public Lifetime()
+            {
+                _mockLogger = Create<Mock<ILogger<UserMapping>>>();
+            }
 
             [Fact]
             public void BuildAndCreateObject()

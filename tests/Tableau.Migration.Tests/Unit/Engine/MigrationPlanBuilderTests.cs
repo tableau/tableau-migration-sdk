@@ -1,5 +1,5 @@
 //
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -17,9 +17,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using AutoFixture;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Tableau.Migration.Api.Simulation;
@@ -27,6 +29,7 @@ using Tableau.Migration.Content;
 using Tableau.Migration.Content.Schedules.Cloud;
 using Tableau.Migration.Engine;
 using Tableau.Migration.Engine.Endpoints;
+using Tableau.Migration.Engine.Endpoints.Caching;
 using Tableau.Migration.Engine.Hooks;
 using Tableau.Migration.Engine.Hooks.Filters;
 using Tableau.Migration.Engine.Hooks.Filters.Default;
@@ -38,6 +41,7 @@ using Tableau.Migration.Engine.Hooks.Transformers;
 using Tableau.Migration.Engine.Hooks.Transformers.Default;
 using Tableau.Migration.Engine.Options;
 using Tableau.Migration.Engine.Pipelines;
+using Tableau.Migration.Engine.Services;
 using Xunit;
 
 namespace Tableau.Migration.Tests.Unit.Engine
@@ -46,8 +50,8 @@ namespace Tableau.Migration.Tests.Unit.Engine
     {
         public class MigrationPlanBuilderTest : AutoFixtureTestBase
         {
+            protected readonly Mock<IMigrationServiceBuilderFactory> MockMigrationServiceBuilderFactory;
             protected readonly Mock<IMigrationPlanOptionsBuilder> MockOptionsBuilder;
-            protected readonly Mock<ILoggerFactory> MockLoggerFactory;
             protected readonly Mock<IMigrationHookBuilder> MockHookBuilder;
             protected readonly Mock<ContentMappingBuilder> MockMappingBuilder;
             protected readonly Mock<ContentFilterBuilder> MockFilterBuilder;
@@ -56,7 +60,10 @@ namespace Tableau.Migration.Tests.Unit.Engine
 
             public MigrationPlanBuilderTest()
             {
-                MockLoggerFactory = new();
+                MockMigrationServiceBuilderFactory = Freeze<Mock<IMigrationServiceBuilderFactory>>();
+                MockMigrationServiceBuilderFactory.Setup(x => x.Create(It.IsAny<IImmutableList<Type>>()))
+                    .Returns((IImmutableList<Type> supportedTypes) => new MigrationServiceBuilder(supportedTypes));
+
                 MockOptionsBuilder = Create<Mock<IMigrationPlanOptionsBuilder>>();
                 MockHookBuilder = new() { CallBase = true };
                 MockMappingBuilder = new() { CallBase = true };
@@ -65,8 +72,11 @@ namespace Tableau.Migration.Tests.Unit.Engine
 
                 Builder = new(
                     new TestSharedResourcesLocalizer(),
-                    MockLoggerFactory.Object,
+                    Create<ILoggerFactory>(),
                     Create<Mock<ITableauApiSimulatorFactory>>().Object,
+                    MockMigrationServiceBuilderFactory.Object,
+                    Create<IMigrationPlanEndpointBuilder>(),
+                    Create<IMigrationPlanEndpointBuilder>(),
                     MockOptionsBuilder.Object,
                     MockHookBuilder.Object,
                     MockMappingBuilder.Object,
@@ -127,7 +137,18 @@ namespace Tableau.Migration.Tests.Unit.Engine
             }
         }
 
-        public class ForServerToCloud : MigrationPlanBuilderTest
+        public sealed class Ctor : MigrationPlanBuilderTest
+        {
+            [Fact]
+            public void Initializes()
+            {
+                //Ctor called in base class.
+
+                MockMigrationServiceBuilderFactory.Verify(x => x.Create(MigrationServices.SupportedPlanServices), Times.Once);
+            }
+        }
+
+        public sealed class ForServerToCloud : MigrationPlanBuilderTest
         {
             [Fact]
             public void InitializesForServerToCloud()
@@ -266,7 +287,7 @@ namespace Tableau.Migration.Tests.Unit.Engine
             }
         }
 
-        public class ClearExtensions : MigrationPlanBuilderTest
+        public sealed class ClearExtensions : MigrationPlanBuilderTest
         {
             [Fact]
             public void ClearsExtensions()
@@ -276,7 +297,7 @@ namespace Tableau.Migration.Tests.Unit.Engine
             }
         }
 
-        public class AppendDefaultExtensions : MigrationPlanBuilderTest
+        public sealed class AppendDefaultExtensions : MigrationPlanBuilderTest
         {
             [Fact]
             public void AddsExtensions()
@@ -300,7 +321,7 @@ namespace Tableau.Migration.Tests.Unit.Engine
                 => ConfigureBasicBuilder()
                     .ForServerToCloud();
 
-            protected IMigrationPlanBuilder ConfigureValidServerToCloudBuilder()
+            protected IServerToCloudMigrationPlanBuilder ConfigureValidServerToCloudBuilder()
                 => ConfigureServerToCloudBuilder()
                     .WithTableauCloudUsernames("salesforce.com")
                     .WithTableauIdAuthenticationType();
@@ -352,7 +373,7 @@ namespace Tableau.Migration.Tests.Unit.Engine
             }
         }
 
-        public class ValidateFilterContentTypes : Validate
+        public sealed class ValidateFilterContentTypes : Validate
         {
             [Fact]
             public void CorrectContentType()
@@ -377,7 +398,7 @@ namespace Tableau.Migration.Tests.Unit.Engine
             }
         }
 
-        public class ValidateMappingContentTypes : Validate
+        public sealed class ValidateMappingContentTypes : Validate
         {
             [Fact]
             public void CorrectContentType()
@@ -402,7 +423,7 @@ namespace Tableau.Migration.Tests.Unit.Engine
             }
         }
 
-        public class ValidateTransformerContentTypes : Validate
+        public sealed class ValidateTransformerContentTypes : Validate
         {
             [Fact]
             public void CorrectPublishType()
@@ -449,10 +470,13 @@ namespace Tableau.Migration.Tests.Unit.Engine
             [Fact]
             public void InitializesSource()
             {
+                var previousSourceServices = Builder.Source.Services;
+
                 var source = AutoFixture.Create<IMigrationPlanEndpointConfiguration>();
                 var builderResult = Builder.FromSource(source);
 
                 Assert.Same(Builder, builderResult);
+                Assert.Same(previousSourceServices, Builder.Source.Services);
 
                 var plan = Builder.Build();
 
@@ -468,11 +492,15 @@ namespace Tableau.Migration.Tests.Unit.Engine
                 var server = new Uri("https://localhost");
                 var site = "testSite";
                 var tokenName = "myToken";
-                var token = "tomen";
+                var token = "token";
+                var versionOverride = "version";
 
-                var result = Builder.FromSourceTableauServer(server, site, tokenName, token);
+                var previousSourceServices = Builder.Source.Services;
+
+                var result = Builder.FromSourceTableauServer(server, site, tokenName, token, restApiVersion: versionOverride);
 
                 Assert.Same(Builder, result);
+                Assert.Same(previousSourceServices, Builder.Source.Services);
 
                 var plan = Builder.Build();
 
@@ -482,6 +510,9 @@ namespace Tableau.Migration.Tests.Unit.Engine
                 Assert.Equal(site, apiSource.SiteConnectionConfiguration.SiteContentUrl);
                 Assert.Equal(tokenName, apiSource.SiteConnectionConfiguration.AccessTokenName);
                 Assert.Equal(token, apiSource.SiteConnectionConfiguration.AccessToken);
+                Assert.Equal(versionOverride, apiSource.SiteConnectionConfiguration.RestApiVersion);
+
+                Assert.Same(previousSourceServices, plan.Source.Services);
             }
         }
 
@@ -490,10 +521,13 @@ namespace Tableau.Migration.Tests.Unit.Engine
             [Fact]
             public void InitializesDestination()
             {
+                var previousDestinationServices = Builder.Destination.Services;
+
                 var destination = AutoFixture.Create<IMigrationPlanEndpointConfiguration>();
                 var builderResult = Builder.ToDestination(destination);
 
                 Assert.Same(Builder, builderResult);
+                Assert.Same(previousDestinationServices, Builder.Destination.Services);
 
                 var plan = Builder.Build();
 
@@ -510,11 +544,15 @@ namespace Tableau.Migration.Tests.Unit.Engine
 
                 var site = "testSite";
                 var tokenName = "myToken";
-                var token = "tomen";
+                var token = "token";
+                var versionOverride = "version";
 
-                var result = Builder.ToDestinationTableauCloud(cdNearUri, site, tokenName, token);
+                var previousDestinationServices = Builder.Destination.Services;
+
+                var result = Builder.ToDestinationTableauCloud(cdNearUri, site, tokenName, token, restApiVersion: versionOverride);
 
                 Assert.Same(Builder, result);
+                Assert.Same(previousDestinationServices, Builder.Destination.Services);
 
                 var plan = Builder.Build();
 
@@ -524,6 +562,9 @@ namespace Tableau.Migration.Tests.Unit.Engine
                 Assert.Equal(site, apiDestination.SiteConnectionConfiguration.SiteContentUrl);
                 Assert.Equal(tokenName, apiDestination.SiteConnectionConfiguration.AccessTokenName);
                 Assert.Equal(token, apiDestination.SiteConnectionConfiguration.AccessToken);
+                Assert.Equal(versionOverride, apiDestination.SiteConnectionConfiguration.RestApiVersion);
+
+                Assert.Same(previousDestinationServices, plan.Destination.Services);
             }
         }
 
@@ -567,6 +608,64 @@ namespace Tableau.Migration.Tests.Unit.Engine
                 Assert.NotEqual(Guid.Empty, plan.PlanId);
                 Assert.Equal(PipelineProfile.ServerToCloud, plan.PipelineProfile);
                 Assert.Same(hookCollection, plan.Hooks);
+                Assert.Same(Builder.Services, plan.Services);
+            }
+        }
+
+        public sealed class SkipContentType : MigrationPlanBuilderTest
+        {
+            private static bool AssertSingleContentType<T>(IEnumerable<Type[]> typeSets)
+            {
+                if (typeSets.Count() != 1)
+                    return false;
+
+                var typeSet = typeSets.Single();
+                if (typeSet.Length != 1)
+                    return false;
+
+                return typeSet[0] == typeof(T);
+            }
+
+            [Fact]
+            public void Generic()
+            {
+                Builder.SkipContentType<TestContentType>(preCache: true);
+
+                MockFilterBuilder.Verify(x => x.Add(typeof(SkipAllFilter<>), It.Is<IEnumerable<Type[]>>(t => AssertSingleContentType<TestContentType>(t))), Times.Once);
+            }
+
+            [Fact]
+            public void PreCache()
+            {
+                Builder.SkipContentType(typeof(TestContentType), preCache: true);
+
+                MockFilterBuilder.Verify(x => x.Add(typeof(SkipAllFilter<>), It.Is<IEnumerable<Type[]>>(t => AssertSingleContentType<TestContentType>(t))), Times.Once);
+            }
+
+            [Fact]
+            public void NoPreCache()
+            {
+                Builder.SkipContentType(typeof(TestContentType), preCache: false);
+
+                MockFilterBuilder.Verify(x => x.Add(typeof(SkipAllFilter<>), It.Is<IEnumerable<Type[]>>(t => AssertSingleContentType<TestContentType>(t))), Times.Once);
+
+                var serviceCollection = new ServiceCollection()
+                    .AddSingleton<EmptyMigrationContentLoader<TestContentType>>()
+                    .AddSingleton<LazyContentReferenceCacheLoadStrategyProvider<TestContentType>>();
+
+                using var services = serviceCollection.BuildServiceProvider();
+
+                var loaderFactory = Builder.Services.GetServiceFactory<IMigrationContentLoader<TestContentType>>();
+                Assert.NotNull(loaderFactory);
+
+                var loader = loaderFactory(new(services, typeof(IMigrationContentLoader<TestContentType>)));
+                Assert.IsType<EmptyMigrationContentLoader<TestContentType>>(loader);
+
+                var cacheStrategyFactory = Builder.Services.GetServiceFactory<IContentReferenceCacheLoadStrategyProvider<TestContentType>>();
+                Assert.NotNull(cacheStrategyFactory);
+                
+                var cacheStrategy = cacheStrategyFactory(new(services, typeof(IContentReferenceCacheLoadStrategyProvider<TestContentType>)));
+                Assert.IsType<LazyContentReferenceCacheLoadStrategyProvider<TestContentType>>(cacheStrategy);
             }
         }
     }

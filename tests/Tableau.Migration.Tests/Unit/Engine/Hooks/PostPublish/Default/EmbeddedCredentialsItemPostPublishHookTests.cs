@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -29,6 +29,7 @@ using Tableau.Migration.Api.Rest.Models.Responses;
 using Tableau.Migration.Content;
 using Tableau.Migration.Engine;
 using Tableau.Migration.Engine.Endpoints;
+using Tableau.Migration.Engine.Endpoints.Caching;
 using Tableau.Migration.Engine.Endpoints.Search;
 using Tableau.Migration.Engine.Hooks.PostPublish;
 using Tableau.Migration.Engine.Hooks.PostPublish.Default;
@@ -60,13 +61,15 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.PostPublish.Default
             protected readonly Mock<ISourceEndpoint> MockSourceEndpoint = new();
             protected readonly Mock<IDestinationContentReferenceFinder<IUser>> MockUserContentFinder = new();
             protected readonly Mock<IUserSavedCredentialsCache> MockUserSavedCredentialsCache = new();
-            protected readonly Mock<ILogger<EmbeddedCredentialsItemPostPublishHook<IEmbeddedCredentialsContentType, ITestContentType>>> MockLogger = new();
+            protected readonly Mock<ILogger<EmbeddedCredentialsItemPostPublishHook<IEmbeddedCredentialsContentType, ITestContentType>>> MockLogger;
             protected readonly MockSharedResourcesLocalizer MockLocalizer = new();
             protected readonly Mock<IMigrationCapabilities> MockMigrationCapabilities = new();
             protected readonly EmbeddedCredentialsItemPostPublishHook<IEmbeddedCredentialsContentType, ITestContentType> Hook;
 
             public EmbeddedCredentialsItemPostPublishHookTest()
             {
+                MockLogger = Create<Mock<ILogger<EmbeddedCredentialsItemPostPublishHook<IEmbeddedCredentialsContentType, ITestContentType>>>>();
+
                 MockMigration.SetupGet(m => m.Destination).Returns(MockDestinationEndpoint.Object);
                 MockMigration.SetupGet(m => m.Source).Returns(MockSourceEndpoint.Object);
                 MockMigration.SetupGet(m => m.Plan).Returns(Create<IMigrationPlan>());
@@ -80,7 +83,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.PostPublish.Default
                 MockUserContentFinder.Setup(ucf => ucf.FindBySourceIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
                     .Returns(Task.FromResult(Create<IContentReference?>()));
 
-                var mockLoggerFactory = new Mock<ILoggerFactory>();
+                var mockLoggerFactory = Create<Mock<ILoggerFactory>>();
                 mockLoggerFactory
                     .Setup(lf => lf.CreateLogger(It.IsAny<string>()))
                     .Returns(MockLogger.Object);

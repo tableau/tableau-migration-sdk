@@ -1,5 +1,5 @@
 //
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -28,7 +28,7 @@ using Xunit;
 
 namespace Tableau.Migration.Tests.Content.Schedules.Server
 {
-    public class ServerScheduleValidatorTests
+    public class ServerScheduleValidatorTests : AutoFixtureTestBase
     {
         private readonly Mock<ILogger<ServerScheduleValidator>> _loggerMock;
         private readonly ISharedResourcesLocalizer _localizer;
@@ -41,7 +41,7 @@ namespace Tableau.Migration.Tests.Content.Schedules.Server
             services.AddTableauMigrationSdk();
             var container = services.BuildServiceProvider();
 
-            _loggerMock = new Mock<ILogger<ServerScheduleValidator>>();
+            _loggerMock = Create<Mock<ILogger<ServerScheduleValidator>>>();
             _localizer = container.GetRequiredService<ISharedResourcesLocalizer>();
             _validator = new ServerScheduleValidator(_loggerMock.Object, _localizer);
         }

@@ -1,4 +1,4 @@
-# Copyright (c) 2025, Salesforce, Inc.
+# Copyright (c) 2026, Salesforce, Inc.
 # SPDX-License-Identifier: Apache-2
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -62,10 +62,10 @@ class PyContentMappingBuilder():
         Returns:
             The same mapping builder object for fluent API calls.
         """
-        from migration_engine_hooks_mappings_interop import _PyMappingWrapper
+        from migration_engine_hooks_mappings_interop import _PyMappingWrapperBuilder
         
-        wrapper = _PyMappingWrapper(input_0, input_1)
-        self._content_mapping_builder.Add[wrapper.wrapper_type, wrapper.dotnet_content_type](Func[IServiceProvider, wrapper.wrapper_type](wrapper.factory))
+        wrapper_builder = _PyMappingWrapperBuilder(input_0, input_1)
+        self._content_mapping_builder.Add[wrapper_builder.wrapper_type, wrapper_builder.dotnet_content_type](Func[IServiceProvider, wrapper_builder.wrapper_type](wrapper_builder.factory))
 
         return self
 

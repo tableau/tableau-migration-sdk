@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -22,6 +22,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Tableau.Migration.Api.Paging;
 using Tableau.Migration.Api.Rest;
 using Tableau.Migration.Api.Rest.Models.Requests;
 using Tableau.Migration.Api.Rest.Models.Responses;
@@ -154,7 +155,30 @@ namespace Tableau.Migration.Api
 
         /// <inheritdoc />
         public async Task<IPagedResult<IGroupSet>> GetPageAsync(int pageNumber, int pageSize, CancellationToken cancel)
-            => await ListGroupSetsAsync(pageNumber, pageSize, Enumerable.Empty<Filter>(), cancel).ConfigureAwait(false);
+            => await ListGroupSetsAsync(pageNumber, pageSize, [], cancel).ConfigureAwait(false);
+
+        #endregion
+
+        #region - IApiFilteredPageAccessor<IGroupSet> Implementation -
+
+        /// <inheritdoc />
+        public async Task<IPagedResult<IGroupSet>> GetPageAsync(IEnumerable<Filter> filters, int pageNumber, int pageSize, CancellationToken cancel)
+            => await ListGroupSetsAsync(pageNumber, pageSize, filters, cancel).ConfigureAwait(false);
+
+        #endregion
+
+        #region - IFilteredPagedListApiClient<IGroupSet> Implementation -
+
+        /// <inheritdoc />
+        public IPager<IGroupSet> GetPager(IEnumerable<Filter> filters, int pageSize)
+            => new ApiFilteredListPager<IGroupSet>(this, filters, pageSize);
+
+        #endregion
+
+        #region - INameSearchApiClient<IGroupSet> Implementation -
+
+        /// <inheritdoc />
+        FilterOperator INameSearchApiClient<IGroupSet>.NameFilterOperator { get; } = FilterOperator.Equal;
 
         #endregion
 
@@ -192,15 +216,17 @@ namespace Tableau.Migration.Api
                 return createResult.CastFailure<IPublishableGroupSet>();
             }
 
-            // If there's a conflict find the existing group set.
+            // 
             var filters = ImmutableArray.Create(new Filter("name", FilterOperator.Equal, item.Name));
 
             /*
+             * If there's a conflict find the existing group set.
+             * 
              * We grab two items here so we'll know if we match > 1.
              * This theoretically shouldn't happen since we're filtering on the same criteria as the
              * name uniqueness, but just in case.
              */
-            var existingResult = await ListGroupSetsAsync(1, 2, filters, cancel).ConfigureAwait(false);
+            var existingResult = await ((INameSearchApiClient<IGroupSet>)this).SearchByNameAsync(item.Name, 2, cancel).ConfigureAwait(false);
 
             if (!existingResult.Success)
             {

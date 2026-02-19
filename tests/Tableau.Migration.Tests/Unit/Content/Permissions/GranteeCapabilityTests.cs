@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -38,8 +38,8 @@ namespace Tableau.Migration.Tests.Unit.Content.Permissions
 
                     var testData = new GranteeCapability(
                         GranteeType.Group,
-                        Guid.NewGuid(),
-                        new[] { dupeCapability, dupeCapability, dupeCapabilityUpper, nonDupeCapability });
+                        Create<IContentReference>(),
+                        [dupeCapability, dupeCapability, dupeCapabilityUpper, nonDupeCapability]);
 
                     var result = testData.Capabilities;
 
@@ -70,7 +70,7 @@ namespace Tableau.Migration.Tests.Unit.Content.Permissions
 
                     var testGranteeCapability = new GranteeCapability(
                        GranteeType.Group,
-                       Guid.NewGuid(),
+                       Create<IContentReference>(),
                        testCapabilities);
 
                     var result = testGranteeCapability.Capabilities;
@@ -92,7 +92,7 @@ namespace Tableau.Migration.Tests.Unit.Content.Permissions
 
                     var testGranteeCapability = new GranteeCapability(
                        GranteeType.Group,
-                       Guid.NewGuid(),
+                       Create<IContentReference>(),
                        testCapabilities);
 
                     testGranteeCapability.ResolveCapabilityModeConflicts();
@@ -123,7 +123,7 @@ namespace Tableau.Migration.Tests.Unit.Content.Permissions
 
                     var testGranteeCapability = new GranteeCapability(
                        GranteeType.Group,
-                       Guid.NewGuid(),
+                       Create<IContentReference>(),
                        testCapabilities);
 
                     var result = testGranteeCapability.Capabilities;

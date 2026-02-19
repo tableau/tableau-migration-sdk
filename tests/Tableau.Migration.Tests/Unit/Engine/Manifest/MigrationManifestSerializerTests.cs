@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -73,7 +73,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Manifest
         }
 
         [Fact]
-        public async Task ManifestSaveLoadAsync_empty_entry_ID()
+        public async Task ManifestSaveLoadAsyncEmptyEntryIDAsync()
         {
             var planId = Guid.NewGuid();
             var migrationId = Guid.NewGuid();
@@ -237,9 +237,9 @@ namespace Tableau.Migration.Tests.Unit.Engine.Manifest
         }
 
         [Fact]
-        public async Task ManifestSaveLoad_DifferentVersionAsync()
+        public async Task ManifestSaveLoadDifferentVersionAsync()
         {
-            var mockManifest = new Mock<MigrationManifest>(Guid.NewGuid(), Guid.NewGuid(), PipelineProfile.ServerToCloud, null!) { CallBase = true };
+            var mockManifest = new Mock<MigrationManifest>(Guid.NewGuid(), Guid.NewGuid(), PipelineProfile.ServerToCloud, default!) { CallBase = true };
             mockManifest.Setup(m => m.ManifestVersion).Returns(1);
 
             var serializer = Create<MigrationManifestSerializer>();
@@ -253,7 +253,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Manifest
         }
 
         [Fact]
-        public async Task ManifestSaveLoad_WithoutPipeline()
+        public async Task ManifestSaveLoadWithoutPipelineAsync()
         {
             // Manifest without a pipeline profile
             string emptyManifest = @"

@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -36,6 +36,7 @@ namespace Tableau.Migration.Content
                   response.IsCertified,
                   response.UseRemoteQueryAgent,
                   response.WebpageUrl,
+                  response.Size,
                   response.Tags.ToTagList(t => new Tag(t)),
                   project,
                   owner)
@@ -54,6 +55,7 @@ namespace Tableau.Migration.Content
                   dataSource.IsCertified,
                   dataSource.UseRemoteQueryAgent,
                   dataSource.WebpageUrl,
+                  dataSource.Size,
                   dataSource.Tags,
                   ((IContainerContent)dataSource).Container,
                   dataSource.Owner)
@@ -71,6 +73,7 @@ namespace Tableau.Migration.Content
             bool isCertified,
             bool useRemoteQueryAgent,
             string? webpageUrl,
+            long size,
             IList<ITag> tags,
             IContentReference project,
             IContentReference owner)
@@ -90,6 +93,7 @@ namespace Tableau.Migration.Content
             UseRemoteQueryAgent = useRemoteQueryAgent;
 
             WebpageUrl = webpageUrl ?? string.Empty;
+            Size = size;
 
             Owner = owner;
             Tags = tags;
@@ -120,6 +124,9 @@ namespace Tableau.Migration.Content
 
         /// <inheritdoc/>
         public string? WebpageUrl { get; }
+
+        /// <inheritdoc/>
+        public long Size { get; }
 
         // <inheritdoc/>
         public IContentReference Owner { get; set; }

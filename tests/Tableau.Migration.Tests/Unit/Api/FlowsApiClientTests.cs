@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -36,10 +36,10 @@ namespace Tableau.Migration.Tests.Unit.Api
 
         #region - List -
 
-        public class ListClient : PagedListApiClientTestBase<IFlowsApiClient, IFlow, FlowsResponse>
+        public class ListClient : NameSearchApiClientTestBase<IFlowsApiClient, IFlow, FlowsResponse>
         { }
 
-        public class PageAccessor : ApiPageAccessorTestBase<IFlowsApiClient, IFlow, FlowsResponse>
+        public class PageAccessor : ApiFilteredPageAccessorTestBase<IFlowsApiClient, IFlow, FlowsResponse>
         { }
 
         #endregion

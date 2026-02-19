@@ -1,4 +1,4 @@
-# Copyright (c) 2025, Salesforce, Inc.
+# Copyright (c) 2026, Salesforce, Inc.
 # SPDX-License-Identifier: Apache-2
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -272,6 +272,7 @@ from tableau_migration.migration_content import (  # noqa: E402, F401
     PyPublishableWorkbook,
     PyPublishedContent,
     PyServerSubscription,
+    PySizeContent,
     PySubscription,
     PySubscriptionContent,
     PyTag,
@@ -383,6 +384,7 @@ _generated_class_data = {
     PyPublishableWorkbook: (PyPublishableWorkbook, [ "ChildPermissionContentItems", "ChildType", "DisposeAsync", "File", "SetLocation", "ShouldMigrateChildPermissions" ], []),
     PyPublishedContent: (PyPublishedContent, None, []),
     PyServerSubscription: (PyServerSubscription, None, []),
+    PySizeContent: (PySizeContent, None, []),
     PySubscription: (PySubscription, None, []),
     PySubscriptionContent: (PySubscriptionContent, None, []),
     PyTag: (PyTag, None, []),
@@ -418,7 +420,7 @@ _generated_class_data = {
     PyContentItemMigrationResult: (PyContentItemMigrationResult, [ "CastFailure" ], []),
     PyContentBatchMigrationResult: (PyContentBatchMigrationResult, [ "CastFailure" ], []),
     PyMigrationPipelineContentType: (PyMigrationPipelineContentType, [ "GetContentTypeForInterface", "GetPostPublishTypesForInterface", "GetPublishTypeForInterface", "WithPrepareType", "WithPublishType", "WithResultType" ], []),
-    PyServerToCloudMigrationPipeline: (PyServerToCloudMigrationPipeline, [ "BuildActions", "BuildPipeline", "CreateDestinationCache", "CreateSourceCache", "GetBatchMigrator", "GetDestinationLockedProjectCache", "GetItemConverter", "GetItemPreparer", "GetMigrator" ], [])
+    PyServerToCloudMigrationPipeline: (PyServerToCloudMigrationPipeline, [ "BuildActions", "BuildPipeline", "CreateDestinationCache", "CreateDestinationCacheLoadStrategy", "CreateDestinationContentReferenceFinder", "CreateSourceCache", "CreateSourceCacheLoadStrategy", "CreateSourceContentReferenceFinder", "GetBatchMigrator", "GetContentLoader", "GetDestinationLockedProjectCache", "GetItemConverter", "GetItemPreparer", "GetMigrator" ], [])
 }
 
 _generated_enum_data = [
@@ -468,6 +470,8 @@ _test_class_data.update(_generated_class_data)
 # Known factory extensions
 _test_class_data[PyCapability][2].append("create")
 _test_class_data[PyGranteeCapability][2].append("create")
+_test_class_data[PyTag][2].append("create")
+_test_class_data[PyContentLocation][2].append("create")
 
 @pytest.mark.parametrize("python_class, ignored_members, ignored_extra_members", _test_class_data.values())
 def test_classes(python_class, ignored_members, ignored_extra_members):

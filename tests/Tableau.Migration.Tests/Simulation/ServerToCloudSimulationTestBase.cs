@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -36,9 +36,9 @@ using Tableau.Migration.Config;
 using Tableau.Migration.Content;
 using Tableau.Migration.Content.Permissions;
 using Tableau.Migration.Engine.Endpoints;
+using Tableau.Migration.Engine.Services;
 using Tableau.Migration.Tests.Content.Permissions;
 using Tableau.Migration.Tests.Simulation.DataPreparation;
-using Tableau.Migration.Tests.Unit.Content.Permissions;
 using Xunit;
 using Server = Tableau.Migration.Api.Rest.Models.Responses.Server;
 
@@ -79,11 +79,11 @@ namespace Tableau.Migration.Tests.Simulation
 
             SourceApi = RegisterTableauServerApiSimulator(sourceUrl, CreateDefaultUser());
             SourceSiteConfig = BuildSiteConnectionConfiguration(SourceApi);
-            SourceEndpointConfig = new(SourceSiteConfig);
+            SourceEndpointConfig = new(SourceSiteConfig, MigrationServiceBuilder.Empty);
 
             CloudDestinationApi = RegisterTableauCloudApiSimulator(destinationUrl, CreateDefaultUser());
             CloudDestinationSiteConfig = BuildSiteConnectionConfiguration(CloudDestinationApi);
-            CloudDestinationEndpointConfig = new(CloudDestinationSiteConfig);
+            CloudDestinationEndpointConfig = new(CloudDestinationSiteConfig, MigrationServiceBuilder.Empty);
         }
 
         protected virtual bool UsersBatchImportEnabled { get; } = true;
@@ -195,27 +195,51 @@ namespace Tableau.Migration.Tests.Simulation
             return entry.Destination;
         }
 
-        protected GranteeCapabilityType MapGrantee(IMigrationManifest manifest, GranteeCapabilityType capability)
-            => capability.GranteeType switch
+        protected IGranteeCapability MapGrantee(IMigrationManifest manifest, GranteeCapabilityType capability)
+        {
+            GranteeCapabilityType granteeResponse;
+            IContentReference grantee;
+            switch (capability.GranteeType)
             {
-                GranteeType.User => new()
-                {
-                    User = new()
+                case GranteeType.User:
+                    grantee = MapReference<IUser>(manifest, capability.GranteeId)!;
+                    granteeResponse = new()
                     {
-                        Id = MapReference<IUser>(manifest, capability.GranteeId)!.Id
-                    },
-                    Capabilities = capability.Capabilities
-                },
-                GranteeType.Group => new()
-                {
-                    Group = new()
+                        User = new()
+                        {
+                            Id = grantee!.Id
+                        },
+                        Capabilities = capability.Capabilities
+                    };
+                    break;
+                case GranteeType.Group:
+                    grantee = MapReference<IGroup>(manifest, capability.GranteeId)!;
+                    granteeResponse = new()
                     {
-                        Id = MapReference<IGroup>(manifest, capability.GranteeId)!.Id
-                    },
-                    Capabilities = capability.Capabilities
-                },
-                _ => throw new ArgumentException($"Grantee Type {capability.GranteeType} is invalid.", nameof(capability)),
-            };
+                        Group = new()
+                        {
+                            Id = grantee!.Id
+                        },
+                        Capabilities = capability.Capabilities
+                    };
+                    break;
+                case GranteeType.GroupSet:
+                    grantee = MapReference<IGroupSet>(manifest, capability.GranteeId)!;
+                    granteeResponse = new()
+                    {
+                        GroupSet = new()
+                        {
+                            Id = grantee!.Id
+                        },
+                        Capabilities = capability.Capabilities
+                    };
+                    break;
+                default:
+                    throw new ArgumentException($"Grantee Type {capability.GranteeType} is invalid.", nameof(capability));
+            }
+
+            return new GranteeCapability(grantee, granteeResponse);
+        }
 
         protected void AssertPermissionsMigrated(IMigrationManifest manifest, PermissionsType? sourcePermissions, PermissionsType? destinationPermissions)
         {
@@ -228,11 +252,30 @@ namespace Tableau.Migration.Tests.Simulation
             Assert.NotNull(sourceGranteeCapabilities);
             Assert.NotNull(destinationGranteeCapabilities);
 
-            var mappedGranteeCapabilities = sourceGranteeCapabilities.Select(g => MapGrantee(manifest, g));
+            var mappedGranteeCapabilities = sourceGranteeCapabilities.Select(g => MapGrantee(manifest, g)).ToImmutableList();
+            var destinationIGranteeCapabilities = destinationGranteeCapabilities.Select(g =>
+            {
+                IContentReference grantee;
+                switch(g.GranteeType)
+                {
+                    case GranteeType.User:
+                        grantee = new User(CloudDestinationApi.Data.Users.Single(u => u.Id == g.GranteeId));
+                        break;
+                    case GranteeType.Group:
+                        grantee = new Group(CloudDestinationApi.Data.Groups.Single(u => u.Id == g.GranteeId));
+                        break;
+                    case GranteeType.GroupSet:
+                        grantee = new GroupSet(CloudDestinationApi.Data.GroupSets.Single(u => u.Id == g.GranteeId));
+                        break;
+                    default:
+                        throw new NotSupportedException($"Grantee Type {g.GranteeType} is invalid.");
+                }
+                return new GranteeCapability(grantee, g);
+            }).Cast<IGranteeCapability>().ToImmutableList();
 
             var comparer = new IGranteeCapabilityComparer(false);
 
-            Assert.Equal(mappedGranteeCapabilities.ToIGranteeCapabilities(), destinationGranteeCapabilities.ToIGranteeCapabilities(), comparer);
+            Assert.Equal(mappedGranteeCapabilities, destinationIGranteeCapabilities, comparer);
         }
 
         protected void AssertEmbeddedCredentialsMigrated(

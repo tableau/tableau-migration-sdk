@@ -1,5 +1,5 @@
 //
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -21,6 +21,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Tableau.Migration.Api.Paging;
 using Tableau.Migration.Api.Rest.Models;
 using Tableau.Migration.Api.Rest.Models.Requests;
 using Tableau.Migration.Api.Rest.Models.Responses;
@@ -117,7 +118,7 @@ namespace Tableau.Migration.Api
             }
 
             return new Favorite(user, contentType, contentReference, item.Label);
-
+            
             void LogWarningForMissingContent(string requiredContentType, Guid contentId)
                 => Logger.LogWarning(SharedResourcesLocalizer[SharedResourceKeys.FavoriteSkippedMissingContentWarning],
                     contentType, contentId, requiredContentType);

@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -104,11 +104,13 @@ namespace Tableau.Migration.Tests.Simulation.Tests
 
                         Assert.NotEqual(sourceView.Id, destinationView.Id);
 
-                        // Assert view permissions
-                        AssertPermissionsMigrated(
-                            result.Manifest, SourceApi.Data.ViewPermissions[sourceView.Id],
-                            CloudDestinationApi.Data.ViewPermissions[destinationView.Id]);
-
+                        // Assert view permissions, only if the permissions were actually required to migrate.
+                        if (!sourceWorkbook.ShowTabs)
+                        {
+                            AssertPermissionsMigrated(
+                                result.Manifest, SourceApi.Data.ViewPermissions[sourceView.Id],
+                                CloudDestinationApi.Data.ViewPermissions[destinationView.Id]);
+                        }
                         // Assert view tags
                         sourceView.Tags.AssertEqual(destinationView.Tags);
 

@@ -1,4 +1,4 @@
-# Copyright (c) 2025, Salesforce, Inc.
+# Copyright (c) 2026, Salesforce, Inc.
 # SPDX-License-Identifier: Apache-2
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,32 +15,23 @@
 
 """Interoperability utility for hooks."""
 
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from inspect import signature
-from typing import Callable, Generic, get_args, TypeVar, Union
+from typing import Any, Callable, Generic, TypeVar, Union
 from uuid import uuid4
 
 from migration_engine_actions import PyMigrationActionResult
 from migration_engine_hooks_initializemigration import PyInitializeMigrationHookResult
 from migration_engine_migrators_batch import PyContentBatchMigrationResult
+from migration_interop import _PyWrapperBuilderBase, _unwrap, _unwrap_async
 
 from System import IServiceProvider
-from System.Threading.Tasks import Task
 from Tableau.Migration.Engine.Actions import IMigrationActionResult
 from Tableau.Migration.Engine.Migrators.Batch import IContentBatchMigrationResult
 from Tableau.Migration.Engine.Hooks.InitializeMigration import IInitializeMigrationHookResult
 from Tableau.Migration.Interop.Hooks import ISyncContentBatchMigrationCompletedHook, ISyncInitializeMigrationHook, ISyncMigrationActionCompletedHook
 
 TContent = TypeVar("TContent")
-
-def _wrapper_init_object(inner_hook_type) -> Callable:
-    from migration_services import ScopedMigrationServices
-    
-    def _init(self, scoped_services: IServiceProvider) -> None:
-        self._hook = inner_hook_type()
-        self._hook.services = ScopedMigrationServices(scoped_services)
-
-    return _init
 
 def _wrapper_init_callback() -> Callable:
     from migration_services import ScopedMigrationServices
@@ -49,64 +40,78 @@ def _wrapper_init_callback() -> Callable:
         self.services = ScopedMigrationServices(scoped_services)
         
     return _init
-    
-def _wrapper_create(t: type) -> Callable:
-    def _create(scoped_services: IServiceProvider):
-        return t(scoped_services)
-    
-    return _create
 
-def _unwrap(result):
-    return result._dotnet if hasattr(result, "_dotnet") else result
 
-def _unwrap_async(ctx_type: type, result):
-    dotnet_result = _unwrap(result)
-    return Task.FromResult[ctx_type](dotnet_result)
+class _PyHookWrapperBuilderBase(_PyWrapperBuilderBase):
 
-class _PyHookWrapperBase(ABC):
 
     @property
     def _wrapper_method_name(self) -> str:
         return "ExecuteAsync"
 
+
     @property
     def _wrapper_async(self) -> bool:
         return True
 
+
+    @property
+    def is_callback_hook(self) -> bool:
+        return hasattr(self, "callback")
+
+
     def __init__(self, t: Union[type, list], callback: Union[Callable, None] = None) -> None:
         if callback is None:
-            self.python_generic_types = get_args(t.__orig_bases__[0]) if hasattr(t, "__orig_bases__") else []
-            module = t.__module__
-            init = _wrapper_init_object(t)
-            wrap_type_name = t.__name__ + "_InteropWrapper_" + str(uuid4())
+            super().__init__(t)
+            return
         else:
-            self.python_generic_types = t if isinstance(t, list) else [t]
-            module = callback.__module__
-            init = _wrapper_init_callback()
-            wrap_type_name = callback.__name__ + "_InteropWrapper_" + str(uuid4())
+            self.callback = callback
+            self.input_generic_types = t
+            super().__init__(None)
+        
 
-        self.dotnet_generic_types = [x._dotnet_base for x in self.python_generic_types]
+    def get_python_generic_types(self) -> tuple[type, ...]:
+        if self.is_callback_hook:
+            types = self.input_generic_types if isinstance(self.input_generic_types, list) else [self.input_generic_types]
+            return tuple(types)
+        else:
+            return super().get_python_generic_types()
+            
 
-        members = {
-            "__namespace__": module,
-            "__init__": init
-        }
+    def get_wrapper_namespace(self) -> str:
+        if self.is_callback_hook:
+            return self.callback.__name__
+        else:
+            return super().get_wrapper_namespace()
+            
 
+    def get_wrapper_type_name(self) -> str:
+        if self.is_callback_hook:
+            return self.callback.__name__ + "_InteropWrapper_" + str(uuid4())
+        else:
+            return super().get_wrapper_type_name()
+
+
+    def get_wrapper_init(self) -> Callable:
+        if self.is_callback_hook:
+            return _wrapper_init_callback()
+        else:
+            return super().get_wrapper_init()            
+
+
+    def add_wrapper_members(self, members: dict[str, Any]) -> dict[str, Any]:
         wrap_context = self._wrap_context_callback()
 
-        if callback is None:
-            members[self._wrapper_method_name] = self.build_wrapper_execute(self._wrap_execute_method(), wrap_context, self._wrapper_context_type(), self._wrapper_async)
+        if self.is_callback_hook:
+            members[self._wrapper_method_name] = self.build_wrapper_execute_callback(self.callback, wrap_context, self._wrapper_context_type(), self._wrapper_async)
         else:
-            members[self._wrapper_method_name] = self.build_wrapper_execute_callback(callback, wrap_context, self._wrapper_context_type(), self._wrapper_async)
+            members[self._wrapper_method_name] = self.build_wrapper_execute(self._wrap_execute_method(), wrap_context, self._wrapper_context_type(), self._wrapper_async)
 
         self.set_extra_wrapper_members(members, wrap_context)
 
-        base_types = (self._wrapper_base_type(),)
-        base_types = self.set_extra_base_types(base_types)
+        return members
 
-        self.wrapper_type = type(wrap_type_name, base_types, members)
-        self.factory = _wrapper_create(self.wrapper_type)
-        
+
     def build_wrapper_execute(self, wrap_method: Callable, wrap_context: Callable, ctx_type: type, is_async: bool) -> Callable:
         def _execute(s, ctx):
             result = wrap_method(s)(wrap_context(ctx))
@@ -117,6 +122,7 @@ class _PyHookWrapperBase(ABC):
             return _unwrap_async(ctx_type, result)
 
         return _execute_async if is_async else _execute
+
     
     def build_wrapper_execute_callback(self, callback: Callable, wrap_context: Callable, ctx_type: type, is_async: bool) -> Callable:
         def _execute(s, ctx):
@@ -140,29 +146,27 @@ class _PyHookWrapperBase(ABC):
         else:
             return _execute_services_async if is_async else _execute_services
 
+
     def set_extra_wrapper_members(self, members: dict, wrap_context: Callable) -> None:
         pass
-    
-    def set_extra_base_types(self, types: tuple) -> tuple:
-        return types
 
-    @abstractmethod
-    def _wrapper_base_type(self) -> type:
-        ...
 
     @abstractmethod
     def _wrapper_context_type(self) -> type:
         ...
         
+
     @abstractmethod
     def _wrap_execute_method(self) -> Callable:
         ...
 
+
     @abstractmethod
     def _wrap_context_callback(self) -> Callable:
         ...
+
         
-class _PyMigrationActionCompletedHookWrapper(_PyHookWrapperBase):
+class _PyMigrationActionCompletedHookWrapperBuilder(_PyHookWrapperBuilderBase):
 
     @property
     def _wrapper_method_name(self) -> str:
@@ -172,7 +176,7 @@ class _PyMigrationActionCompletedHookWrapper(_PyHookWrapperBase):
     def _wrapper_async(self) -> bool:
         return False
 
-    def _wrapper_base_type(self) -> type:
+    def get_wrapper_base_type(self) -> type:
         return ISyncMigrationActionCompletedHook
 
     def _wrapper_context_type(self) -> type:
@@ -180,7 +184,7 @@ class _PyMigrationActionCompletedHookWrapper(_PyHookWrapperBase):
 
     def _wrap_execute_method(self) -> Callable:
         def _wrap_execute(w):
-            return w._hook.execute
+            return w._inner.execute
         
         return _wrap_execute
     
@@ -193,7 +197,7 @@ class _PyMigrationActionCompletedHookWrapper(_PyHookWrapperBase):
 class PyMigrationActionCompletedHookBase():
     """Base class for migration action completed hooks."""
 
-    _wrapper = _PyMigrationActionCompletedHookWrapper
+    _wrapper_builder = _PyMigrationActionCompletedHookWrapperBuilder
 
     def execute(self, ctx: PyMigrationActionResult) -> PyMigrationActionResult:
         """Executes a hook callback.
@@ -206,7 +210,7 @@ class PyMigrationActionCompletedHookBase():
         """
         return ctx
 
-class _PyContentBatchMigrationCompletedHookWrapper(_PyHookWrapperBase):
+class _PyContentBatchMigrationCompletedHookWrapperBuilder(_PyHookWrapperBuilderBase):
 
     @property
     def python_content_type(self) -> type:
@@ -224,7 +228,7 @@ class _PyContentBatchMigrationCompletedHookWrapper(_PyHookWrapperBase):
     def _wrapper_async(self) -> bool:
         return False
 
-    def _wrapper_base_type(self) -> type:
+    def get_wrapper_base_type(self) -> type:
         return ISyncContentBatchMigrationCompletedHook[self.dotnet_content_type]
 
     def _wrapper_context_type(self) -> type:
@@ -232,7 +236,7 @@ class _PyContentBatchMigrationCompletedHookWrapper(_PyHookWrapperBase):
 
     def _wrap_execute_method(self) -> Callable:
         def _wrap_execute(w):
-            return w._hook.execute
+            return w._inner.execute
         
         return _wrap_execute
     
@@ -245,7 +249,7 @@ class _PyContentBatchMigrationCompletedHookWrapper(_PyHookWrapperBase):
 class PyContentBatchMigrationCompletedHookBase(Generic[TContent]):
     """Generic base class for content batch completion hooks."""
 
-    _wrapper = _PyContentBatchMigrationCompletedHookWrapper
+    _wrapper_builder = _PyContentBatchMigrationCompletedHookWrapperBuilder
 
     def execute(self, ctx: PyContentBatchMigrationResult[TContent]) -> PyContentBatchMigrationResult[TContent]:
         """Executes a hook callback.
@@ -258,7 +262,7 @@ class PyContentBatchMigrationCompletedHookBase(Generic[TContent]):
         """
         return ctx
 
-class _PyInitializeMigrationHookWrapper(_PyHookWrapperBase):
+class _PyInitializeMigrationHookWrapperBuilder(_PyHookWrapperBuilderBase):
 
     @property
     def _wrapper_method_name(self) -> str:
@@ -268,7 +272,7 @@ class _PyInitializeMigrationHookWrapper(_PyHookWrapperBase):
     def _wrapper_async(self) -> bool:
         return False
 
-    def _wrapper_base_type(self) -> type:
+    def get_wrapper_base_type(self) -> type:
         return ISyncInitializeMigrationHook
 
     def _wrapper_context_type(self) -> type:
@@ -276,7 +280,7 @@ class _PyInitializeMigrationHookWrapper(_PyHookWrapperBase):
 
     def _wrap_execute_method(self) -> Callable:
         def _wrap_execute(w):
-            return w._hook.execute
+            return w._inner.execute
         
         return _wrap_execute
     
@@ -289,7 +293,7 @@ class _PyInitializeMigrationHookWrapper(_PyHookWrapperBase):
 class PyInitializeMigrationHookBase:
     """Base class for initialize migration hooks."""
 
-    _wrapper = _PyInitializeMigrationHookWrapper
+    _wrapper_builder = _PyInitializeMigrationHookWrapperBuilder
 
     def execute(self, ctx: PyInitializeMigrationHookResult) -> PyInitializeMigrationHookResult:
         """Executes a hook callback.

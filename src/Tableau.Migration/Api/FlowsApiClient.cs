@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -16,11 +16,13 @@
 //
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Tableau.Migration.Api.Models;
+using Tableau.Migration.Api.Paging;
 using Tableau.Migration.Api.Publishing;
 using Tableau.Migration.Api.Rest;
 using Tableau.Migration.Api.Rest.Models.Responses;
@@ -28,6 +30,7 @@ using Tableau.Migration.Content;
 using Tableau.Migration.Content.Files;
 using Tableau.Migration.Content.Search;
 using Tableau.Migration.Net.Rest;
+using Tableau.Migration.Net.Rest.Filtering;
 using Tableau.Migration.Paging;
 using Tableau.Migration.Resources;
 
@@ -51,18 +54,12 @@ namespace Tableau.Migration.Api
             _flowPublisher = flowPublisher;
         }
 
-        /// <summary>
-        /// Gets all prep flows in the current site.
-        /// </summary>
-        /// <param name="pageNumber">The 1-indexed page number.</param>
-        /// <param name="pageSize">The size of the page.</param>
-        /// <param name="cancel">A cancellation token to obey.</param>
-        /// <returns>A list of a page of prep flows in the current site.</returns>
-        public async Task<IPagedResult<IFlow>> GetAllFlowsAsync(int pageNumber, int pageSize, CancellationToken cancel)
+        private async Task<IPagedResult<IFlow>> GetAllFlowsAsync(int pageNumber, int pageSize, IEnumerable<Filter> filters, CancellationToken cancel)
         {
             var getAllResult = await RestRequestBuilderFactory
                 .CreateUri(UrlPrefix)
                 .WithPage(pageNumber, pageSize)
+                .WithFilters(filters)
                 .ForGetRequest()
                 .SendAsync<FlowsResponse>(cancel)
                 .ToPagedResultAsync(async (response, cancel) =>
@@ -118,7 +115,7 @@ namespace Tableau.Migration.Api
 
         /// <inheritdoc />
         public async Task<IPagedResult<IFlow>> GetPageAsync(int pageNumber, int pageSize, CancellationToken cancel)
-            => await GetAllFlowsAsync(pageNumber, pageSize, cancel).ConfigureAwait(false);
+            => await GetAllFlowsAsync(pageNumber, pageSize, [], cancel).ConfigureAwait(false);
 
         #endregion
 
@@ -126,6 +123,29 @@ namespace Tableau.Migration.Api
 
         /// <inheritdoc />
         public IPager<IFlow> GetPager(int pageSize) => new ApiListPager<IFlow>(this, pageSize);
+
+        #endregion
+
+        #region - IApiFilteredPageAccessor<IFlow> Implementation -
+
+        /// <inheritdoc />
+        public async Task<IPagedResult<IFlow>> GetPageAsync(IEnumerable<Filter> filters, int pageNumber, int pageSize, CancellationToken cancel)
+            => await GetAllFlowsAsync(pageNumber, pageSize, filters, cancel).ConfigureAwait(false);
+
+        #endregion
+
+        #region - IFilteredPagedListApiClient<IFlow> Implementation -
+
+        /// <inheritdoc />
+        public IPager<IFlow> GetPager(IEnumerable<Filter> filters, int pageSize)
+            => new ApiFilteredListPager<IFlow>(this, filters, pageSize);
+
+        #endregion
+
+        #region - INameSearchApiClient<IFlow> Implementation -
+
+        /// <inheritdoc />
+        FilterOperator INameSearchApiClient<IFlow>.NameFilterOperator { get; } = FilterOperator.Equal;
 
         #endregion
 

@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -29,10 +29,10 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
         public class GroupsApiClientTest : ApiClientTestBase
         { }
 
-        public class GetAllGroupsAsync : GroupsApiClientTest
+        public class GetPageAsync : GroupsApiClientTest
         {
             [Fact]
-            public async Task Returns_success_on_success()
+            public async Task SucceedsAsync()
             {
                 // Arrange 
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
@@ -45,7 +45,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
                 }
 
                 // Act
-                var result = await sitesClient.Groups.GetAllGroupsAsync(1, 100, Cancel);
+                var result = await sitesClient.Groups.GetPageAsync(1, 100, Cancel);
 
                 // Assert
                 Assert.True(result.Success);
@@ -53,13 +53,13 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
             }
 
             [Fact]
-            public async Task Returns_success_with_single_item_when_no_users_exist()
+            public async Task EmptySiteAsync()
             {
                 // Arrange 
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
 
                 // Act
-                var result = await sitesClient.Groups.GetAllGroupsAsync(1, 100, Cancel);
+                var result = await sitesClient.Groups.GetPageAsync(1, 100, Cancel);
 
                 // Assert
                 Assert.True(result.Success);
@@ -73,7 +73,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
         public class GetGroupUsersAsync : GroupsApiClientTest
         {
             [Fact]
-            public async Task Returns_success_on_success()
+            public async Task SucceedsAsync()
             {
                 // Arrange 
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
@@ -110,7 +110,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
             }
 
             [Fact]
-            public async Task Returns_success_with_no_item_when_no_users_exist()
+            public async Task EmptyUsersAsync()
             {
                 // Arrange 
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
@@ -140,7 +140,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
         public class AddUserToGroupAsync : GroupsApiClientTest
         {
             [Fact]
-            public async Task Returns_success_on_success()
+            public async Task SucceedsAsync()
             {
                 // Arrange 
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
@@ -174,7 +174,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
         public class RemoveUserFromGroupAsync : GroupsApiClientTest
         {
             [Fact]
-            public async Task Returns_success_on_success()
+            public async Task SucceedsAsync()
             {
                 // Arrange 
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
@@ -204,7 +204,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
         public class ImportGroupFromActiveDirectoryAsync : GroupsApiClientTest
         {
             [Fact]
-            public async Task Returns_success_on_success()
+            public async Task SucceedsAsync()
             {
                 // Arrange 
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
@@ -227,7 +227,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
         public class CreateLocalGroupAsync : GroupsApiClientTest
         {
             [Fact]
-            public async Task Returns_success_on_success()
+            public async Task SucceedsAsync()
             {
                 // Arrange 
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
@@ -254,7 +254,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
         public class PullAsync : GroupsApiClientTest
         {
             [Fact]
-            public async Task Returns_success_with_users()
+            public async Task WithUsersAsync()
             {
                 // Arrange 
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
@@ -293,7 +293,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
             }
 
             [Fact]
-            public async Task Returns_success_with_many_users_and_pagination()
+            public async Task WithUsersAndPagingAsync()
             {
                 // Arrange 
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
@@ -332,7 +332,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
             }
 
             [Fact]
-            public async Task Returns_success_without_users()
+            public async Task NoUsersAsync()
             {
                 // Arrange 
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
@@ -366,7 +366,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
         public class PublishAsync : GroupsApiClientTest
         {
             [Fact]
-            public async Task GroupWithoutUsers_importToAD_returns_success()
+            public async Task EmptyActiveDirectoryGroupAsync()
             {
                 // Arrange 
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
@@ -386,7 +386,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
             }
 
             [Fact]
-            public async Task GroupWithUser_importToAD_returns_success()
+            public async Task ActiveDirectoryGroupAsync()
             {
                 // Arrange 
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
@@ -411,7 +411,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
             }
 
             [Fact]
-            public async Task GroupWithoutUsers_local_returns_success()
+            public async Task LocalEmptyGroupAsync()
             {
                 // Arrange 
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
@@ -432,7 +432,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
             }
 
             [Fact]
-            public async Task GroupWithUser_local_returns_success()
+            public async Task LocalGroupAsync()
             {
                 // Arrange 
                 await using var sitesClient = await GetSitesClientAsync(Cancel);

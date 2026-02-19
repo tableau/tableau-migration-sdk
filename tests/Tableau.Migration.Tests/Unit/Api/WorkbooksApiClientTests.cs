@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -52,17 +52,20 @@ namespace Tableau.Migration.Tests.Unit.Api
 
         #region - List -
 
-        public class ListClient : PagedListApiClientTestBase<IWorkbooksApiClient, IWorkbook, WorkbooksResponse>
+        public class ListClient : NameSearchApiClientTestBase<IWorkbooksApiClient, IWorkbook, WorkbooksResponse>
         { }
 
-        public class PageAccessor : ApiPageAccessorTestBase<IWorkbooksApiClient, IWorkbook, WorkbooksResponse>
+        public class ContentUrlListClient : ContentUrlSearchApiClientTestBase<IWorkbooksApiClient, IWorkbook, WorkbooksResponse>
+        { }
+
+        public class PageAccessor : ApiFilteredPageAccessorTestBase<IWorkbooksApiClient, IWorkbook, WorkbooksResponse>
         { }
 
         #endregion
 
         #region - Get -
 
-        public class GetWorkbookAsync : WorkbooksApiClientTest
+        public class GetByIdAsync : WorkbooksApiClientTest
         {
             [Fact]
             public async Task ErrorAsync()
@@ -75,7 +78,7 @@ namespace Tableau.Migration.Tests.Unit.Api
 
                 var workbookId = Guid.NewGuid();
 
-                var result = await ApiClient.GetWorkbookAsync(workbookId, Cancel);
+                var result = await ((IReadApiClient<IWorkbookDetails>)ApiClient).GetByIdAsync(workbookId, Cancel);
 
                 result.AssertFailure();
 
@@ -94,7 +97,7 @@ namespace Tableau.Migration.Tests.Unit.Api
 
                 var workbookId = Guid.NewGuid();
 
-                var result = await ApiClient.GetWorkbookAsync(workbookId, Cancel);
+                var result = await ((IReadApiClient<IWorkbookDetails>)ApiClient).GetByIdAsync(workbookId, Cancel);
 
                 result.AssertFailure();
 
@@ -129,7 +132,7 @@ namespace Tableau.Migration.Tests.Unit.Api
 
                 var workbookId = Guid.NewGuid();
 
-                var result = await ApiClient.GetWorkbookAsync(workbookId, Cancel);
+                var result = await ((IReadApiClient<IWorkbookDetails>)ApiClient).GetByIdAsync(workbookId, Cancel);
 
                 result.AssertSuccess();
                 Assert.NotNull(result.Value);
@@ -144,9 +147,9 @@ namespace Tableau.Migration.Tests.Unit.Api
 
         #endregion
 
-        #region - GetAll -
+        #region - GetPageAsync -
 
-        public class GetAllWorkbooksAsync : WorkbooksApiClientTest
+        public class GetPageAsync : WorkbooksApiClientTest
         {
             [Fact]
             public async Task ErrorAsync()
@@ -157,7 +160,7 @@ namespace Tableau.Migration.Tests.Unit.Api
                 mockResponse.Setup(r => r.EnsureSuccessStatusCode()).Throws(exception);
                 MockHttpClient.SetupResponse(mockResponse);
 
-                var result = await ApiClient.GetAllWorkbooksAsync(1, 1, Cancel);
+                var result = await ApiClient.GetPageAsync(1, 1, Cancel);
 
                 result.AssertFailure();
 
@@ -174,7 +177,7 @@ namespace Tableau.Migration.Tests.Unit.Api
                 var mockResponse = new MockHttpResponseMessage<WorkbooksResponse>(HttpStatusCode.Forbidden, null);
                 MockHttpClient.SetupResponse(mockResponse);
 
-                var result = await ApiClient.GetAllWorkbooksAsync(1, 1, Cancel);
+                var result = await ApiClient.GetPageAsync(1, 1, Cancel);
 
                 result.AssertFailure();
 
@@ -194,7 +197,7 @@ namespace Tableau.Migration.Tests.Unit.Api
                 var mockResponse = new MockHttpResponseMessage<WorkbooksResponse>(wbResponse);
                 MockHttpClient.SetupResponse(mockResponse);
 
-                var result = await ApiClient.GetAllWorkbooksAsync(1, 1, Cancel);
+                var result = await ApiClient.GetPageAsync(1, 1, Cancel);
 
                 result.AssertSuccess();
                 Assert.NotNull(result.Value);
@@ -279,7 +282,7 @@ namespace Tableau.Migration.Tests.Unit.Api
         public class PublishAsync : WorkbooksApiClientTest
         {
             [Fact]
-            public async Task Succeeds()
+            public async Task SucceedsAsync()
             {
                 var mockFileStream = new Mock<Stream>();
 
@@ -312,7 +315,7 @@ namespace Tableau.Migration.Tests.Unit.Api
         public class PublishWorkbookAsync : WorkbooksApiClientTest
         {
             [Fact]
-            public async Task Succeeds()
+            public async Task SucceedsAsync()
             {
                 var mockOptions = new Mock<IPublishWorkbookOptions>();
 
@@ -399,6 +402,7 @@ namespace Tableau.Migration.Tests.Unit.Api
         #endregion
 
         #region - Connections -
+
         public class ListConnectionsAsync : WorkbooksApiClientTest
         {
             [Fact]
@@ -422,6 +426,112 @@ namespace Tableau.Migration.Tests.Unit.Api
                 Assert.Equal(connections.Count, expectedConnections.Count);
             }
         }
-        #endregion    
+                #endregion
+
+        #region - GetWorkbookViews -
+
+        public class GetWorkbookViewsAsync : WorkbooksApiClientTest
+        {
+            [Fact]
+            public async Task ErrorAsync()
+            {
+                var exception = new Exception();
+
+                var mockResponse = new MockHttpResponseMessage<WorkbookViewsResponse>(HttpStatusCode.InternalServerError, null);
+                mockResponse.Setup(r => r.EnsureSuccessStatusCode()).Throws(exception);
+                MockHttpClient.SetupResponse(mockResponse);
+
+                var workbookId = Guid.NewGuid();
+
+                var result = await ApiClient.GetWorkbookViewsAsync(workbookId, Cancel);
+
+                result.AssertFailure();
+
+                var resultError = Assert.Single(result.Errors);
+                Assert.Same(exception, resultError);
+
+                var request = MockHttpClient.AssertSingleRequest();
+                request.AssertRelativeUri($"/api/{TableauServerVersion.RestApiVersion}/sites/{SiteId}/{UrlPrefix}/{workbookId}/{RestUrlKeywords.Views}");
+            }
+
+            [Fact]
+            public async Task FailureResponseAsync()
+            {
+                var mockResponse = new MockHttpResponseMessage<WorkbookViewsResponse>(HttpStatusCode.NotFound, null);
+                MockHttpClient.SetupResponse(mockResponse);
+
+                var workbookId = Guid.NewGuid();
+
+                var result = await ApiClient.GetWorkbookViewsAsync(workbookId, Cancel);
+
+                result.AssertFailure();
+
+                Assert.Null(result.Value);
+                Assert.Single(result.Errors);
+
+                var request = MockHttpClient.AssertSingleRequest();
+                request.AssertRelativeUri($"/api/{TableauServerVersion.RestApiVersion}/sites/{SiteId}/{UrlPrefix}/{workbookId}/{RestUrlKeywords.Views}");
+            }
+
+            [Fact]
+            public async Task SuccessAsync()
+            {
+                var viewsResponse = AutoFixture.CreateResponse<WorkbookViewsResponse>();
+                var expectedViews = CreateMany<WorkbookViewsResponse.ViewType>(3).ToArray();
+                viewsResponse.Items = expectedViews;
+
+                var mockResponse = new MockHttpResponseMessage<WorkbookViewsResponse>(viewsResponse);
+                MockHttpClient.SetupResponse(mockResponse);
+
+                var workbookId = Guid.NewGuid();
+
+                var result = await ApiClient.GetWorkbookViewsAsync(workbookId, Cancel);
+
+                result.AssertSuccess();
+                Assert.NotNull(result.Value);
+                Assert.Equal(expectedViews.Length, result.Value.Count);
+
+                var request = MockHttpClient.AssertSingleRequest();
+                request.AssertRelativeUri($"/api/{TableauServerVersion.RestApiVersion}/sites/{SiteId}/{UrlPrefix}/{workbookId}/{RestUrlKeywords.Views}");
+
+                // Verify the mapped view properties
+                for (int i = 0; i < expectedViews.Length; i++)
+                {
+                    var expectedView = expectedViews[i];
+                    var actualView = result.Value[i];
+
+                    Assert.Equal(expectedView.Id, actualView.Id);
+                    Assert.Equal(expectedView.Name, actualView.Name);
+                    Assert.Equal(expectedView.ContentUrl, actualView.ContentUrl);
+                    Assert.Equal(expectedView.ViewUrlName, actualView.ViewUrlName);
+                    Assert.Equal(expectedView.CreatedAt, actualView.CreatedAt);
+                    Assert.Equal(expectedView.UpdatedAt, actualView.UpdatedAt);
+                    Assert.Equal(expectedView.Tags.Length, actualView.Tags.Count);
+                }
+            }
+
+            [Fact]
+            public async Task EmptyResultAsync()
+            {
+                var viewsResponse = AutoFixture.CreateResponse<WorkbookViewsResponse>();
+                viewsResponse.Items = Array.Empty<WorkbookViewsResponse.ViewType>();
+
+                var mockResponse = new MockHttpResponseMessage<WorkbookViewsResponse>(viewsResponse);
+                MockHttpClient.SetupResponse(mockResponse);
+
+                var workbookId = Guid.NewGuid();
+
+                var result = await ApiClient.GetWorkbookViewsAsync(workbookId, Cancel);
+
+                result.AssertSuccess();
+                Assert.NotNull(result.Value);
+                Assert.Empty(result.Value);
+
+                var request = MockHttpClient.AssertSingleRequest();
+                request.AssertRelativeUri($"/api/{TableauServerVersion.RestApiVersion}/sites/{SiteId}/{UrlPrefix}/{workbookId}/{RestUrlKeywords.Views}");
+            }
+        }
+
+        #endregion
     }
 }

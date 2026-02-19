@@ -1,5 +1,5 @@
 //
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -39,6 +39,16 @@ namespace Tableau.Migration
         /// The default path separator for <see cref="ContentLocation"/>s.
         /// </summary>
         public const string PathSeparator = "/";
+
+        /// <summary>
+        /// The escape sequence for the path separator in <see cref="ContentLocation"/> segments.
+        /// </summary>
+        public const string PathSeparatorEscape = @"\/";
+
+        /// <summary>
+        /// The escape sequence for the domain name separator in <see cref="ContentLocation"/> segments.
+        /// </summary>
+        public const string DomainNameSeparatorEscape = @"\\";
 
         /// <summary>
         /// The local domain name.

@@ -1,5 +1,5 @@
 //
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -24,9 +24,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Tableau.Migration.Api.Simulation;
 using Tableau.Migration.Content;
+using Tableau.Migration.Content.Files;
 using Tableau.Migration.Content.Permissions;
 using Tableau.Migration.Content.Schedules.Cloud;
 using Tableau.Migration.Engine.Endpoints;
+using Tableau.Migration.Engine.Endpoints.Caching;
 using Tableau.Migration.Engine.Hooks;
 using Tableau.Migration.Engine.Hooks.Filters;
 using Tableau.Migration.Engine.Hooks.Filters.Default;
@@ -38,6 +40,7 @@ using Tableau.Migration.Engine.Hooks.Transformers;
 using Tableau.Migration.Engine.Hooks.Transformers.Default;
 using Tableau.Migration.Engine.Options;
 using Tableau.Migration.Engine.Pipelines;
+using Tableau.Migration.Engine.Services;
 using Tableau.Migration.Resources;
 
 namespace Tableau.Migration.Engine
@@ -55,8 +58,6 @@ namespace Tableau.Migration.Engine
         private ServerToCloudMigrationPlanBuilder? _serverToCloudBuilder;
 
         private PipelineProfile _pipelineProfile;
-        private IMigrationPlanEndpointConfiguration _source;
-        private IMigrationPlanEndpointConfiguration _destination;
         private IImmutableList<MigrationPipelineContentType> _supportedContentTypes = ImmutableArray<MigrationPipelineContentType>.Empty;
 
         /// <summary>
@@ -65,6 +66,9 @@ namespace Tableau.Migration.Engine
         /// <param name="localizer">The string localizer.</param>
         /// <param name="loggerFactory">The logger factory.</param>
         /// <param name="simulatorFactory">A simulator factory.</param>
+        /// <param name="serviceBuilderFactory">The service builder factory.</param>
+        /// <param name="source">A new/fresh endpoint builder for the source endpoint.</param>
+        /// <param name="destination">A new/fresh endpoint builder for the destination endpoint.</param>
         /// <param name="options">A new/fresh options builder.</param>
         /// <param name="hooks">A new/fresh hook builder.</param>
         /// <param name="mappings">A new/fresh mapping builder.</param>
@@ -74,6 +78,9 @@ namespace Tableau.Migration.Engine
             ISharedResourcesLocalizer localizer,
             ILoggerFactory loggerFactory,
             ITableauApiSimulatorFactory simulatorFactory,
+            IMigrationServiceBuilderFactory serviceBuilderFactory,
+            IMigrationPlanEndpointBuilder source,
+            IMigrationPlanEndpointBuilder destination,
             IMigrationPlanOptionsBuilder options,
             IMigrationHookBuilder hooks,
             IContentMappingBuilder mappings,
@@ -84,8 +91,10 @@ namespace Tableau.Migration.Engine
             _loggerFactory = loggerFactory;
             _simulatorFactory = simulatorFactory;
 
-            _source = TableauApiEndpointConfiguration.Empty;
-            _destination = TableauApiEndpointConfiguration.Empty;
+            Services = serviceBuilderFactory.Create(MigrationServices.SupportedPlanServices);
+
+            Source = source;
+            Destination = destination;
             Options = options;
             Hooks = hooks;
             Mappings = mappings;
@@ -170,6 +179,8 @@ namespace Tableau.Migration.Engine
                 Filters.Add<GroupAllUsersFilter, IGroup>();
                 Filters.Add(typeof(SystemOwnershipFilter<>), GetContentTypesByInterface<IWithOwner>());
                 Filters.Add<FavoriteFilter, IFavorite>();
+                Filters.Add(typeof(LargeContentFilter<>), GetContentTypesByInterface<ISizeContent>());
+                Filters.Add<ServerSubscriptionFilter, IServerSubscription>();
             }
 
             void AppendDefaultPostPublishHooks()
@@ -183,6 +194,7 @@ namespace Tableau.Migration.Engine
                 Hooks.Add(typeof(EmbeddedCredentialsItemPostPublishHook<,>), GetPostPublishTypesByInterface<IRequiresEmbeddedCredentialMigration>());
                 Hooks.Add<DeleteUserFavoritesPostPublishHook>();
                 Hooks.Add<PopulateViewCachePostPublishHook>();
+                Hooks.Add<CleanupViewsPostPublishHook>();
             }
 
             void AppendDefaultTransformers()
@@ -203,43 +215,82 @@ namespace Tableau.Migration.Engine
         }
 
         /// <inheritdoc />
+        public IMigrationPlanEndpointBuilder Source { get; }
+
+        /// <inheritdoc />
+        public IMigrationPlanEndpointBuilder Destination { get; }
+
+        /// <inheritdoc />
         public IMigrationPlanBuilder FromSource(IMigrationPlanEndpointConfiguration config)
         {
-            _source = config;
+            Source.Configuration = config;
             return this;
         }
 
         /// <inheritdoc />
-        public IMigrationPlanBuilder FromSourceTableauServer(Uri serverUrl, string siteContentUrl, string accessTokenName, string accessToken, bool createApiSimulator = false)
+        public IMigrationPlanBuilder FromSourceTableauServer(Uri serverUrl, string siteContentUrl, string accessTokenName, string accessToken,
+            bool createApiSimulator = false, string? restApiVersion = null)
         {
             if (createApiSimulator)
             {
                 _simulatorFactory.GetOrCreate(serverUrl, true);
             }
 
-            return FromSource(new TableauApiEndpointConfiguration(new(serverUrl, siteContentUrl, accessTokenName, accessToken)));
+            return FromSource(new TableauApiEndpointConfiguration(new(serverUrl, siteContentUrl, accessTokenName, accessToken, restApiVersion), Source.Services));
         }
 
         /// <inheritdoc />
         public IMigrationPlanBuilder ToDestination(IMigrationPlanEndpointConfiguration config)
         {
-            _destination = config;
+            Destination.Configuration = config;
             return this;
         }
 
         /// <inheritdoc />
-        public IMigrationPlanBuilder ToDestinationTableauCloud(Uri podUrl, string siteContentUrl, string accessTokenName, string accessToken, bool createApiSimulator = false)
+        public IMigrationPlanBuilder ToDestinationTableauCloud(Uri podUrl, string siteContentUrl, string accessTokenName, string accessToken,
+            bool createApiSimulator = false, string? restApiVersion = null)
         {
             if (createApiSimulator)
             {
                 _simulatorFactory.GetOrCreate(podUrl, false);
             }
 
-            return ToDestination(new TableauApiEndpointConfiguration(new(podUrl, siteContentUrl, accessTokenName, accessToken)));
+            return ToDestination(new TableauApiEndpointConfiguration(new(podUrl, siteContentUrl, accessTokenName, accessToken, restApiVersion), Destination.Services));
+        }
+
+        /// <inheritdoc />
+        public IMigrationPlanBuilder SkipContentType<TContent>(bool preCache = true)
+            => SkipContentType(typeof(TContent), preCache);
+
+        /// <inheritdoc />
+        public IMigrationPlanBuilder SkipContentType(Type contentType, bool preCache = true)
+        {
+            Filters.Add(typeof(SkipAllFilter<>), [[contentType]]);
+
+            if (!preCache)
+            {
+                // Use an empty content finder so that no items are processed through the migration action/pipeline.
+                Services.Set(typeof(IMigrationContentLoader<>).MakeGenericType(contentType),
+                    ctx => ctx.Services.GetRequiredService(typeof(EmptyMigrationContentLoader<>).MakeGenericType(contentType)));
+
+                // Set content reference caches to load items individually when possible.
+                Services.Set(typeof(IContentReferenceCacheLoadStrategyProvider<>).MakeGenericType(contentType),
+                    ctx => ctx.Services.GetRequiredService(typeof(LazyContentReferenceCacheLoadStrategyProvider<>).MakeGenericType(contentType)));
+
+                /*
+                 * Default content reference finders/caches will dynamically update
+                 * the manifest when individual references are searched by downstream content types.
+                 */
+            }
+
+            return this;
         }
 
         /// <inheritdoc />
         public IMigrationPlanOptionsBuilder Options { get; }
+
+        /// <inheritdoc />
+        public IMigrationServiceBuilder Services { get; }
 
         /// <inheritdoc />
         public IMigrationHookBuilder Hooks { get; }
@@ -406,12 +457,13 @@ namespace Tableau.Migration.Engine
                 PlanId: Guid.NewGuid(),
                 PipelineProfile: _pipelineProfile,
                 Options: Options.Build(),
-                Source: _source,
-                Destination: _destination,
+                Source: Source.Configuration,
+                Destination: Destination.Configuration,
                 Hooks: Hooks.Build(),
                 Mappings: Mappings.Build(),
                 Filters: Filters.Build(),
                 Transformers: Transformers.Build(),
-                PipelineFactoryOverride: _pipelineFactoryOverride);
+                PipelineFactoryOverride: _pipelineFactoryOverride,
+                Services: Services);
     }
 }

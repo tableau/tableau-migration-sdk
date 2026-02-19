@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -15,20 +15,13 @@
 //  limitations under the License.
 //
 
-using System;
-
 namespace Tableau.Migration.Content
 {
     /// <summary>
     /// The content of the subscription.
     /// </summary>
-    public interface ISubscriptionContent
+    public interface ISubscriptionContent : IContentReference
     {
-        /// <summary>
-        /// The ID of the content item tied to the subscription.
-        /// </summary>
-        public Guid Id { get; set; }
-
         /// <summary>
         /// The content type of the subscription.
         /// </summary>
@@ -38,5 +31,12 @@ namespace Tableau.Migration.Content
         /// Whether or not send the notification if the view is empty.
         /// </summary>
         public bool SendIfViewEmpty { get; set; }
+
+        /// <summary>
+        /// Creates a new <see cref="ISubscriptionContent"/> object of the same type for the new content reference.
+        /// </summary>
+        /// <param name="reference">The new content reference.</param>
+        /// <returns>The created <see cref="ISubscriptionContent"/>.</returns>
+        ISubscriptionContent ForReference(IContentReference reference);
     }
 }

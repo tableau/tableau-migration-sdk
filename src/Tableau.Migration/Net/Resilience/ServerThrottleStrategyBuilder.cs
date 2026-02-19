@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -20,9 +20,11 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Polly;
 using Polly.Retry;
 using Tableau.Migration.Config;
+using Tableau.Migration.Resources;
 
 namespace Tableau.Migration.Net.Resilience
 {
@@ -30,16 +32,25 @@ namespace Tableau.Migration.Net.Resilience
         : IResilienceStrategyBuilder
     {
         private readonly TimeProvider _timeProvider;
+        private readonly ISharedResourcesLocalizer _localizer;
+        private readonly ILogger<ServerThrottleStrategyBuilder> _logger;
 
         internal static readonly TimeSpan DEFAULT_RETRY_INTERVAL_FALLBACK = TimeSpan.FromMinutes(1);
 
-        public ServerThrottleStrategyBuilder(TimeProvider timeProvider)
+        public ServerThrottleStrategyBuilder(
+            TimeProvider timeProvider,
+            ISharedResourcesLocalizer localizer,
+            ILogger<ServerThrottleStrategyBuilder> logger)
         {
             _timeProvider = timeProvider;
+            _localizer = localizer;
+            _logger = logger;
         }
 
         private TimeSpan DelayGenerator(RetryDelayGeneratorArguments<HttpResponseMessage> args, ResilienceOptions resilienceOptions)
         {
+            TimeSpan delay;
+
             //Obey the server Retry-After header value.
             if (args.Outcome.Result is not null)
             {
@@ -48,11 +59,21 @@ namespace Tableau.Migration.Net.Resilience
                 {
                     if (retryAfter.Delta is not null)
                     {
-                        return retryAfter.Delta.Value;
+                        delay = retryAfter.Delta.Value;
+                        _logger.LogWarning(
+                            _localizer[SharedResourceKeys.ServerThrottleRetryAfterDeltaLogMessage],
+                            delay.TotalMinutes.ToString("F2"),
+                            delay.TotalSeconds);
+                        return delay;
                     }
                     else if (retryAfter.Date is not null)
                     {
-                        return retryAfter.Date.Value - _timeProvider.GetUtcNow();
+                        delay = retryAfter.Date.Value - _timeProvider.GetUtcNow();
+                        _logger.LogWarning(
+                            _localizer[SharedResourceKeys.ServerThrottleRetryAfterDateLogMessage],
+                            delay.TotalMinutes.ToString("F2"),
+                            retryAfter.Date.Value);
+                        return delay;
                     }
                 }
             }
@@ -61,16 +82,23 @@ namespace Tableau.Migration.Net.Resilience
             //Falling back to an internal default if there are no configured intervals.
             if (!resilienceOptions.ServerThrottleRetryIntervals.Any())
             {
-                return DEFAULT_RETRY_INTERVAL_FALLBACK;
+                delay = DEFAULT_RETRY_INTERVAL_FALLBACK;
             }
             else if (args.AttemptNumber >= resilienceOptions.ServerThrottleRetryIntervals.Length)
             {
-                return resilienceOptions.ServerThrottleRetryIntervals[^1];
+                delay = resilienceOptions.ServerThrottleRetryIntervals[^1];
             }
             else
             {
-                return resilienceOptions.ServerThrottleRetryIntervals[args.AttemptNumber];
+                delay = resilienceOptions.ServerThrottleRetryIntervals[args.AttemptNumber];
             }
+
+            _logger.LogWarning(
+                _localizer[SharedResourceKeys.ServerThrottleRetryIntervalLogMessage],
+                delay.TotalMinutes.ToString("F2"),
+                args.AttemptNumber + 1,
+                delay.TotalSeconds);
+            return delay;
         }
 
         /// <inheritdoc />

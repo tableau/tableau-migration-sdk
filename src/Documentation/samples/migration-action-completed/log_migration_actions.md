@@ -37,6 +37,8 @@ To register the hook in C#, follow the instructions provided in the [documentati
 
 ### Dependency Injection
 
-Learn more about dependency injection [here](~/articles/dependency_injection.md).
+Learn more about dependency injection [here](~/articles/dependency_injection/index.md).
 
 [!code-csharp[](../../../../examples/Csharp.ExampleApplication/Program.cs#LogMigrationActionsHook-DI)]
+
+---

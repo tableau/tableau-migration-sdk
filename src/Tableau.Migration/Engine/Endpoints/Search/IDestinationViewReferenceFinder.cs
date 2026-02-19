@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Tableau.Migration.Content;
+using Tableau.Migration.Content.Search;
 
 namespace Tableau.Migration.Engine.Endpoints.Search
 {

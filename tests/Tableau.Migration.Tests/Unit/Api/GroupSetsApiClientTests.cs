@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -169,10 +169,10 @@ namespace Tableau.Migration.Tests.Unit.Api
 
         #region - List -
 
-        public class ListClient : PagedListApiClientTestBase<IGroupSetsApiClient, IGroupSet, GroupSetsResponse>
+        public class ListClient : NameSearchApiClientTestBase<IGroupSetsApiClient, IGroupSet, GroupSetsResponse>
         { }
 
-        public class PageAccessor : ApiPageAccessorTestBase<IGroupSetsApiClient, IGroupSet, GroupSetsResponse>
+        public class PageAccessor : ApiFilteredPageAccessorTestBase<IGroupSetsApiClient, IGroupSet, GroupSetsResponse>
         { }
 
         #endregion

@@ -6,7 +6,7 @@ Once you have started building your migration using the example code in [C#](~/a
 
 ## Hook Registration
 
-To use hooks, you need to register them with the [plan builder](~/articles/configuration.md#basic-configuration).
+To use hooks, you need to register them with the [plan builder](~/articles/configuration/index.md#basic-configuration).
 
 The process of registering hooks differs slightly between C# and Python, as described below.
 
@@ -27,7 +27,7 @@ plan_builder.filters.add(UnlicensedUsersFilter)
 
 In C#, the hook object should be registered with Dependency Injection (DI). This allows hooks to have any object injected into the constructor without concern for the source of the object.
 
-Learn more about [dependency injection](~/articles/dependency_injection.md).
+Learn more about [dependency injection](~/articles/dependency_injection/index.md).
 
 To register your hook object with the dependency injection service provider, simply add it.
 
@@ -46,3 +46,5 @@ Once the hook is registered with DI, it must be added to the appropriate [hook c
 ```
 _planBuilder.Filters.Add<UnlicensedUsersFilter, IUser>();
 ```
+
+---

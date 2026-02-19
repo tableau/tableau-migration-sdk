@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -24,6 +24,7 @@ namespace Tableau.Migration.Content
         IContentReference,
         IPublishedContent,
         IDescriptionContent,
+        ISizeContent,
         IExtractContent,
         IWithTags,
         IContainerContent,
@@ -37,10 +38,5 @@ namespace Tableau.Migration.Content
         /// Gets or sets whether tabs are shown.
         /// </summary>
         bool ShowTabs { get; set; }
-
-        /// <summary>
-        /// Gets the file size.
-        /// </summary>
-        long Size { get; }
     }
 }

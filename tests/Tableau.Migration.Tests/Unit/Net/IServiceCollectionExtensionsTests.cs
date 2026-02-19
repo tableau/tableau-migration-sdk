@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -62,9 +62,11 @@ namespace Tableau.Migration.Tests.Unit.Net
                 await AssertServiceAsync<IHttpClientFactory>(defaultHttpClientFactoryType, ServiceLifetime.Scoped);
                 await AssertServiceAsync<IHttpMessageHandlerFactory>(defaultHttpClientFactoryType, ServiceLifetime.Scoped);
 
-                await AssertServiceAsync<RequestBuilderFactoryInput>(ServiceLifetime.Scoped);
-                await AssertServiceAsync<IRequestBuilderFactoryInput, RequestBuilderFactoryInput>(ServiceLifetime.Scoped);
-                await AssertServiceAsync<IRequestBuilderFactoryInputInitializer, RequestBuilderFactoryInput>(ServiceLifetime.Scoped);
+                await AssertServiceAsync<IRestRequestBuilderFactoryInput, RestRequestBuilderFactoryInput>(ServiceLifetime.Scoped);
+                await AssertServiceAsync<IRestRequestBuilderFactoryInputInitializer, RestRequestBuilderFactoryInput>(ServiceLifetime.Scoped);
+                await AssertServiceAsync<RequestBuilderFactoryInput, RestRequestBuilderFactoryInput>(ServiceLifetime.Scoped);
+                await AssertServiceAsync<IRequestBuilderFactoryInput, RestRequestBuilderFactoryInput>(ServiceLifetime.Scoped);
+                await AssertServiceAsync<IRequestBuilderFactoryInputInitializer, RestRequestBuilderFactoryInput>(ServiceLifetime.Scoped);
 
                 await AssertServiceAsync<IAuthenticationTokenProvider, AuthenticationTokenProvider>(ServiceLifetime.Scoped);
                 await AssertServiceAsync<ITableauServerVersionProvider, TableauServerVersionProvider>(ServiceLifetime.Scoped);

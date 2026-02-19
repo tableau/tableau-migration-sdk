@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -36,12 +36,11 @@ using Tableau.Migration.TestApplication.Hooks.Transformers;
 
 namespace Tableau.Migration.TestApplication
 {
-
     internal sealed class TestApplication : IHostedService
     {
         private readonly Stopwatch _timer;
         private readonly IHostApplicationLifetime _appLifetime;
-        private IMigrationPlanBuilder _planBuilder;
+        private IServerToCloudMigrationPlanBuilder _planBuilder;
         private readonly IMigrator _migrator;
         private readonly TestApplicationOptions _options;
         private readonly ILogger<TestApplication> _logger;
@@ -60,7 +59,7 @@ namespace Tableau.Migration.TestApplication
             _timer = new Stopwatch();
 
             _appLifetime = appLifetime;
-            _planBuilder = planBuilder;
+            _planBuilder = planBuilder.ForServerToCloud();
             _migrator = migrator;
             _options = options.Value;
             _logger = logger;
@@ -70,7 +69,6 @@ namespace Tableau.Migration.TestApplication
 
             // Find the assembly by name
             _tableauMigrationAssembly = assemblies.FirstOrDefault(a => a.GetName().Name == "Tableau.Migration") ?? throw new Exception("Could not find Tableau.Migration assembly");
-
         }
 
         public async Task StartAsync(CancellationToken cancel)
@@ -83,8 +81,8 @@ namespace Tableau.Migration.TestApplication
             AskIfTsmHasBeenRun();
 
             _planBuilder = _planBuilder
-                .FromSourceTableauServer(_options.Source.ServerUrl, _options.Source.SiteContentUrl, _options.Source.AccessTokenName, Environment.GetEnvironmentVariable("TABLEAU_MIGRATION_SOURCE_TOKEN") ?? _options.Source.AccessToken)
-                .ToDestinationTableauCloud(_options.Destination.ServerUrl, _options.Destination.SiteContentUrl, _options.Destination.AccessTokenName, Environment.GetEnvironmentVariable("TABLEAU_MIGRATION_DESTINATION_TOKEN") ?? _options.Destination.AccessToken)
+                .FromSourceTableauServer(_options.Source.ServerUrl, _options.Source.SiteContentUrl, _options.Source.AccessTokenName, Environment.GetEnvironmentVariable("TABLEAU_MIGRATION_SOURCE_TOKEN") ?? _options.Source.AccessToken, restApiVersion: _options.Source.RestApiVersion)
+                .ToDestinationTableauCloud(_options.Destination.ServerUrl, _options.Destination.SiteContentUrl, _options.Destination.AccessTokenName, Environment.GetEnvironmentVariable("TABLEAU_MIGRATION_DESTINATION_TOKEN") ?? _options.Destination.AccessToken, restApiVersion: _options.Destination.RestApiVersion)
                 .ForServerToCloud();
 
             if (!_options.SkipTypes.Any())
@@ -106,7 +104,7 @@ namespace Tableau.Migration.TestApplication
                     return;
                 }
 
-                _planBuilder.Filters.Add(typeof(SkipFilter<>), new[] { new[] { contentType! } });
+                _planBuilder.SkipContentType(contentType, preCache: true);
                 _logger.LogInformation("Created SkipFilter for type {ContentType}", contentType.Name);
             }
 

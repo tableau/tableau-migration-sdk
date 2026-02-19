@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -35,7 +35,7 @@ namespace Tableau.Migration
         /// <summary>
         /// Gets the full path of the location.
         /// </summary>
-        public readonly string Path { get; } = string.Join(PathSeparator, PathSegments);
+        public readonly string Path { get; } = string.Join(PathSeparator, PathSegments.Select(segment => EscapeSegment(segment, PathSeparator)));
 
         /// <summary>
         /// Gets the non-pathed name of the location.
@@ -130,13 +130,7 @@ namespace Tableau.Migration
         public static ContentLocation FromPath(
             string contentLocationPath,
             string pathSeparator = Constants.PathSeparator)
-            => new(
-                contentLocationPath
-                    .Split(
-                        pathSeparator,
-                        StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
-                    .ToImmutableArray(),
-                pathSeparator);
+            => new(ParsePathSegments(contentLocationPath, pathSeparator), pathSeparator);
 
         /// <summary>
         /// Creates a new <see cref="ContentLocation"/> with the appropriate path separator for the content type.
@@ -167,6 +161,85 @@ namespace Tableau.Migration
             }
 
             return new(pathSeparator, pathSegments);
+        }
+
+        #endregion
+
+        #region - Helper Methods -
+
+        /// <summary>
+        /// Escapes separator characters within a path segment.
+        /// </summary>
+        /// <param name="segment">The path segment to escape.</param>
+        /// <param name="pathSeparator">The path separator to escape.</param>
+        /// <returns>The escaped segment.</returns>
+        private static string EscapeSegment(string segment, string pathSeparator)
+        {
+            if (string.IsNullOrEmpty(segment))
+                return segment;
+
+            return pathSeparator switch
+            {
+                // For path separator (/), escape literal backslashes first, then slashes
+                Constants.PathSeparator => segment
+                    .Replace("\\", "\\\\")
+                    .Replace(Constants.PathSeparator, Constants.PathSeparatorEscape),
+                // For domain separator (\\), escape backslashes
+                Constants.DomainNameSeparator => segment.Replace(Constants.DomainNameSeparator, Constants.DomainNameSeparatorEscape),
+                _ => segment // For custom separators, no escaping is performed
+            };
+        }
+
+        /// <summary>
+        /// Parses a path string into segments, handling escaped separators properly.
+        /// </summary>
+        /// <param name="path">The path string to parse.</param>
+        /// <param name="pathSeparator">The path separator to use for splitting.</param>
+        /// <returns>An array of unescaped path segments.</returns>
+        private static ImmutableArray<string> ParsePathSegments(string path, string pathSeparator)
+        {
+            if (string.IsNullOrEmpty(path))
+                return ImmutableArray<string>.Empty;
+
+            if (pathSeparator == Constants.PathSeparator)
+            {
+                // Protect escaped backslashes (\\) and escaped slashes (\/) with placeholders
+                var backslashPlaceholder = "\uE000";
+                var slashPlaceholder = "\uE001";
+
+                var processedPath = path
+                    .Replace(Constants.DomainNameSeparatorEscape, backslashPlaceholder)
+                    .Replace(Constants.PathSeparatorEscape, slashPlaceholder);
+
+                var segments = processedPath
+                    .Split(Constants.PathSeparator, StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+                    .Select(segment => segment
+                        .Replace(slashPlaceholder, Constants.PathSeparator)
+                        .Replace(backslashPlaceholder, Constants.DomainNameSeparator))
+                    .ToImmutableArray();
+
+                return segments;
+            }
+
+            if (pathSeparator == Constants.DomainNameSeparator)
+            {
+                // Protect escaped backslashes (\\) with placeholder, then split on \\
+                var backslashPlaceholder = "\uE000";
+
+                var processedPath = path.Replace(Constants.DomainNameSeparatorEscape, backslashPlaceholder);
+
+                var segments = processedPath
+                    .Split(Constants.DomainNameSeparator, StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+                    .Select(segment => segment.Replace(backslashPlaceholder, Constants.DomainNameSeparator))
+                    .ToImmutableArray();
+
+                return segments;
+            }
+
+            // Fall back to simple split for custom separators
+            return path
+                .Split(pathSeparator, StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+                .ToImmutableArray();
         }
 
         #endregion

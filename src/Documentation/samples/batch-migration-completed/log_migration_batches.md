@@ -32,7 +32,7 @@ plan_builder.hooks.add(LogMigrationBatchesHookForGroups)
 
 #### Dependency Injection
 
-[Learn more.](~/articles/dependency_injection.md)
+[Learn more.](~/articles/dependency_injection/index.md)
 
 [!code-csharp[](../../../../examples/Csharp.ExampleApplication/Program.cs#LogMigrationBatchesHook-DI)]
 

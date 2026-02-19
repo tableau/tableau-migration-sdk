@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -21,6 +21,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Tableau.Migration.Api.Models;
+using Tableau.Migration.Api.Paging;
 using Tableau.Migration.Content;
 using Tableau.Migration.Paging;
 
@@ -29,7 +30,10 @@ namespace Tableau.Migration.Api
     /// <summary>
     /// Interface for API client user operations.
     /// </summary>
-    public interface IUsersApiClient : IContentApiClient, IPagedListApiClient<IUser>, IBatchPublishApiClient<IUser>, IApiPageAccessor<IUser>, IReadApiClient<IUser>, IPublishApiClient<IUser>
+    public interface IUsersApiClient : IContentApiClient,
+        IApiFilteredPageAccessor<IUser>, INameSearchApiClient<IUser>, 
+        IReadApiClient<IUser>,
+        IPublishApiClient<IUser>, IBatchPublishApiClient<IUser>
     {
         /// <summary>
         /// Gets the groups belonging to a user.
@@ -40,15 +44,6 @@ namespace Tableau.Migration.Api
         /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>A list of groups for the given user ID</returns>
         Task<IPagedResult<IGroup>> GetUserGroupsAsync(Guid userId, int pageNumber, int pageSize, CancellationToken cancel);
-
-        /// <summary>
-        /// Gets all users in the current site.
-        /// </summary>
-        /// <param name="pageNumber">The 1-indexed page number.</param>
-        /// <param name="pageSize">The size of the page.</param>
-        /// <param name="cancel">The cancellation token to obey.</param>
-        /// <returns>A list of a page of users in the current site.</returns>
-        Task<IPagedResult<IUser>> GetAllUsersAsync(int pageNumber, int pageSize, CancellationToken cancel);
 
         /// <summary>
         /// Imports users into the current site from a CSV file.

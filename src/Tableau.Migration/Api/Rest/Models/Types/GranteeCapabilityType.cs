@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -39,23 +39,26 @@ namespace Tableau.Migration.Api.Rest.Models.Types
             switch (granteeCapability.GranteeType)
             {
                 case GranteeType.Group:
+                    Group = new GroupType()
                     {
-                        Group = new GroupType()
-                        {
-                            Id = granteeCapability.GranteeId
-                        };
-                        break;
-                    }
+                        Id = granteeCapability.Grantee.Id
+                    };
+                    break;
+
+                case GranteeType.GroupSet:
+                    GroupSet = new GroupSetType()
+                    {
+                        Id = granteeCapability.Grantee.Id
+                    };
+                    break;
+
                 case GranteeType.User:
+                    User = new UserType()
                     {
-                        User = new UserType()
-                        {
-                            Id = granteeCapability.GranteeId
-                        };
-                        break;
-                    }
+                        Id = granteeCapability.Grantee.Id
+                    };
+                    break;
             }
-            ;
 
             Capabilities = granteeCapability
                 .Capabilities
@@ -68,6 +71,12 @@ namespace Tableau.Migration.Api.Rest.Models.Types
         /// </summary>
         [XmlElement("group")]
         public GroupType? Group { get; set; }
+
+        /// <summary>
+        /// The group set element if present.
+        /// </summary>
+        [XmlElement("groupSet")]
+        public GroupSetType? GroupSet { get; set; }
 
         /// <summary>
         /// The user element if present.
@@ -87,14 +96,25 @@ namespace Tableau.Migration.Api.Rest.Models.Types
         /// </summary>
         [XmlIgnore]
         public Guid GranteeId
-            => Group?.Id ?? User?.Id ?? throw new InvalidOperationException("Could not determine grantee ID");
+            => Group?.Id ?? GroupSet?.Id ?? User?.Id ?? throw new InvalidOperationException("Could not determine grantee ID");
 
         /// <summary>
         /// Gets the type of grantee.
         /// </summary>
         [XmlIgnore]
         public GranteeType GranteeType
-            => Group is not null ? GranteeType.Group : User is not null ? GranteeType.User : throw new InvalidOperationException("Could not determine grantee type");
+        {
+            get
+            {
+                return this switch
+                {
+                    { User: not null } => GranteeType.User,
+                    { Group: not null } => GranteeType.Group,
+                    { GroupSet: not null } => GranteeType.GroupSet,
+                    _ => throw new InvalidOperationException("Could not determine grantee type")
+                };
+            }
+        }
 
         /// <summary>
         /// Class that defines the group xml element.
@@ -102,12 +122,23 @@ namespace Tableau.Migration.Api.Rest.Models.Types
         public class GroupType
         {
             /// <summary>
-            /// The Group Id.
+            /// Get or sets the group ID.
             /// </summary>
             [XmlAttribute("id")]
             public Guid Id { get; set; }
         }
 
+        /// <summary>
+        /// Class that defines the group st xml element.
+        /// </summary>
+        public class GroupSetType
+        {
+            /// <summary>
+            /// Gets or sets the group set ID.
+            /// </summary>
+            [XmlAttribute("id")]
+            public Guid Id { get; set; }
+        }
 
         /// <summary>
         /// Class that defines the User xml element.
@@ -115,7 +146,7 @@ namespace Tableau.Migration.Api.Rest.Models.Types
         public class UserType
         {
             /// <summary>
-            /// The User Id.
+            /// Gets or sets the user ID.
             /// </summary>
             [XmlAttribute("id")]
             public Guid Id { get; set; }

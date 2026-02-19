@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -15,7 +15,6 @@
 //  limitations under the License.
 //
 
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -32,14 +31,9 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Mappings.Default
     {
         public class ExecuteAsync : AutoFixtureTestBase
         {
-            private Mock<ISharedResourcesLocalizer> MockLocalizer = new();
-            private Mock<ILogger<TableauCloudUsernameMapping>> MockLogger = new();
-
             private string MailDomain { get; set; } = string.Empty;
 
             private bool UseExistingEmail { get; set; } = true;
-
-            private readonly CancellationToken _cancel = new();
 
             protected TableauCloudUsernameMapping BuildMapping()
             {
@@ -52,7 +46,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Mappings.Default
                 var mockOptionsProvider = Create<Mock<IMigrationPlanOptionsProvider<TableauCloudUsernameMappingOptions>>>();
                 mockOptionsProvider.Setup(x => x.Get()).Returns(opts);
 
-                return new TableauCloudUsernameMapping(mockOptionsProvider.Object, MockLocalizer.Object, MockLogger.Object);
+                return new TableauCloudUsernameMapping(mockOptionsProvider.Object, Create<ISharedResourcesLocalizer>(), Create<ILogger<TableauCloudUsernameMapping>>());
             }
 
             [Fact]
@@ -64,7 +58,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Mappings.Default
                 var ctx = Create<ContentMappingContext<IUser>>();
                 ctx.ContentItem.Email = "email@fake.com";
 
-                var result = await mapping.ExecuteAsync(ctx, _cancel);
+                var result = await mapping.ExecuteAsync(ctx, Cancel);
 
                 Assert.NotSame(ctx, result);
 
@@ -83,7 +77,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Mappings.Default
                 var ctx = Create<ContentMappingContext<IUser>>();
                 ctx.ContentItem.Email = "email@fake.com";
 
-                var result = await mapping.ExecuteAsync(ctx, _cancel);
+                var result = await mapping.ExecuteAsync(ctx, Cancel);
 
                 Assert.NotSame(ctx, result);
 
@@ -101,7 +95,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Mappings.Default
                 var ctx = Create<ContentMappingContext<IUser>>();
                 ctx.ContentItem.Email = string.Empty;
 
-                var result = await mapping.ExecuteAsync(ctx, _cancel);
+                var result = await mapping.ExecuteAsync(ctx, Cancel);
 
                 Assert.NotSame(ctx, result);
 

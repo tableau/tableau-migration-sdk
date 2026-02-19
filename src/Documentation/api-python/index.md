@@ -8,8 +8,8 @@ The Migration SDK is written in .NET. It has a Python wrapper package that provi
 
 With the Python API, you can:
 
-- Provide basic [configuration](~/articles/configuration.md) values to the Migration SDK via the PlanBuilder.
-- Set configuration options as described in [Configuration](~/articles/configuration.md) with environment variables.
+- Provide basic [configuration](~/articles/configuration/index.md) values to the Migration SDK via the PlanBuilder.
+- Set configuration options as described in [Configuration](~/articles/configuration/index.md) with environment variables.
 - Configure Python [logging](~/articles/logging.md?tabs=Python).
 - Run a migration using python.
 - Write Python hooks. See [Custom Hooks](~/articles/hooks/index.md) for an overview.

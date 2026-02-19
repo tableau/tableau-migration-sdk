@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -221,6 +221,162 @@ namespace Tableau.Migration.Tests.Unit
                 var renamed = loc.Rename(rename);
 
                 Assert.Equal(new ContentLocation(loc.Parent(), rename).Path, renamed.Path);
+            }
+        }
+
+        public class FromPath
+        {
+            [Theory]
+            [InlineData("workbook", "/", new[] { "workbook" })]
+            [InlineData("project/workbook", "/", new[] { "project", "workbook" })]
+            [InlineData("project/child/workbook", "/", new[] { "project", "child", "workbook" })]
+            [InlineData("domain\\username", "\\", new[] { "domain", "username" })]
+            public void ParsesSimplePaths(string path, string separator, string[] expectedSegments)
+            {
+                var loc = ContentLocation.FromPath(path, separator);
+                Assert.Equal(expectedSegments, loc.PathSegments);
+                Assert.Equal(separator, loc.PathSeparator);
+            }
+
+            [Theory]
+            [InlineData("Test 4\\/25", "/", new[] { "Test 4/25" })]
+            [InlineData("project/Test 4\\/25", "/", new[] { "project", "Test 4/25" })]
+            [InlineData("Test 4\\/25/workbook", "/", new[] { "Test 4/25", "workbook" })]
+            [InlineData("domain\\\\with\\\\backslash\\username", "\\", new[] { "domain\\with\\backslash", "username" })]
+            public void ParsesEscapedPaths(string path, string separator, string[] expectedSegments)
+            {
+                var loc = ContentLocation.FromPath(path, separator);
+                Assert.Equal(expectedSegments, loc.PathSegments);
+                Assert.Equal(separator, loc.PathSeparator);
+            }
+
+            [Theory]
+            [InlineData("Test 4\\/25/Another\\/Project", "/", new[] { "Test 4/25", "Another/Project" })]
+            [InlineData("domain\\\\with\\\\slash\\user\\\\name", "\\", new[] { "domain\\with\\slash", "user\\name" })]
+            public void ParsesMultipleEscapedSegments(string path, string separator, string[] expectedSegments)
+            {
+                var loc = ContentLocation.FromPath(path, separator);
+                Assert.Equal(expectedSegments, loc.PathSegments);
+                Assert.Equal(separator, loc.PathSeparator);
+            }
+
+            [Fact]
+            public void HandlesEmptyPath()
+            {
+                var loc = ContentLocation.FromPath("", "/");
+                Assert.True(loc.PathSegments.IsEmpty);
+                Assert.Equal("/", loc.PathSeparator);
+            }
+
+            [Fact]
+            public void HandlesNullPath()
+            {
+                var loc = ContentLocation.FromPath(null!, "/");
+                Assert.True(loc.PathSegments.IsEmpty);
+                Assert.Equal("/", loc.PathSeparator);
+            }
+
+            [Theory]
+            [InlineData("custom|separator", "|", new[] { "custom", "separator" })]
+            [InlineData("no|escaping|for|custom", "|", new[] { "no", "escaping", "for", "custom" })]
+            public void HandlesCustomSeparators(string path, string separator, string[] expectedSegments)
+            {
+                var loc = ContentLocation.FromPath(path, separator);
+                Assert.Equal(expectedSegments, loc.PathSegments);
+                Assert.Equal(separator, loc.PathSeparator);
+            }
+        }
+
+        public class PathEscaping
+        {
+            [Theory]
+            [InlineData(new[] { "Test 4/25" }, "/", "Test 4\\/25")]
+            [InlineData(new[] { "Test 4\\/25" }, "/", @"Test 4\\\/25")]
+            [InlineData(new[] { "project", "Test 4/25" }, "/", "project/Test 4\\/25")]
+            [InlineData(new[] { "Test 4/25", "workbook" }, "/", "Test 4\\/25/workbook")]
+            [InlineData(new[] { "domain\\with\\backslash", "username" }, "\\", "domain\\\\with\\\\backslash\\username")]
+            public void EscapesSeparatorsInSegments(string[] segments, string separator, string expectedPath)
+            {
+                var loc = new ContentLocation(segments.ToImmutableArray(), separator);
+                Assert.Equal(expectedPath, loc.Path);
+            }
+
+            [Theory]
+            [InlineData(new[] { "Test 4/25", "Another/Project" }, "/", "Test 4\\/25/Another\\/Project")]
+            [InlineData(new[] { "domain\\with\\slash", "user\\name" }, "\\", "domain\\\\with\\\\slash\\user\\\\name")]
+            public void EscapesMultipleSegments(string[] segments, string separator, string expectedPath)
+            {
+                var loc = new ContentLocation(segments.ToImmutableArray(), separator);
+                Assert.Equal(expectedPath, loc.Path);
+            }
+
+            [Theory]
+            [InlineData(new[] { "normal", "segments" }, "/", "normal/segments")]
+            [InlineData(new[] { "domain", "username" }, "\\", "domain\\username")]
+            public void DoesNotEscapeNormalSegments(string[] segments, string separator, string expectedPath)
+            {
+                var loc = new ContentLocation(segments.ToImmutableArray(), separator);
+                Assert.Equal(expectedPath, loc.Path);
+            }
+
+            [Theory]
+            [InlineData(new[] { "custom|separator" }, "|", "custom|separator")]
+            public void DoesNotEscapeCustomSeparators(string[] segments, string separator, string expectedPath)
+            {
+                var loc = new ContentLocation(segments.ToImmutableArray(), separator);
+                Assert.Equal(expectedPath, loc.Path);
+            }
+        }
+
+        public class RoundTripTests
+        {
+            [Theory]
+            [InlineData(new[] { "Test 4/25" }, "/")]
+            [InlineData(new[] { "Test 4\\/25" }, "/")]
+            [InlineData(new[] { "project", "Test 4/25" }, "/")]
+            [InlineData(new[] { "Test 4/25", "Another/Project", "workbook" }, "/")]
+            [InlineData(new[] { "domain\\with\\backslash", "username" }, "\\")]
+            [InlineData(new[] { "domain\\with\\slash", "user\\name" }, "\\")]
+            public void PathsRoundTripProperly(string[] originalSegments, string separator)
+            {
+                // Create location from segments
+                var originalLoc = new ContentLocation(originalSegments.ToImmutableArray(), separator);
+                
+                // Convert to path string
+                var pathString = originalLoc.Path;
+                
+                // Parse back from path string
+                var parsedLoc = ContentLocation.FromPath(pathString, separator);
+                
+                // Verify segments match
+                Assert.Equal(originalSegments, parsedLoc.PathSegments);
+                Assert.Equal(separator, parsedLoc.PathSeparator);
+                
+                // Verify paths match
+                Assert.Equal(pathString, parsedLoc.Path);
+            }
+
+            [Theory]
+            [InlineData("Test 4\\/25", "/", new[] { "Test 4/25" })]
+            [InlineData("project/Test 4\\/25", "/", new[] { "project", "Test 4/25" })]
+            [InlineData("domain\\\\with\\\\backslash\\username", "\\", new[] { "domain\\with\\backslash", "username" })]
+            public void EscapedPathsRoundTripProperly(string escapedPath, string separator, string[] expectedSegments)
+            {
+                // Parse from escaped path
+                var parsedLoc = ContentLocation.FromPath(escapedPath, separator);
+                
+                // Verify segments
+                Assert.Equal(expectedSegments, parsedLoc.PathSegments);
+                
+                // Convert back to path
+                var regeneratedPath = parsedLoc.Path;
+                
+                // Verify path matches original
+                Assert.Equal(escapedPath, regeneratedPath);
+                
+                // Parse again to ensure consistency
+                var reparsedLoc = ContentLocation.FromPath(regeneratedPath, separator);
+                Assert.Equal(expectedSegments, reparsedLoc.PathSegments);
             }
         }
 

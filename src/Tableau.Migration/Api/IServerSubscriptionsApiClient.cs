@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -17,6 +17,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Tableau.Migration.Api.Paging;
 using Tableau.Migration.Content;
 using Tableau.Migration.Paging;
 
@@ -25,7 +26,9 @@ namespace Tableau.Migration.Api
     /// <summary>
     /// Interface for API client server subscriptions operations.
     /// </summary>
-    public interface IServerSubscriptionsApiClient : IPagedListApiClient<IServerSubscription>, IApiPageAccessor<IServerSubscription>
+    public interface IServerSubscriptionsApiClient :
+        IApiPageAccessor<IServerSubscription>, IPagedListApiClient<IServerSubscription>,
+        IReadApiClient<IServerSubscription>
     {
         /// <summary>
         /// Gets all subscriptions on the server site.

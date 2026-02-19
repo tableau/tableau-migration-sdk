@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -15,12 +15,14 @@
 //  limitations under the License.
 //
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Tableau.Migration.Content;
 using Tableau.Migration.Content.Schedules;
 using Tableau.Migration.Content.Schedules.Cloud;
+using Tableau.Migration.Content.Search;
 using Tableau.Migration.Engine.Endpoints.Search;
 using Tableau.Migration.Resources;
 
@@ -56,46 +58,29 @@ namespace Tableau.Migration.Engine.Hooks.Transformers.Default
             ICloudExtractRefreshTask extractRefreshTask,
             CancellationToken cancel)
         {
-            var destinationReference = await FindDestinationReferenceAsync(
-                extractRefreshTask.ContentType,
-                extractRefreshTask.Content,
-                cancel)
+            var destinationReference = await FindDestinationReferenceAsync(extractRefreshTask.ContentType, extractRefreshTask.Content, cancel)
                 .ConfigureAwait(false);
 
-            if (destinationReference is null)
-            {
-                Logger.LogWarning(
-                    Localizer[SharedResourceKeys.MappedReferenceExtractRefreshTaskTransformerCannotFindReferenceWarning],
-                    extractRefreshTask.Id,
-                    extractRefreshTask.ContentType,
-                    extractRefreshTask.Content);
-            }
-            else
-            {
-                extractRefreshTask.Content = destinationReference;
-            }
-
+            extractRefreshTask.Content = destinationReference;
             return extractRefreshTask;
         }
 
-        private async Task<IContentReference?> FindDestinationReferenceAsync(
-            ExtractRefreshContentType extractRefreshContentType,
-            IContentReference sourceContentReference,
-            CancellationToken cancel)
+        private async Task<IContentReference> FindDestinationReferenceAsync(ExtractRefreshContentType extractRefreshContentType, 
+            IContentReference sourceContentReference, CancellationToken cancel)
         {
             switch (extractRefreshContentType)
             {
                 case ExtractRefreshContentType.Workbook:
-                    return await _workbookFinder
-                        .FindBySourceIdAsync(sourceContentReference.Id, cancel)
-                        .ConfigureAwait(false);
-                case ExtractRefreshContentType.DataSource:
-                    return await _dataSourceFinder
-                        .FindBySourceIdAsync(sourceContentReference.Id, cancel)
-                        .ConfigureAwait(false);
-            }
+                    return (await _workbookFinder.FindBySourceIdAsync(sourceContentReference.Id, cancel).ConfigureAwait(false))
+                        .ThrowOnMissingContentReference<IWorkbook>(Localizer, "extract refresh workbook", sourceContentReference.Location);
 
-            return null;
+                case ExtractRefreshContentType.DataSource:
+                    return (await _dataSourceFinder.FindBySourceIdAsync(sourceContentReference.Id, cancel).ConfigureAwait(false))
+                        .ThrowOnMissingContentReference<IDataSource>(Localizer, "extract refresh data source", sourceContentReference.Location);
+
+                default:
+                    throw new NotSupportedException($"Unable to transform unsupported extract refresh content reference type: {extractRefreshContentType}. Update {nameof(MappedReferenceExtractRefreshTaskTransformer)} to support the content reference type.");
+            }
         }
     }
 }

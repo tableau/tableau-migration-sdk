@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -25,7 +25,7 @@ using Tableau.Migration.Engine.Pipelines;
 namespace Tableau.Migration.TestApplication.Hooks.ActionCompleted
 {
     /// <summary>
-    /// This hook logs when an action was completed. Ideally I would know this action, but that's not possible right now
+    /// This hook logs when an action was completed.
     /// </summary>
     internal class TimeLoggerAfterActionHook : IMigrationActionCompletedHook
     {
@@ -42,9 +42,9 @@ namespace Tableau.Migration.TestApplication.Hooks.ActionCompleted
 
         public Task<IMigrationActionResult?> ExecuteAsync(IMigrationActionResult ctx, CancellationToken cancel)
         {
-            string actionName = _pipelineRunner.CurrentAction?.GetType().GetFormattedName() ?? "Unknown";
+            var actionName = _pipelineRunner.CurrentAction?.DisplayName ?? "Unknown";
 
-            _logger.LogInformation($"Action {actionName} completed");
+            _logger.LogInformation($"Action Completed: {actionName}");
             return Task.FromResult((IMigrationActionResult?)ctx);
         }
     }

@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -18,6 +18,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Text;
 using AutoFixture;
 using Tableau.Migration.Api.Rest.Models.Responses;
@@ -88,6 +89,19 @@ namespace Tableau.Migration.Tests.Simulation
             fileData ??= Constants.DefaultEncoding.GetBytes(new SimulatedWorkbookData().ToXml());
 
             data.AddWorkbook(workbook, fileData);
+
+            foreach(var view in workbook.Views)
+            {
+                data.AddView(new ViewResponse.ViewType()
+                {
+                    Id = view.Id,
+                    ContentUrl = view.ContentUrl,
+                    Name = view.Name,
+                    Project = new() { Id = workbook.Project!.Id },
+                    Workbook = new() { Id = workbook.Id },
+                    Tags = view.Tags.Select(t => new ViewResponse.ViewType.TagType() { Label = t.Label }).ToArray()
+                });
+            }
 
             return workbook;
         }

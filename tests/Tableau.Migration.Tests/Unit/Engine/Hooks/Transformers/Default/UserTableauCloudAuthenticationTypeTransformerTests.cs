@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -23,7 +23,7 @@ using System.Threading.Tasks;
 using Moq;
 using Tableau.Migration.Api.Rest.Models.Types;
 using Tableau.Migration.Content;
-using Tableau.Migration.Engine.Endpoints.Search;
+using Tableau.Migration.Engine.Endpoints.Caching;
 using Tableau.Migration.Engine.Hooks.Transformers.Default;
 using Xunit;
 

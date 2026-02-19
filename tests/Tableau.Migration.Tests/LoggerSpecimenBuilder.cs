@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -49,7 +49,7 @@ namespace Tableau.Migration.Tests
             }
             else if(t == typeof(Mock<ILogger>))
             {
-                return _loggerFactory.DefaultLogger;
+                return _loggerFactory.DefaultLogger.As<ILogger>();
             }
             else if(t == typeof(ILogger))
             {

@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -35,13 +35,15 @@ namespace Tableau.Migration.Tests.Unit.Content.Files
         {
             protected readonly Mock<ISymmetricEncryptionFactory> MockEncryptionFactory = new();
             protected readonly Mock<MemoryContentFileStore> MockInnerFileStore;
-            protected readonly Mock<ILogger<EncryptedFileStore>> MockLogger = new();
+            protected readonly Mock<ILogger<EncryptedFileStore>> MockLogger;
             protected readonly MockSharedResourcesLocalizer MockSharedResourcesLocalizer = new();
 
             protected bool DisableFileEncryption { get; set; }
 
             public EncryptedFileStoreTest()
             {
+                MockLogger = Create<Mock<ILogger<EncryptedFileStore>>>();
+
                 MockInnerFileStore = new(MemoryStreamManager.Instance)
                 {
                     CallBase = true
@@ -61,7 +63,7 @@ namespace Tableau.Migration.Tests.Unit.Content.Files
 
             protected override IServiceCollection ConfigureServices(IServiceCollection services)
             {
-                var mockLoggerFactory = new Mock<ILoggerFactory>();
+                var mockLoggerFactory = Create<Mock<ILoggerFactory>>();
                 mockLoggerFactory.Setup(f => f.CreateLogger(It.Is<string>(s => s.Contains(nameof(EncryptedFileStore)))))
                     .Returns(MockLogger.Object);
 

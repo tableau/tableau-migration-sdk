@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -21,11 +21,11 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 using Tableau.Migration.Api.Rest.Models;
 using Tableau.Migration.Content;
 using Tableau.Migration.Content.Permissions;
+using Tableau.Migration.Content.Search;
 using Tableau.Migration.Engine.Endpoints.Search;
 using Tableau.Migration.Resources;
 
@@ -38,6 +38,7 @@ namespace Tableau.Migration.Engine.Hooks.Transformers.Default
     {
         private readonly IDestinationContentReferenceFinder<IUser> _userContentFinder;
         private readonly IDestinationContentReferenceFinder<IGroup> _groupContentFinder;
+        private readonly IDestinationContentReferenceFinder<IGroupSet> _groupSetContentFinder;
         private readonly ILogger<PermissionsTransformer> _logger;
         private readonly ISharedResourcesLocalizer _localizer;
 
@@ -59,6 +60,7 @@ namespace Tableau.Migration.Engine.Hooks.Transformers.Default
         {
             _userContentFinder = destinationFinderFactory.ForDestinationContentType<IUser>();
             _groupContentFinder = destinationFinderFactory.ForDestinationContentType<IGroup>();
+            _groupSetContentFinder = destinationFinderFactory.ForDestinationContentType<IGroupSet>();
             _logger = logger;
             _localizer = localizer;
         }
@@ -98,17 +100,19 @@ namespace Tableau.Migration.Engine.Hooks.Transformers.Default
         public async override Task<IPermissionSet?> TransformAsync(IPermissionSet permissions, CancellationToken cancel)
         {
             var transformedGrantees = new List<IGranteeCapability>();
+            var missingGrantees = new List<PermissionGranteeGroup>();
 
-            var groupsById = new HashSet<IGranteeCapability>(permissions.GranteeCapabilities).GroupBy(c => c.GranteeId);
+            var capabilitiesByGrantee = new HashSet<IGranteeCapability>(permissions.GranteeCapabilities)
+                .GroupBy(c => new PermissionGranteeGroup(c.GranteeType, c.Grantee), PermissionGranteeGroupEqualityComparer.Instance);
 
-            foreach (var group in groupsById)
+            foreach (var group in capabilitiesByGrantee)
             {
-                var granteeType = group.First().GranteeType;
+                var granteeType = group.Key.GranteeType;
 
-                var destinationGrantee = await GetDestinationGranteeAsync(group.Key, granteeType, cancel).ConfigureAwait(false);
+                var destinationGrantee = await GetDestinationGranteeAsync(group.Key.Grantee.Id, granteeType, cancel).ConfigureAwait(false);
                 if (destinationGrantee is null)
                 {
-                    _logger.LogWarning(_localizer.GetString(SharedResourceKeys.PermissionsTransformerGranteeNotFoundWarning), granteeType.ToString(), group.Key);
+                    missingGrantees.Add(group.Key);
                     continue;
                 }
 
@@ -120,9 +124,11 @@ namespace Tableau.Migration.Engine.Hooks.Transformers.Default
                  * Capability resolution automatically happens here since this
                  * GranteeCapability constructor applies that logic.
                  */
-                var transformedGrantee = new GranteeCapability(granteeType, destinationGrantee.Id, destinationCapabilities);
+                var transformedGrantee = new GranteeCapability(granteeType, destinationGrantee, destinationCapabilities);
                 transformedGrantees.Add(transformedGrantee);
             }
+
+            missingGrantees.ThrowOnMissingContentReferences(Localizer);
 
             permissions.GranteeCapabilities = transformedGrantees;
 
@@ -135,6 +141,7 @@ namespace Tableau.Migration.Engine.Hooks.Transformers.Default
             {
                 GranteeType.Group => await _groupContentFinder.FindBySourceIdAsync(groupKey, cancel).ConfigureAwait(false),
                 GranteeType.User => await _userContentFinder.FindBySourceIdAsync(groupKey, cancel).ConfigureAwait(false),
+                GranteeType.GroupSet => await _groupSetContentFinder.FindBySourceIdAsync(groupKey, cancel).ConfigureAwait(false),
                 _ => null
             };
         }

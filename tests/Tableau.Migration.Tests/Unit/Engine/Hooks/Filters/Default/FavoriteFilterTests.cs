@@ -1,5 +1,5 @@
 //
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -23,6 +23,7 @@ using Moq;
 using Tableau.Migration.Content;
 using Tableau.Migration.Engine;
 using Tableau.Migration.Engine.Endpoints.ContentClients;
+using Tableau.Migration.Engine.Endpoints.Search;
 using Tableau.Migration.Engine.Hooks.Filters.Default;
 using Tableau.Migration.Engine.Manifest;
 using Xunit;
@@ -36,6 +37,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Filters.Default
             protected Dictionary<ContentLocation, IMigrationManifestEntryEditor> UserManifestEntries = new();
             protected Dictionary<ContentLocation, IMigrationManifestEntryEditor> ContentReferenceManifestEntries = new();
             protected Dictionary<Guid, IView> Views = new();
+            protected Dictionary<Guid, IResult<IContentReference>> DestinationViewResults = new();
 
             protected readonly FavoriteFilter Filter;
 
@@ -63,6 +65,20 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Filters.Default
                         else
                         {
                             return Result<IView>.Failed(new Exception());
+                        }
+                    });
+
+                var mockDestinationViewFinder = Freeze<Mock<IDestinationViewReferenceFinder>>();
+                mockDestinationViewFinder.Setup(x => x.FindBySourceIdAsync(It.IsAny<Guid>(), Cancel))
+                    .ReturnsAsync((Guid id, CancellationToken cancel) =>
+                    {
+                        if (DestinationViewResults.TryGetValue(id, out var result))
+                        {
+                            return result;
+                        }
+                        else
+                        {
+                            return Result<IContentReference>.Failed(new Exception());
                         }
                     });
 
@@ -208,6 +224,43 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Filters.Default
             public async Task UserAndViewMigratedAsync()
             {
                 var favorite = SetupFavorite(contentType: FavoriteContentType.View);
+                var mockContentReference = Create<Mock<IContentReference>>();
+                DestinationViewResults[favorite.SourceItem.Content.Id] = Result<IContentReference>.Succeeded(mockContentReference.Object);
+
+                var result = await Filter.ShouldMigrateAsync(favorite, Cancel);
+
+                Assert.True(result);
+            }
+
+            [Fact]
+            public async Task ViewDestinationReferenceNotFoundAsync()
+            {
+                var favorite = SetupFavorite(contentType: FavoriteContentType.View);
+                // Don't add destination view result, so it will fail
+
+                var result = await Filter.ShouldMigrateAsync(favorite, Cancel);
+
+                Assert.False(result);
+            }
+
+            [Fact]
+            public async Task ViewDestinationReferenceFailedAsync()
+            {
+                var favorite = SetupFavorite(contentType: FavoriteContentType.View);
+                var mockContentReference = Create<Mock<IContentReference>>();
+                DestinationViewResults[favorite.SourceItem.Content.Id] = Result<IContentReference>.Failed(new Exception());
+
+                var result = await Filter.ShouldMigrateAsync(favorite, Cancel);
+
+                Assert.False(result);
+            }
+
+            [Fact]
+            public async Task ViewDestinationReferenceFoundAsync()
+            {
+                var favorite = SetupFavorite(contentType: FavoriteContentType.View);
+                var mockContentReference = Create<Mock<IContentReference>>();
+                DestinationViewResults[favorite.SourceItem.Content.Id] = Result<IContentReference>.Succeeded(mockContentReference.Object);
 
                 var result = await Filter.ShouldMigrateAsync(favorite, Cancel);
 

@@ -1,4 +1,4 @@
-# Copyright (c) 2025, Salesforce, Inc.
+# Copyright (c) 2026, Salesforce, Inc.
 # SPDX-License-Identifier: Apache-2
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,7 +18,7 @@
 from typing import Callable, Generic, TypeVar
 
 from migration_engine import PyContentMigrationItem
-from migration_engine_hooks_interop import _PyHookWrapperBase
+from migration_engine_hooks_interop import _PyHookWrapperBuilderBase
 
 from Tableau.Migration.Engine import ContentMigrationItem
 from Tableau.Migration.Engine.Hooks.Filters import ContentFilterBase
@@ -39,7 +39,7 @@ class PyContentFilterBase(Generic[TContent]):
         """
         return True
 
-class _PyFilterWrapper(_PyHookWrapperBase):
+class _PyFilterWrapperBuilder(_PyHookWrapperBuilderBase):
     
     @property
     def python_content_type(self) -> type:
@@ -49,7 +49,7 @@ class _PyFilterWrapper(_PyHookWrapperBase):
     def dotnet_content_type(self) -> type:
         return self.dotnet_generic_types[0]
 
-    def _wrapper_base_type(self) -> type:
+    def get_wrapper_base_type(self) -> type:
         return ContentFilterBase[self.dotnet_content_type]
 
     @property
@@ -64,7 +64,7 @@ class _PyFilterWrapper(_PyHookWrapperBase):
         return ContentMigrationItem[self.dotnet_content_type]
 
     def _wrap_execute_method(self) -> Callable:
-        return lambda w : w._hook.should_migrate
+        return lambda w : w._inner.should_migrate
     
     def _wrap_context_callback(self) -> Callable:
         return lambda ctx : PyContentMigrationItem[self.python_content_type](ctx)

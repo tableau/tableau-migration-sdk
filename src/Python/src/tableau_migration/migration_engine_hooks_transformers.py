@@ -1,4 +1,4 @@
-# Copyright (c) 2025, Salesforce, Inc.
+# Copyright (c) 2026, Salesforce, Inc.
 # SPDX-License-Identifier: Apache-2
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,7 +31,7 @@ class PyContentTransformerBuilder():
         """Default init.
 
         Args:
-            content_transformer_builder: An object with methods to build IContentTransformer"/
+            content_transformer_builder: An object with methods to build IContentTransformer
         
         Returns: None.
         """
@@ -63,15 +63,15 @@ class PyContentTransformerBuilder():
         Returns:
             The same mapping builder object for fluent API calls.
         """
-        from migration_engine_hooks_transformers_interop import _PyTransformerWrapper, _PyXmlTransformerWrapper
+        from migration_engine_hooks_transformers_interop import _PyTransformerWrapperBuilder, _PyXmlTransformerWrapperBuilder
 
         if input_1 is None:
-            wrapper = input_0._wrapper(input_0)
+            wrapper_builder = input_0._wrapper_builder(input_0)
         else:
-            wrap_type = _PyXmlTransformerWrapper if is_xml else _PyTransformerWrapper
-            wrapper = wrap_type(input_0, input_1)
+            wrap_builder_type = _PyXmlTransformerWrapperBuilder if is_xml else _PyTransformerWrapperBuilder
+            wrapper_builder = wrap_builder_type(input_0, input_1)
         
-        self._content_transformer_builder.Add[wrapper.wrapper_type, wrapper.dotnet_publish_type](Func[IServiceProvider, wrapper.wrapper_type](wrapper.factory))
+        self._content_transformer_builder.Add[wrapper_builder.wrapper_type, wrapper_builder.dotnet_publish_type](Func[IServiceProvider, wrapper_builder.wrapper_type](wrapper_builder.factory))
         
         return self
     

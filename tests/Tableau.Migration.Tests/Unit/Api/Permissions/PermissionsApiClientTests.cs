@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -37,14 +37,15 @@ namespace Tableau.Migration.Tests.Unit.Api.Permissions
             public PermissionsApiClientTest()
             {
                 var permissionsUriBuilder = new PermissionsUriBuilder(ContentTypePrefix);
-                ApiClient = new(RestRequestBuilderFactory, Serializer, permissionsUriBuilder, MockSharedResourcesLocalizer.Object);
+                ApiClient = new(RestRequestBuilderFactory, Serializer, permissionsUriBuilder, MockSharedResourcesLocalizer.Object,
+                    MockContentFinderFactory.Object);
             }
         }
 
         public class GetPermissionsAsync : PermissionsApiClientTest
         {
             [Fact]
-            public async Task Success()
+            public async Task SuccessAsync()
             {
                 var id = Guid.NewGuid();
 
@@ -62,7 +63,7 @@ namespace Tableau.Migration.Tests.Unit.Api.Permissions
             }
 
             [Fact]
-            public async Task ReponseError()
+            public async Task ReponseErrorAsync()
             {
                 SetupErrorResponse();
 
@@ -72,7 +73,7 @@ namespace Tableau.Migration.Tests.Unit.Api.Permissions
             }
 
             [Fact]
-            public async Task RequestException()
+            public async Task RequestExceptionAsync()
             {
                 SetupExceptionResponse();
 
@@ -85,7 +86,7 @@ namespace Tableau.Migration.Tests.Unit.Api.Permissions
         public class CreatePermissionsAsync : PermissionsApiClientTest
         {
             [Fact]
-            public async Task Success()
+            public async Task SuccessAsync()
             {
                 var id = Guid.NewGuid();
                 var destinationPermissions = Create<IPermissions>();
@@ -104,7 +105,7 @@ namespace Tableau.Migration.Tests.Unit.Api.Permissions
             }
 
             [Fact]
-            public async Task SkipsNoGrantees()
+            public async Task SkipsNoGranteesAsync()
             {
                 var destinationPermissions = Create<IPermissions>();
                 destinationPermissions.GranteeCapabilities = Array.Empty<IGranteeCapability>();
@@ -117,7 +118,7 @@ namespace Tableau.Migration.Tests.Unit.Api.Permissions
             }
 
             [Fact]
-            public async Task ReponseError()
+            public async Task ReponseErrorAsync()
             {
                 var destinationPermissions = Create<IPermissions>();
 
@@ -129,7 +130,7 @@ namespace Tableau.Migration.Tests.Unit.Api.Permissions
             }
 
             [Fact]
-            public async Task RequestException()
+            public async Task RequestExceptionAsync()
             {
                 var destinationPermissions = Create<IPermissions>();
 
@@ -144,7 +145,7 @@ namespace Tableau.Migration.Tests.Unit.Api.Permissions
         public class DeleteCapabilityAsync : PermissionsApiClientTest
         {
             [Fact]
-            public async Task Success()
+            public async Task SuccessAsync()
             {
                 SetupSuccessResponse();
 
@@ -160,7 +161,7 @@ namespace Tableau.Migration.Tests.Unit.Api.Permissions
             }
 
             [Fact]
-            public async Task ReponseError()
+            public async Task ReponseErrorAsync()
             {
                 SetupErrorResponse();
 
@@ -170,7 +171,7 @@ namespace Tableau.Migration.Tests.Unit.Api.Permissions
             }
 
             [Fact]
-            public async Task RequestException()
+            public async Task RequestExceptionAsync()
             {
                 SetupExceptionResponse();
 
@@ -183,7 +184,7 @@ namespace Tableau.Migration.Tests.Unit.Api.Permissions
         public class UpdatePermissionsAsync : PermissionsApiClientTest
         {
             [Fact]
-            public async Task Success()
+            public async Task SuccessAsync()
             {
                 var id = Guid.NewGuid();
 
@@ -201,7 +202,7 @@ namespace Tableau.Migration.Tests.Unit.Api.Permissions
             }
 
             [Fact]
-            public async Task ReponseError()
+            public async Task ReponseErrorAsync()
             {
                 SetupErrorResponse();
 
@@ -211,7 +212,7 @@ namespace Tableau.Migration.Tests.Unit.Api.Permissions
             }
 
             [Fact]
-            public async Task RequestException()
+            public async Task RequestExceptionAsync()
             {
                 SetupExceptionResponse();
 

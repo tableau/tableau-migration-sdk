@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -29,7 +29,7 @@ namespace Tableau.Migration.Tests.Unit.Content.Files
 
         public Mock<ITableauFileXmlStream> MockXmlStream { get; set; }
 
-        public MockXmlFileHandle(string? xml = null)
+        public MockXmlFileHandle(string? xml = null, string? fileName = null)
             : base()
         {
             Xml = xml is null ? new() : XDocument.Parse(xml);
@@ -43,6 +43,12 @@ namespace Tableau.Migration.Tests.Unit.Content.Files
 
             Setup(x => x.OpenReadAsync(It.IsAny<CancellationToken>()))
                 .ReturnsAsync(() => new ContentFileStream(new MemoryStream(Constants.DefaultEncoding.GetBytes(Xml.ToString()))));
+
+            Setup(x => x.OriginalFileName)
+                .Returns(fileName ?? "mock-file.tdsx");
+
+            Setup(x => x.Path)
+                .Returns(fileName ?? "mock-file.tdsx");
         }
     }
 }

@@ -13,9 +13,9 @@ classifiers = [
 ]
 
 dependencies = [
-    "pytest>=8.4.1",
+    "pytest>=9.0.1",
     "pythonnet==3.0.5",
-    "typing_extensions==4.14.1"
+    "typing_extensions==4.15.0"
 ]
 
 [tool.hatch.build]
@@ -39,21 +39,21 @@ convention = "google"
 [tool.hatch.envs.test]
 dev-mode = false
 dependencies = [
-  "pytest>=8.3.5",
-  "pytest-cov>=6.2.1",
-  "pytest-env>=1.1.5",
+  "pytest>=9.0.1",
+  "pytest-cov>=7.0.0",
+  "pytest-env>=1.2.0",
   "pythonnet==3.0.5",
-  "typing_extensions==4.14.1"
+  "typing_extensions==4.15.0"
 ]
 
 [[tool.hatch.envs.test.matrix]]
-python = ["3.9", "3.10", "3.11", "3.12", "3.13"]
+python = ["3.10", "3.11", "3.12", "3.13"]
 
 [tool.hatch.envs.lint]
 detached = true
 
 dependencies = [
-  "ruff==0.12.4"
+  "ruff==0.14.8"
 ]
 
 [tool.hatch.envs.lint.scripts]

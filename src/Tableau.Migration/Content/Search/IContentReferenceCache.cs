@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -50,5 +50,13 @@ namespace Tableau.Migration.Content.Search
         /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>The content reference, or null if no item was found.</returns>
         Task<IContentReference?> ForIdAsync(Guid id, CancellationToken cancel);
+
+        /// <summary>
+        /// Finds the content reference item for a given endpoint content URL.
+        /// </summary>
+        /// <param name="contentUrl">The content URL.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
+        /// <returns>The content reference, or null if no item was found.</returns>
+        Task<IContentReference?> ForContentUrlAsync(string contentUrl, CancellationToken cancel);
     }
 }

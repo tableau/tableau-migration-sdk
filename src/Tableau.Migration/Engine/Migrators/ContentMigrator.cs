@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -19,6 +19,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Tableau.Migration.Config;
+using Tableau.Migration.Engine.Endpoints;
 using Tableau.Migration.Engine.Hooks;
 using Tableau.Migration.Engine.Hooks.Filters;
 using Tableau.Migration.Engine.Hooks.Mappings;
@@ -35,6 +36,7 @@ namespace Tableau.Migration.Engine.Migrators
     public class ContentMigrator<TContent> : IContentMigrator<TContent>
         where TContent : class, IContentReference
     {
+        private readonly IMigrationContentLoader<TContent> _contentLoader;
         private readonly IContentBatchMigrator<TContent> _batchMigrator;
         private readonly IMigration _migration;
         private readonly IConfigReader _configReader;
@@ -52,13 +54,10 @@ namespace Tableau.Migration.Engine.Migrators
         /// <param name="mappingRunner">The mapping runner.</param>
         /// <param name="filterRunner">The filter runner.</param>
         public ContentMigrator(
-            IMigrationPipeline pipeline,
-            IMigration migration,
-            IConfigReader configReader,
-            IMigrationHookRunner hookRunner,
-            IContentMappingRunner mappingRunner,
-            IContentFilterRunner filterRunner)
+            IMigrationPipeline pipeline, IMigration migration, IConfigReader configReader,
+            IMigrationHookRunner hookRunner, IContentMappingRunner mappingRunner, IContentFilterRunner filterRunner)
         {
+            _contentLoader = pipeline.GetContentLoader<TContent>();
             _batchMigrator = pipeline.GetBatchMigrator<TContent>();
             _migration = migration;
             _configReader = configReader;
@@ -88,7 +87,7 @@ namespace Tableau.Migration.Engine.Migrators
             var manifestPartition = _migration.Manifest.Entries.GetOrCreatePartition<TContent>();
 
             //Get the first page of source items so we know the total count, and can allocate the manifest all at once.
-            var sourcePager = _migration.Source.GetPager<TContent>(BatchSize);
+            var sourcePager = _contentLoader.GetMigrationContentPager(BatchSize);
 
             var sourcePage = await sourcePager.NextPageAsync(cancel).ConfigureAwait(false);
             resultBuilder.Add(sourcePage);

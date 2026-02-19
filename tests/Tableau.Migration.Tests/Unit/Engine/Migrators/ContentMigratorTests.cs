@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -60,7 +60,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Migrators
         public abstract class ContentMigratorTest : AutoFixtureTestBase
         {
             protected readonly Mock<IConfigReader> MockConfigReader;
-            protected readonly Mock<ISourceEndpoint> MockSourceEndpoint;
+            protected readonly Mock<IMigrationContentLoader<TestContentType>> MockLoader;
             protected readonly Mock<IMigrationPipeline> MockPipeline;
             protected readonly Mock<IContentBatchMigrator<TestContentType>> MockBatchMigrator;
             protected readonly Mock<IMigrationManifestContentTypePartitionEditor> MockManifestPartition;
@@ -94,8 +94,8 @@ namespace Tableau.Migration.Tests.Unit.Engine.Migrators
                 };
                 MigrationItems = new();
 
-                MockSourceEndpoint = Freeze<Mock<ISourceEndpoint>>();
-                MockSourceEndpoint.Setup(x => x.GetPager<TestContentType>(It.IsAny<int>()))
+                MockLoader = Freeze<Mock<IMigrationContentLoader<TestContentType>>>();
+                MockLoader.Setup(x => x.GetMigrationContentPager(It.IsAny<int>()))
                     .Returns((int pageSize) => new MemoryPager<TestContentType>(SourceContent, pageSize));
 
                 MockManifestEntryBuilder = Freeze<Mock<IMigrationManifestEntryBuilder>>();
@@ -133,6 +133,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Migrators
                     });
 
                 MockPipeline = Freeze<Mock<IMigrationPipeline>>();
+                MockPipeline.Setup(x => x.GetContentLoader<TestContentType>()).Returns(MockLoader.Object);
                 MockPipeline.Setup(x => x.GetBatchMigrator<TestContentType>()).Returns(MockBatchMigrator.Object);
 
                 MockFilterRunner = Freeze<Mock<IContentFilterRunner>>();
@@ -193,7 +194,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Migrators
 
                 result.AssertSuccess();
 
-                MockSourceEndpoint.Verify(x => x.GetPager<TestContentType>(BatchSize), Times.Once);
+                MockLoader.Verify(x => x.GetMigrationContentPager(BatchSize), Times.Once);
                 MockManifestPartition.Verify(x => x.GetEntryBuilder(SourceContent.Count), Times.Once);
 
                 Assert.Equal(2, NumSourcePages);
@@ -218,7 +219,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Migrators
 
                 result.AssertSuccess();
 
-                MockSourceEndpoint.Verify(x => x.GetPager<TestContentType>(BatchSize), Times.Once);
+                MockLoader.Verify(x => x.GetMigrationContentPager(BatchSize), Times.Once);
                 MockManifestPartition.Verify(x => x.GetEntryBuilder(SourceContent.Count), Times.Once);
 
                 Assert.Equal(2, NumSourcePages);
@@ -248,7 +249,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Migrators
 
                 result.AssertFailure();
 
-                MockSourceEndpoint.Verify(x => x.GetPager<TestContentType>(BatchSize), Times.Once);
+                MockLoader.Verify(x => x.GetMigrationContentPager(BatchSize), Times.Once);
                 MockManifestPartition.Verify(x => x.GetEntryBuilder(SourceContent.Count), Times.Once);
 
                 Assert.Equal(2, NumSourcePages);
@@ -277,7 +278,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Migrators
 
                 result.AssertSuccess();
 
-                MockSourceEndpoint.Verify(x => x.GetPager<TestContentType>(BatchSize), Times.Once);
+                MockLoader.Verify(x => x.GetMigrationContentPager(BatchSize), Times.Once);
                 MockManifestPartition.Verify(x => x.GetEntryBuilder(SourceContent.Count), Times.Once);
 
                 Assert.Equal(2, NumSourcePages);

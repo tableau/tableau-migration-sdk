@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -27,7 +27,9 @@ namespace Tableau.Migration.Api
     /// <summary>
     /// Interface for API client server subscriptions operations.
     /// </summary>
-    public interface ICloudSubscriptionsApiClient : IPublishApiClient<ICloudSubscription>, IDeleteApiClient
+    public interface ICloudSubscriptionsApiClient : 
+        IReadApiClient<ICloudSubscription>,
+        IPublishApiClient<ICloudSubscription>, IDeleteApiClient
     {
         /// <summary>
         /// Gets all subscriptions on the cloud site.

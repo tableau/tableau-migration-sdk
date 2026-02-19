@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -19,6 +19,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Tableau.Migration.Content;
+using Tableau.Migration.Content.Search;
 using Tableau.Migration.Engine.Endpoints.Search;
 using Tableau.Migration.Resources;
 
@@ -26,25 +27,24 @@ namespace Tableau.Migration.Engine.Hooks.Transformers.Default
 {
     internal sealed class FavoriteTransformer : ContentTransformerBase<IFavorite>
     {
-        private readonly IMappedUserTransformer _userTransformer;
         private readonly IDestinationContentReferenceFinderFactory _destinationFinderFactory;
+        private readonly IDestinationContentReferenceFinder<IUser> _userFinder;
         private readonly IDestinationViewReferenceFinder _destinationViewFinder;
 
-        public FavoriteTransformer(IMappedUserTransformer userTransformer,
-            IDestinationContentReferenceFinderFactory destinationFinderFactory,
+        public FavoriteTransformer(IDestinationContentReferenceFinderFactory destinationFinderFactory,
             IDestinationViewReferenceFinder destinationViewFinder,
             ISharedResourcesLocalizer localizer, ILogger<IContentTransformer<IFavorite>> logger)
             : base(localizer, logger)
         {
-            _userTransformer = userTransformer;
+            _userFinder = destinationFinderFactory.ForDestinationContentType<IUser>();
             _destinationFinderFactory = destinationFinderFactory;
             _destinationViewFinder = destinationViewFinder;
         }
 
         private async Task TransformFavoriteUserAsync(IFavorite favorite, CancellationToken cancel)
         {
-            var mappedUser = (await _userTransformer.ExecuteAsync(favorite.User, cancel).ConfigureAwait(false))
-                .ThrowOnMissingContentReference("Missing destination favorite user reference.");
+            var mappedUser = (await _userFinder.FindBySourceLocationAsync(favorite.User.Location, cancel).ConfigureAwait(false))
+                .ThrowOnMissingContentReference<IUser>(Localizer, "favorite user", favorite.User.Location);
 
             favorite.User = mappedUser;
         }
@@ -56,12 +56,12 @@ namespace Tableau.Migration.Engine.Hooks.Transformers.Default
             {
                 case FavoriteContentType.View:
                     destinationContentReference = (await _destinationViewFinder.FindBySourceIdAsync(favorite.Content.Id, cancel).ConfigureAwait(false))
-                        .ThrowOnMissingContentReference("Missing destination favorite view reference.");
+                        .ThrowOnMissingContentReference<IView>(Localizer, "favorite view", favorite.Content.Location);
                     break;
                 default:
                     var contentFinder = _destinationFinderFactory.ForFavoriteDestinationContentType(favorite.ContentType);
                     destinationContentReference = (await contentFinder.FindBySourceLocationAsync(favorite.Content.Location, cancel).ConfigureAwait(false))
-                        .ThrowOnMissingContentReference("Missing destination favorite workbook reference.");
+                        .ThrowOnMissingContentReference<IWorkbook>(Localizer, "favorite workbook", favorite.Content.Location);
                     break;
             }
 

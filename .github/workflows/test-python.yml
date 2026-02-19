@@ -34,7 +34,7 @@ jobs:
     name: Test Python ${{ inputs.test-name }} (${{ matrix.os }}, ${{ matrix.config }}, .NET ${{ matrix.dotnet-version }})
     steps:
       # Checkout the repository
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       # Clean all existing .NET installations
       - name: Clean existing .NET installations
@@ -46,6 +46,18 @@ jobs:
         with:
           dotnet-version: ${{ matrix.dotnet-version }} # Pass the .NET version from the matrix
 
+      # Setup global.json .NET environment
+      - name: Setup global.json .NET ${{ inputs.dotnet-build-version }}
+        uses: ./.github/actions/setup-dotnet
+        with:
+          dotnet-version: ${{ inputs.dotnet-build-version }} # Use the input for .NET version
+
+      # Setup .NET global.json SDK (Needed to run dotnet test in any matrix)
+      - name: Setup .NET ${{ inputs.dotnet-build-version }} SDK (for build compatibility)
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: ${{ inputs.dotnet-build-version }} # Use the input for .NET version
+
       # Restore Tools (i.e. report generator) - skip for .NET 8
       # Code coverage report generation is only supported on the latest .NET version
       - name: Restore .NET Tools
@@ -54,14 +66,14 @@ jobs:
 
       # Setup Python environment
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ vars.PYTHON_TEST_VERSIONS }}
           cache: "pip" # caching pip dependencies
 
       # Cache Hatch environments
       - name: Cache Hatch environments
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           # Default Hatch env location relative to working-directory.
           path: ./.hatch
@@ -74,16 +86,21 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install hatch
+          python -m pip install hatch click==8.2
 
-      # Download the published test artifacts
-      # This step is only needed when builing the main python project, but it left in this
-      # reuseable workflow for simplicity.
-      # TODO: [W-18497981: CI/CD Improvements: Python tests should test final package | Work](https://gus.lightning.force.com/lightning/r/ADM_Work__c/a07EE00002EIUwKYAX/view)
-      - uses: actions/download-artifact@v4
+      # Download the product binaries
+      - name: Download product binaries
+        uses: actions/download-artifact@v7
+        with:
+          name: product-${{ matrix.config }}-net${{ inputs.dotnet-build-version }}
+          path: ./src/Python/src/tableau_migration/bin/
+
+      # Download the test binaries
+      - name: Download test binaries
+        uses: actions/download-artifact@v7
         with:
           name: tests-${{ matrix.config }}-net${{ inputs.dotnet-build-version }}
-          path: ./src/Python/src/tableau_migration/bin/
+          path: ./dist/tests/
 
       # Test with pytest
       - name: Test with pytest
@@ -103,7 +120,7 @@ jobs:
       # Upload test results
       - name: Upload Test Results
         if: ${{ !(matrix.dotnet-version == '8.0.x') }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: ${{ inputs.test-name }}-results-${{ matrix.os }}-${{ matrix.config }}-net${{ matrix.dotnet-version }}
           path: ${{ inputs.working-directory }}/TestResults

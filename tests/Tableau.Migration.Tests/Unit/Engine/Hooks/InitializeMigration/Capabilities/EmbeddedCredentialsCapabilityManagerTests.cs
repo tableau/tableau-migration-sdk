@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -40,7 +40,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.InitializeMigration.Capabili
     public class EmbeddedCredentialsCapabilityManagerTests : AutoFixtureTestBase
     {
         private readonly Mock<ISharedResourcesLocalizer> _mockLocalizer = new();
-        internal readonly Mock<ILogger<EmbeddedCredentialsCapabilityManager>> MockLogger = new();
+        internal readonly Mock<ILogger<EmbeddedCredentialsCapabilityManager>> MockLogger;
         internal Mock<MigrationCapabilities> MockMigrationCapabilities;
         protected readonly Mock<IMigration> MockMigration;
 
@@ -48,6 +48,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.InitializeMigration.Capabili
 
         public EmbeddedCredentialsCapabilityManagerTests()
         {
+            MockLogger = Create<Mock<ILogger<EmbeddedCredentialsCapabilityManager>>>();
             MockMigrationCapabilities = new Mock<MigrationCapabilities> { CallBase = true };
             MockMigration = new Mock<IMigration>();
 

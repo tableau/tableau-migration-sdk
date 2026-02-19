@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -145,7 +145,7 @@ namespace Tableau.Migration.PythonGenerator.Generators
                     return UUID;
                 case nameof(IList<int>):
                     return new(
-                        Py.Types.LIST_WRAPPED,
+                        Py.Types.SEQUENCE,
                         ImportModule: Py.Modules.TYPING,
                         ConversionMode.WrapMutableCollection,
                         GenericTypes: GetGenericTypes(t),

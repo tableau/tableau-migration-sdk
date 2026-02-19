@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -44,7 +44,6 @@ namespace Tableau.Migration.Content.Permissions
         /// <returns></returns>
         public static HashSet<ICapability> ResolveCapabilityModeConflicts(this HashSet<ICapability> uniqueCapabilities)
         {
-
             foreach (var grouping in uniqueCapabilities.GroupBy(c => c.Name).Where(x => x.Count() > 1))
             {
                 var allowCapabilities = grouping.Where(

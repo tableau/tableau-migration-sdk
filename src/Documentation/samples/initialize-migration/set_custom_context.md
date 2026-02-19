@@ -11,7 +11,7 @@ This is useful when other hooks like filters are registered with dependency inje
 
 #### Custom Context Service Class Dependency Injection
 
-[Learn more.](~/articles/dependency_injection.md)
+[Learn more.](~/articles/dependency_injection/index.md)
 
 [!code-csharp[](../../../../examples/Csharp.ExampleApplication/Program.cs#SetCustomContext-Service-DI)]
 
@@ -36,7 +36,7 @@ plan_builder.hooks.add(SetMigrationContextHook)
 
 #### Custom Context Service Class Dependency Injection
 
-[Learn more.](~/articles/dependency_injection.md)
+[Learn more.](~/articles/dependency_injection/index.md)
 
 [!code-csharp[](../../../../examples/Csharp.ExampleApplication/Program.cs#SetCustomContext-Service-DI)]
 
@@ -52,6 +52,8 @@ plan_builder.hooks.add(SetMigrationContextHook)
 
 #### Dependency Injection
 
-[Learn more.](~/articles/dependency_injection.md)
+[Learn more.](~/articles/dependency_injection/index.md)
 
 [!code-csharp[](../../../../examples/Csharp.ExampleApplication/Program.cs#SetCustomContext-Hook-DI)]
+
+---

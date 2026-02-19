@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -16,6 +16,7 @@
 //
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,6 +24,7 @@ using Tableau.Migration.Api.Rest;
 using Tableau.Migration.Api.Rest.Models.Requests;
 using Tableau.Migration.Api.Rest.Models.Responses;
 using Tableau.Migration.Content.Permissions;
+using Tableau.Migration.Content.Search;
 using Tableau.Migration.Net;
 using Tableau.Migration.Net.Rest;
 using Tableau.Migration.Resources;
@@ -35,17 +37,41 @@ namespace Tableau.Migration.Api.Permissions
         private readonly IHttpContentSerializer _serializer;
         private readonly IPermissionsUriBuilder _uriBuilder;
         private readonly ISharedResourcesLocalizer _sharedResourcesLocalizer;
+        private readonly IContentReferenceFinderFactory _contentReferenceFinderFactory;
 
         public PermissionsApiClient(
             IRestRequestBuilderFactory restRequestBuilderFactory,
             IHttpContentSerializer serializer,
             IPermissionsUriBuilder uriBuilder,
-            ISharedResourcesLocalizer sharedResourcesLocalizer)
+            ISharedResourcesLocalizer sharedResourcesLocalizer,
+            IContentReferenceFinderFactory contentReferenceFinderFactory)
         {
             _restRequestBuilderFactory = restRequestBuilderFactory;
             _serializer = serializer;
             _uriBuilder = uriBuilder;
             _sharedResourcesLocalizer = sharedResourcesLocalizer;
+            _contentReferenceFinderFactory = contentReferenceFinderFactory;
+        }
+
+        private async Task<IPermissions> ToPermissionsAsync(PermissionsResponse response, CancellationToken cancel)
+        {
+            var granteeResponses = response.Item?.GranteeCapabilities;
+            
+            var grantees = new List<IGranteeCapability>(granteeResponses?.Length ?? 0);
+            if(granteeResponses is not null)
+            {
+                foreach (var granteeResponse in granteeResponses)
+                {
+                    var finder = _contentReferenceFinderFactory.ForGranteeType(granteeResponse.GranteeType);
+
+                    var granteeRef = (await finder.FindByIdAsync(granteeResponse.GranteeId, cancel).ConfigureAwait(false))
+                        .ThrowOnMissingContentReference(_sharedResourcesLocalizer, granteeResponse.GranteeType.ToString(), "grantee", granteeResponse.GranteeId);
+
+                    grantees.Add(new GranteeCapability(granteeRef, granteeResponse));
+                }
+            }
+            
+            return new Content.Permissions.Permissions(response.ParentId, grantees);
         }
 
         public async Task<IResult<IPermissions>> GetPermissionsAsync(Guid id, CancellationToken cancel)
@@ -54,7 +80,7 @@ namespace Tableau.Migration.Api.Permissions
                 .CreatePermissionsUri(_uriBuilder, id)
                 .ForGetRequest()
                 .SendAsync<PermissionsResponse>(cancel)
-                .ToResultAsync<PermissionsResponse, IPermissions>(p => new Content.Permissions.Permissions(p), _sharedResourcesLocalizer)
+                .ToResultAsync(ToPermissionsAsync, _sharedResourcesLocalizer, cancel)
                 .ConfigureAwait(false);
         }
 
@@ -69,7 +95,7 @@ namespace Tableau.Migration.Api.Permissions
                 .ForPutRequest()
                 .WithXmlContent(new PermissionsAddRequest(permissions))
                 .SendAsync<PermissionsResponse>(cancel)
-                .ToResultAsync<PermissionsResponse, IPermissions>(p => new Content.Permissions.Permissions(p), _sharedResourcesLocalizer)
+                .ToResultAsync(ToPermissionsAsync, _sharedResourcesLocalizer, cancel)
                 .ConfigureAwait(false);
         }
 

@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -48,7 +48,7 @@ namespace Tableau.Migration.Engine.Manifest.Logging
             Guid planId,
             Guid migrationId,
             IMigrationManifest copyEntriesManifest)
-            : base(planId, migrationId, copyEntriesManifest.PipelineProfile, copyEntriesManifest)
+            : base(planId, migrationId, copyEntriesManifest.PipelineProfile, copyEntriesManifest, CreateEntryCollectionFactory(localizer, loggerFactory))
         {
             _localizer = localizer;
             _logger = loggerFactory.CreateLogger<LoggingMigrationManifest>();
@@ -69,10 +69,23 @@ namespace Tableau.Migration.Engine.Manifest.Logging
             Guid migrationId,
             PipelineProfile pipelineProfile
             )
-            : base(planId, migrationId, pipelineProfile)
+            : base(planId, migrationId, pipelineProfile, null, CreateEntryCollectionFactory(localizer, loggerFactory))
         {
             _localizer = localizer;
             _logger = loggerFactory.CreateLogger<LoggingMigrationManifest>();
+        }
+
+        /// <summary>
+        /// Creates a factory function for creating entry collections with logging dependencies.
+        /// </summary>
+        /// <param name="localizer">The localizer.</param>
+        /// <param name="loggerFactory">The logger factory.</param>
+        /// <returns>A factory function that creates a <see cref="LoggingMigrationManifestEntryCollection"/>.</returns>
+        private static Func<IMigrationManifestEntryCollection?, MigrationManifestEntryCollection> CreateEntryCollectionFactory(
+            ISharedResourcesLocalizer localizer,
+            ILoggerFactory loggerFactory)
+        {
+            return copy => new LoggingMigrationManifestEntryCollection(localizer, loggerFactory, copy);
         }
 
         /// <inheritdoc />

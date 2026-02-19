@@ -1,4 +1,4 @@
-# Copyright (c) 2025, Salesforce, Inc.
+# Copyright (c) 2026, Salesforce, Inc.
 # SPDX-License-Identifier: Apache-2
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,7 +24,7 @@ from tableau_migration.migration import (  # noqa: E402, F401
 from typing import (  # noqa: E402, F401
     Generic,
     TypeVar,
-    List
+    Sequence
 )
 
 from System import TimeOnly # noqa: E402, F401

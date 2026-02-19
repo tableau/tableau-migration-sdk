@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -73,6 +73,7 @@ namespace Tableau.Migration.PythonGenerator
             typeof(IProject),
             typeof(IExtractContent),
             typeof(IPublishedContent),
+            typeof(ISizeContent),
             typeof(IDataSource),
             typeof(IWorkbook),
             typeof(IConnection),

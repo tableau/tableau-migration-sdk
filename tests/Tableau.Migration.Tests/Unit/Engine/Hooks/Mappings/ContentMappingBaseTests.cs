@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -23,7 +23,6 @@ using Tableau.Migration.Content;
 using Tableau.Migration.Engine.Hooks.Mappings;
 using Tableau.Migration.Resources;
 using Xunit;
-
 
 namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Mappings
 {
@@ -57,14 +56,14 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Mappings
         }
 
         [Fact]
-        public async Task Map()
+        public async Task MapAsync()
         {
             // Arrange
             // Create mock data
             var mappedLoc = Create<ContentMappingContext<IUser>>();
             var unmappedLoc = Create<ContentMappingContext<IUser>>();
             var replaceLoc = Create<ContentMappingContext<IUser>>();
-            var mockLogger = new Mock<ILogger<StubUserMapping>>();
+            var mockLogger = Create<Mock<ILogger<StubUserMapping>>>();
             var mockLocalizer = new MockSharedResourcesLocalizer();
 
             mockLogger.Setup(x => x.IsEnabled(LogLevel.Debug)).Returns(true);

@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -69,5 +69,8 @@ namespace Tableau.Migration.Engine.Actions
 
             return MigrationActionResult.FromResult(migrateResult);
         }
+
+        /// <inheritdoc />
+        public string DisplayName => $"{MigrationPipelineContentType.GetConfigKeyForType(typeof(TContent))} migration";
     }
 }

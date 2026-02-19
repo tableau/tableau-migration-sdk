@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -78,14 +78,18 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers
 
             private readonly ContentTransformerRunner _runner;
 
-            private readonly MockSharedResourcesLocalizer _mockLocalizer = new();
-            private readonly Mock<ILogger<TestTransformer>> _mockTransformerLogger = new();
-            private readonly Mock<ILogger<ContentTransformerRunner>> _mockRunnerLogger = new();
+            private readonly MockSharedResourcesLocalizer _mockLocalizer;
+            private readonly Mock<ILogger<TestTransformer>> _mockTransformerLogger;
+            private readonly Mock<ILogger<ContentTransformerRunner>> _mockRunnerLogger;
 
             public ExecuteAsync()
             {
                 _transformerExecutionContexts = new();
                 _transformerFactories = new();
+
+                _mockLocalizer = Create<MockSharedResourcesLocalizer>();
+                _mockTransformerLogger = Create<Mock<ILogger<TestTransformer>>>();
+                _mockRunnerLogger = Create<Mock<ILogger<ContentTransformerRunner>>>();
 
                 var mockTransformers = AutoFixture.Create<Mock<IMigrationHookFactoryCollection>>();
                 mockTransformers.Setup(x => x.GetHooks<IContentTransformer<TestContentType>>())
@@ -102,7 +106,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers
             }
 
             [Fact]
-            public async Task SingleTransformerSingleItem()
+            public async Task SingleTransformerSingleItemAsync()
             {
                 // Arrange
                 var input = AutoFixture.Create<TestContentType>();
@@ -121,7 +125,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers
             }
 
             [Fact]
-            public async Task MultipleTransformerSingleItem()
+            public async Task MultipleTransformerSingleItemAsync()
             {
                 // Arrange
                 var input = AutoFixture.Create<TestContentType>();
@@ -141,7 +145,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers
             }
 
             [Fact]
-            public async Task SingleTransformerMultipleItem()
+            public async Task SingleTransformerMultipleItemAsync()
             {
                 // Arrange
                 var input1 = AutoFixture.Create<TestContentType>();
@@ -164,7 +168,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers
             }
 
             [Fact]
-            public async Task MultipleTransformerMultipleItem()
+            public async Task MultipleTransformerMultipleItemAsync()
             {
                 // Arrange
                 var input1 = AutoFixture.Create<TestContentType>();
@@ -188,12 +192,12 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers
             }
 
             [Fact]
-            public async Task FailureCase()
+            public async Task FailureCaseAsync()
             {
                 // Arrange
-                var input = AutoFixture.Create<TestContentType>();
+                var input = Create<TestContentType>();
                 var mockLocalizer = new MockSharedResourcesLocalizer();
-                var mockExceptionTransformerLogger = new Mock<ILogger<ExceptionTransformer>>();
+                var mockExceptionTransformerLogger = Create<Mock<ILogger<ExceptionTransformer>>>();
 
                 _transformerFactories.Add(new MigrationHookFactory(s => new ExceptionTransformer(_mockLocalizer.Object, mockExceptionTransformerLogger.Object)));
 

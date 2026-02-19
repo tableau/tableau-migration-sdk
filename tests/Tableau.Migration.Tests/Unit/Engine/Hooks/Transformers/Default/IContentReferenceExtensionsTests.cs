@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -16,7 +16,9 @@
 //
 
 using System;
-using Tableau.Migration.Engine.Hooks.Transformers.Default;
+using Tableau.Migration.Content;
+using Tableau.Migration.Content.Search;
+using Tableau.Migration.Resources;
 using Xunit;
 
 namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
@@ -25,12 +27,19 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
     {
         public sealed class ThrowOnMissingContentReference : AutoFixtureTestBase
         {
+            private readonly ISharedResourcesLocalizer _localizer;
+
+            public ThrowOnMissingContentReference()
+            {
+                _localizer = new MockSharedResourcesLocalizer().Object;
+            }
+
             [Fact]
             public void SuccessResult()
             {
                 var result = Result<IContentReference>.Succeeded(Create<IContentReference>());
 
-                var contentReference = result.ThrowOnMissingContentReference("");
+                var contentReference = result.ThrowOnMissingContentReference<IUser>(_localizer, "", Create<ContentLocation>());
 
                 Assert.Same(result.Value, contentReference);
             }
@@ -39,11 +48,24 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
             public void FailedResult()
             {
                 var result = Result<IContentReference>.Failed(CreateMany<Exception>());
-                var msg = Create<string>();
+                var use = Create<string>();
 
-                var ex = Assert.Throws<AggregateException>(() => result.ThrowOnMissingContentReference(msg));
+                var ex = Assert.Throws<Exception>(() => result.ThrowOnMissingContentReference<IUser>(_localizer, use, Create<ContentLocation>()));
 
-                Assert.Contains(msg, ex.Message);
+                Assert.Contains(use, ex.Message);
+
+                var inner = Assert.IsType<AggregateException>(ex.InnerException);
+                Assert.Equal(result.Errors, inner.InnerExceptions);
+            }
+
+            [Fact]
+            public void ResultWithId()
+            {
+                var result = Result<IContentReference>.Succeeded(Create<IContentReference>());
+
+                var contentReference = result.ThrowOnMissingContentReference<IUser>(_localizer, "", Create<Guid>());
+
+                Assert.Same(result.Value, contentReference);
             }
 
             [Fact]
@@ -51,7 +73,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
             {
                 var input = Create<IContentReference>();
 
-                var result = input.ThrowOnMissingContentReference("");
+                var result = input.ThrowOnMissingContentReference<IUser>(_localizer, "", Create<ContentLocation>());
 
                 Assert.Same(input, result);
             }
@@ -60,11 +82,31 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
             public void NullContentReference()
             {
                 IContentReference? input = null;
-                var msg = Create<string>();
+                var use = Create<string>();
 
-                var ex = Assert.Throws<Exception>(() => input.ThrowOnMissingContentReference(msg));
+                var ex = Assert.Throws<Exception>(() => input.ThrowOnMissingContentReference<IUser>(_localizer, use, Create<ContentLocation>()));
 
-                Assert.Equal(msg, ex.Message);
+                Assert.Contains(use, ex.Message);
+            }
+
+            [Fact]
+            public void ContentReferenceWithId()
+            {
+                var input = Create<IContentReference>();
+
+                var result = input.ThrowOnMissingContentReference<IUser>(_localizer, "", Create<Guid>());
+
+                Assert.Same(input, result);
+            }
+
+            [Fact]
+            public void ContentReferenceWithContentUrl()
+            {
+                var input = Create<IContentReference>();
+
+                var result = input.ThrowOnMissingContentReference<IUser>(_localizer, "", Create<string>());
+
+                Assert.Same(input, result);
             }
         }
     }

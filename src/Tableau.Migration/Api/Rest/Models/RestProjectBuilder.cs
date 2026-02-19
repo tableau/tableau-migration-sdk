@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -31,7 +31,7 @@ namespace Tableau.Migration.Api.Rest.Models
 {
     /// <summary>
     /// Helper object that can load a project hierarchy from raw response objects,
-    /// and use that hierarchy to acts as a location path builder 
+    /// and use that hierarchy to act as a location path builder 
     /// to build <see cref="IProject"/> objects.
     /// </summary>
     internal sealed class RestProjectBuilder

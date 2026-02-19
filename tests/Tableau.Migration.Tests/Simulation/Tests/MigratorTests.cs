@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -23,6 +23,7 @@ using Tableau.Migration.Engine.Actions;
 using Tableau.Migration.Engine.Endpoints;
 using Tableau.Migration.Engine.Hooks;
 using Tableau.Migration.Engine.Manifest;
+using Tableau.Migration.Engine.Services;
 using Xunit;
 
 namespace Tableau.Migration.Tests.Simulation.Tests
@@ -52,7 +53,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests
         public async Task FailAsync()
         {
             var plan = CreatePlanBuilder()
-                .ToDestination(new TableauApiEndpointConfiguration(new TableauSiteConnectionConfiguration()))
+                .ToDestination(new TableauApiEndpointConfiguration(new TableauSiteConnectionConfiguration(), MigrationServiceBuilder.Empty))
                 .Build();
 
             var result = await RunMigrationAsync(plan);

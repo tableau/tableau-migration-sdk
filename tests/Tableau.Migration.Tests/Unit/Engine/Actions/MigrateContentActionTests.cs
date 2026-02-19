@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -48,8 +48,8 @@ namespace Tableau.Migration.Tests.Unit.Engine.Actions
                 MockPipeline = Create<Mock<IMigrationPipeline>>();
                 MockPipeline.Setup(x => x.GetMigrator<TestContentType>())
                     .Returns(MockContentMigrator.Object);
-                MockLogger = new Mock<ILogger<MigrateContentAction<TestContentType>>>();
-                MockSharedResourcesLocalizer = new Mock<ISharedResourcesLocalizer>();
+                MockLogger = Create<Mock<ILogger<MigrateContentAction<TestContentType>>>>();
+                MockSharedResourcesLocalizer = Create<Mock<ISharedResourcesLocalizer>>();
 
                 Action = new(MockPipeline.Object, MockCapabilities.Object, MockLogger.Object, MockSharedResourcesLocalizer.Object);
             }

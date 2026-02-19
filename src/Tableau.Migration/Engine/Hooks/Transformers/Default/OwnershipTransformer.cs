@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -17,36 +17,53 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Tableau.Migration.Content;
+using Tableau.Migration.Content.Search;
+using Tableau.Migration.Engine.Endpoints.Search;
+using Tableau.Migration.Resources;
 
 namespace Tableau.Migration.Engine.Hooks.Transformers.Default
 {
     /// <summary>
     /// Transformer that maps the user for a content item owner.
     /// </summary>
-    public class OwnershipTransformer<TContent> : IContentTransformer<TContent>
+    public class OwnershipTransformer<TContent> : ContentTransformerBase<TContent>
         where TContent : IWithOwner
     {
-        private readonly IMappedUserTransformer _userTransformer;
+        private readonly IDestinationContentReferenceFinder<IUser> _userFinder;        
 
         /// <summary>
         /// Creates a new <see cref="OwnershipTransformer{TContent}"/> object.
         /// </summary>
-        /// <param name="userTransformer">The user transformer.</param>
-        public OwnershipTransformer(IMappedUserTransformer userTransformer)
+        /// <param name="destinationFinderFactory">The destination finder factory.</param>
+        /// <param name="localizer"><inheritdoc /></param>
+        /// <param name="logger"><inheritdoc /></param>
+        public OwnershipTransformer(IDestinationContentReferenceFinderFactory destinationFinderFactory,
+            ISharedResourcesLocalizer localizer, ILogger<OwnershipTransformer<TContent>> logger)
+            : base(localizer, logger)
         {
-            _userTransformer = userTransformer;
+            _userFinder = destinationFinderFactory.ForDestinationContentType<IUser>();
         }
 
         /// <inheritdoc/>
-        public async Task<TContent?> ExecuteAsync(TContent ctx, CancellationToken cancel)
+        public override async Task<TContent?> TransformAsync(TContent itemToTransform, CancellationToken cancel)
         {
-            var mapped = await _userTransformer.ExecuteAsync(ctx.Owner, cancel).ConfigureAwait(false);
+            /*
+             * Unable to map system user, as its info is hidden from APIs except for owner references.
+             * Our post-publish counts system user ownership as a no-op, so we don't transform it here.
+             * If our post-publish logic changes to support system user location mapping we should update it here.
+             */
+            if (itemToTransform.Owner.Location == Constants.SystemUserLocation)
+            {
+                return itemToTransform;
+            }
 
-            if (mapped is not null)
-                ctx.Owner = mapped;
+            var mappedOwner = (await _userFinder.FindBySourceLocationAsync(itemToTransform.Owner.Location, cancel).ConfigureAwait(false))
+                .ThrowOnMissingContentReference<IUser>(Localizer, "owner", itemToTransform.Owner.Location);
 
-            return ctx;
+            itemToTransform.Owner = mappedOwner;
+            return itemToTransform;
         }
     }
 }

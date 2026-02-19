@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -76,7 +76,7 @@ namespace Tableau.Migration.Api
                     cancel)
                 .ConfigureAwait(false);
 
-        #endregion - Find Project Methods -
+        #endregion
 
         #region - Find Group Methods -
 
@@ -122,7 +122,7 @@ namespace Tableau.Migration.Api
                     cancel)
                 .ConfigureAwait(false);
 
-        #endregion - Find Owner Methods -
+        #endregion
 
         #region - Find Workbook Methods -
 
@@ -153,6 +153,15 @@ namespace Tableau.Migration.Api
                     cancel)
                 .ConfigureAwait(false);
 
-        #endregion - Find Workbook Methods -
+        #endregion
+
+        #region - Find View Methods -
+
+        protected async Task<IContentReference?> FindViewByIdAsync(Guid id, [DoesNotReturnIf(true)] bool throwIfNotFound, CancellationToken cancel)
+            => await ContentFinderFactory
+                .FindViewByIdAsync(id, Logger, SharedResourcesLocalizer, throwIfNotFound, cancel)
+                .ConfigureAwait(false);
+
+        #endregion
     }
 }

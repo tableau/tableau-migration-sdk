@@ -1,5 +1,5 @@
 //
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -21,6 +21,7 @@ using Microsoft.Extensions.Logging;
 using Tableau.Migration.Content;
 using Tableau.Migration.Engine.Endpoints;
 using Tableau.Migration.Engine.Endpoints.ContentClients;
+using Tableau.Migration.Engine.Endpoints.Search;
 using Tableau.Migration.Engine.Manifest;
 using Tableau.Migration.Resources;
 
@@ -34,21 +35,25 @@ namespace Tableau.Migration.Engine.Hooks.Filters.Default
     {
         private readonly IMigrationManifestEditor _manifest;
         private readonly IViewsContentClient _sourceViewClient;
+        private readonly IDestinationViewReferenceFinder _destinationViewFinder;
 
         /// <summary>
         /// Creates a new <see cref="FavoriteFilter"/> object.
         /// </summary>
         /// <param name="manifest">The current migration manifest.</param>
         /// <param name="sourceEndpoint">The source endpoint.</param>
+        /// <param name="destinationViewFinder">The destination view finder.</param>
         /// <param name="localizer">The shared resource localizer.</param>
         /// <param name="logger">The logger.</param>
         public FavoriteFilter(IMigrationManifestEditor manifest,
             ISourceEndpoint sourceEndpoint,
+            IDestinationViewReferenceFinder destinationViewFinder,
             ISharedResourcesLocalizer localizer, ILogger<IContentFilter<IFavorite>> logger)
             : base(localizer, logger)
         {
             _manifest = manifest;
             _sourceViewClient = sourceEndpoint.GetViewsContentClient();
+            _destinationViewFinder = destinationViewFinder;
         }
 
         /// <inheritdoc />
@@ -87,9 +92,18 @@ namespace Tableau.Migration.Engine.Hooks.Filters.Default
 
                 var sourceView = sourceViewResult.Value;
                 var workbookManifestEntries = _manifest.Entries.GetOrCreatePartition<IWorkbook>();
-                return workbookManifestEntries.BySourceLocation.TryGetValue(sourceView.ParentWorkbook.Location, out var parentWorkbookManifestEntry)
+                var workbookMigrated = workbookManifestEntries.BySourceLocation.TryGetValue(sourceView.ParentWorkbook.Location, out var parentWorkbookManifestEntry)
                     ? parentWorkbookManifestEntry.Status is not MigrationManifestEntryStatus.Skipped
                     : false;
+
+                if (!workbookMigrated)
+                {
+                    return false;
+                }
+
+                // Check if destination view reference can be found
+                var destinationViewResult = await _destinationViewFinder.FindBySourceIdAsync(favorite.Content.Id, cancel).ConfigureAwait(false);
+                return destinationViewResult is not null && destinationViewResult.Success;
             }
 
             var contentType = favorite.ContentType.ToMigrationContentType();

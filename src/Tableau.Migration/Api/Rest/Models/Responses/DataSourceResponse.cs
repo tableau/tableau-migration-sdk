@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -59,6 +59,7 @@ namespace Tableau.Migration.Api.Rest.Models.Responses
                 IsCertified = response.IsCertified;
                 UseRemoteQueryAgent = response.UseRemoteQueryAgent;
                 WebpageUrl = response.WebpageUrl;
+                Size = response.Size;
 
                 if (response.Project is not null)
                 {
@@ -152,6 +153,12 @@ namespace Tableau.Migration.Api.Rest.Models.Responses
             /// </summary>
             [XmlAttribute("webpageUrl")]
             public string? WebpageUrl { get; set; }
+
+            /// <summary>
+            /// Gets or sets the size of the data source for the response.
+            /// </summary>
+            [XmlAttribute("size")]
+            public long Size { get; set; }
 
             /// <summary>
             /// Gets or sets the data source project for the response.

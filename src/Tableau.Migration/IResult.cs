@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -49,6 +49,27 @@ namespace Tableau.Migration
                 throw new InvalidOperationException("Cannot case a successful result without a value.");
 
             return Result<U>.Failed(Errors);
+        }
+
+        /// <summary>
+        /// Gets the single exception in the result, or builds an <see cref="AggregateException"/>
+        /// from the exceptions in the <see cref="Errors"/> collection.
+        /// </summary>
+        /// <returns>Null if <see cref="Errors"/> is empty, the exception if there is only a single exception, or an <see cref="AggregateException"/>.</returns>
+        public Exception? ErrorsToException()
+        {
+            if(Errors.Count < 1)
+            {
+                return null;
+            }
+            else if(Errors.Count == 1)
+            {
+                return Errors[0];
+            }
+            else
+            {
+                return new AggregateException(Errors);
+            }
         }
     }
 

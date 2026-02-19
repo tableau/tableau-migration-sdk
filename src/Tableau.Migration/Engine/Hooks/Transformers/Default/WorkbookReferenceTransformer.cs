@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -19,7 +19,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Tableau.Migration.Content;
+using Tableau.Migration.Content.Search;
 using Tableau.Migration.Engine.Endpoints.Search;
+using Tableau.Migration.Engine.Pipelines;
 using Tableau.Migration.Resources;
 
 namespace Tableau.Migration.Engine.Hooks.Transformers.Default
@@ -52,18 +54,10 @@ namespace Tableau.Migration.Engine.Hooks.Transformers.Default
         /// <inheritdoc/>
         public override async Task<TContent?> TransformAsync(TContent ctx, CancellationToken cancel)
         {
-            var destinationWorkbook = await _workbookFinder.FindBySourceLocationAsync(
-                ctx.Workbook.Location,
-                cancel)
-                .ConfigureAwait(false);
+            var destinationWorkbook = (await _workbookFinder.FindBySourceLocationAsync(ctx.Workbook.Location,cancel).ConfigureAwait(false))
+                .ThrowOnMissingContentReference<IWorkbook>(Localizer, MigrationPipelineContentType.GetDisplayNameForType(typeof(TContent)) + " workbook", ctx.Workbook.Location);
 
-            if (destinationWorkbook is not null)
-            {
-                ctx.Workbook = destinationWorkbook;
-                return ctx;
-            }
-
-            Logger.LogDebug(Localizer[SharedResourceKeys.SourceWorkbookNotFoundLogMessage], ctx.Name, ctx.Id);
+            ctx.Workbook = destinationWorkbook;
             return ctx;
         }
     }

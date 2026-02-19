@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -16,11 +16,12 @@
 //
 
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Tableau.Migration.Content;
+using Tableau.Migration.Content.Search;
+using Tableau.Migration.Engine.Endpoints.Search;
 using Tableau.Migration.Resources;
 
 namespace Tableau.Migration.Engine.Hooks.Transformers.Default
@@ -32,21 +33,19 @@ namespace Tableau.Migration.Engine.Hooks.Transformers.Default
     public class CustomViewDefaultUserReferencesTransformer
         : ContentTransformerBase<IPublishableCustomView>
     {
-        private readonly IMappedUserTransformer _userTransformer;
+        private readonly IDestinationContentReferenceFinder<IUser> _userFinder;
 
         /// <summary>
         /// Creates a new <see cref="CustomViewDefaultUserReferencesTransformer"/> object.
         /// </summary>
-        /// <param name="userTransformer">The user transformer.</param>
-        /// <param name="logger">The logger used to log messages.</param>
-        /// <param name="localizer">The string localizer.</param>
-        public CustomViewDefaultUserReferencesTransformer(
-            IMappedUserTransformer userTransformer,
-            ILogger<CustomViewDefaultUserReferencesTransformer> logger,
-            ISharedResourcesLocalizer localizer)
+        /// <param name="destinationFinderFactory">The destination finder factory.</param>
+        /// <param name="localizer"><inheritdoc /></param>
+        /// <param name="logger"><inheritdoc /></param>
+        public CustomViewDefaultUserReferencesTransformer(IDestinationContentReferenceFinderFactory destinationFinderFactory,
+            ISharedResourcesLocalizer localizer, ILogger<CustomViewDefaultUserReferencesTransformer> logger)
             : base(localizer, logger)
         {
-            _userTransformer = userTransformer;
+            _userFinder = destinationFinderFactory.ForDestinationContentType<IUser>();
         }
 
         /// <inheritdoc />
@@ -54,37 +53,25 @@ namespace Tableau.Migration.Engine.Hooks.Transformers.Default
             IPublishableCustomView sourceCustomView,
             CancellationToken cancel)
         {
-            var missingUsers = new List<string>();
+            var missingUsers = new List<ContentLocation>();
 
             for (var i = 0; i < sourceCustomView.DefaultUsers.Count; i++)
             {
-                var destinationUser = await _userTransformer.ExecuteAsync(sourceCustomView.DefaultUsers[i], cancel)
+                var destinationUser = await _userFinder.FindBySourceLocationAsync(sourceCustomView.DefaultUsers[i].Location, cancel)
                     .ConfigureAwait(false);
 
                 if (destinationUser is null)
                 {
-                    missingUsers.Add(sourceCustomView.DefaultUsers[i].Name);
+                    missingUsers.Add(sourceCustomView.DefaultUsers[i].Location);
                     continue;
                 }
+
                 sourceCustomView.DefaultUsers[i] = destinationUser;
             }
 
-            LogMissingUsers(sourceCustomView.Name, missingUsers);
+            missingUsers.ThrowOnMissingContentReferences<IUser>(Localizer, "custom view default users");
 
             return sourceCustomView;
-        }
-
-        private void LogMissingUsers(string customViewName, List<string> missingUsers)
-        {
-            if (!missingUsers.Any())
-            {
-                return;
-            }
-
-            Logger.LogDebug(
-                Localizer[SharedResourceKeys.CustomViewDefaultUsersTransformerNoUserRefsDebugMessage],
-                customViewName,
-                string.Join(',', missingUsers));
         }
     }
 }

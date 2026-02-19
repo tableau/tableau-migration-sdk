@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -19,8 +19,11 @@ using Moq;
 using Tableau.Migration.Content;
 using Tableau.Migration.Content.Schedules.Cloud;
 using Tableau.Migration.Content.Schedules.Server;
+using Tableau.Migration.Content.Search;
 using Tableau.Migration.Engine.Actions;
 using Tableau.Migration.Engine.Conversion;
+using Tableau.Migration.Engine.Endpoints;
+using Tableau.Migration.Engine.Endpoints.Caching;
 using Tableau.Migration.Engine.Endpoints.Search;
 using Tableau.Migration.Engine.Migrators;
 using Tableau.Migration.Engine.Migrators.Batch;
@@ -32,7 +35,6 @@ namespace Tableau.Migration.Tests.Unit.Engine.Pipelines
 {
     public class MigrationPipelineBaseTests
     {
-
         #region - Verify First Party Pipelines -
 
         [Fact]
@@ -138,6 +140,28 @@ namespace Tableau.Migration.Tests.Unit.Engine.Pipelines
 
         #endregion
 
+        #region - GetContentLoader -
+
+        public sealed class GetContentLoader : MigrationPipelineBaseTest
+        {
+            [Fact]
+            public void GetsPlanService()
+            {
+                var loader = Freeze<IMigrationContentLoader<TestContentType>>();
+
+                var mockPlan = Freeze<Mock<IMigrationPlan>>();
+                mockPlan.Setup(x => x.Services.GetService<IMigrationContentLoader<TestContentType>>(MockServices.Object))
+                    .Returns(loader);                
+
+                var result = Pipeline.GetContentLoader<TestContentType>();
+
+                Assert.Same(loader, result);
+                mockPlan.Verify(x => x.Services.GetService<IMigrationContentLoader<TestContentType>>(MockServices.Object), Times.Once);
+            }
+        }
+
+        #endregion
+
         #region - GetBatchMigrator -
 
         public class GetBatchMigrator : MigrationPipelineBaseTest
@@ -222,8 +246,8 @@ namespace Tableau.Migration.Tests.Unit.Engine.Pipelines
             {
                 var cache = Pipeline.CreateSourceCache<IUser>();
 
-                Assert.IsType<BulkSourceCache<IUser>>(cache);
-                MockServices.Verify(x => x.GetService(typeof(BulkSourceCache<IUser>)), Times.Once);
+                Assert.IsType<SourceCache<IUser>>(cache);
+                MockServices.Verify(x => x.GetService(typeof(SourceCache<IUser>)), Times.Once);
             }
         }
 
@@ -238,8 +262,8 @@ namespace Tableau.Migration.Tests.Unit.Engine.Pipelines
             {
                 var cache = Pipeline.CreateDestinationCache<IUser>();
 
-                Assert.IsType<BulkDestinationCache<IUser>>(cache);
-                MockServices.Verify(x => x.GetService(typeof(BulkDestinationCache<IUser>)), Times.Once);
+                Assert.IsType<DestinationCache<IUser>>(cache);
+                MockServices.Verify(x => x.GetService(typeof(DestinationCache<IUser>)), Times.Once);
             }
 
             [Fact]
@@ -247,8 +271,8 @@ namespace Tableau.Migration.Tests.Unit.Engine.Pipelines
             {
                 var cache = Pipeline.CreateDestinationCache<IProject>();
 
-                Assert.IsType<BulkDestinationProjectCache>(cache);
-                MockServices.Verify(x => x.GetService(typeof(BulkDestinationProjectCache)), Times.Once);
+                Assert.IsType<DestinationProjectCache>(cache);
+                MockServices.Verify(x => x.GetService(typeof(DestinationProjectCache)), Times.Once);
             }
         }
 
@@ -263,12 +287,105 @@ namespace Tableau.Migration.Tests.Unit.Engine.Pipelines
             {
                 var cache = Pipeline.GetDestinationLockedProjectCache();
 
-                Assert.IsType<BulkDestinationProjectCache>(cache);
-                MockServices.Verify(x => x.GetService(typeof(BulkDestinationProjectCache)), Times.Once);
+                Assert.IsType<DestinationProjectCache>(cache);
+                MockServices.Verify(x => x.GetService(typeof(DestinationProjectCache)), Times.Once);
             }
         }
 
         #endregion
 
+        #region - CreateSourceContentReferenceFinder -
+
+        public sealed class CreateSourceContentReferenceFinder : MigrationPipelineBaseTest
+        {
+            [Fact]
+            public void GetsPlanService()
+            {
+                var finder = Freeze<ISourceContentReferenceFinder<TestContentType>>();
+
+                var mockPlan = Freeze<Mock<IMigrationPlan>>();
+                mockPlan.Setup(x => x.Services.GetService<ISourceContentReferenceFinder<TestContentType>>(MockServices.Object))
+                    .Returns(finder);
+
+                var result = Pipeline.CreateSourceContentReferenceFinder<TestContentType>();
+
+                Assert.Same(finder, result);
+                mockPlan.Verify(x => x.Services.GetService<ISourceContentReferenceFinder<TestContentType>>(MockServices.Object), Times.Once);
+            }
+        }
+
+        #endregion
+
+        #region - CreateDestinationContentReferenceFinder -
+
+        public sealed class CreateDestinationContentReferenceFinder : MigrationPipelineBaseTest
+        {
+            [Fact]
+            public void GetsPlanService()
+            {
+                var finder = Freeze<IDestinationContentReferenceFinder<TestContentType>>();
+
+                var mockPlan = Freeze<Mock<IMigrationPlan>>();
+                mockPlan.Setup(x => x.Services.GetService<IDestinationContentReferenceFinder<TestContentType>>(MockServices.Object))
+                    .Returns(finder);
+
+                var result = Pipeline.CreateDestinationContentReferenceFinder<TestContentType>();
+
+                Assert.Same(finder, result);
+                mockPlan.Verify(x => x.Services.GetService<IDestinationContentReferenceFinder<TestContentType>>(MockServices.Object), Times.Once);
+            }
+        }
+
+        #endregion
+
+        #region - CreateSourceCacheLoadStrategy -
+
+        public sealed class CreateSourceCacheLoadStrategy : MigrationPipelineBaseTest
+        {
+            [Fact]
+            public void GetsPlanService()
+            {
+                var strategy = Freeze<IContentReferenceCacheLoadStrategy<TestContentType>>();
+                var mockStrategyProvider = Freeze<Mock<IContentReferenceCacheLoadStrategyProvider<TestContentType>>>();
+                mockStrategyProvider.Setup(x => x.GetSourceCacheLoadStrategy()).Returns(strategy);
+
+                var mockPlan = Freeze<Mock<IMigrationPlan>>();
+                mockPlan.Setup(x => x.Services.GetService<IContentReferenceCacheLoadStrategyProvider<TestContentType>>(MockServices.Object))
+                    .Returns(mockStrategyProvider.Object);
+
+                var result = Pipeline.CreateSourceCacheLoadStrategy<TestContentType>();
+
+                Assert.Same(strategy, result);
+                mockPlan.Verify(x => x.Services.GetService<IContentReferenceCacheLoadStrategyProvider<TestContentType>>(MockServices.Object), Times.Once);
+                mockStrategyProvider.Verify(x => x.GetSourceCacheLoadStrategy(), Times.Once);
+            }
+        }
+
+        #endregion
+
+        #region - CreateDestinationCacheLoadStrategy -
+
+        public sealed class CreateDestinationCacheLoadStrategy : MigrationPipelineBaseTest
+        {
+            [Fact]
+            public void GetsPlanService()
+            {
+                var strategy = Freeze<IContentReferenceCacheLoadStrategy<TestContentType>>();
+                var mockStrategyProvider = Freeze<Mock<IContentReferenceCacheLoadStrategyProvider<TestContentType>>>();
+                mockStrategyProvider.Setup(x => x.GetDestinationCacheLoadStrategy()).Returns(strategy);
+
+                var mockPlan = Freeze<Mock<IMigrationPlan>>();
+                mockPlan.Setup(x => x.Services.GetService<IContentReferenceCacheLoadStrategyProvider<TestContentType>>(MockServices.Object))
+                    .Returns(mockStrategyProvider.Object);
+
+                var result = Pipeline.CreateDestinationCacheLoadStrategy<TestContentType>();
+
+                Assert.Same(strategy, result);
+                mockPlan.Verify(x => x.Services.GetService<IContentReferenceCacheLoadStrategyProvider<TestContentType>>(MockServices.Object), Times.Once);
+                mockStrategyProvider.Verify(x => x.GetDestinationCacheLoadStrategy(), Times.Once);
+            }
+        }
+
+        #endregion
     }
 }

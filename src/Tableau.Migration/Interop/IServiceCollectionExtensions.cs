@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -16,9 +16,10 @@
 //
 
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Tableau.Migration.Interop.Logging;
 
@@ -29,6 +30,14 @@ namespace Tableau.Migration.Interop
     /// </summary>
     public static class IServiceCollectionExtensions
     {
+        private const string LOGGING_SECTION = "Logging";
+
+        private static ImmutableDictionary<string, string> DEFAULT_PYTHON_LOG_LEVELS = new Dictionary<string, string>()
+        {
+            ["System"] = "Warning",
+            ["Polly"] = "Warning"
+        }.ToImmutableDictionary();
+
         /// <summary>
         /// Add python support by adding python logging and configuration via environment variables.
         /// This will clear all existing <see cref="ILoggerProvider"/>s. All other logger provider should be added after this call.
@@ -46,23 +55,24 @@ namespace Tableau.Migration.Interop
                 .AddSingleton(userOptions)
                 .AddTableauMigrationSdk(userOptions)
                 // Add additional Python logging.
-                .AddLogging(b => b.AddPythonLogging(loggerFactory));
+                .AddLogging(b => b.AddPythonLogging(userOptions.GetSection(LOGGING_SECTION), loggerFactory));
         }
 
         /// <summary>
         /// Adds a python support, including supporting the python logger
         /// </summary>
         /// <param name="builder">The <see cref="ILoggingBuilder"/></param>
+        /// <param name="configSection">The configuration section to use for logging.</param>
         /// <param name="loggerFactory">A factory to use to create new loggers for a given category name.</param>
         /// <returns>The original logging builder, for fluent API usage.</returns>
-        public static ILoggingBuilder AddPythonLogging(this ILoggingBuilder builder, Func<string, NonGenericLoggerBase> loggerFactory)
+        public static ILoggingBuilder AddPythonLogging(this ILoggingBuilder builder, IConfigurationSection configSection, Func<string, NonGenericLoggerBase> loggerFactory)
         {
-            // Clear all previous providers
+            // Add the Python log provider.
             builder.ClearProviders();
-            builder.Services.TryAddSingleton<ILoggerProvider>(new NonGenericLoggerProvider(loggerFactory));
-            // Enable all logs from .NET
-            // They will be filtered on the migration_logger.py class
-            builder.AddFilter<NonGenericLoggerProvider>(null, LogLevel.Trace);
+            builder.AddProvider(new NonGenericLoggerProvider(loggerFactory));
+
+            // Allow Python users to configure .NET logging through configuration, i.e. environment variables.
+            builder.AddConfiguration(configSection);
 
             return builder;
         }
@@ -76,6 +86,19 @@ namespace Tableau.Migration.Interop
         {
             // Set standard python configuration values.
             Environment.SetEnvironmentVariable(Constants.PYTHON_USER_AGENT_COMMENT_CONFIG_KEY, Constants.PYTHON_USER_AGENT_COMMENT);
+
+            /*
+             * Set a default logging configuration since a Python user is unlikely to be familiar with appsettings.json usage,
+             * but allow the user to override.
+             */
+            foreach((var logName, var defaultLogLevel) in DEFAULT_PYTHON_LOG_LEVELS)
+            {
+                var logEnvironmentVariable = $"{Constants.PYTHON_ENVIRONMENT_VARIABLE_PREFIX}{LOGGING_SECTION}__LogLevel__{logName}";
+                if(Environment.GetEnvironmentVariable(logEnvironmentVariable) is null)
+                {
+                    Environment.SetEnvironmentVariable(logEnvironmentVariable, defaultLogLevel);
+                }
+            }
 
             var configBuilder = new ConfigurationBuilder()
                 .AddEnvironmentVariables(Constants.PYTHON_ENVIRONMENT_VARIABLE_PREFIX);

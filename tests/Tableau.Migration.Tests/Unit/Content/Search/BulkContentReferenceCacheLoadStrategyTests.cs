@@ -1,0 +1,62 @@
+﻿//
+//  Copyright (c) 2026, Salesforce, Inc.
+//  SPDX-License-Identifier: Apache-2
+//  
+//  Licensed under the Apache License, Version 2.0 (the "License") 
+//  you may not use this file except in compliance with the License.
+//  You may obtain a copy of the License at
+//  
+//  http://www.apache.org/licenses/LICENSE-2.0
+//  
+//  Unless required by applicable law or agreed to in writing, software
+//  distributed under the License is distributed on an "AS IS" BASIS,
+//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//  See the License for the specific language governing permissions and
+//  limitations under the License.
+//
+
+using System.Threading.Tasks;
+using Moq;
+using Tableau.Migration.Content.Search;
+using Xunit;
+
+namespace Tableau.Migration.Tests.Unit.Content.Search
+{
+    public sealed class BulkContentReferenceCacheLoadStrategyTests
+    {
+        public sealed class LoadAsync : AutoFixtureTestBase
+        {
+            [Fact]
+            public async Task PrefersBulkLoadAsync()
+            {
+                var mockAttempt = Create<Mock<IContentReferenceCacheLoadAttempt<TestContentType>>>();
+
+                var loaded = false;
+                mockAttempt.Setup(x => x.LoadAllAsync(Cancel))
+                    .Callback(() =>  loaded = true);
+
+                mockAttempt.Setup(x => x.IsItemLoaded()).Returns(() => loaded);
+
+                var strategy = new BulkContentReferenceCacheLoadStrategy<TestContentType>();
+                await strategy.LoadAsync(mockAttempt.Object, Cancel);
+
+                mockAttempt.Verify(x => x.LoadAllAsync(Cancel), Times.Once);
+                mockAttempt.Verify(x => x.LoadItemAsync(Cancel), Times.Never);
+            }
+
+            [Fact]
+            public async Task FallsBackToIndividualLoadAsync()
+            {
+                var mockAttempt = Create<Mock<IContentReferenceCacheLoadAttempt<TestContentType>>>();
+
+                mockAttempt.Setup(x => x.IsItemLoaded()).Returns(false);
+
+                var strategy = new BulkContentReferenceCacheLoadStrategy<TestContentType>();
+                await strategy.LoadAsync(mockAttempt.Object, Cancel);
+
+                mockAttempt.Verify(x => x.LoadAllAsync(Cancel), Times.Once);
+                mockAttempt.Verify(x => x.LoadItemAsync(Cancel), Times.Once);
+            }
+        }
+    }
+}

@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -40,7 +40,7 @@ namespace Tableau.Migration.Engine.Endpoints.Search
         /// </summary>
         /// <param name="contentType">The favorite content type</param>
         /// <returns>The content reference finder.</returns>
-        public IDestinationContentReferenceFinder ForFavoriteDestinationContentType(FavoriteContentType contentType)
+        public IMappedContentReferenceFinder ForFavoriteDestinationContentType(FavoriteContentType contentType)
         {
             return contentType switch
             {

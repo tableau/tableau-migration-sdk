@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -31,7 +31,7 @@ using Xunit;
 
 namespace Tableau.Migration.Tests.Unit.Engine.Endpoints.ContentClients
 {
-    public class FavoritesContentClientTests
+    public class FavoritesContentClientTests : AutoFixtureTestBase
     {
         private readonly Mock<IFavoritesApiClient> _favoritesApiClientMock;
         private readonly Mock<IConfigReader> _configReaderMock;
@@ -43,8 +43,8 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints.ContentClients
         {
             _favoritesApiClientMock = new Mock<IFavoritesApiClient>();
             _configReaderMock = new Mock<IConfigReader>();
-            _loggerFactoryMock = new Mock<ILoggerFactory>();
-            _localizerMock = new Mock<ISharedResourcesLocalizer>();
+            _loggerFactoryMock = Create<Mock<ILoggerFactory>>();
+            _localizerMock = Create<Mock<ISharedResourcesLocalizer>>();
 
             _favoritesContentClient = new FavoritesContentClient(
                 _favoritesApiClientMock.Object,

@@ -1,5 +1,5 @@
 //
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -24,6 +24,7 @@ using Tableau.Migration.Api.Rest.Models.Responses;
 using Tableau.Migration.Api.Tags;
 using Tableau.Migration.Content;
 using Tableau.Migration.Content.Search;
+using Tableau.Migration.Net;
 using Tableau.Migration.Net.Rest;
 using Tableau.Migration.Resources;
 
@@ -31,15 +32,19 @@ namespace Tableau.Migration.Api
 {
     internal sealed class ViewsApiClient : ContentApiClientBase, IViewsApiClient
     {
+        private readonly IHttpContentSerializer _serializer;
+
         public ViewsApiClient(
             IRestRequestBuilderFactory restRequestBuilderFactory,
             IPermissionsApiClientFactory permissionsClientFactory,
             IContentReferenceFinderFactory finderFactory,
             ILoggerFactory loggerFactory,
             ISharedResourcesLocalizer sharedResourcesLocalizer,
-            ITagsApiClientFactory tagsClientFactory)
+            ITagsApiClientFactory tagsClientFactory,
+            IHttpContentSerializer serializer)
             : base(restRequestBuilderFactory, finderFactory, loggerFactory, sharedResourcesLocalizer)
         {
+            _serializer = serializer;
             Permissions = permissionsClientFactory.Create(this);
             Tags = tagsClientFactory.Create(this);
         }
@@ -69,6 +74,23 @@ namespace Tableau.Migration.Api
         }
 
         #endregion - IReadClientImplementation -
+
+        #region - IDeleteApiClient Implementation -
+
+        /// <inheritdoc />
+        public async Task<IResult> DeleteAsync(Guid id, CancellationToken cancel)
+        {
+            var result = await RestRequestBuilderFactory
+                .CreateUri($"/{UrlPrefix}/{id.ToUrlSegment()}")
+                .ForDeleteRequest()
+                .SendAsync(cancel)
+                .ToResultAsync(_serializer, SharedResourcesLocalizer, cancel)
+                .ConfigureAwait(false);
+
+            return result;
+        }
+
+        #endregion - IDeleteApiClient Implementation -
 
         #region - IPermissionsContentApiClientImplementation -
 

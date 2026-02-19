@@ -31,7 +31,7 @@ namespace Csharp.ExampleApplication
     {
         private readonly Stopwatch _timer;
         private readonly IHostApplicationLifetime _appLifetime;
-        private IMigrationPlanBuilder _planBuilder;
+        private IServerToCloudMigrationPlanBuilder _planBuilder;
         private readonly IMigrator _migrator;
         private readonly MyMigrationApplicationOptions _options;
         private readonly ILogger<MyMigrationApplication> _logger;
@@ -52,7 +52,7 @@ namespace Csharp.ExampleApplication
             // You can choose to assign an instance of the ServerToCloudMigrationPlanBuilder to help you 
             // add your own filters, mappings, transformers or hooks.
             // Refer to the Articles section of this documentation for more details.
-            _planBuilder = planBuilder;
+            _planBuilder = planBuilder.ForServerToCloud();
             _migrator = migrator;
             _options = options.Value;
             _logger = logger;
@@ -177,7 +177,7 @@ namespace Csharp.ExampleApplication
             #endregion
 
             // Load the previous manifest if possible
-            var prevManifest = await LoadManifest(manifestPath, cancel);
+            var prevManifest = await LoadManifestAsync(manifestPath, cancel);
 
             // Build the plan
             var plan = _planBuilder.Build();
@@ -250,7 +250,7 @@ namespace Csharp.ExampleApplication
             }
         }
 
-        private async Task<MigrationManifest?> LoadManifest(string manifestFilepath, CancellationToken cancel)
+        private async Task<MigrationManifest?> LoadManifestAsync(string manifestFilepath, CancellationToken cancel)
         {
             var manifest = await _manifestSerializer.LoadAsync(manifestFilepath, cancel);
             if (manifest is not null)

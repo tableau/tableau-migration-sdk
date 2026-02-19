@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -15,11 +15,11 @@
 //  limitations under the License.
 //
 
+using System;
+using System.Xml.Serialization;
+
 namespace Tableau.Migration.Api.Rest.Models.Responses.Server
 {
-    using System;
-    using System.Xml.Serialization;
-
     /// <summary>
     /// Class representing a Get Server Subscriptions response.
     /// See <see href="https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_subscriptions.htm#tableau-server-request2">Tableau API Reference</see> for documentation.

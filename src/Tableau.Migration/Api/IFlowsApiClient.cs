@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -19,6 +19,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Tableau.Migration.Api.Models;
+using Tableau.Migration.Api.Paging;
 using Tableau.Migration.Content;
 using Tableau.Migration.Paging;
 
@@ -28,8 +29,7 @@ namespace Tableau.Migration.Api
     /// Interface for API client prep flow operations.
     /// </summary>
     public interface IFlowsApiClient :
-        IApiPageAccessor<IFlow>,
-        IPagedListApiClient<IFlow>,
+        IApiFilteredPageAccessor<IFlow>, INameSearchApiClient<IFlow>,
         IPullApiClient<IFlow, IPublishableFlow>,
         IPublishApiClient<IPublishableFlow, IFlow>
     /*IOwnershipApiClient,
@@ -37,15 +37,6 @@ namespace Tableau.Migration.Api
     IPermissionsContentApiClient,
     */
     {
-        /// <summary>
-        /// Gets all prep flows in the current site.
-        /// </summary>
-        /// <param name="pageNumber">The 1-indexed page number.</param>
-        /// <param name="pageSize">The size of the page.</param>
-        /// <param name="cancel">A cancellation token to obey.</param>
-        /// <returns>A list of a page of prep flows in the current site.</returns>
-        Task<IPagedResult<IFlow>> GetAllFlowsAsync(int pageNumber, int pageSize, CancellationToken cancel);
-
         /// <summary>
         /// Downloads the prep flow file for the given ID.
         /// </summary>

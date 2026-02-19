@@ -1,4 +1,4 @@
-# Copyright (c) 2025, Salesforce, Inc.
+# Copyright (c) 2026, Salesforce, Inc.
 # SPDX-License-Identifier: Apache-2
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -49,24 +49,24 @@ class PyMigrationHookFactoryCollection():
         """
         return self._migration_hook_factory_collection.GetHooks[type_to_get]()
 
-def _get_wrapper_from_callback_context(t: type) -> type:
+def _get_wrapper_builder_from_callback_context(t: type) -> type:
     from migration_engine_actions import PyMigrationActionResult
     from migration_engine_hooks_interop import (
-        _PyContentBatchMigrationCompletedHookWrapper, 
-        _PyInitializeMigrationHookWrapper,
-        _PyMigrationActionCompletedHookWrapper
+        _PyContentBatchMigrationCompletedHookWrapperBuilder, 
+        _PyInitializeMigrationHookWrapperBuilder,
+        _PyMigrationActionCompletedHookWrapperBuilder
     )
     from migration_engine_hooks_postpublish import PyBulkPostPublishContext, PyContentItemPostPublishContext
-    from migration_engine_hooks_postpublish_interop import _PyBulkPostPublishHookWrapper, _PyContentItemPostPublishHookWrapper
+    from migration_engine_hooks_postpublish_interop import _PyBulkPostPublishHookWrapperBuilder, _PyContentItemPostPublishHookWrapperBuilder
     from migration_engine_hooks_initializemigration import PyInitializeMigrationHookResult
     from migration_engine_migrators_batch import PyContentBatchMigrationResult
 
     types = {
-        PyBulkPostPublishContext.__name__: _PyBulkPostPublishHookWrapper,
-        PyContentBatchMigrationResult.__name__: _PyContentBatchMigrationCompletedHookWrapper,
-        PyContentItemPostPublishContext.__name__: _PyContentItemPostPublishHookWrapper,
-        PyInitializeMigrationHookResult.__name__: _PyInitializeMigrationHookWrapper,
-        PyMigrationActionResult.__name__: _PyMigrationActionCompletedHookWrapper
+        PyBulkPostPublishContext.__name__: _PyBulkPostPublishHookWrapperBuilder,
+        PyContentBatchMigrationResult.__name__: _PyContentBatchMigrationCompletedHookWrapperBuilder,
+        PyContentItemPostPublishContext.__name__: _PyContentItemPostPublishHookWrapperBuilder,
+        PyInitializeMigrationHookResult.__name__: _PyInitializeMigrationHookWrapperBuilder,
+        PyMigrationActionResult.__name__: _PyMigrationActionCompletedHookWrapperBuilder
     }
 
     if t.__name__ not in types:
@@ -115,13 +115,13 @@ class PyMigrationHookBuilder():
             The same mapping builder object for fluent API calls.
         """
         if input_1 is None:
-            wrapper = input_0._wrapper(input_0)
+            wrapper_builder = input_0._wrapper_builder(input_0)
         else:
             t = input_0 if isclass(input_0) else get_origin(input_0)
-            wrap_type = _get_wrapper_from_callback_context(t)
-            wrapper = wrap_type(list(get_args(input_0)), input_1)
+            wrap_type = _get_wrapper_builder_from_callback_context(t)
+            wrapper_builder = wrap_type(list(get_args(input_0)), input_1)
         
-        self._migration_hook_builder.Add[wrapper.wrapper_type](Func[IServiceProvider, wrapper.wrapper_type](wrapper.factory))
+        self._migration_hook_builder.Add[wrapper_builder.wrapper_type](Func[IServiceProvider, wrapper_builder.wrapper_type](wrapper_builder.factory))
 
         return self
 

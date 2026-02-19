@@ -1,7 +1,19 @@
 - name: SDK Terminology
   href: terms.md  
+- name: Features & Tableau REST API Versions
+  href: content-type-api-ver.md
 - name: Configuration
-  href: configuration.md  
+  href: configuration/index.md
+  items:
+  - name: Data Loading
+    href: configuration/data_loading.md
+  - name: Skipping Content Types
+    href: configuration/skip_content_type.md
+- name: Dependency Injection
+  href: dependency_injection/index.md
+  items:
+  - name: Custom Migration Services
+    href: dependency_injection/migration_services.md
 - name: Plan Validation
   href: plan_validation.md
 - name: Logging
@@ -19,8 +31,6 @@
   href: user_authentication.md
 - name: Custom View File
   href: cv_file.md  
-- name: Dependency Injection
-  href: dependency_injection.md
 - name: Troubleshooting
   href: troubleshooting.md
 

@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -18,6 +18,7 @@
 using System;
 using Tableau.Migration.Api;
 using Tableau.Migration.Engine.Endpoints;
+using Tableau.Migration.Engine.Services;
 using Xunit;
 
 namespace Tableau.Migration.Tests.Unit.Engine.Endpoints
@@ -39,7 +40,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints
             [Fact]
             public void ValidSiteConnectionConfig()
             {
-                var c = new TableauApiEndpointConfiguration(new(new Uri("https://localhost"), "site", "tokenName", "token"));
+                var c = new TableauApiEndpointConfiguration(new(new Uri("https://localhost"), "site", "tokenName", "token"), MigrationServiceBuilder.Empty);
 
                 var vr = c.Validate();
 
@@ -49,7 +50,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints
             [Fact]
             public void InvalidSiteConnectionConfig()
             {
-                var c = new TableauApiEndpointConfiguration(new(new Uri("https://localhost"), "", "tokenName", ""));
+                var c = new TableauApiEndpointConfiguration(new(new Uri("https://localhost"), "", "tokenName", ""), MigrationServiceBuilder.Empty);
 
                 var vr = c.Validate();
 

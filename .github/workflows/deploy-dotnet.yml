@@ -53,7 +53,7 @@ jobs:
           }
 
       # Checkout the repository
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       # Setup .NET environment
       - name: Setup .NET
@@ -65,7 +65,7 @@ jobs:
         uses: ./.github/actions/setup-dotnet
 
       # Download the NuGet package artifact
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v7
         with:
           name: nuget-package-Release-net${{ inputs.dotnet-build-version }}
 
@@ -80,21 +80,15 @@ jobs:
           if ("${{ vars.NUGET_PUBLISH_USER }}" -ne "") {
             Write-Host "Using username and API key authentication for environment: $publishEnv"
             
-            # Use unique source name based on GitHub run ID
-            $uniqueSourceName = "$publishEnv-${{ github.run_id }}"
-            
-            # Add the NuGet source configuration
+            # Add the NuGet source configuration (ignore if already exists)
             dotnet nuget add source ${{ env.NUGET_PACKAGE_REPOSITORY }} `
-              --name $uniqueSourceName `
+              --name $publishEnv `
               --username ${{ vars.NUGET_PUBLISH_USER }} `
               --password ${{ secrets.NUGET_PUBLISH_API_KEY }} `
-              --store-password-in-clear-text
+              --store-password-in-clear-text 2>$null
             
-            # Push the package
-            dotnet nuget push Tableau.Migration.*.nupkg -s $uniqueSourceName
-            
-            # Clean up temporary source
-            dotnet nuget remove source $uniqueSourceName
+            # Push the package using the configured source
+            dotnet nuget push Tableau.Migration.*.nupkg -s $publishEnv
           }
           else {
             Write-Host "Using API key only authentication for environment: $publishEnv"

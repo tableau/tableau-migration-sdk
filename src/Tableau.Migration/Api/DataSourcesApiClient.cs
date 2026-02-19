@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -16,13 +16,16 @@
 //
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Tableau.Migration.Api.EmbeddedCredentials;
 using Tableau.Migration.Api.Labels;
 using Tableau.Migration.Api.Models;
+using Tableau.Migration.Api.Paging;
 using Tableau.Migration.Api.Permissions;
 using Tableau.Migration.Api.Publishing;
 using Tableau.Migration.Api.Rest;
@@ -41,13 +44,14 @@ using Tableau.Migration.Resources;
 
 namespace Tableau.Migration.Api
 {
-    internal sealed class DataSourcesApiClient :
-        ContentApiClientBase, IDataSourcesApiClient
+    internal sealed class DataSourcesApiClient : ContentApiClientBase, IDataSourcesApiClient
     {
         private readonly IContentFileStore _fileStore;
         private readonly IDataSourcePublisher _dataSourcePublisher;
         private readonly IConnectionManager _connectionManager;
         private readonly IConfigReader _configReader;
+
+        internal static readonly Filter PUBLISHED_FILTER = new Filter("isPublished", FilterOperator.Equal, "true");
 
         public DataSourcesApiClient(
             IRestRequestBuilderFactory restRequestBuilderFactory,
@@ -103,13 +107,12 @@ namespace Tableau.Migration.Api
 
         #endregion
 
-        /// <inheritdoc />
-        public async Task<IPagedResult<IDataSource>> GetAllPublishedDataSourcesAsync(int pageNumber, int pageSize, CancellationToken cancel)
+        private async Task<IPagedResult<IDataSource>> GetAllPublishedDataSourcesAsync(int pageNumber, int pageSize, IEnumerable<Filter> filters, CancellationToken cancel)
         {
             var getAllResult = await RestRequestBuilderFactory
                 .CreateUri(UrlPrefix)
                 .WithPage(pageNumber, pageSize)
-                .WithFilters(new Filter("isPublished", FilterOperator.Equal, "true"))
+                .WithFilters(filters.Append(PUBLISHED_FILTER))
                 .WithSorts(new Sort("size", false))
                 .ForGetRequest()
                 .SendAsync<DataSourcesResponse>(cancel)
@@ -228,11 +231,8 @@ namespace Tableau.Migration.Api
         #region - IApiPageAccessor<IDataSource> Implementation -
 
         /// <inheritdoc />
-        public async Task<IPagedResult<IDataSource>> GetPageAsync(
-            int pageNumber,
-            int pageSize,
-            CancellationToken cancel)
-            => await GetAllPublishedDataSourcesAsync(pageNumber, pageSize, cancel).ConfigureAwait(false);
+        public async Task<IPagedResult<IDataSource>> GetPageAsync(int pageNumber, int pageSize, CancellationToken cancel)
+            => await GetAllPublishedDataSourcesAsync(pageNumber, pageSize, [], cancel).ConfigureAwait(false);
 
         #endregion
 
@@ -240,6 +240,37 @@ namespace Tableau.Migration.Api
 
         /// <inheritdoc />
         public IPager<IDataSource> GetPager(int pageSize) => new ApiListPager<IDataSource>(this, pageSize);
+
+        #endregion
+
+        #region - IApiFilteredPageAccessor<IDataSource> Implementation -
+
+        /// <inheritdoc />
+        public async Task<IPagedResult<IDataSource>> GetPageAsync(IEnumerable<Filter> filters, int pageNumber, int pageSize, CancellationToken cancel)
+            => await GetAllPublishedDataSourcesAsync(pageNumber, pageSize, filters, cancel).ConfigureAwait(false);
+
+        #endregion
+
+        #region - IFilteredPagedListApiClient<IDataSource> Implementation -
+
+        /// <inheritdoc />
+        public IPager<IDataSource> GetPager(IEnumerable<Filter> filters, int pageSize)
+            => new ApiFilteredListPager<IDataSource>(this, filters, pageSize);
+
+        #endregion
+
+        #region - INameSearchApiClient<IDataSource> Implementation -
+
+        /// <inheritdoc />
+        FilterOperator INameSearchApiClient<IDataSource>.NameFilterOperator { get; } = FilterOperator.Equal;
+
+        #endregion
+
+        #region - IReadApiClient<IDataSource> Implementation -
+
+        /// <inheritdoc />
+        async Task<IResult<IDataSource>> IReadApiClient<IDataSource>.GetByIdAsync(Guid contentId, CancellationToken cancel)
+            => (await GetDataSourceAsync(contentId, cancel).ConfigureAwait(false)).Cast<IDataSource>();
 
         #endregion
 

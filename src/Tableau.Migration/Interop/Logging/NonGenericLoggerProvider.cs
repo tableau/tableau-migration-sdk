@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -50,15 +50,7 @@ namespace Tableau.Migration.Interop.Logging
         /// <returns>The instance of <see cref="ILogger"/> that was created.</returns>
         /// <exception cref="NullReferenceException">If the configured logger factory returns a null object.</exception>
         public ILogger CreateLogger(string categoryName)
-        {
-            var concreteLogger = _newLogger(categoryName);
-            if (concreteLogger is not null)
-            {
-                return _loggers.GetOrAdd(categoryName, concreteLogger);
-            }
-
-            throw new NullReferenceException("Unable to create NonGenericLogger");
-        }
+            => _loggers.GetOrAdd(categoryName, _newLogger);
 
         /// <summary>
         /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.

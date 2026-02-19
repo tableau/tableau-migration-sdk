@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -21,6 +21,7 @@ using Moq;
 using Tableau.Migration.Api.Permissions;
 using Tableau.Migration.Api.Rest;
 using Tableau.Migration.Config;
+using Tableau.Migration.Content.Search;
 using Tableau.Migration.Net;
 using Tableau.Migration.Net.Rest;
 using Tableau.Migration.Resources;
@@ -34,6 +35,7 @@ namespace Tableau.Migration.Tests.Unit.Api.Permissions
         {
             protected readonly Mock<IRestRequestBuilderFactory> MockRestRequestBuilderFactory = new();
             protected readonly Mock<IHttpContentSerializer> MockSerializer = new();
+            protected readonly Mock<IContentReferenceFinderFactory> MockFinderFactory = new();
             protected readonly Mock<ISharedResourcesLocalizer> MockSharedResourcesLocalizer = new();
             protected readonly Mock<IConfigReader> MockConfigReader = new();
             protected readonly Mock<ILoggerFactory> MockLoggerFactory = new();
@@ -47,6 +49,7 @@ namespace Tableau.Migration.Tests.Unit.Api.Permissions
                 Factory = new(
                     MockRestRequestBuilderFactory.Object,
                     MockSerializer.Object,
+                    MockFinderFactory.Object,
                     MockSharedResourcesLocalizer.Object,
                     MockConfigReader.Object,
                     MockLoggerFactory.Object);

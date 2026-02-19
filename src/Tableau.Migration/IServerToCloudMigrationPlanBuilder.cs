@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -28,12 +28,12 @@ namespace Tableau.Migration
     /// Interface for an object that can build <see cref="IMigrationPlan"/> objects
     /// that migrate content from Tableau Server to Tableau Cloud.
     /// </summary>
-    public interface IServerToCloudMigrationPlanBuilder : IMigrationPlanBuilder
+    public interface IServerToCloudMigrationPlanBuilder : IMigrationPlanBuilder<IServerToCloudMigrationPlanBuilder>
     {
         /// <summary>
         /// Appends default hooks, filters, mappings, and transformations for server-to-cloud migrations.
         /// This method is intended for upgrading existing plan builders - 
-        /// new plan builders should use <see cref="IMigrationPlanBuilder.ForServerToCloud"/> instead.
+        /// new plan builders should use <see cref="IMigrationPlanBuilder{IMigrationPlanBuilder}.ForServerToCloud"/> instead.
         /// </summary>
         /// <returns>The same plan builder object for fluent API calls.</returns>
         IServerToCloudMigrationPlanBuilder AppendDefaultServerToCloudExtensions();

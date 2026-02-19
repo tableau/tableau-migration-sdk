@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -36,7 +36,6 @@ namespace Tableau.Migration.Tests.Unit.Engine.Conversion.Schedules
     {
         private readonly Mock<ILogger<ServerScheduleValidator>> _mockServerScheduleValidatorLogger;
         private readonly Mock<ILogger<CloudScheduleValidator>> _mockCloudScheduleValidatorLogger;
-        private readonly Mock<ILogger<ServerToCloudExtractRefreshTaskConverter>> _mockConverterLogger;
         private readonly Mock<ILogger<ServerToCloudScheduleConverter>> _mockScheduleConverterLogger;
         private readonly ISharedResourcesLocalizer _localizer;
 
@@ -60,10 +59,9 @@ namespace Tableau.Migration.Tests.Unit.Engine.Conversion.Schedules
             services.AddTableauMigrationSdk();
             var container = services.BuildServiceProvider();
 
-            _mockServerScheduleValidatorLogger = new Mock<ILogger<ServerScheduleValidator>>();
-            _mockCloudScheduleValidatorLogger = new Mock<ILogger<CloudScheduleValidator>>();
-            _mockConverterLogger = new Mock<ILogger<ServerToCloudExtractRefreshTaskConverter>>();
-            _mockScheduleConverterLogger = new Mock<ILogger<ServerToCloudScheduleConverter>>();
+            _mockServerScheduleValidatorLogger = Create<Mock<ILogger<ServerScheduleValidator>>>();
+            _mockCloudScheduleValidatorLogger = Create<Mock<ILogger<CloudScheduleValidator>>>();
+            _mockScheduleConverterLogger = Create<Mock<ILogger<ServerToCloudScheduleConverter>>>();
             _localizer = container.GetRequiredService<ISharedResourcesLocalizer>();
 
             var serverValidator = new ServerScheduleValidator(_mockServerScheduleValidatorLogger.Object, _localizer);

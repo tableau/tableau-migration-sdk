@@ -30,11 +30,11 @@ jobs:
     name: Build Python Package with ${{ inputs.build-config }} configuration
     steps:
       # Checkout the repository
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       # Setup Python environment
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ vars.PYTHON_TEST_VERSIONS }}
           cache: "pip" # caching pip dependencies
@@ -44,11 +44,11 @@ jobs:
         shell: pwsh
         run: |
           python -m pip install --upgrade pip
-          python -m pip install hatch
+          python -m pip install hatch click==8.2
 
       # Cache Hatch environments
       - name: Cache Hatch environments
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           # Default Hatch env location relative to working-directory.
           path: ./.hatch
@@ -58,7 +58,7 @@ jobs:
             ${{ runner.os }}-py${{ vars.PYTHON_TEST_VERSIONS }}-hatch-
 
       # Download the product artifact
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v7
         with:
           name: product-${{ inputs.build-config }}-net${{ inputs.dotnet-build-version }}
           path: ./src/Python/src/tableau_migration/bin/
@@ -82,7 +82,7 @@ jobs:
 
       # Upload PyPI artifact
       - name: Upload Pypi Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: pypi-package-bundle
           path: ${{ env.WORKING_DIRECTORY }}/tableau_migration-pypi.zip
@@ -90,7 +90,7 @@ jobs:
 
       # Upload PyPI artifact
       - name: Upload Pypi Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: pypi-package
           path: ${{ env.WORKING_DIRECTORY }}/dist/*

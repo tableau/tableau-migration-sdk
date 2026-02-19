@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -24,6 +24,7 @@ using System.Xml.Linq;
 using Microsoft.Extensions.Logging;
 using Tableau.Migration.Content;
 using Tableau.Migration.Content.Files.Xml;
+using Tableau.Migration.Content.Search;
 using Tableau.Migration.Engine.Endpoints;
 using Tableau.Migration.Engine.Endpoints.Search;
 using Tableau.Migration.Resources;
@@ -89,33 +90,18 @@ namespace Tableau.Migration.Engine.Hooks.Transformers.Default
 
         #region - Private XML Helper Methods -
 
-        private static string GetWarningKey(ContentLocation workbookLocation, string sourceContentUrl)
-            => $"{workbookLocation}/{sourceContentUrl}";
-
-        private async Task UpdateContentUrlAsync(IPublishableWorkbook workbook, XAttribute attr, CancellationToken cancel)
+        private async Task UpdateContentUrlAsync(XAttribute attr, CancellationToken cancel)
         {
             var sourceContentUrl = attr.Value;
 
-            //Find the published data source reference.
-            var destDataSourceRef = await _mappedDataSourceFinder.FindBySourceContentUrlAsync(sourceContentUrl, cancel)
-                .ConfigureAwait(false);
+            // Find the published data source reference.
+            var destDataSourceRef = (await _mappedDataSourceFinder.FindBySourceContentUrlAsync(sourceContentUrl, cancel).ConfigureAwait(false))
+                .ThrowOnMissingContentReference<IDataSource>(_localizer, "workbook published data source connection", sourceContentUrl);
 
-            if (destDataSourceRef is not null)
-            {
-                attr.Value = destDataSourceRef.ContentUrl;
-            }
-            else
-            {
-                var warningKey = GetWarningKey(workbook.Location, sourceContentUrl);
-                if (_contentUrlWarnings.Add(warningKey)) // false if already present.
-                {
-                    _logger.LogWarning(_localizer[SharedResourceKeys.PublishedDataSourceReferenceNotFoundLogMessage],
-                        sourceContentUrl, workbook.Location);
-                }
-            }
+            attr.Value = destDataSourceRef.ContentUrl;
         }
 
-        private async Task UpdateConnectionAsync(IPublishableWorkbook workbook, XElement connectionElement, CancellationToken cancel)
+        private async Task UpdateConnectionAsync(XElement connectionElement, CancellationToken cancel)
         {
             //Only modify Tableau Server connections.
             var isServerConnection = connectionElement.GetFeatureFlaggedAttributes(CLASS_ATTR)
@@ -150,12 +136,12 @@ namespace Tableau.Migration.Engine.Hooks.Transformers.Default
             //Update the content URL with FFS safety.
             foreach (var dbNameAttribute in connectionElement.GetFeatureFlaggedAttributes(DATABASE_ATTR))
             {
-                await UpdateContentUrlAsync(workbook, dbNameAttribute, cancel)
+                await UpdateContentUrlAsync(dbNameAttribute, cancel)
                     .ConfigureAwait(false);
             }
         }
 
-        private async Task UpdateRepositoryLocationAsync(IPublishableWorkbook workbook, XElement repoLocationElement, CancellationToken cancel)
+        private async Task UpdateRepositoryLocationAsync(XElement repoLocationElement, CancellationToken cancel)
         {
             //Only update data source repo locations, not the top workbook repo location.
             var isDataSourceRepoLocation = repoLocationElement.Parent is not null &&
@@ -185,7 +171,7 @@ namespace Tableau.Migration.Engine.Hooks.Transformers.Default
             //Update the content URL with FFS safety.
             foreach (var idAttribute in repoLocationElement.GetFeatureFlaggedAttributes(ID_ATTR))
             {
-                await UpdateContentUrlAsync(workbook, idAttribute, cancel)
+                await UpdateContentUrlAsync(idAttribute, cancel)
                     .ConfigureAwait(false);
             }
         }
@@ -204,14 +190,14 @@ namespace Tableau.Migration.Engine.Hooks.Transformers.Default
             //Update <connection> elements.
             foreach (var connectionElement in xml.GetFeatureFlaggedDescendants(CONNECTION_EL))
             {
-                await UpdateConnectionAsync(ctx, connectionElement, cancel)
+                await UpdateConnectionAsync(connectionElement, cancel)
                     .ConfigureAwait(false);
             }
 
             //Update <repository-location /> elements that live at the  data source level.
             foreach (var repoLocationElement in xml.GetFeatureFlaggedDescendants(REPOSITORY_LOCATION_EL))
             {
-                await UpdateRepositoryLocationAsync(ctx, repoLocationElement, cancel)
+                await UpdateRepositoryLocationAsync(repoLocationElement, cancel)
                     .ConfigureAwait(false);
             }
         }

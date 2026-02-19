@@ -1,5 +1,5 @@
 //
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -107,9 +107,9 @@ namespace Tableau.Migration.Api
             services.AddScoped<IContentCacheFactory, ContentCacheFactory>();
 
             //Server schedules content caches.
-            services.AddScoped<ApiContentCache<IServerSchedule>>();
-            services.AddScoped<IContentCache<IServerSchedule>>(p => p.GetRequiredService<ApiContentCache<IServerSchedule>>());
-            services.AddScoped<BulkApiContentReferenceCache<IServerSchedule>>(p => p.GetRequiredService<ApiContentCache<IServerSchedule>>());
+            services.AddScoped<BulkApiContentCache<IServerSchedule>>();
+            services.AddScoped<IContentCache<IServerSchedule>>(p => p.GetRequiredService<BulkApiContentCache<IServerSchedule>>());
+            services.AddScoped<BulkApiContentReferenceCache<IServerSchedule>>(p => p.GetRequiredService<BulkApiContentCache<IServerSchedule>>());
 
             //Non-Engine content file services.
             services.AddSingleton<IContentFilePathResolver, ContentTypeFilePathResolver>();

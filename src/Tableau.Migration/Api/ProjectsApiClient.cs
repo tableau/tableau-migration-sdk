@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -23,6 +23,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Tableau.Migration.Api.Models;
+using Tableau.Migration.Api.Paging;
 using Tableau.Migration.Api.Permissions;
 using Tableau.Migration.Api.Rest;
 using Tableau.Migration.Api.Rest.Models;
@@ -39,8 +40,7 @@ using Tableau.Migration.Resources;
 
 namespace Tableau.Migration.Api
 {
-    internal sealed class ProjectsApiClient :
-        ContentApiClientBase, IProjectsApiClient, IProjectsResponseApiClient
+    internal sealed class ProjectsApiClient : ContentApiClientBase, IProjectsApiClient, IProjectsResponseApiClient
     {
         private readonly IHttpContentSerializer _serializer;
         private readonly IDefaultPermissionsApiClient _defaultPermissionsClient;
@@ -160,10 +160,25 @@ namespace Tableau.Migration.Api
 
         #endregion
 
-        #region - IListApiClient<IProject> Implementation -
+        #region - IPagedListApiClient<IProject> Implementation -
 
         public IPager<IProject> GetPager(int pageSize)
             => new BreadthFirstPathHierarchyPager<IProject>(new RestProjectBuilderPager(this, ContentFinderFactory.ForContentType<IUser>(), pageSize), pageSize);
+
+        #endregion
+
+        #region - IFilteredPagedListApiClient<IProject> Implementation -
+
+        /// <inheritdoc />
+        public IPager<IProject> GetPager(IEnumerable<Filter> filters, int pageSize)
+            => new ProjectFilteredListPager(this, ContentFinderFactory, filters, pageSize);
+
+        #endregion
+
+        #region - INameSearchApiClient<IProject> Implementation -
+
+        /// <inheritdoc />
+        FilterOperator INameSearchApiClient<IProject>.NameFilterOperator { get; } = FilterOperator.Equal;
 
         #endregion
 

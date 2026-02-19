@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -20,24 +20,18 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Moq;
 using Tableau.Migration.Content;
 using Tableau.Migration.Engine;
 using Tableau.Migration.Engine.Hooks.Filters;
+using Tableau.Migration.Resources;
 using Xunit;
 
 namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Filters
 {
     public class ContentLocationInPathFilterTests : AutoFixtureTestBase
     {
-        private readonly MockSharedResourcesLocalizer MockLocalizer = new();
-        private readonly Mock<ILogger<IContentFilter<IUser>>> MockLogger = new();
-
-        public ContentLocationInPathFilterTests() { }
-
-
         [Fact]
-        public async Task Filter()
+        public async Task FilterAsync()
         {
             //Setup
             // Create mock data
@@ -47,7 +41,8 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Filters
             // Choose one of the items and create a filter from it
             var user1 = users.FirstOrDefault();
             Assert.NotNull(user1);
-            var filter1 = new ContentLocationInPathFilter<IUser>(user1.SourceItem.Location.Path, MockLocalizer.Object, MockLogger.Object);
+            var filter1 = new ContentLocationInPathFilter<IUser>(user1.SourceItem.Location.Path,
+                Create<ISharedResourcesLocalizer>(), Create < ILogger<IContentFilter<IUser>>>());
 
 
             // Act- Filter with the chosen filter

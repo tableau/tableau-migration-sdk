@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -16,11 +16,11 @@
 //
 
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Tableau.Migration.Content;
+using Tableau.Migration.Content.Search;
 using Tableau.Migration.Engine.Endpoints.Search;
 using Tableau.Migration.Resources;
 
@@ -39,51 +39,35 @@ namespace Tableau.Migration.Engine.Hooks.Transformers.Default
         /// <param name="destinationFinderFactory">The destination finder factory.</param>
         /// <param name="localizer">A string localizer.</param>
         /// <param name="logger">The logger used to log messages.</param>
-        public GroupUsersTransformer(
-            IDestinationContentReferenceFinderFactory destinationFinderFactory,
-            ISharedResourcesLocalizer localizer,
-            ILogger<GroupUsersTransformer> logger) : base(localizer, logger)
+        public GroupUsersTransformer(IDestinationContentReferenceFinderFactory destinationFinderFactory,
+            ISharedResourcesLocalizer localizer, ILogger<GroupUsersTransformer> logger) 
+            : base(localizer, logger)
         {
             _userFinder = destinationFinderFactory.ForDestinationContentType<IUser>();
         }
 
         /// <inheritdoc />
-        public override async Task<IPublishableGroup?> TransformAsync(
-            IPublishableGroup sourceGroup,
-            CancellationToken cancel)
+        public override async Task<IPublishableGroup?> TransformAsync(IPublishableGroup sourceGroup, CancellationToken cancel)
         {
-            var missingUsers = new List<string>();
+            var missingUsers = new List<ContentLocation>();
 
             foreach (var user in sourceGroup.Users)
             {
-                var destinationUser = await _userFinder
-                    .FindBySourceLocationAsync(user.User.Location, cancel)
+                var destinationUser = await _userFinder.FindBySourceLocationAsync(user.User.Location, cancel)
                     .ConfigureAwait(false);
 
                 if (destinationUser is null)
                 {
-                    missingUsers.Add(user.User.Name);
+                    missingUsers.Add(user.User.Location);
                     continue;
                 }
 
                 user.User = destinationUser;
             }
 
-            LogMissingUsers(sourceGroup.Name, missingUsers);
+            missingUsers.ThrowOnMissingContentReferences<IUser>(Localizer, "group users");
+
             return sourceGroup;
-        }
-
-        private void LogMissingUsers(string groupName, List<string> missingUsers)
-        {
-            if (!missingUsers.Any())
-            {
-                return;
-            }
-
-            Logger.LogDebug(
-                       Localizer[SharedResourceKeys.GroupUsersTransformerCannotAddUserWarning],
-                       groupName,
-                       string.Join(',', missingUsers));
         }
     }
 }

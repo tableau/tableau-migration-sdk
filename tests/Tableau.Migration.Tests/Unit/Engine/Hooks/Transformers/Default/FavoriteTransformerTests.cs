@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -29,7 +29,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
     {
         public abstract class FavoriteTransformerTest : AutoFixtureTestBase
         {
-            protected readonly Mock<IMappedUserTransformer> MockUserTransformer;
+            protected readonly Mock<IDestinationContentReferenceFinder<IUser>> MockUserFinder;
             protected readonly Mock<IDestinationViewReferenceFinder> MockViewFinder;
             protected readonly Mock<IDestinationContentReferenceFinderFactory> MockFinderFactory;
 
@@ -53,8 +53,8 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
                 DestinationUser = Create<IContentReference>();
                 DestinationContent = Create<IContentReference>();
 
-                MockUserTransformer = Freeze<Mock<IMappedUserTransformer>>();
-                MockUserTransformer.Setup(x => x.ExecuteAsync(Favorite.User, Cancel))
+                MockUserFinder = Freeze<Mock<IDestinationContentReferenceFinder<IUser>>>();
+                MockUserFinder.Setup(x => x.FindBySourceLocationAsync(Favorite.User.Location, Cancel))
                     .ReturnsAsync(() => DestinationUser);
 
                 MockViewFinder = Freeze<Mock<IDestinationViewReferenceFinder>>();
@@ -71,11 +71,13 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
                         }
                     });
 
-                var mockFinder = Freeze<Mock<IDestinationContentReferenceFinder>>();
+                var mockFinder = Freeze<Mock<IMappedContentReferenceFinder>>();
                 mockFinder.Setup(x => x.FindBySourceLocationAsync(Favorite.Content.Location, Cancel))
                     .ReturnsAsync(() => DestinationContent);
 
                 MockFinderFactory = Freeze<Mock<IDestinationContentReferenceFinderFactory>>();
+                MockFinderFactory.Setup(x => x.ForDestinationContentType<IUser>())
+                    .Returns(MockUserFinder.Object);
                 MockFinderFactory.Setup(x => x.ForFavoriteDestinationContentType(It.IsAny<FavoriteContentType>()))
                     .Returns(mockFinder.Object);
 
@@ -113,7 +115,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
 
                 DestinationContent = null;
 
-                await Assert.ThrowsAsync<AggregateException>(() => Transformer.ExecuteAsync(Favorite, Cancel));
+                await Assert.ThrowsAsync<Exception>(() => Transformer.ExecuteAsync(Favorite, Cancel));
             }
 
             [Fact]

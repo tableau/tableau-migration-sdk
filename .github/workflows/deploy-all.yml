@@ -91,6 +91,7 @@ jobs:
       runs-on-config: ${{ vars.PUBLISH_OS }}
       release-version: ${{ inputs.release-version }}
       publish-environment: ${{ inputs.publish-environment }}
+      dotnet-build-version: ${{ inputs.dotnet-build-version }}
 
   deploy-docs:
     name: Deploy Docs

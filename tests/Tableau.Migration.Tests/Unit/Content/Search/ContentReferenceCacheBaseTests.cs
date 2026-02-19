@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -17,9 +17,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Tableau.Migration.Content;
 using Tableau.Migration.Content.Search;
 using Xunit;
@@ -30,73 +32,102 @@ namespace Tableau.Migration.Tests.Unit.Content.Search
     {
         #region - Test Classes -
 
-        public class TestContentReferenceCache : ContentReferenceCacheBase
+        public class TestContentReferenceStore<TContent> : IContentReferenceStore<TContent>
+            where TContent : IContentReference
         {
-            public IEnumerable<ContentReferenceStub> SearchData { get; set; }
-                = Enumerable.Empty<ContentReferenceStub>();
+            public IEnumerable<TContent> Data { get; set; }
+                = Enumerable.Empty<TContent>();
 
-            public TimeSpan? SearchSpinTime { get; set; }
+            public TimeSpan? LoadSpinTime { get; set; }
 
-            public Exception? SearchException { get; set; }
+            public Exception? LoadException { get; set; }
 
-            public int SearchCalls { get; private set; }
+            public int LoadCalls { get; private set; }
 
-            protected override async ValueTask<IEnumerable<ContentReferenceStub>> SearchAllAsync(CancellationToken cancel)
+            public async ValueTask<IImmutableList<TContent>> LoadAllAsync(CancellationToken cancel)
             {
-                SearchCalls++;
-                if (SearchSpinTime is not null)
+                LoadCalls++;
+                if (LoadSpinTime is not null)
                 {
-                    await Task.Delay(SearchSpinTime.Value, cancel);
+                    await Task.Delay(LoadSpinTime.Value, cancel);
                 }
 
-                if (SearchException is not null)
+                if (LoadException is not null)
                 {
-                    throw SearchException;
+                    throw LoadException;
                 }
 
-                return SearchData;
+                return Data.ToImmutableArray();
             }
 
-            protected override async ValueTask<IEnumerable<ContentReferenceStub>> SearchAsync(ContentLocation searchLocation, CancellationToken cancel)
+            public async ValueTask<ContentReferenceLoadResult<TContent>> LoadAsync(ContentLocation searchLocation, CancellationToken cancel)
             {
-                SearchCalls++;
-                if (SearchSpinTime is not null)
+                LoadCalls++;
+                if (LoadSpinTime is not null)
                 {
-                    await Task.Delay(SearchSpinTime.Value, cancel);
+                    await Task.Delay(LoadSpinTime.Value, cancel);
                 }
 
-                if (SearchException is not null)
+                if (LoadException is not null)
                 {
-                    throw SearchException;
+                    throw LoadException;
                 }
 
-                return SearchData;
+                return new(Data.Where(i => i.Location == searchLocation).ToImmutableArray());
             }
 
-            protected override async ValueTask<IEnumerable<ContentReferenceStub>> SearchAsync(Guid searchId, CancellationToken cancel)
+            public async ValueTask<ContentReferenceLoadResult<TContent>> LoadAsync(Guid searchId, CancellationToken cancel)
             {
-                SearchCalls++;
-                if (SearchSpinTime is not null)
+                LoadCalls++;
+                if (LoadSpinTime is not null)
                 {
-                    await Task.Delay(SearchSpinTime.Value, cancel);
+                    await Task.Delay(LoadSpinTime.Value, cancel);
                 }
 
-                if (SearchException is not null)
+                if (LoadException is not null)
                 {
-                    throw SearchException;
+                    throw LoadException;
                 }
 
-                return SearchData;
+                return new(Data.Where(i => i.Id == searchId).ToImmutableArray());
             }
+
+            public async ValueTask<ContentReferenceLoadResult<TContent>> LoadAsync(string contentUrl, CancellationToken cancel)
+            {
+                LoadCalls++;
+                if (LoadSpinTime is not null)
+                {
+                    await Task.Delay(LoadSpinTime.Value, cancel);
+                }
+
+                if (LoadException is not null)
+                {
+                    throw LoadException;
+                }
+
+                return new(Data.Where(i => i.ContentUrl == contentUrl).ToImmutableArray());
+            }
+        }
+
+        public class TestContentReferenceCache<TContent> : ContentReferenceCacheBase<TContent>
+            where TContent : IContentReference
+        {
+            public TestContentReferenceStore<TContent> TestStore => (TestContentReferenceStore<TContent>)base.Store;
+
+            protected override string Name => "Test";
+
+            public TestContentReferenceCache(ILogger<TestContentReferenceCache<TContent>> logger)
+                : base(new BulkContentReferenceCacheLoadStrategy<TContent>(), new TestContentReferenceStore<TContent>(), logger)
+            { }
         }
 
         public class ContentReferenceCacheBaseTest : AutoFixtureTestBase
         {
-            protected readonly TestContentReferenceCache Cache;
+            protected readonly TestContentReferenceCache<ContentReferenceStub> Cache;
 
             public ContentReferenceCacheBaseTest()
             {
-                Cache = new();
+                Cache = Create<TestContentReferenceCache<ContentReferenceStub>>();
             }
         }
 
@@ -109,63 +140,63 @@ namespace Tableau.Migration.Tests.Unit.Content.Search
             [Fact]
             public async Task CachesByLocationAsync()
             {
-                Cache.SearchData = new[]
+                Cache.TestStore.Data = new[]
                 {
                     Create<ContentReferenceStub>()
                 };
 
-                var searchItem = Cache.SearchData.First();
+                var searchItem = Cache.TestStore.Data.First();
 
                 var result = await Cache.ForLocationAsync(searchItem.Location, Cancel);
-                Assert.Same(searchItem, result);
+                Assert.Equal(searchItem, result);
 
                 //Test value cached.
-                result = await Cache.ForLocationAsync(searchItem.Location, Cancel);
-                Assert.Same(searchItem, result);
+                var result2 = await Cache.ForLocationAsync(searchItem.Location, Cancel);
+                Assert.Same(result, result2);
 
-                Assert.Equal(1, Cache.SearchCalls);
+                Assert.Equal(1, Cache.TestStore.LoadCalls);
             }
 
             [Fact]
             public async Task CachesByIdAsync()
             {
-                Cache.SearchData = new[]
+                Cache.TestStore.Data = new[]
                 {
                     Create<ContentReferenceStub>()
                 };
 
-                var searchItem = Cache.SearchData.First();
+                var searchItem = Cache.TestStore.Data.First();
 
                 var result = await Cache.ForLocationAsync(searchItem.Location, Cancel);
-                Assert.Same(searchItem, result);
+                Assert.Equal(searchItem, result);
 
                 //Test value cached.
-                result = await Cache.ForIdAsync(searchItem.Id, Cancel);
-                Assert.Same(searchItem, result);
+                var result2 = await Cache.ForIdAsync(searchItem.Id, Cancel);
+                Assert.Same(result, result2);
 
-                Assert.Equal(1, Cache.SearchCalls);
+                Assert.Equal(1, Cache.TestStore.LoadCalls);
             }
 
             [Fact]
             public async Task MultipleReturnValuesCachedAsync()
             {
-                Cache.SearchData = new[]
+                Cache.TestStore.Data = new[]
                 {
                     Create<ContentReferenceStub>(),
                     Create<ContentReferenceStub>()
                 };
 
-                var searchItem = Cache.SearchData.First();
-                var extraItem = Cache.SearchData.Last();
+                var searchItem = Cache.TestStore.Data.First();
+                var extraItem = Cache.TestStore.Data.Last();
 
                 var result = await Cache.ForLocationAsync(searchItem.Location, Cancel);
-                Assert.Same(searchItem, result);
+                Assert.Equal(searchItem, result);
 
                 //Test value cached.
                 result = await Cache.ForLocationAsync(extraItem.Location, Cancel);
-                Assert.Same(extraItem, result);
+                Assert.Equal(extraItem, result);
 
-                Assert.Equal(1, Cache.SearchCalls);
+                Assert.Equal(1, Cache.TestStore.LoadCalls);
             }
 
             [Fact]
@@ -179,7 +210,7 @@ namespace Tableau.Migration.Tests.Unit.Content.Search
                 result = await Cache.ForLocationAsync(notFoundItem.Location, Cancel);
                 Assert.Null(result);
 
-                Assert.Equal(1, Cache.SearchCalls);
+                Assert.Equal(2, Cache.TestStore.LoadCalls);
             }
 
             [Fact]
@@ -194,12 +225,12 @@ namespace Tableau.Migration.Tests.Unit.Content.Search
                 result = await Cache.ForLocationAsync(notFoundItem1.Location, Cancel);
                 Assert.Null(result);
 
-                Assert.Equal(1, Cache.SearchCalls);
+                Assert.Equal(2, Cache.TestStore.LoadCalls);
 
                 result = await Cache.ForLocationAsync(notFoundItem2.Location, Cancel);
                 Assert.Null(result);
 
-                Assert.Equal(1, Cache.SearchCalls);
+                Assert.Equal(3, Cache.TestStore.LoadCalls);
             }
 
             // TODO: W-14187810 - Fix Flaky Test.
@@ -207,14 +238,14 @@ namespace Tableau.Migration.Tests.Unit.Content.Search
             [Fact]
             public async Task ThreadSafePopulationAsync()
             {
-                Cache.SearchSpinTime = TimeSpan.FromMilliseconds(500);
+                Cache.TestStore.LoadSpinTime = TimeSpan.FromMilliseconds(500);
 
-                Cache.SearchData = new[]
+                Cache.TestStore.Data = new[]
                 {
                     Create<ContentReferenceStub>()
                 };
 
-                var searchItem = Cache.SearchData.First();
+                var searchItem = Cache.TestStore.Data.First();
 
                 var tasks = new[]
                 {
@@ -231,33 +262,33 @@ namespace Tableau.Migration.Tests.Unit.Content.Search
                 Cancel.ThrowIfCancellationRequested();
 
                 var result = Assert.Single(results.Distinct());
-                Assert.Same(searchItem, result);
-                Assert.Equal(1, Cache.SearchCalls);
+                Assert.Equal(searchItem, result);
+                Assert.Equal(1, Cache.TestStore.LoadCalls);
             }
 
             [Fact]
             public async Task ErrorAllowsSecondPopulationAsync()
             {
-                Cache.SearchSpinTime = TimeSpan.FromMilliseconds(500);
+                Cache.TestStore.LoadSpinTime = TimeSpan.FromMilliseconds(500);
 
-                Cache.SearchData = new[]
+                Cache.TestStore.Data = new[]
                 {
                     Create<ContentReferenceStub>()
                 };
 
                 var errorLoc = Create<ContentLocation>();
-                var successItem = Cache.SearchData.First();
+                var successItem = Cache.TestStore.Data.First();
 
-                Cache.SearchException = new ArgumentException();
+                Cache.TestStore.LoadException = new ArgumentException();
 
                 await Assert.ThrowsAsync<ArgumentException>(() => Cache.ForLocationAsync(errorLoc, Cancel));
 
-                Cache.SearchException = null;
+                Cache.TestStore.LoadException = null;
 
                 var result = await Cache.ForLocationAsync(successItem.Location, Cancel);
 
-                Assert.Same(successItem, result);
-                Assert.Equal(2, Cache.SearchCalls);
+                Assert.Equal(successItem, result);
+                Assert.Equal(2, Cache.TestStore.LoadCalls);
             }
         }
 
@@ -270,33 +301,33 @@ namespace Tableau.Migration.Tests.Unit.Content.Search
             [Fact]
             public async Task CachesByIdAsync()
             {
-                Cache.SearchData = new[]
+                Cache.TestStore.Data = new[]
                 {
                     Create<ContentReferenceStub>()
                 };
 
-                var searchItem = Cache.SearchData.First();
+                var searchItem = Cache.TestStore.Data.First();
 
                 var result = await Cache.ForIdAsync(searchItem.Id, Cancel);
-                Assert.Same(searchItem, result);
+                Assert.Equal(searchItem, result);
 
                 //Test value cached.
-                result = await Cache.ForIdAsync(searchItem.Id, Cancel);
-                Assert.Same(searchItem, result);
+                var result2 = await Cache.ForIdAsync(searchItem.Id, Cancel);
+                Assert.Equal(result, result2);
 
-                Assert.Equal(1, Cache.SearchCalls);
+                Assert.Equal(1, Cache.TestStore.LoadCalls);
             }
 
             [Fact]
             public async Task DoesNotCacheByEmptyIdAsync()
             {
-                Cache.SearchData = new[]
+                Cache.TestStore.Data = new[]
                 {
                    new ContentReferenceStub(Guid.Empty,string.Empty, Create<ContentLocation>()),
                    new ContentReferenceStub(Guid.Empty,string.Empty, Create<ContentLocation>())
                 };
 
-                var searchItem = Cache.SearchData.First();
+                var searchItem = Cache.TestStore.Data.First();
 
                 var result = await Cache.ForIdAsync(searchItem.Id, Cancel);
                 Assert.Null(result);
@@ -305,7 +336,7 @@ namespace Tableau.Migration.Tests.Unit.Content.Search
                 result = await Cache.ForIdAsync(searchItem.Id, Cancel);
                 Assert.Null(result);
 
-                var searchItem2 = Cache.SearchData.Last();
+                var searchItem2 = Cache.TestStore.Data.Last();
 
                 var result2 = await Cache.ForIdAsync(searchItem2.Id, Cancel);
                 Assert.Null(result);
@@ -314,49 +345,49 @@ namespace Tableau.Migration.Tests.Unit.Content.Search
                 result = await Cache.ForIdAsync(searchItem2.Id, Cancel);
                 Assert.Null(result);
 
-                Assert.Equal(0, Cache.SearchCalls);
+                Assert.Equal(0, Cache.TestStore.LoadCalls);
             }
 
             [Fact]
             public async Task CachesByLocationAsync()
             {
-                Cache.SearchData = new[]
+                Cache.TestStore.Data = new[]
                 {
                     Create<ContentReferenceStub>()
                 };
 
-                var searchItem = Cache.SearchData.First();
+                var searchItem = Cache.TestStore.Data.First();
 
                 var result = await Cache.ForIdAsync(searchItem.Id, Cancel);
-                Assert.Same(searchItem, result);
+                Assert.Equal(searchItem, result);
 
                 //Test value cached.
-                result = await Cache.ForLocationAsync(searchItem.Location, Cancel);
-                Assert.Same(searchItem, result);
+                var result2 = await Cache.ForLocationAsync(searchItem.Location, Cancel);
+                Assert.Same(result, result2);
 
-                Assert.Equal(1, Cache.SearchCalls);
+                Assert.Equal(1, Cache.TestStore.LoadCalls);
             }
 
             [Fact]
             public async Task MultipleReturnValuesCachedAsync()
             {
-                Cache.SearchData = new[]
+                Cache.TestStore.Data = new[]
                 {
                     Create<ContentReferenceStub>(),
                     Create<ContentReferenceStub>()
                 };
 
-                var searchItem = Cache.SearchData.First();
-                var extraItem = Cache.SearchData.Last();
+                var searchItem = Cache.TestStore.Data.First();
+                var extraItem = Cache.TestStore.Data.Last();
 
                 var result = await Cache.ForIdAsync(searchItem.Id, Cancel);
-                Assert.Same(searchItem, result);
+                Assert.Equal(searchItem, result);
 
                 //Test value cached.
-                result = await Cache.ForIdAsync(extraItem.Id, Cancel);
-                Assert.Same(extraItem, result);
+                var result2 = await Cache.ForIdAsync(extraItem.Id, Cancel);
+                Assert.Equal(extraItem, result2);
 
-                Assert.Equal(1, Cache.SearchCalls);
+                Assert.Equal(1, Cache.TestStore.LoadCalls);
             }
 
             [Fact]
@@ -370,7 +401,7 @@ namespace Tableau.Migration.Tests.Unit.Content.Search
                 result = await Cache.ForIdAsync(notFoundItem.Id, Cancel);
                 Assert.Null(result);
 
-                Assert.Equal(1, Cache.SearchCalls);
+                Assert.Equal(2, Cache.TestStore.LoadCalls);
             }
 
             // TODO: W-14187810 - Fix Flaky Test.
@@ -378,14 +409,14 @@ namespace Tableau.Migration.Tests.Unit.Content.Search
             [Fact]
             public async Task ThreadSafePopulationAsync()
             {
-                Cache.SearchSpinTime = TimeSpan.FromMilliseconds(500);
+                Cache.TestStore.LoadSpinTime = TimeSpan.FromMilliseconds(500);
 
-                Cache.SearchData = new[]
+                Cache.TestStore.Data = new[]
                 {
                     Create<ContentReferenceStub>()
                 };
 
-                var searchItem = Cache.SearchData.First();
+                var searchItem = Cache.TestStore.Data.First();
 
                 var tasks = new[]
                 {
@@ -402,31 +433,200 @@ namespace Tableau.Migration.Tests.Unit.Content.Search
                 Cancel.ThrowIfCancellationRequested();
 
                 var result = Assert.Single(results.Distinct());
-                Assert.Same(searchItem, result);
-                Assert.Equal(1, Cache.SearchCalls);
+                Assert.Equal(searchItem, result);
+                Assert.Equal(1, Cache.TestStore.LoadCalls);
             }
 
             [Fact]
             public async Task ErrorAllowsSecondPopulationAsync()
             {
-                Cache.SearchData = new[]
+                Cache.TestStore.Data = new[]
                 {
                     Create<ContentReferenceStub>()
                 };
 
                 var errorId = Create<Guid>();
-                var successItem = Cache.SearchData.First();
+                var successItem = Cache.TestStore.Data.First();
 
-                Cache.SearchException = new ArgumentException();
+                Cache.TestStore.LoadException = new ArgumentException();
 
                 await Assert.ThrowsAsync<ArgumentException>(() => Cache.ForIdAsync(errorId, Cancel));
 
-                Cache.SearchException = null;
+                Cache.TestStore.LoadException = null;
 
                 var result = await Cache.ForIdAsync(successItem.Id, Cancel);
 
-                Assert.Same(successItem, result);
-                Assert.Equal(2, Cache.SearchCalls);
+                Assert.Equal(successItem, result);
+                Assert.Equal(2, Cache.TestStore.LoadCalls);
+            }
+        }
+
+        #endregion
+
+        #region - ForContentUrlAsync -
+
+        public sealed class ForContentUrlAsync : ContentReferenceCacheBaseTest
+        {
+            [Fact]
+            public async Task CachesByContentUrlAsync()
+            {
+                Cache.TestStore.Data = new[]
+                {
+                    Create<ContentReferenceStub>()
+                };
+
+                var searchItem = Cache.TestStore.Data.First();
+
+                var result = await Cache.ForContentUrlAsync(searchItem.ContentUrl, Cancel);
+                Assert.Equal(searchItem, result);
+
+                //Test value cached.
+                var result2 = await Cache.ForContentUrlAsync(searchItem.ContentUrl, Cancel);
+                Assert.Equal(result, result2);
+
+                Assert.Equal(1, Cache.TestStore.LoadCalls);
+            }
+
+            [Fact]
+            public async Task DoesNotCacheByEmptyStringAsync()
+            {
+                Cache.TestStore.Data = new[]
+                {
+                   new ContentReferenceStub(Guid.Empty,string.Empty, Create<ContentLocation>()),
+                   new ContentReferenceStub(Guid.Empty,string.Empty, Create<ContentLocation>())
+                };
+
+                var searchItem = Cache.TestStore.Data.First();
+
+                var result = await Cache.ForContentUrlAsync(searchItem.ContentUrl, Cancel);
+                Assert.Null(result);
+
+                //Test value not cached.
+                result = await Cache.ForContentUrlAsync(searchItem.ContentUrl, Cancel);
+                Assert.Null(result);
+
+                var searchItem2 = Cache.TestStore.Data.Last();
+
+                var result2 = await Cache.ForContentUrlAsync(searchItem2.ContentUrl, Cancel);
+                Assert.Null(result);
+
+                //Test value not cached.
+                result = await Cache.ForContentUrlAsync(searchItem2.ContentUrl, Cancel);
+                Assert.Null(result);
+
+                Assert.Equal(0, Cache.TestStore.LoadCalls);
+            }
+
+            [Fact]
+            public async Task CachesByLocationAsync()
+            {
+                Cache.TestStore.Data = new[]
+                {
+                    Create<ContentReferenceStub>()
+                };
+
+                var searchItem = Cache.TestStore.Data.First();
+
+                var result = await Cache.ForContentUrlAsync(searchItem.ContentUrl, Cancel);
+                Assert.Equal(searchItem, result);
+
+                //Test value cached.
+                var result2 = await Cache.ForLocationAsync(searchItem.Location, Cancel);
+                Assert.Same(result, result2);
+
+                Assert.Equal(1, Cache.TestStore.LoadCalls);
+            }
+
+            [Fact]
+            public async Task MultipleReturnValuesCachedAsync()
+            {
+                Cache.TestStore.Data = new[]
+                {
+                    Create<ContentReferenceStub>(),
+                    Create<ContentReferenceStub>()
+                };
+
+                var searchItem = Cache.TestStore.Data.First();
+                var extraItem = Cache.TestStore.Data.Last();
+
+                var result = await Cache.ForContentUrlAsync(searchItem.ContentUrl, Cancel);
+                Assert.Equal(searchItem, result);
+
+                //Test value cached.
+                var result2 = await Cache.ForContentUrlAsync(extraItem.ContentUrl, Cancel);
+                Assert.Equal(extraItem, result2);
+
+                Assert.Equal(1, Cache.TestStore.LoadCalls);
+            }
+
+            [Fact]
+            public async Task NotFoundCachedAsync()
+            {
+                var notFoundItem = Create<ContentReferenceStub>();
+
+                var result = await Cache.ForContentUrlAsync(notFoundItem.ContentUrl, Cancel);
+                Assert.Null(result);
+
+                result = await Cache.ForContentUrlAsync(notFoundItem.ContentUrl, Cancel);
+                Assert.Null(result);
+
+                Assert.Equal(2, Cache.TestStore.LoadCalls);
+            }
+
+            // TODO: W-14187810 - Fix Flaky Test.
+            // Increasing the timeout configuration helps when the test runs in a machine with limited resources.
+            [Fact]
+            public async Task ThreadSafePopulationAsync()
+            {
+                Cache.TestStore.LoadSpinTime = TimeSpan.FromMilliseconds(500);
+
+                Cache.TestStore.Data = new[]
+                {
+                    Create<ContentReferenceStub>()
+                };
+
+                var searchItem = Cache.TestStore.Data.First();
+
+                var tasks = new[]
+                {
+                    Cache.ForContentUrlAsync(searchItem.ContentUrl, Cancel),
+                    Cache.ForContentUrlAsync(searchItem.ContentUrl, Cancel)
+                };
+
+                //Give the test a timeout on deadlock.
+                CancelSource.CancelAfter(TestCancellationTimeout);
+
+                var results = await Task.WhenAll(tasks);
+
+                //Ensure the test didn't timeout.
+                Cancel.ThrowIfCancellationRequested();
+
+                var result = Assert.Single(results.Distinct());
+                Assert.Equal(searchItem, result);
+                Assert.Equal(1, Cache.TestStore.LoadCalls);
+            }
+
+            [Fact]
+            public async Task ErrorAllowsSecondPopulationAsync()
+            {
+                Cache.TestStore.Data = new[]
+                {
+                    Create<ContentReferenceStub>()
+                };
+
+                var errorId = Create<Guid>();
+                var successItem = Cache.TestStore.Data.First();
+
+                Cache.TestStore.LoadException = new ArgumentException();
+
+                await Assert.ThrowsAsync<ArgumentException>(() => Cache.ForIdAsync(errorId, Cancel));
+
+                Cache.TestStore.LoadException = null;
+
+                var result = await Cache.ForContentUrlAsync(successItem.ContentUrl, Cancel);
+
+                Assert.Equal(successItem, result);
+                Assert.Equal(2, Cache.TestStore.LoadCalls);
             }
         }
 
@@ -439,15 +639,15 @@ namespace Tableau.Migration.Tests.Unit.Content.Search
             [Fact]
             public async Task SearchesAllAndCachesAsync()
             {
-                Cache.SearchData = CreateMany<ContentReferenceStub>();
+                Cache.TestStore.Data = CreateMany<ContentReferenceStub>();
                 var result1 = await Cache.GetAllAsync(Cancel);
 
-                Assert.Equal(Cache.SearchData, result1);
-                Assert.Equal(1, Cache.SearchCalls);
+                Assert.Equal(Cache.TestStore.Data, result1);
+                Assert.Equal(1, Cache.TestStore.LoadCalls);
                 
                 var result2 = await Cache.GetAllAsync(Cancel);
                 Assert.Equal(result1, result2);
-                Assert.Equal(1, Cache.SearchCalls);
+                Assert.Equal(1, Cache.TestStore.LoadCalls);
             }
         }
 

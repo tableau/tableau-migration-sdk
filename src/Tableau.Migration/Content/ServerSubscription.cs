@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -15,69 +15,15 @@
 //  limitations under the License.
 //
 
-using System;
-using System.Collections.Immutable;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
-using Tableau.Migration.Api.Rest.Models.Responses.Server;
+using Tableau.Migration.Api.Rest.Models;
 using Tableau.Migration.Content.Schedules.Server;
-using Tableau.Migration.Content.Search;
-using Tableau.Migration.Resources;
 
 namespace Tableau.Migration.Content
 {
     internal sealed class ServerSubscription : SubscriptionBase<IServerSchedule>, IServerSubscription
     {
-        public ServerSubscription(GetSubscriptionsResponse.SubscriptionType sub, IContentReference user, IServerSchedule schedule)
-            : base(sub, user, schedule)
+        public ServerSubscription(ISubscriptionType sub, IContentReference user, IServerSchedule schedule, IContentReference contentReference)
+            : base(sub, user, schedule, contentReference)
         { }
-
-        private static async Task<IServerSubscription> CreateAsync(
-            GetSubscriptionsResponse.SubscriptionType sub,
-            IContentReference user,
-            IContentCacheFactory contentCacheFactory,
-            Func<Guid, CancellationToken, Task<IResult<IServerSchedule>>> getScheduleById,
-            CancellationToken cancel)
-        {
-            var scheduleCache = contentCacheFactory.ForContentType<IServerSchedule>(true);
-
-            var scheduleId = sub.Schedule.Id;
-
-            var schedule = await scheduleCache.ForIdAsync(scheduleId, cancel).ConfigureAwait(false);
-
-            if (schedule == null)
-            {
-
-                var getScheduleResult = await getScheduleById(scheduleId, cancel)
-                    .ConfigureAwait(false);
-
-                if (!getScheduleResult.Success)
-                {
-                    throw new InvalidOperationException($"A schedule could not be fetched for Server Subscription. {sub.Id}");
-                }
-
-                schedule = getScheduleResult.Value;
-                scheduleCache.AddOrUpdate(schedule);
-            }
-
-            Guard.AgainstNull(schedule, nameof(schedule));
-
-            return new ServerSubscription(sub, user, schedule);
-        }
-
-        public static async Task<IImmutableList<IServerSubscription>> CreateManyAsync(
-            GetSubscriptionsResponse response,
-            IContentReferenceFinderFactory finderFactory,
-            IContentCacheFactory contentCacheFactory,
-            Func<System.Guid, CancellationToken, Task<IResult<IServerSchedule>>> getScheduleById,
-            ILogger logger, ISharedResourcesLocalizer localizer,
-            CancellationToken cancel)
-            => await CreateManyAsync(
-                        response,
-                        response => response.Items.ExceptNulls(),
-                        async (r, u, cnl) => await CreateAsync(r, u, contentCacheFactory, getScheduleById, cnl).ConfigureAwait(false),
-                        finderFactory, logger, localizer,
-                        cancel).ConfigureAwait(false);
     }
 }

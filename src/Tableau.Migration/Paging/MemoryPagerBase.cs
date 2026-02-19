@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -27,7 +27,7 @@ namespace Tableau.Migration.Paging
     /// <summary>
     /// <see cref="IPager{TContent}"/> implementation that wraps an in-memory collection.
     /// </summary>
-    internal abstract class MemoryPagerBase<TItem> : IPager<TItem>
+    public abstract class MemoryPagerBase<TItem> : IPager<TItem>
     {
         private readonly int _pageSize;
 
@@ -37,6 +37,10 @@ namespace Tableau.Migration.Paging
         private int _pageNumber;
         private int _offset;
 
+        /// <summary>
+        /// Creates a new <see cref="MemoryPagerBase{TItem}"/> object.
+        /// </summary>
+        /// <param name="pageSize">The page size to page by.</param>
         public MemoryPagerBase(int pageSize)
         {
             _pageSize = pageSize;
@@ -45,8 +49,18 @@ namespace Tableau.Migration.Paging
             _pageNumber = 1;
         }
 
+        /// <summary>
+        /// Loads items asynchronously.
+        /// </summary>
+        /// <param name="cancel">The cancellation token to obey.</param>
+        /// <returns>The loaded items result.</returns>
         protected abstract Task<IResult<IReadOnlyCollection<TItem>>> LoadItemsAsync(CancellationToken cancel);
 
+        /// <summary>
+        /// Gets the next page of content.
+        /// </summary>
+        /// <param name="cancel">The cancellation token to obey.</param>
+        /// <returns>The paged results.</returns>
         public async Task<IPagedResult<TItem>> NextPageAsync(CancellationToken cancel)
         {
             if (_items is null)

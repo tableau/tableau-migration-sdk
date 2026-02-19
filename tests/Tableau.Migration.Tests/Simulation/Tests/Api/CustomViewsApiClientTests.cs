@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -28,12 +28,12 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
         public class CustomViewsApiClientTest : ApiClientTestBase<ICustomViewsApiClient, CustomViewsResponse.CustomViewResponseType>
         { }
 
-        #region - GetAllCustomViewsAsync -
+        #region - GetPageAsync -
 
-        public class GetAllCustomViewsAsync : CustomViewsApiClientTest
+        public class GetPageAsync : CustomViewsApiClientTest
         {
             [Fact]
-            public async Task Returns_success_on_success()
+            public async Task SucceedsAsync()
             {
                 // Arrange 
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
@@ -41,7 +41,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
                 Api.Data.CreateCustomViews(AutoFixture, 11);
 
                 // Act
-                var result = await sitesClient.CustomViews.GetAllCustomViewsAsync(1, 5, Cancel);
+                var result = await sitesClient.CustomViews.GetPageAsync(1, 5, Cancel);
 
                 // Assert                
                 Assert.Empty(result.Errors);
@@ -50,7 +50,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
                 Assert.Equal(5, result.Value.Count);
 
                 // Act
-                result = await sitesClient.CustomViews.GetAllCustomViewsAsync(2, 5, Cancel);
+                result = await sitesClient.CustomViews.GetPageAsync(2, 5, Cancel);
 
                 // Assert                
                 Assert.Empty(result.Errors);
@@ -59,7 +59,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
                 Assert.Equal(5, result.Value.Count);
 
                 // Act
-                result = await sitesClient.CustomViews.GetAllCustomViewsAsync(3, 5, Cancel);
+                result = await sitesClient.CustomViews.GetPageAsync(3, 5, Cancel);
 
                 // Assert                
                 Assert.Empty(result.Errors);
@@ -76,7 +76,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
         public class DownloadCustomViewAsync : CustomViewsApiClientTest
         {
             [Fact]
-            public async Task Returns_success_on_success()
+            public async Task SucceedsAsync()
             {
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
 

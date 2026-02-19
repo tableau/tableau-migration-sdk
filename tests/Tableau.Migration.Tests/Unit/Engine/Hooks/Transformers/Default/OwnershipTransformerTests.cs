@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -19,6 +19,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Moq;
 using Tableau.Migration.Content;
+using Tableau.Migration.Engine.Endpoints.Search;
 using Tableau.Migration.Engine.Hooks.Transformers.Default;
 using Xunit;
 
@@ -26,7 +27,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
 {
     public class OwnershipTransformerTests
     {
-        private class TestOwnershipType : TestContentType, IWithOwner
+        public class TestOwnershipType : TestContentType, IWithOwner
         {
             public IContentReference Owner { get; set; } = null!;
         }
@@ -39,13 +40,16 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
                 var cancel = new CancellationToken();
                 var ctx = Create<TestOwnershipType>();
 
-                var mockUserTransformer = new Mock<IMappedUserTransformer>();
+                var mockUserFinder = Freeze<Mock<IDestinationContentReferenceFinder<IUser>>>();
+
+                var mockFinderFactory = Freeze<Mock<IDestinationContentReferenceFinderFactory>>();
+                mockFinderFactory.Setup(x => x.ForDestinationContentType<IUser>()).Returns(mockUserFinder.Object);
 
                 var mappedRef = Create<IContentReference>();
-                mockUserTransformer.Setup(x => x.ExecuteAsync(ctx.Owner, cancel))
+                mockUserFinder.Setup(x => x.FindBySourceLocationAsync(ctx.Owner.Location, cancel))
                     .ReturnsAsync(mappedRef);
 
-                var transformer = new OwnershipTransformer<TestOwnershipType>(mockUserTransformer.Object);
+                var transformer = Create<OwnershipTransformer<TestOwnershipType>>();
 
                 var result = await transformer.ExecuteAsync(ctx, cancel);
 

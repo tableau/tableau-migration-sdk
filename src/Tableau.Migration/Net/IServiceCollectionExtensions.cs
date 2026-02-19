@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -119,9 +119,12 @@ namespace Tableau.Migration.Net
 
             //Bootstrap and scope state tracking services.
             services
-                .AddScoped<RequestBuilderFactoryInput>()
-                .AddScoped<IRequestBuilderFactoryInput>(p => p.GetRequiredService<RequestBuilderFactoryInput>())
-                .AddScoped<IRequestBuilderFactoryInputInitializer>(p => p.GetRequiredService<RequestBuilderFactoryInput>());
+                .AddScoped<RestRequestBuilderFactoryInput>()
+                .AddScoped<IRestRequestBuilderFactoryInput>(p => p.GetRequiredService<RestRequestBuilderFactoryInput>())
+                .AddScoped<IRestRequestBuilderFactoryInputInitializer>(p => p.GetRequiredService<RestRequestBuilderFactoryInput>())
+                .AddScoped<RequestBuilderFactoryInput>(p => p.GetRequiredService<RestRequestBuilderFactoryInput>())
+                .AddScoped<IRequestBuilderFactoryInput>(p => p.GetRequiredService<RestRequestBuilderFactoryInput>())
+                .AddScoped<IRequestBuilderFactoryInputInitializer>(p => p.GetRequiredService<RestRequestBuilderFactoryInput>());
 
             services
                 .AddScoped<IAuthenticationTokenProvider, AuthenticationTokenProvider>()

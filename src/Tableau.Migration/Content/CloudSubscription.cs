@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -16,22 +16,16 @@
 //
 
 using System;
-using System.Collections.Immutable;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 using Tableau.Migration.Api.Rest.Models;
 using Tableau.Migration.Api.Rest.Models.Responses.Cloud;
 using Tableau.Migration.Content.Schedules.Cloud;
-using Tableau.Migration.Content.Search;
-using Tableau.Migration.Resources;
 
 namespace Tableau.Migration.Content
 {
     internal sealed class CloudSubscription : SubscriptionBase<ICloudSchedule>, ICloudSubscription
     {
-        public CloudSubscription(ISubscriptionType subscription, IContentReference user, ICloudScheduleType schedule)
-            : base(subscription, user, new CloudSchedule(schedule))
+        public CloudSubscription(ISubscriptionType subscription, IContentReference user, ICloudScheduleType schedule, IContentReference contentReference)
+            : base(subscription, user, new CloudSchedule(schedule), contentReference)
         { }
 
         public CloudSubscription(Guid id, string? subject, bool attachImage, bool attachPdf,
@@ -40,17 +34,5 @@ namespace Tableau.Migration.Content
             : base(id, subject, attachImage, attachPdf, pageOrientation, pageSizeOption, suspended, message, content,
                   user, schedule)
         { }
-
-        public static async Task<IImmutableList<ICloudSubscription>> CreateManyAsync(
-            GetSubscriptionsResponse response,
-            IContentReferenceFinderFactory finderFactory,
-            ILogger logger, ISharedResourcesLocalizer localizer,
-            CancellationToken cancel)
-            => await CreateManyAsync(
-                response,
-                response => response.Items.ExceptNulls(),
-                (r, u, cnl) => Task.FromResult<ICloudSubscription>(new CloudSubscription(r, u, Guard.AgainstNull(r.Schedule, () => r.Schedule))),
-                finderFactory, logger, localizer,
-                cancel).ConfigureAwait(false);
     }
 }

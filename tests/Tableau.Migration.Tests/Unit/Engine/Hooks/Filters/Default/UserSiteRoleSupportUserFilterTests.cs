@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -30,11 +30,13 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Filters.Default
 {
     public class UserSiteRoleSupportUserFilterTests : AutoFixtureTestBase
     {
-        MockSharedResourcesLocalizer _mockLocalizer = new();
-        Mock<ILogger<IContentFilter<IUser>>> _mockLogger = new();
+        private readonly MockSharedResourcesLocalizer _mockLocalizer = new();
+        private readonly Mock<ILogger<IContentFilter<IUser>>> _mockLogger;
 
         public UserSiteRoleSupportUserFilterTests()
-        { }
+        {
+            _mockLogger = Create<Mock<ILogger<IContentFilter<IUser>>>>();
+        }
 
         public class ShouldMigrate : UserSiteRoleSupportUserFilterTests
         {

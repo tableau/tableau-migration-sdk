@@ -28,7 +28,7 @@ jobs:
     name: Test .NET (${{ matrix.os }}, ${{ matrix.config }}, .NET ${{ matrix.dotnet-version }})
     steps:
       # Checkout the repository
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       # Clean all existing .NET installations
       - name: Clean existing .NET installations
@@ -40,15 +40,15 @@ jobs:
         with:
           dotnet-version: ${{ matrix.dotnet-version }}
 
-      # Setup .NET 9 SDK (Needed to run dotnet test in any matrix)
-      - name: Setup .NET 9 SDK (for build compatibility)
-        uses: actions/setup-dotnet@v4
+      # Setup .NET global.json SDK (Needed to run dotnet test in any matrix)
+      - name: Setup .NET ${{ inputs.dotnet-build-version }} SDK (for build compatibility)
+        uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: '9.0.x'
+          dotnet-version: ${{ inputs.dotnet-build-version }} # Use the input for .NET version
 
       # Cache NuGet packages based on the lock file and .NET version
       - name: Cache NuGet packages
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.nuget/packages
           key: ${{ runner.os }}-nuget-${{ matrix.dotnet-version }}-${{ hashFiles('**/packages.lock.json') }}
@@ -68,7 +68,7 @@ jobs:
 
       # Download built binaries
       - name: Download Build Output
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: build-output-${{ matrix.config }}-net${{ inputs.dotnet-build-version }}
           path: ./
@@ -101,7 +101,7 @@ jobs:
       # Upload test results
       - name: Upload Test Results
         if: ${{ always() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: dotnet-results-${{ matrix.os }}-${{ matrix.config }}-net${{ matrix.dotnet-version }}
           path: TestResults-${{ matrix.os }}-${{ matrix.config }}-net${{ matrix.dotnet-version }}

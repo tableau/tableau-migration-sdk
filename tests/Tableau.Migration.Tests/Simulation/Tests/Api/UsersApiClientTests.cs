@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -42,10 +42,10 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
             }
         }
 
-        public class GetAllUsersAsync : UsersApiClientTest
+        public class GetPageAsync : UsersApiClientTest
         {
             [Fact]
-            public async Task Returns_success_on_success()
+            public async Task SucceedsAsync()
             {
                 // Arrange 
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
@@ -58,7 +58,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
                 }
 
                 // Act
-                var result = await sitesClient.Users.GetAllUsersAsync(1, 100, Cancel);
+                var result = await sitesClient.Users.GetPageAsync(1, 100, Cancel);
 
                 // Assert
                 Assert.True(result.Success);
@@ -66,13 +66,13 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
             }
 
             [Fact]
-            public async Task Returns_success_with_only_default_user()
+            public async Task SucceedsWithOnlyDefaultUserAsync()
             {
                 // Arrange 
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
 
                 // Act
-                var result = await sitesClient.Users.GetAllUsersAsync(1, 100, Cancel);
+                var result = await sitesClient.Users.GetPageAsync(1, 100, Cancel);
 
                 // Assert
                 Assert.True(result.Success);
@@ -83,7 +83,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
         public class GetUserGroupsAsync : UsersApiClientTest
         {
             [Fact]
-            public async Task Returns_success_on_success()
+            public async Task SucceedsAsync()
             {
                 // Arrange 
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
@@ -120,7 +120,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
             }
 
             [Fact]
-            public async Task Returns_success_with_no_item_when_no_groups_exist()
+            public async Task NoGroupsEmptyAsync()
             {
                 // Arrange 
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
@@ -150,7 +150,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
         public class AddUserAsync : UsersApiClientTest
         {
             [Fact]
-            public async Task Returns_success()
+            public async Task SucceedsAsync()
             {
                 // Arrange 
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
@@ -172,7 +172,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
         public class UpdateUserAsync : UsersApiClientTest
         {
             [Fact]
-            public async Task Returns_success()
+            public async Task SucceedsAsync()
             {
                 // Arrange 
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
@@ -208,7 +208,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
                 Assert.Equal(newAuthSetting, updateResult.Value?.Authentication.AuthenticationType);
 
                 // Query the user and then check if the simulation tests really updated the user.
-                var getResult = await sitesClient.Users.GetAllUsersAsync(1, 100, Cancel);
+                var getResult = await sitesClient.Users.GetPageAsync(1, 100, Cancel);
 
                 Assert.True(getResult.Success);
                 var updatedUser = getResult.Value.First(u => u.Id == addedUserId);
@@ -218,7 +218,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
             }
 
             [Fact]
-            public async Task Returns_error_when_nothing_to_update()
+            public async Task NoUpdateErrorAsync()
             {
                 // Arrange 
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
@@ -238,7 +238,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
                 Assert.NotEmpty(updateResult.Errors);
 
                 // Query the user and then check if the simulation tests didn't add the user.
-                var getResult = await sitesClient.Users.GetAllUsersAsync(1, 100, Cancel);
+                var getResult = await sitesClient.Users.GetPageAsync(1, 100, Cancel);
 
                 Assert.True(getResult.Success);
                 var updatedUser = getResult.Value.FirstOrDefault(u => u.Id == addedUserId);

@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -16,14 +16,15 @@
 //
 
 using System;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Tableau.Migration.Api.EmbeddedCredentials;
 using Tableau.Migration.Api.Models;
+using Tableau.Migration.Api.Paging;
 using Tableau.Migration.Api.Permissions;
 using Tableau.Migration.Api.Tags;
 using Tableau.Migration.Content;
-using Tableau.Migration.Paging;
 
 namespace Tableau.Migration.Api
 {
@@ -31,33 +32,15 @@ namespace Tableau.Migration.Api
     /// Interface for API client workbook operations.
     /// </summary>
     public interface IWorkbooksApiClient :
-        IPagedListApiClient<IWorkbook>,
+        IApiFilteredPageAccessor<IWorkbook>, IContentUrlSearchApiClient<IWorkbook>, INameSearchApiClient<IWorkbook>,
+        IReadApiClient<IWorkbook>, IReadApiClient<IWorkbookDetails>, IPullApiClient<IWorkbook, IPublishableWorkbook>,
         IPublishApiClient<IPublishableWorkbook, IWorkbookDetails>,
-        IPullApiClient<IWorkbook, IPublishableWorkbook>,
         IOwnershipApiClient,
         ITagsContentApiClient,
-        IApiPageAccessor<IWorkbook>,
         IPermissionsContentApiClient,
         IConnectionsApiClient,
         IEmbeddedCredentialsContentApiClient
     {
-        /// <summary>
-        /// Gets all workbooks in the current site except the ones in the Personal Space.
-        /// </summary>
-        /// <param name="pageNumber">The 1-indexed page number.</param>
-        /// <param name="pageSize">The size of the page.</param>
-        /// <param name="cancel">The cancellation token to obey.</param>
-        /// <returns>A list of a page of workbooks in the current site.</returns>
-        Task<IPagedResult<IWorkbook>> GetAllWorkbooksAsync(int pageNumber, int pageSize, CancellationToken cancel);
-
-        /// <summary>
-        /// Gets a workbook by the given ID.
-        /// </summary>
-        /// <param name="workbookId">The ID to get the workbook for.</param>
-        /// <param name="cancel">The cancellation token to obey.</param>
-        /// <returns>The data sorce result.</returns>
-        Task<IResult<IWorkbookDetails>> GetWorkbookAsync(Guid workbookId, CancellationToken cancel);
-
         /// <summary>
         /// Downloads the workbook file for the given ID.
         /// </summary>
@@ -101,5 +84,13 @@ namespace Tableau.Migration.Api
             bool? newShowTabs = null,
             bool? newRecentlyViewed = null,
             bool? newEncryptExtracts = null);
+
+        /// <summary>
+        /// Gets the views for a workbook by the given workbook ID.
+        /// </summary>
+        /// <param name="workbookId">The ID of the workbook to get views for.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
+        /// <returns>A list of views for the workbook.</returns>
+        Task<IResult<IImmutableList<IWorkbookView>>> GetWorkbookViewsAsync(Guid workbookId, CancellationToken cancel);
     }
 }

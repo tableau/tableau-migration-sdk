@@ -1,5 +1,5 @@
 //
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -26,6 +26,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Tableau.Migration.Api.Models;
+using Tableau.Migration.Api.Paging;
 using Tableau.Migration.Api.Rest;
 using Tableau.Migration.Api.Rest.Models;
 using Tableau.Migration.Api.Rest.Models.Requests;
@@ -80,21 +81,7 @@ namespace Tableau.Migration.Api
         }
 
         /// <inheritdoc />
-        public async Task<IPagedResult<IUser>> GetAllUsersAsync(int pageNumber, int pageSize, CancellationToken cancel)
-        {
-            var getAllUsersResult = await RestRequestBuilderFactory
-                .CreateUri($"/{RestUrlKeywords.Users}")
-                .WithPage(pageNumber, pageSize)
-                .ForGetRequest()
-                .SendAsync<UsersResponse>(cancel)
-                .ToPagedResultAsync(r => r.GetUsersFromResponse(), SharedResourcesLocalizer)
-                .ConfigureAwait(false);
-
-            return getAllUsersResult;
-        }
-
-        /// <inheritdoc />
-        public async Task<IPagedResult<UsersResponse.UserType>> GetAllUsersAsync(int pageNumber, int pageSize, IEnumerable<Filter> filters, CancellationToken cancel)
+        public async Task<IPagedResult<IUser>> GetAllUsersAsync(int pageNumber, int pageSize, IEnumerable<Filter> filters, CancellationToken cancel)
         {
             var getAllUsersResult = await RestRequestBuilderFactory
                 .CreateUri($"/{RestUrlKeywords.Users}")
@@ -102,7 +89,7 @@ namespace Tableau.Migration.Api
                 .WithFilters(filters)
                 .ForGetRequest()
                 .SendAsync<UsersResponse>(cancel)
-                .ToPagedResultAsync(r => r.Items.ToImmutableArray(), SharedResourcesLocalizer)
+                .ToPagedResultAsync(r => r.GetUsersFromResponse(), SharedResourcesLocalizer)
                 .ConfigureAwait(false);
 
             return getAllUsersResult;
@@ -189,18 +176,20 @@ namespace Tableau.Migration.Api
                 return userResult;
             }
 
-            // Name filter should be enough. 
-            // Manual testing showed that multiple users with the same name but different auth type/domains are not permitted.
             var filters = new List<Filter>
             {
                 new Filter("name", FilterOperator.CaseInsensitiveEqual, userName)
             };
 
-            // We grab two items here so we'll know if we match > 1.
-            // This theoretically shouldn't happen but just in case.
-            var existingUserResult = await GetAllUsersAsync(1, 2, filters, cancel).ConfigureAwait(false);
+            /* Name filter should be enough. 
+             * Manual testing showed that multiple users with the same name but different auth type/domains are not permitted.
+             * 
+             * We grab two items here so we'll know if we match > 1.
+             * This theoretically shouldn't happen but just in case.
+             */
+            var existingUserResult = await ((INameSearchApiClient<IUser>)this).SearchByNameAsync(userName, 2, cancel).ConfigureAwait(false);
 
-            if (existingUserResult.Success && existingUserResult.TotalCount == 1)
+            if (existingUserResult.Success && existingUserResult.Value.Count == 1)
             {
                 var existingUser = existingUserResult.Value[0];
 
@@ -212,8 +201,8 @@ namespace Tableau.Migration.Api
                         Id = existingUser.Id,
                         Name = existingUser.Name,
                         SiteRole = existingUser.SiteRole,
-                        AuthSetting = existingUser.AuthSetting,
-                        IdpConfigurationId = existingUser.IdpConfigurationId
+                        AuthSetting = existingUser.Authentication.AuthenticationType,
+                        IdpConfigurationId = existingUser.Authentication.IdpConfigurationId?.ToString()
                     }
                 };
 
@@ -354,7 +343,30 @@ namespace Tableau.Migration.Api
 
         /// <inheritdoc />
         public async Task<IPagedResult<IUser>> GetPageAsync(int pageNumber, int pageSize, CancellationToken cancel)
-            => await GetAllUsersAsync(pageNumber, pageSize, cancel).ConfigureAwait(false);
+            => await GetAllUsersAsync(pageNumber, pageSize, [], cancel).ConfigureAwait(false);
+
+        #endregion
+
+        #region - IApiFilteredPageAccessor<IUser> Implementation -
+
+        /// <inheritdoc />
+        public async Task<IPagedResult<IUser>> GetPageAsync(IEnumerable<Filter> filters, int pageNumber, int pageSize, CancellationToken cancel)
+            => await GetAllUsersAsync(pageNumber, pageSize, filters, cancel).ConfigureAwait(false);
+
+        #endregion
+
+        #region - IFilteredPagedListApiClient<IUser> Implementation -
+
+        /// <inheritdoc />
+        public IPager<IUser> GetPager(IEnumerable<Filter> filters, int pageSize)
+            => new ApiFilteredListPager<IUser>(this, filters, pageSize);
+
+        #endregion
+
+        #region - INameSearchApiClient<IUser> Implementation -
+
+        /// <inheritdoc />
+        FilterOperator INameSearchApiClient<IUser>.NameFilterOperator { get; } = FilterOperator.CaseInsensitiveEqual;
 
         #endregion
 

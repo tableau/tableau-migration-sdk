@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -16,6 +16,7 @@
 //
 
 using Tableau.Migration.Api;
+using Tableau.Migration.Engine.Services;
 
 namespace Tableau.Migration.Engine.Endpoints
 {
@@ -23,12 +24,14 @@ namespace Tableau.Migration.Engine.Endpoints
     /// Interface for an object describing a source or destination endpoint defined in a <see cref="IMigrationPlan"/>.
     /// </summary>
     /// <param name="SiteConnectionConfiguration"><inheritdoc /></param>
-    public record TableauApiEndpointConfiguration(TableauSiteConnectionConfiguration SiteConnectionConfiguration) : ITableauApiEndpointConfiguration
+    /// <param name="Services"><inheritdoc /></param>
+    public record TableauApiEndpointConfiguration(TableauSiteConnectionConfiguration SiteConnectionConfiguration, IMigrationServiceFactoryCollection Services) 
+        : ITableauApiEndpointConfiguration
     {
         /// <summary>
         /// A <see cref="TableauApiEndpointConfiguration"/> with empty values, useful to detect if an endpoint has not yet been configured without using null.
         /// </summary>
-        public static readonly TableauApiEndpointConfiguration Empty = new(TableauSiteConnectionConfiguration.Empty);
+        public static readonly TableauApiEndpointConfiguration Empty = new(TableauSiteConnectionConfiguration.Empty, MigrationServiceBuilder.Empty);
 
         /// <inheritdoc />
         public IResult Validate() => SiteConnectionConfiguration.Validate();

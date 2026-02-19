@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -15,8 +15,8 @@
 //  limitations under the License.
 //
 
-using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Moq;
 using Tableau.Migration.Api;
@@ -25,8 +25,8 @@ using Tableau.Migration.Api.Rest.Models;
 using Tableau.Migration.Api.Rest.Models.Responses;
 using Tableau.Migration.Api.Rest.Models.Types;
 using Tableau.Migration.Content;
+using Tableau.Migration.Content.Permissions;
 using Tableau.Migration.Tests.Content.Permissions;
-using Tableau.Migration.Tests.Unit.Content.Permissions;
 using Xunit;
 
 namespace Tableau.Migration.Tests.Simulation.Tests.Api
@@ -92,22 +92,23 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
                 var testProject = Create<ProjectsResponse.ProjectType>();
                 Api.Data.Projects.Add(testProject);
 
+                var testGrantee = Create<IContentReference>();
                 var testGranteeCapabilities = new GranteeCapabilityType[]
                                          {
                                             new GranteeCapabilityType()
                                             {
-                                                User= new GranteeCapabilityType.UserType()
+                                                User = new GranteeCapabilityType.UserType()
                                                 {
-                                                    Id=Guid.NewGuid()
+                                                    Id = testGrantee.Id
                                                 },
-                                                Capabilities = new CapabilityType[]
-                                                {
+                                                Capabilities =
+                                                [
                                                     new CapabilityType()
                                                     {
                                                         Name= PermissionsCapabilityNames.Read,
                                                         Mode= PermissionsCapabilityModes.Allow
                                                     }
-                                                }
+                                                ]
                                             }
                                          };
 
@@ -115,6 +116,10 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
                 {
                     GranteeCapabilities = testGranteeCapabilities
                 };
+
+                var testUser = Create<UsersResponse.UserType>();
+                testUser.Id = testGrantee.Id;
+                Api.Data.AddUser(testUser);
 
                 Api.Data.AddProjectPermissions(testProject, testPermissions);
 
@@ -126,7 +131,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
                 var permissions = result.Value;
                 Assert.NotNull(permissions);
 
-                Assert.Equal(testGranteeCapabilities.ToIGranteeCapabilities(), permissions.GranteeCapabilities, IGranteeCapabilityComparer.Instance);
+                Assert.Equal([new GranteeCapability(testGrantee, testGranteeCapabilities.Single())], permissions.GranteeCapabilities, IGranteeCapabilityComparer.Instance);
             }
         }
 

@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -17,6 +17,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -51,6 +52,19 @@ namespace Tableau.Migration.Content.Schedules.Cloud
                 finderFactory, logger, localizer,
                 cancel)
                 .ConfigureAwait(false);
+
+        public static async Task<ICloudExtractRefreshTask> CreateAsync(
+            ExtractRefreshTaskResponse response,
+            IContentReferenceFinderFactory finderFactory,
+            ILogger logger, ISharedResourcesLocalizer localizer,
+            CancellationToken cancel)
+            => (await CreateManyAsync<ExtractRefreshTaskResponse, ExtractRefreshTaskResponse.TaskType.ExtractRefreshType, ICloudExtractRefreshTask>(
+                response,
+                response => [Guard.AgainstNull(response.Item?.ExtractRefresh, nameof(response.Item.ExtractRefresh))],
+                (r, c, cnl) => Task.FromResult(Create(r, r.Schedule, c)),
+                finderFactory, logger, localizer,
+                cancel)
+                .ConfigureAwait(false)).Single();
 
         public static ICloudExtractRefreshTask Create(
             IExtractRefreshType response,

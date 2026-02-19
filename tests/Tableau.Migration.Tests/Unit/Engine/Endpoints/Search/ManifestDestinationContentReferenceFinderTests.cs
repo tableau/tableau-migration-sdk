@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -21,7 +21,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Moq;
+using Tableau.Migration.Content;
 using Tableau.Migration.Content.Search;
+using Tableau.Migration.Engine.Endpoints.Caching;
 using Tableau.Migration.Engine.Endpoints.Search;
 using Tableau.Migration.Engine.Hooks.Mappings;
 using Tableau.Migration.Engine.Manifest;
@@ -36,6 +38,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints.Search
         {
             protected readonly IMigrationManifestEditor Manifest;
             protected readonly Mock<IContentReferenceCache> MockCache;
+            protected readonly Mock<IManifestUpdateSourceContentReferenceCache<TestContentType>> MockManifestUpdateCache;
 
             protected readonly ManifestDestinationContentReferenceFinder<TestContentType> Finder;
 
@@ -49,13 +52,24 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints.Search
                 mockPipeline.Setup(x => x.CreateDestinationCache<TestContentType>())
                     .Returns(MockCache.Object);
 
-                Finder = new ManifestDestinationContentReferenceFinder<TestContentType>(Manifest, mockPipeline.Object);
+                MockManifestUpdateCache = Freeze<Mock<IManifestUpdateSourceContentReferenceCache<TestContentType>>>();
+
+                Finder = new ManifestDestinationContentReferenceFinder<TestContentType>(Manifest, mockPipeline.Object, MockManifestUpdateCache.Object);
+            }
+
+            protected IMigrationManifestEntryEditor CreateManifestEntry(TestContentType item)
+            {
+                var entryBuilder = Manifest.Entries.GetOrCreatePartition<TestContentType>().GetEntryBuilder(1);
+                var entry = new MigrationManifestEntry(entryBuilder, new ContentReferenceStub(item));
+                entry.MapToDestination(Create<ContentLocation>());
+
+                return entry;
             }
         }
 
-        #region - FindDestinationReferenceAsync -
+        #region - FindBySourceLocationAsync -
 
-        public sealed class FindDestinationReferenceAsync : LocationDestinationContentFinderTest
+        public sealed class FindBySourceLocationAsync : LocationDestinationContentFinderTest
         {
             [Fact]
             public async Task FindsWithCachedMappedLocationAsync()
@@ -81,7 +95,48 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints.Search
             }
 
             [Fact]
-            public async Task FindsById()
+            public async Task FindsWithDynamicManifestAsync()
+            {
+                var sourceItem = Create<TestContentType>();
+                var newManifestEntry = CreateManifestEntry(sourceItem);
+
+                MockManifestUpdateCache.Setup(x => x.UpdateManifestByLocationAsync(sourceItem.Location, Cancel))
+                    .ReturnsAsync(newManifestEntry);
+
+                var cacheItem = Create<IContentReference>();
+                MockCache.Setup(x => x.ForLocationAsync(newManifestEntry.MappedLocation, Cancel))
+                    .ReturnsAsync(cacheItem);
+
+                var result = await Finder.FindBySourceLocationAsync(sourceItem.Location, Cancel);
+
+                Assert.Same(cacheItem, result);
+
+                MockManifestUpdateCache.Verify(x => x.UpdateManifestByLocationAsync(sourceItem.Location, Cancel), Times.Once);
+                MockCache.Verify(x => x.ForLocationAsync(newManifestEntry.MappedLocation, Cancel), Times.Once);
+            }
+
+            [Fact]
+            public async Task ReturnsNullWhenLocationNotFoundAsync()
+            {
+                MockManifestUpdateCache.Setup(x => x.UpdateManifestByLocationAsync(It.IsAny<ContentLocation>(), Cancel))
+                    .ReturnsAsync((IMigrationManifestEntryEditor?)null);
+
+                var result = await Finder.FindBySourceLocationAsync(Create<ContentLocation>(), Cancel);
+
+                Assert.Null(result);
+
+                MockCache.Verify(x => x.ForLocationAsync(It.IsAny<ContentLocation>(), It.IsAny<CancellationToken>()), Times.Never);
+            }
+        }
+
+        #endregion
+
+        #region - FindBySourceIdAsync -
+
+        public sealed class FindBySourceIdAsync : LocationDestinationContentFinderTest
+        {
+            [Fact]
+            public async Task FindsByIdAsync()
             {
                 var sourceItem = Create<TestContentType>();
                 sourceItem.Location = Create<ContentLocation>();
@@ -102,27 +157,48 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints.Search
             }
 
             [Fact]
-            public async Task ReturnsNullWhenLocationNotFound()
+            public async Task FindsWithDynamicManifestAsync()
             {
-                var result = await Finder.FindBySourceLocationAsync(Create<ContentLocation>(), Cancel);
+                var sourceItem = Create<TestContentType>();
+                var newManifestEntry = CreateManifestEntry(sourceItem);
 
-                Assert.Null(result);
+                MockManifestUpdateCache.Setup(x => x.UpdateManifestByIdAsync(sourceItem.Id, Cancel))
+                    .ReturnsAsync(newManifestEntry);
 
-                MockCache.Verify(x => x.ForLocationAsync(It.IsAny<ContentLocation>(), It.IsAny<CancellationToken>()), Times.Never);
+                var cacheItem = Create<IContentReference>();
+                MockCache.Setup(x => x.ForLocationAsync(newManifestEntry.MappedLocation, Cancel))
+                    .ReturnsAsync(cacheItem);
+
+                var result = await Finder.FindBySourceIdAsync(sourceItem.Id, Cancel);
+
+                Assert.Same(cacheItem, result);
+
+                MockManifestUpdateCache.Verify(x => x.UpdateManifestByIdAsync(sourceItem.Id, Cancel), Times.Once);
+                MockCache.Verify(x => x.ForLocationAsync(newManifestEntry.MappedLocation, Cancel), Times.Once);
             }
 
             [Fact]
-            public async Task ReturnsNullWhenIdNotFound()
+            public async Task ReturnsNullWhenIdNotFoundAsync()
             {
+                MockManifestUpdateCache.Setup(x => x.UpdateManifestByIdAsync(It.IsAny<Guid>(), Cancel))
+                    .ReturnsAsync((IMigrationManifestEntryEditor?)null);
+
                 var result = await Finder.FindBySourceIdAsync(Create<Guid>(), Cancel);
 
                 Assert.Null(result);
 
                 MockCache.Verify(x => x.ForLocationAsync(It.IsAny<ContentLocation>(), It.IsAny<CancellationToken>()), Times.Never);
             }
+        }
 
+        #endregion
+
+        #region - FindBySourceContentUrlAsync -
+
+        public sealed class FindBySourceContentUrlAsync : LocationDestinationContentFinderTest
+        {
             [Fact]
-            public async Task FindsByContentUrl()
+            public async Task FindsByContentUrlAsync()
             {
                 var sourceItem = Create<TestContentType>();
                 sourceItem.Location = Create<ContentLocation>();
@@ -143,8 +219,32 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints.Search
             }
 
             [Fact]
-            public async Task ReturnsNullWhenContentUrlNotFound()
+            public async Task FindsWithDynamicManifestAsync()
             {
+                var sourceItem = Create<TestContentType>();
+                var newManifestEntry = CreateManifestEntry(sourceItem);
+
+                MockManifestUpdateCache.Setup(x => x.UpdateManifestByContentUrlAsync(sourceItem.ContentUrl, Cancel))
+                    .ReturnsAsync(newManifestEntry);
+
+                var cacheItem = Create<IContentReference>();
+                MockCache.Setup(x => x.ForLocationAsync(newManifestEntry.MappedLocation, Cancel))
+                    .ReturnsAsync(cacheItem);
+
+                var result = await Finder.FindBySourceContentUrlAsync(sourceItem.ContentUrl, Cancel);
+
+                Assert.Same(cacheItem, result);
+
+                MockManifestUpdateCache.Verify(x => x.UpdateManifestByContentUrlAsync(sourceItem.ContentUrl, Cancel), Times.Once);
+                MockCache.Verify(x => x.ForLocationAsync(newManifestEntry.MappedLocation, Cancel), Times.Once);
+            }
+
+            [Fact]
+            public async Task ReturnsNullWhenContentUrlNotFoundAsync()
+            {
+                MockManifestUpdateCache.Setup(x => x.UpdateManifestByContentUrlAsync(It.IsAny<string>(), Cancel))
+                    .ReturnsAsync((IMigrationManifestEntryEditor?)null);
+
                 var result = await Finder.FindBySourceContentUrlAsync(Create<string>(), Cancel);
 
                 Assert.Null(result);
@@ -155,9 +255,9 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints.Search
 
         #endregion
 
-        #region - FindMappedDestinationReferenceAsync -
+        #region - FindByMappedLocationAsync -
 
-        public sealed class FindMappedDestinationReferenceAsync : LocationDestinationContentFinderTest
+        public sealed class FindByMappedLocationAsync : LocationDestinationContentFinderTest
         {
             [Fact]
             public async Task FindsWithMappedLocationFromManifestAsync()

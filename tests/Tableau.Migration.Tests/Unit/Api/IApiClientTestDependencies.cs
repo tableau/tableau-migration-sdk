@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -44,7 +44,7 @@ namespace Tableau.Migration.Tests.Unit.Api
         Mock<ILogger> MockLogger { get; }
         Mock<ILoggerFactory> MockLoggerFactory { get; }
         Mock<IPermissionsApiClientFactory> MockPermissionsClientFactory { get; }
-        Mock<IRequestBuilderFactoryInput> MockRequestBuilderInput { get; }
+        Mock<IRestRequestBuilderFactoryInput> MockRestRequestBuilderInput { get; }
         Mock<IServerSessionProvider> MockSessionProvider { get; }
         MockSharedResourcesLocalizer MockSharedResourcesLocalizer { get; }
         TestHttpStreamProcessor HttpStreamProcessor { get; }

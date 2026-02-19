@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -23,6 +23,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Tableau.Migration.Api.Models;
+using Tableau.Migration.Api.Paging;
 using Tableau.Migration.Api.Rest;
 using Tableau.Migration.Api.Rest.Models;
 using Tableau.Migration.Api.Rest.Models.Requests;
@@ -108,10 +109,6 @@ namespace Tableau.Migration.Api
         }
 
         /// <inheritdoc />
-        public async Task<IPagedResult<IGroup>> GetAllGroupsAsync(int pageNumber, int pageSize, CancellationToken cancel)
-            => await GetAllGroupsAsync(pageNumber, pageSize, Enumerable.Empty<Filter>(), cancel).ConfigureAwait(false);
-
-        /// <inheritdoc />
         public async Task<IPagedResult<IGroup>> GetAllGroupsAsync(int pageNumber, int pageSize, IEnumerable<Filter> filters, CancellationToken cancel)
         {
             var getAllGroupsResult = await RestRequestBuilderFactory
@@ -184,14 +181,37 @@ namespace Tableau.Migration.Api
 
         public IPager<IGroup> GetPager(int pageSize) => new ApiListPager<IGroup>(this, pageSize);
 
-        #endregion - IPagedListApiClient<IGroup> Implementation -
+        #endregion
 
         #region - IApiPageAccessor<IGroup> Implementation -
 
         public async Task<IPagedResult<IGroup>> GetPageAsync(int pageNumber, int pageSize, CancellationToken cancel)
-            => await GetAllGroupsAsync(pageNumber, pageSize, cancel).ConfigureAwait(false);
+            => await GetAllGroupsAsync(pageNumber, pageSize, [], cancel).ConfigureAwait(false);
 
-        #endregion - IApiPageAccessor<IGroup> Implementation -
+        #endregion
+
+        #region - IApiFilteredPageAccessor<IGroup> Implementation -
+
+        /// <inheritdoc />
+        public async Task<IPagedResult<IGroup>> GetPageAsync(IEnumerable<Filter> filters, int pageNumber, int pageSize, CancellationToken cancel)
+            => await GetAllGroupsAsync(pageNumber, pageSize, filters, cancel).ConfigureAwait(false);
+
+        #endregion
+
+        #region - IFilteredPagedListApiClient<IGroup> Implementation -
+
+        /// <inheritdoc />
+        public IPager<IGroup> GetPager(IEnumerable<Filter> filters, int pageSize)
+            => new ApiFilteredListPager<IGroup>(this, filters, pageSize);
+
+        #endregion
+
+        #region - INameSearchApiClient<IGroup> Implementation -
+
+        /// <inheritdoc />
+        FilterOperator INameSearchApiClient<IGroup>.NameFilterOperator { get; } = FilterOperator.CaseInsensitiveEqual;
+
+        #endregion
 
         #region - IPublishApiClient<IGroupWithUsers> Implementation -
 
@@ -309,7 +329,7 @@ namespace Tableau.Migration.Api
             return Result<IGroup>.Create(resultBuilder.Build(), groupResult.Value);
         }
 
-        #endregion - IPublishApiClient<IGroupWithUsers> Implementation -
+        #endregion
 
         #region - IPullApiClient<IGroup, IGroupWithUsers> Implementation -
 
@@ -329,6 +349,6 @@ namespace Tableau.Migration.Api
             return Result<IPublishableGroup>.Succeeded(new PublishableGroup(contentItem, groupUsers));
         }
 
-        #endregion - IPullApiClient<IGroup, IGroupWithUsers> Implementation -
+        #endregion
     }
 }

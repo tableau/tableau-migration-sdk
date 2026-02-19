@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -24,13 +24,21 @@ using Tableau.Migration.Engine.Hooks.Mappings;
 using Tableau.Migration.Engine.Hooks.Transformers;
 using Tableau.Migration.Engine.Options;
 using Tableau.Migration.Engine.Pipelines;
+using Tableau.Migration.Engine.Services;
 
 namespace Tableau.Migration
 {
     /// <summary>
     /// Interface for an object that can build <see cref="IMigrationPlan"/> objects.
     /// </summary>
-    public interface IMigrationPlanBuilder
+    public interface IMigrationPlanBuilder : IMigrationPlanBuilder<IMigrationPlanBuilder>
+    { }
+
+    /// <summary>
+    /// Interface for an object that can build <see cref="IMigrationPlan"/> objects.
+    /// </summary>
+    /// <typeparam name="TSelf">The plan builder type used for fluent API return types.</typeparam>
+    public interface IMigrationPlanBuilder<TSelf>
     {
         /// <summary>
         /// Initializes the plan to perform a migration of content between a Tableau Server and Tableau Cloud site.
@@ -44,14 +52,14 @@ namespace Tableau.Migration
         /// <param name="pipelineFactoryOverride">An initializer function to build the pipeline factory.</param>
         /// <param name="supportedContentTypes">The supported content types of the custom pipeline.</param>
         /// <returns>The same plan builder object for fluent API calls.</returns>
-        IMigrationPlanBuilder ForCustomPipelineFactory(Func<IServiceProvider, IMigrationPipelineFactory> pipelineFactoryOverride, params IEnumerable<MigrationPipelineContentType> supportedContentTypes);
+        TSelf ForCustomPipelineFactory(Func<IServiceProvider, IMigrationPipelineFactory> pipelineFactoryOverride, params IEnumerable<MigrationPipelineContentType> supportedContentTypes);
 
         /// <summary>
         /// Initializes the plan to perform a custom migration pipeline using the given pipeline factory.
         /// </summary>
         /// <param name="supportedContentTypes">The supported content types of the custom pipeline.</param>
         /// <returns>The same plan builder object for fluent API calls.</returns>
-        IMigrationPlanBuilder ForCustomPipelineFactory<T>(params IEnumerable<MigrationPipelineContentType> supportedContentTypes)
+        TSelf ForCustomPipelineFactory<T>(params IEnumerable<MigrationPipelineContentType> supportedContentTypes)
             where T : IMigrationPipelineFactory;
 
         /// <summary>
@@ -59,27 +67,37 @@ namespace Tableau.Migration
         /// </summary>
         /// <param name="supportedContentTypes">The supported content types of the custom pipeline.</param>
         /// <returns>The same plan builder object for fluent API calls.</returns>
-        IMigrationPlanBuilder ForCustomPipeline<T>(params IEnumerable<MigrationPipelineContentType> supportedContentTypes)
+        TSelf ForCustomPipeline<T>(params IEnumerable<MigrationPipelineContentType> supportedContentTypes)
             where T : IMigrationPipeline;
 
         /// <summary>
         /// Clears all hooks, filters, mappings, and transformations.
         /// </summary>
         /// <returns>The same plan builder object for fluent API calls.</returns>
-        IMigrationPlanBuilder ClearExtensions();
+        TSelf ClearExtensions();
 
         /// <summary>
         /// Adds default hooks, filters, etc. that are common between all migration scenarios.
         /// </summary>
         /// <returns>The same plan builder object for fluent API calls.</returns>
-        IMigrationPlanBuilder AppendDefaultExtensions();
+        TSelf AppendDefaultExtensions();
+
+        /// <summary>
+        /// Gets the source endpoint builder.
+        /// </summary>
+        IMigrationPlanEndpointBuilder Source { get; }
+
+        /// <summary>
+        /// Gets the destination endpoint builder.
+        /// </summary>
+        IMigrationPlanEndpointBuilder Destination { get; }
 
         /// <summary>
         /// Sets or overwrites the configuration for the source endpoint to migrate content from.
         /// </summary>
         /// <param name="config">The endpoint configuration.</param>
         /// <returns>The same plan builder object for fluent API calls.</returns>
-        IMigrationPlanBuilder FromSource(IMigrationPlanEndpointConfiguration config);
+        TSelf FromSource(IMigrationPlanEndpointConfiguration config);
 
         /// <summary>
         /// Sets or overwrites the configuration for the source Tableau Server site to migrate content from.
@@ -89,15 +107,17 @@ namespace Tableau.Migration
         /// <param name="accessTokenName">The name of the personal access token to use to sign into the site.</param>
         /// <param name="accessToken">The personal access token to use to sign into the site.</param>
         /// <param name="createApiSimulator">Whether or not to create an API simulator for the <paramref name="serverUrl"/>.</param>
+        /// <param name="restApiVersion">The REST API version to use, or null to use the default version.</param>
         /// <returns>The same plan builder object for fluent API calls.</returns>
-        IMigrationPlanBuilder FromSourceTableauServer(Uri serverUrl, string siteContentUrl, string accessTokenName, string accessToken, bool createApiSimulator = false);
+        TSelf FromSourceTableauServer(Uri serverUrl, string siteContentUrl, string accessTokenName, string accessToken, 
+            bool createApiSimulator = false, string? restApiVersion = null);
 
         /// <summary>
         /// Sets or overwrites the configuration for the destination endpoint to migrate content to.
         /// </summary>
         /// <param name="config">The endpoint configuration.</param>
         /// <returns>The same plan builder object for fluent API calls.</returns>
-        IMigrationPlanBuilder ToDestination(IMigrationPlanEndpointConfiguration config);
+        TSelf ToDestination(IMigrationPlanEndpointConfiguration config);
 
         /// <summary>
         /// Sets or overwrites the configuration for the destination Tableau Cloud site to migrate content to.
@@ -107,13 +127,42 @@ namespace Tableau.Migration
         /// <param name="accessTokenName">The name of the personal access token to use to sign into the site.</param>
         /// <param name="accessToken">The personal access token to use to sign into the site.</param>
         /// <param name="createApiSimulator">Whether or not to create an API simulator for the <paramref name="podUrl"/>.</param>
+        /// <param name="restApiVersion">The REST API version to use, or null to use the default version.</param>
         /// <returns>The same plan builder object for fluent API calls.</returns>
-        IMigrationPlanBuilder ToDestinationTableauCloud(Uri podUrl, string siteContentUrl, string accessTokenName, string accessToken, bool createApiSimulator = false);
+        TSelf ToDestinationTableauCloud(Uri podUrl, string siteContentUrl, string accessTokenName, string accessToken,
+            bool createApiSimulator = false, string? restApiVersion = null);
+
+        /// <summary>
+        /// Configures the migration plan to skip migration of all items of a particular content type.
+        /// </summary>
+        /// <typeparam name="TContent">The content type to skip.</typeparam>
+        /// <param name="preCache">
+        /// True to find and map all source items so references in dependent content types can be efficiently updated.
+        /// False to find and map items individually when they are referenced in dependent content types to avoid listing all items.
+        /// </param>
+        /// <returns>The same plan builder object for fluent API calls.</returns>
+        TSelf SkipContentType<TContent>(bool preCache = true);
+
+        /// <summary>
+        /// Configures the migration plan to skip migration of all items of a particular content type.
+        /// </summary>
+        /// <param name="contentType">The content type to skip.</param>
+        /// <param name="preCache">
+        /// True to find and map all source items so references in dependent content types can be efficiently updated.
+        /// False to find and map items individually when they are referenced in dependent content types to avoid listing all items.
+        /// </param>
+        /// <returns>The same plan builder object for fluent API calls.</returns>
+        TSelf SkipContentType(Type contentType, bool preCache = true);
 
         /// <summary>
         /// Gets the per-plan options to supply.
         /// </summary>
         IMigrationPlanOptionsBuilder Options { get; }
+
+        /// <summary>
+        /// Gets the migration service overrides.
+        /// </summary>
+        IMigrationServiceBuilder Services { get; }
 
         /// <summary>
         /// Gets the hooks to execute at various points during the migration, determined by hook type.

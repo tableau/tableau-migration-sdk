@@ -1,4 +1,4 @@
-# Copyright (c) 2025, Salesforce, Inc.
+# Copyright (c) 2026, Salesforce, Inc.
 # SPDX-License-Identifier: Apache-2
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,9 +16,10 @@
 # region _generated
 
 from enum import IntEnum # noqa: E402, F401
+from tableau_migration.migration import PyContentReference # noqa: E402, F401
 from typing import (  # noqa: E402, F401
     Set,
-    List
+    Sequence
 )
 from uuid import UUID # noqa: E402, F401
 
@@ -85,18 +86,23 @@ class TestPyGranteeCapabilityGenerated(AutoFixtureTestBase):
         py = PyGranteeCapability(dotnet)
         assert py.grantee_id == None if dotnet.GranteeId is None else UUID(dotnet.GranteeId.ToString())
     
-    def test_grantee_id_setter(self):
+    def test_grantee_getter(self):
+        dotnet = self.create(IGranteeCapability)
+        py = PyGranteeCapability(dotnet)
+        assert py.grantee == None if dotnet.Grantee is None else PyContentReference(dotnet.Grantee)
+    
+    def test_grantee_setter(self):
         dotnet = self.create(IGranteeCapability)
         py = PyGranteeCapability(dotnet)
         
         # create test data
-        testValue = self.create(Guid)
+        testValue = self.create(IContentReference)
         
         # set property to new test value
-        py.grantee_id = None if testValue is None else UUID(testValue.ToString())
+        py.grantee = None if testValue is None else PyContentReference(testValue)
         
         # assert value
-        assert py.grantee_id == None if testValue is None else UUID(testValue.ToString())
+        assert py.grantee == None if testValue is None else PyContentReference(testValue)
     
     def test_capabilities_getter(self):
         dotnet = self.create(IGranteeCapability)

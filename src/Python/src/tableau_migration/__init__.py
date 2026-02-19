@@ -1,4 +1,4 @@
-# Copyright (c) 2025, Salesforce, Inc.
+# Copyright (c) 2026, Salesforce, Inc.
 # SPDX-License-Identifier: Apache-2
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -75,6 +75,11 @@ from tableau_migration.migration_engine_hooks_transformers_interop import ( # no
     PyXmlContentTransformerBase as XmlContentTransformerBase
 )
 from tableau_migration.migration_engine_migrators import PyMigrator as Migrator # noqa: E402, F401
+from tableau_migration.migration_engine_endpoints_caching import ( # noqa: E402, F401
+    BulkContentReferenceCacheLoadStrategyProvider,
+    LazyContentReferenceCacheLoadStrategyProvider,
+    ContentReferenceCacheLoadStrategyProviderBase
+)
 from tableau_migration.migration_engine_endpoints_search import PyDestinationContentReferenceFinder as IDestinationContentReferenceFinder # noqa: E402, F401
 from tableau_migration.migration_engine_endpoints_search import PyDestinationContentReferenceFinderFactory as IDestinationContentReferenceFinderFactory # noqa: E402, F401
 from tableau_migration.migration_engine_endpoints_search import PySourceContentReferenceFinder as ISourceContentReferenceFinder # noqa: E402, F401
@@ -83,6 +88,10 @@ from tableau_migration.migration_content_schedules_cloud import PyCloudExtractRe
 from tableau_migration.migration_content_schedules_server import PyServerExtractRefreshTask as IServerExtractRefreshTask # noqa: E402, F401
 from tableau_migration.migration_engine_manifest import PyMigrationManifest as MigrationManifest # noqa: E402, F401
 from tableau_migration.migration_engine_manifest import PyMigrationManifestSerializer as MigrationManifestSerializer # noqa: E402, F401
+from tableau_migration.migration_engine_endpoints_search import PyDestinationContentReferenceFinderBase as DestinationContentReferenceFinderBase # noqa: E402, F401
+from tableau_migration.migration_engine_endpoints_search import PySourceContentReferenceFinderBase as SourceContentReferenceFinderBase # noqa: E402, F401
+from tableau_migration.migration_engine_services import PyMigrationContentLoaderBase as MigrationContentLoaderBase # noqa: E402, F401
+from tableau_migration.migration_paging import empty_pager, memory_pager # noqa: E402, F401
 
 # region _generated
 
@@ -127,6 +136,7 @@ from tableau_migration.migration_content import PyPublishableGroupSet as IPublis
 from tableau_migration.migration_content import PyPublishableWorkbook as IPublishableWorkbook # noqa: E402, F401
 from tableau_migration.migration_content import PyPublishedContent as IPublishedContent # noqa: E402, F401
 from tableau_migration.migration_content import PyServerSubscription as IServerSubscription # noqa: E402, F401
+from tableau_migration.migration_content import PySizeContent as ISizeContent # noqa: E402, F401
 from tableau_migration.migration_content import PySubscription as ISubscription # noqa: E402, F401
 from tableau_migration.migration_content import PySubscriptionContent as ISubscriptionContent # noqa: E402, F401
 from tableau_migration.migration_content import PyTag as ITag # noqa: E402, F401

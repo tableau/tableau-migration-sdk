@@ -1,4 +1,4 @@
-# Copyright (c) 2025, Salesforce, Inc.
+# Copyright (c) 2026, Salesforce, Inc.
 # SPDX-License-Identifier: Apache-2
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -62,10 +62,10 @@ class PyContentFilterBuilder():
         Returns:
             The same mapping builder object for fluent API calls.
         """
-        from migration_engine_hooks_filters_interop import _PyFilterWrapper
+        from migration_engine_hooks_filters_interop import _PyFilterWrapperBuilder
         
-        wrapper = _PyFilterWrapper(input_0, input_1)
-        self._content_filters_builder.Add[wrapper.wrapper_type, wrapper.dotnet_content_type](Func[IServiceProvider, wrapper.wrapper_type](wrapper.factory))
+        wrapper_builder = _PyFilterWrapperBuilder(input_0, input_1)
+        self._content_filters_builder.Add[wrapper_builder.wrapper_type, wrapper_builder.dotnet_content_type](Func[IServiceProvider, wrapper_builder.wrapper_type](wrapper_builder.factory))
     
         return self
 

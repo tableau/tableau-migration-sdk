@@ -1,0 +1,40 @@
+﻿//
+//  Copyright (c) 2026, Salesforce, Inc.
+//  SPDX-License-Identifier: Apache-2
+//  
+//  Licensed under the Apache License, Version 2.0 (the "License") 
+//  you may not use this file except in compliance with the License.
+//  You may obtain a copy of the License at
+//  
+//  http://www.apache.org/licenses/LICENSE-2.0
+//  
+//  Unless required by applicable law or agreed to in writing, software
+//  distributed under the License is distributed on an "AS IS" BASIS,
+//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//  See the License for the specific language governing permissions and
+//  limitations under the License.
+//
+
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace Tableau.Migration.Content.Search
+{
+    /// <summary>
+    /// Interface for an object that defines how a <see cref="IContentReferenceCache"/>
+    /// loads items from the underlying store on a cache miss.
+    /// 
+    /// Performed in a separate interface to allow composition of various cache implementation with eager/lazy loading strategies.
+    /// </summary>
+    public interface IContentReferenceCacheLoadStrategy<TContent>
+        where TContent : IContentReference
+    {
+        /// <summary>
+        /// Loads the content reference cache from the content reference store.
+        /// </summary>
+        /// <param name="attempt">The cache load attempt to control.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
+        /// <returns>The task to await.</returns>
+        Task LoadAsync(IContentReferenceCacheLoadAttempt<TContent> attempt, CancellationToken cancel);
+    }
+}

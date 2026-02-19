@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -20,6 +20,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Tableau.Migration.Content.Search;
+using Tableau.Migration.Engine.Endpoints.Caching;
 using Tableau.Migration.Engine.Manifest;
 using Tableau.Migration.Engine.Pipelines;
 
@@ -36,6 +37,7 @@ namespace Tableau.Migration.Engine.Endpoints.Search
         where TContent : class, IContentReference
     {
         private readonly IMigrationManifestEditor _manifest;
+        private readonly IManifestUpdateSourceContentReferenceCache<TContent> _sourceManifestUpdateCache;
         private readonly IContentReferenceCache _destinationCache;
 
         /// <summary>
@@ -43,10 +45,13 @@ namespace Tableau.Migration.Engine.Endpoints.Search
         /// </summary>
         /// <param name="manifest">The migration manifest.</param>
         /// <param name="pipeline">The pipeline to get a destination cache from.</param>
-        public ManifestDestinationContentReferenceFinder(IMigrationManifestEditor manifest, IMigrationPipeline pipeline)
+        /// <param name="sourceManifestUpdateCache">A cache to dynamically update manifest entries based on source item searches.</param>
+        public ManifestDestinationContentReferenceFinder(IMigrationManifestEditor manifest, IMigrationPipeline pipeline,
+            IManifestUpdateSourceContentReferenceCache<TContent> sourceManifestUpdateCache)
         {
             _manifest = manifest;
             _destinationCache = pipeline.CreateDestinationCache<TContent>();
+            _sourceManifestUpdateCache = sourceManifestUpdateCache;
         }
 
         #region - IDestinationContentReferenceFinder Implementation -
@@ -54,19 +59,23 @@ namespace Tableau.Migration.Engine.Endpoints.Search
         /// <inheritdoc />
         public async Task<IContentReference?> FindBySourceLocationAsync(ContentLocation sourceLocation, CancellationToken cancel)
         {
-            //Get the DESTINATION reference for the SOURCE location.
+            // Get the DESTINATION reference for the SOURCE location.
             var manifestEntries = _manifest.Entries.GetOrCreatePartition<TContent>();
-            if (manifestEntries.BySourceLocation.TryGetValue(sourceLocation, out var entry))
+            if (!manifestEntries.BySourceLocation.TryGetValue(sourceLocation, out var manifestEntry))
             {
-                if (entry.Destination is not null)
+                // Attempt to dynamically add a manifest entry if the item wasn't included in the source content loader.
+                if ((manifestEntry = await _sourceManifestUpdateCache.UpdateManifestByLocationAsync(sourceLocation, cancel).ConfigureAwait(false)) is null)
                 {
-                    return entry.Destination;
+                    return null;
                 }
-
-                return await _destinationCache.ForLocationAsync(entry.MappedLocation, cancel).ConfigureAwait(false);
             }
 
-            return null;
+            if (manifestEntry.Destination is not null)
+            {
+                return manifestEntry.Destination;
+            }
+
+            return await _destinationCache.ForLocationAsync(manifestEntry.MappedLocation, cancel).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
@@ -87,12 +96,21 @@ namespace Tableau.Migration.Engine.Endpoints.Search
         {
             //Get the DESTINATION reference for the SOURCE ID.
             var manifestEntries = _manifest.Entries.GetOrCreatePartition<TContent>();
-            if (manifestEntries.BySourceId.TryGetValue(sourceId, out var entry))
+            if (!manifestEntries.BySourceId.TryGetValue(sourceId, out var manifestEntry))
             {
-                return await FindBySourceLocationAsync(entry.Source.Location, cancel).ConfigureAwait(false);
+                // Attempt to dynamically add a manifest entry if the item wasn't included in the source content loader.
+                if ((manifestEntry = await _sourceManifestUpdateCache.UpdateManifestByIdAsync(sourceId, cancel).ConfigureAwait(false)) is null)
+                {
+                    return null;
+                }
             }
 
-            return null;
+            if (manifestEntry.Destination is not null)
+            {
+                return manifestEntry.Destination;
+            }
+
+            return await _destinationCache.ForLocationAsync(manifestEntry.MappedLocation, cancel).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
@@ -100,12 +118,21 @@ namespace Tableau.Migration.Engine.Endpoints.Search
         {
             //Get the DESTINATION reference for the SOURCE content URL.
             var manifestEntries = _manifest.Entries.GetOrCreatePartition<TContent>();
-            if (manifestEntries.BySourceContentUrl.TryGetValue(contentUrl, out var entry))
+            if (!manifestEntries.BySourceContentUrl.TryGetValue(contentUrl, out var manifestEntry))
             {
-                return await FindBySourceLocationAsync(entry.Source.Location, cancel).ConfigureAwait(false);
+                // Attempt to dynamically add a manifest entry if the item wasn't included in the source content loader.
+                if ((manifestEntry = await _sourceManifestUpdateCache.UpdateManifestByContentUrlAsync(contentUrl, cancel).ConfigureAwait(false)) is null)
+                {
+                    return null;
+                }
             }
 
-            return null;
+            if (manifestEntry.Destination is not null)
+            {
+                return manifestEntry.Destination;
+            }
+
+            return await _destinationCache.ForLocationAsync(manifestEntry.MappedLocation, cancel).ConfigureAwait(false);
         }
 
         #endregion

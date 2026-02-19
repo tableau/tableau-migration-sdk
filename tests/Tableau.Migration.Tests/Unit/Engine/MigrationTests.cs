@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -25,9 +25,11 @@ using Xunit;
 
 namespace Tableau.Migration.Tests.Unit.Engine
 {
-    public class MigrationTests
+    public sealed class MigrationTests
     {
-        public class Ctor : AutoFixtureTestBase
+        #region - Ctor -
+
+        public sealed class Ctor : AutoFixtureTestBase
         {
             [Fact]
             public void Initializes()
@@ -106,5 +108,49 @@ namespace Tableau.Migration.Tests.Unit.Engine
                 Assert.NotSame(input.PreviousManifest, m.Manifest);
             }
         }
+
+        #endregion
+
+        #region - Source -
+
+        public sealed class Source : AutoFixtureTestBase
+        {
+            [Fact]
+            public void UsesLazyInitialization()
+            {
+                var mockEndpointFactory = Freeze<Mock<IMigrationEndpointFactory>>();
+
+                var m = Create<Migration.Engine.Migration>();
+
+                var source = m.Source;
+                var source2 = m.Source;
+
+                Assert.Same(source, source2);
+                mockEndpointFactory.Verify(x => x.CreateSource(m.Plan), Times.Once);
+            }
+        }
+
+        #endregion
+
+        #region - Destination -
+
+        public sealed class Destination : AutoFixtureTestBase
+        {
+            [Fact]
+            public void UsesLazyInitialization()
+            {
+                var mockEndpointFactory = Freeze<Mock<IMigrationEndpointFactory>>();
+
+                var m = Create<Migration.Engine.Migration>();
+
+                var dest = m.Destination;
+                var dest2 = m.Destination;
+
+                Assert.Same(dest, dest2);
+                mockEndpointFactory.Verify(x => x.CreateDestination(m.Plan), Times.Once);
+            }
+        }
+
+        #endregion
     }
 }

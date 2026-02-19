@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -23,7 +23,9 @@ using Tableau.Migration.Api.Rest.Models;
 using Tableau.Migration.Content;
 using Tableau.Migration.Engine;
 using Tableau.Migration.Engine.Endpoints;
+using Tableau.Migration.Engine.Hooks.Transformers;
 using Tableau.Migration.Engine.Hooks.Transformers.Default;
+using Tableau.Migration.Resources;
 using Xunit;
 
 namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
@@ -32,9 +34,6 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
     {
         public abstract class EncryptExtractTransformerTest<TIExtractContent> : AutoFixtureTestBase where TIExtractContent : IContentReference, IExtractContent
         {
-            protected readonly Mock<ILogger<EncryptExtractTransformer<TIExtractContent>>> MockLogger = new();
-            protected readonly MockSharedResourcesLocalizer MockSharedResourcesLocalizer = new();
-
             protected readonly Mock<IMigration> MockMigration;
             protected readonly Mock<IServerSession> MockDestinationSession;
             protected readonly Mock<IDestinationEndpoint> MockDestination;
@@ -57,7 +56,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
                 MockDestination = Freeze<Mock<IDestinationEndpoint>>();
                 MockDestination.Setup(x => x.GetSessionAsync(Cancel)).ReturnsAsync(() => DestinationSessionResult());
 
-                Transformer = new(MockSharedResourcesLocalizer.Object, MockLogger.Object, MockMigration.Object);
+                Transformer = new(Create<ISharedResourcesLocalizer>(), Create<ILogger<IContentTransformer<TIExtractContent>>>(), MockMigration.Object);
             }
         }
 

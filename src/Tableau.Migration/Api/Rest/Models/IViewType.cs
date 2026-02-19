@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -18,28 +18,8 @@
 namespace Tableau.Migration.Api.Rest.Models
 {
     /// <summary>
-    /// Interface for a view REST response.
+    /// Interface for a view REST response with a workbook reference.
     /// </summary>
-    public interface IViewType : IRestIdentifiable, INamedContent, IWithTagTypes, IWithWorkbookReferenceType, IWithProjectReferenceType
-    {
-        /// <summary>
-        /// The content URL for the response.
-        /// </summary>
-        public string? ContentUrl { get; }
-
-        /// <summary>
-        /// The created timestamp for the response.
-        /// </summary>        
-        public string? CreatedAt { get; }
-
-        /// <summary>
-        /// The updated timestamp for the response.
-        /// </summary>
-        public string? UpdatedAt { get; }
-
-        /// <summary>
-        /// The View URL Name for the response.
-        /// </summary>
-        public string? ViewUrlName { get; }
-    }
+    public interface IViewType : IWorkbookViewType, IWithWorkbookReferenceType, IWithProjectReferenceType
+    { }
 }

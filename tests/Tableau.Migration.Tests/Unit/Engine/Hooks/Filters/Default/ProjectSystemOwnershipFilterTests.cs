@@ -1,5 +1,5 @@
 ﻿//
-//  Copyright (c) 2025, Salesforce, Inc.
+//  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License") 
@@ -15,11 +15,9 @@
 //  limitations under the License.
 //
 
-using Microsoft.Extensions.Logging;
 using Moq;
 using Tableau.Migration.Content;
 using Tableau.Migration.Engine;
-using Tableau.Migration.Engine.Hooks.Filters;
 using Tableau.Migration.Engine.Hooks.Filters.Default;
 using Tableau.Migration.Engine.Manifest;
 using Xunit;
@@ -30,13 +28,11 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Filters.Default
     {
         public class ShouldMigrate : AutoFixtureTestBase
         {
-            private readonly MockSharedResourcesLocalizer _mockLocalizer = new();
-            private readonly Mock<ILogger<IContentFilter<IProject>>> _mockLogger = new();
             private readonly SystemOwnershipFilter<IProject> _filter;
 
             public ShouldMigrate()
             {
-                _filter = new(_mockLocalizer.Object, _mockLogger.Object);
+                _filter = Create<SystemOwnershipFilter<IProject>>();
             }
 
             [Fact]
