@@ -175,7 +175,7 @@ namespace Tableau.Migration.PythonGenerator.Writers
                 case ConversionMode.Enum:
                     {
                         var setterExpression = ToDotNetType(property.Type, paramName);
-                        setterBuilder.AppendLine($"{DotNetPropertyInvocation(type, property)}.value__ = {property.Type.Name}({setterExpression})");
+                        setterBuilder.AppendLine($"{DotNetPropertyInvocation(type, property)} = {property.DotNetPropertyType.Name}({setterExpression})");
                         break;
                     }
                 default:

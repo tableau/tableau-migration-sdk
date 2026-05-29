@@ -17,6 +17,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -67,7 +69,28 @@ namespace Tableau.Migration.Engine.Hooks.Filters
         /// <typeparam name="TContent">The content type.</typeparam>
         /// <param name="callback">A callback to call for the filter.</param>
         /// <returns>The same filter builder object for fluent API calls.</returns>
-        IContentFilterBuilder Add<TContent>(Func<IEnumerable<ContentMigrationItem<TContent>>, CancellationToken, Task<IEnumerable<ContentMigrationItem<TContent>>?>> callback)
+        public IContentFilterBuilder Add<TContent>(Func<IEnumerable<ContentMigrationItem<TContent>>, CancellationToken, Task<IEnumerable<ContentMigrationItem<TContent>>?>> callback)
+            where TContent : IContentReference
+            => Add(async (ContentFilterContext<TContent> ctx, CancellationToken c) =>
+            {
+                var resultItems = (await callback(ctx.Items, c).ConfigureAwait(false))?.ToImmutableHashSet() ?? ImmutableHashSet<ContentMigrationItem<TContent>>.Empty;
+
+                var itemsToFilter = ctx.Items.Where(i => !resultItems.Contains(i)).ToImmutableArray();
+                foreach (var itemToFilter in itemsToFilter)
+                {
+                    itemToFilter.Status = FilterStatus.Skip;
+                }
+
+                return ctx;
+            });
+
+        /// <summary>
+        /// Adds a callback to be executed on the filter for the content type.
+        /// </summary>
+        /// <typeparam name="TContent">The content type.</typeparam>
+        /// <param name="callback">A callback to call for the filter.</param>
+        /// <returns>The same filter builder object for fluent API calls.</returns>
+        IContentFilterBuilder Add<TContent>(Func<ContentFilterContext<TContent>, CancellationToken, Task<ContentFilterContext<TContent>?>> callback)
             where TContent : IContentReference;
 
         /// <summary>
@@ -76,7 +99,28 @@ namespace Tableau.Migration.Engine.Hooks.Filters
         /// <typeparam name="TContent">The content type.</typeparam>
         /// <param name="callback">A synchronously callback to call for the filter.</param>
         /// <returns>The same filter builder object for fluent API calls.</returns>
-        IContentFilterBuilder Add<TContent>(Func<IEnumerable<ContentMigrationItem<TContent>>, IEnumerable<ContentMigrationItem<TContent>>?> callback)
+        public IContentFilterBuilder Add<TContent>(Func<IEnumerable<ContentMigrationItem<TContent>>, IEnumerable<ContentMigrationItem<TContent>>?> callback)
+            where TContent : IContentReference
+            => Add((ContentFilterContext<TContent> ctx) =>
+            {
+                var resultItems = callback(ctx.Items)?.ToImmutableHashSet() ?? ImmutableHashSet<ContentMigrationItem<TContent>>.Empty;
+
+                var itemsToFilter = ctx.Items.Where(i => !resultItems.Contains(i)).ToImmutableArray();
+                foreach(var itemToFilter in itemsToFilter)
+                {
+                    itemToFilter.Status = FilterStatus.Skip;
+                }
+
+                return ctx;
+            });
+
+        /// <summary>
+        /// Adds a callback to be executed on the filter for the content type.
+        /// </summary>
+        /// <typeparam name="TContent">The content type.</typeparam>
+        /// <param name="callback">A synchronously callback to call for the filter.</param>
+        /// <returns>The same filter builder object for fluent API calls.</returns>
+        IContentFilterBuilder Add<TContent>(Func<ContentFilterContext<TContent>, ContentFilterContext<TContent>?> callback)
             where TContent : IContentReference;
 
         /// <summary>

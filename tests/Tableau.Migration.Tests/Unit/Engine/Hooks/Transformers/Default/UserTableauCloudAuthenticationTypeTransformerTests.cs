@@ -47,7 +47,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
             }
 
             [Fact]
-            public async Task SetsServerDefaultAuthType()
+            public async Task SetsServerDefaultAuthTypeAsync()
             {
                 AuthenticationConfigurations.Clear();
 

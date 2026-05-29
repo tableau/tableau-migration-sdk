@@ -126,7 +126,7 @@ namespace Tableau.Migration.Tests.Unit.Net
             }
 
             [Fact]
-            public async Task Sets_string_content()
+            public async Task SetsStringContentAsync()
             {
                 var content = @"{ ""id"": ""1234"" }";
 
@@ -162,7 +162,7 @@ namespace Tableau.Migration.Tests.Unit.Net
             }
 
             [Fact]
-            public async Task Sets_string_content()
+            public async Task SetsStringContentAsync()
             {
                 var content = @"<xml><test/></xml>";
 

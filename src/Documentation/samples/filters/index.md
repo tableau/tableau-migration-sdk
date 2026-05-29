@@ -1,9 +1,7 @@
 ﻿# Filters
 
 Filters allow you to skip migrating certain content items.
-
-> [!Note]
-> Filters do not have a cascading effect. You will need to write similar filters for the related content items as well.
+Filters can optionally [cascade](~/articles/hooks/filter_cascading.md) to other content items that reference the skipped item.
 
 The following samples cover some common scenarios:
 

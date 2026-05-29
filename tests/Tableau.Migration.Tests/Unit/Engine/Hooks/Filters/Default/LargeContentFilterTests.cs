@@ -15,7 +15,6 @@
 //  limitations under the License.
 //
 
-using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
@@ -23,6 +22,7 @@ using Moq;
 using Tableau.Migration.Config;
 using Tableau.Migration.Content;
 using Tableau.Migration.Engine;
+using Tableau.Migration.Engine.Hooks.Filters;
 using Tableau.Migration.Engine.Hooks.Filters.Default;
 using Tableau.Migration.Engine.Manifest;
 using Xunit;
@@ -68,9 +68,10 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Filters.Default
                     .ToImmutableList();
 
                 var filter = Create<LargeContentFilter<IContentReference>>();
-                var results = await filter.ExecuteAsync(items, Cancel);
+                var results = await filter.ExecuteAsync(new ContentFilterContext<IContentReference>(items), Cancel);
 
-                Assert.Equal(items, results);
+                Assert.NotNull(results);
+                Assert.All(results.Items, r => Assert.Equal(FilterStatus.Migrate, r.Status));
             }
 
             [Fact]
@@ -86,14 +87,15 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Filters.Default
                 var items = ImmutableArray.Create(smallItem, exactItem, largeItem);
 
                 var filter = Create<LargeContentFilter<IContentReference>>();
-                var result = await filter.ExecuteAsync(items, Cancel);
+                var result = await filter.ExecuteAsync(new ContentFilterContext<IContentReference>(items), Cancel);
+                
                 Assert.NotNull(result);
-                var results = result.ToList();
+                var results = result.Items.ToList();
 
-                Assert.Equal(2, results.Count);
-                Assert.Contains(smallItem, results);
-                Assert.Contains(exactItem, results);
-                Assert.DoesNotContain(largeItem, results);
+                Assert.Equal(items.Length, results.Count);
+                Assert.Equal(FilterStatus.Migrate, results.Single(i => i.SourceItem == smallItem.SourceItem).Status);
+                Assert.Equal(FilterStatus.Migrate, results.Single(i => i.SourceItem == exactItem.SourceItem).Status);
+                Assert.Equal(FilterStatus.Skip, results.Single(i => i.SourceItem == largeItem.SourceItem).Status);
             }
 
             [Fact]
@@ -105,10 +107,11 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Filters.Default
                 var items = CreateMany<ContentMigrationItem<IContentReference>>(10).ToImmutableList();
 
                 var filter = Create<LargeContentFilter<IContentReference>>();
-                var results = await filter.ExecuteAsync(items, Cancel);
+                var results = await filter.ExecuteAsync(new ContentFilterContext<IContentReference>(items), Cancel);
 
                 // Content without ISizeContent should not be filtered
-                Assert.Equal(items, results);
+                Assert.NotNull(results);
+                Assert.All(results.Items, r => Assert.Equal(FilterStatus.Migrate, r.Status));
             }
 
             [Fact]
@@ -128,14 +131,14 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Filters.Default
                 );
 
                 var filter = Create<LargeContentFilter<IContentReference>>();
-                var result = await filter.ExecuteAsync(items, Cancel);
+                var result = await filter.ExecuteAsync(new ContentFilterContext<IContentReference>(items), Cancel);
                 Assert.NotNull(result);
-                var results = result.ToList();
+                var results = result.Items.ToList();
 
-                Assert.Equal(2, results.Count);
-                Assert.Contains(sizeableSmall, results);
-                Assert.Contains(nonSizeable, results);
-                Assert.DoesNotContain(sizeableLarge, results);
+                Assert.Equal(items.Length, results.Count);
+                Assert.Equal(FilterStatus.Migrate, results.Single(i => i.SourceItem == sizeableSmall.SourceItem).Status);
+                Assert.Equal(FilterStatus.Migrate, results.Single(i => i.SourceItem == nonSizeable.SourceItem).Status);
+                Assert.Equal(FilterStatus.Skip, results.Single(i => i.SourceItem == sizeableLarge.SourceItem).Status);
             }
 
             [Fact]
@@ -149,11 +152,12 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Filters.Default
                     .ToImmutableList();
 
                 var filter = Create<LargeContentFilter<IContentReference>>();
-                var result = await filter.ExecuteAsync(items, Cancel);
+                var result = await filter.ExecuteAsync(new ContentFilterContext<IContentReference>(items), Cancel);
+                
                 Assert.NotNull(result);
-                var results = result.ToList();
+                var results = result.Items.ToList();
 
-                Assert.Empty(results);
+                Assert.All(results, r => Assert.Equal(FilterStatus.Skip, r.Status));
             }
 
             [Fact]
@@ -167,9 +171,10 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Filters.Default
                     .ToImmutableList();
 
                 var filter = Create<LargeContentFilter<IContentReference>>();
-                var results = await filter.ExecuteAsync(items, Cancel);
+                var results = await filter.ExecuteAsync(new ContentFilterContext<IContentReference>(items), Cancel);
 
-                Assert.Equal(items, results);
+                Assert.NotNull(results);
+                Assert.All(results.Items, r => Assert.Equal(FilterStatus.Migrate, r.Status));
             }
         }
     }

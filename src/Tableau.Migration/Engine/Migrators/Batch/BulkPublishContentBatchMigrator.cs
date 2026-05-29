@@ -33,7 +33,7 @@ namespace Tableau.Migration.Engine.Migrators.Batch
     /// <typeparam name="TPublish"><inheritdoc /></typeparam>
     public class BulkPublishContentBatchMigrator<TContent, TPrepare, TPublish> : ParallelContentBatchMigratorBatchBase<TContent, TPrepare, TPublish>
         where TContent : class, IContentReference
-        where TPrepare : class
+        where TPrepare : class, IContentReference
         where TPublish : class
     {
         private readonly IMigration _migration;

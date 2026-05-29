@@ -15,13 +15,14 @@
 
 """Interoperability utility for filters."""
 
-from typing import Callable, Generic, TypeVar
+from inspect import signature
+from typing import Callable, Generic, Optional, TypeVar, Union
 
 from migration_engine import PyContentMigrationItem
+from migration_engine_hooks_filters import PyContentFilterContextItem, PyFilterStatus
 from migration_engine_hooks_interop import _PyHookWrapperBuilderBase
 
-from Tableau.Migration.Engine import ContentMigrationItem
-from Tableau.Migration.Engine.Hooks.Filters import ContentFilterBase
+from Tableau.Migration.Engine.Hooks.Filters import ContentFilterBase, ContentFilterContextItem
 
 TContent = TypeVar("TContent")
 
@@ -39,8 +40,44 @@ class PyContentFilterBase(Generic[TContent]):
         """
         return True
 
+    def filter(self, item: PyContentFilterContextItem[TContent]) -> None:
+        """Considers the content item for filtering.
+        
+        Args:
+            item: The item to potentially filter.
+        """
+        if item.status != PyFilterStatus.MIGRATE:
+            return
+
+        if not self.should_migrate(item):
+            item.status = PyFilterStatus.SKIP
+
+def _upgrade_filter_result(ctx, result):
+    if(isinstance(result, bool) and not result):
+        ctx.status = PyFilterStatus.SKIP
+    return ctx
+
+def _upgrade_callback_result(callback: Callable) -> Callable:
+    
+    def _upgrade_result(ctx):
+        return _upgrade_filter_result(ctx, callback(ctx))
+
+    def _upgrade_result_services(ctx, s):
+        return _upgrade_filter_result(ctx, callback(ctx, s))
+    
+    if len(signature(callback).parameters) == 1:
+        return _upgrade_result
+    else:
+        return _upgrade_result_services
+
 class _PyFilterWrapperBuilder(_PyHookWrapperBuilderBase):
     
+    def __init__(self, t: Union[type, list], callback: Optional[Callable] = None) -> None:
+        if callback is None:
+            super().__init__(t)
+        else:
+            super().__init__(t, _upgrade_callback_result(callback))
+
     @property
     def python_content_type(self) -> type:
         return self.python_generic_types[0]
@@ -54,18 +91,18 @@ class _PyFilterWrapperBuilder(_PyHookWrapperBuilderBase):
 
     @property
     def _wrapper_method_name(self) -> str:
-        return "ShouldMigrate"
+        return "Filter"
 
     @property
     def _wrapper_async(self) -> bool:
         return False
 
     def _wrapper_context_type(self) -> type:
-        return ContentMigrationItem[self.dotnet_content_type]
+        return ContentFilterContextItem[self.dotnet_content_type]
 
     def _wrap_execute_method(self) -> Callable:
-        return lambda w : w._inner.should_migrate
+        return lambda w : w._inner.filter
     
     def _wrap_context_callback(self) -> Callable:
-        return lambda ctx : PyContentMigrationItem[self.python_content_type](ctx)
+        return lambda ctx : PyContentFilterContextItem[self.python_content_type](ctx)
     

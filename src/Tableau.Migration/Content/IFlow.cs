@@ -27,7 +27,10 @@ namespace Tableau.Migration.Content
         IWithTags,
         IContainerContent,
         IMappableContainerContent,
-        IRequiresOwnerUpdate
+        IRequiresOwnerUpdate,
+        IPermissionsContent,
+        IWithConnections,
+        IRequiresEmbeddedCredentialMigration
     {
         /// <summary>
         /// Get or sets the prep flow file type.

@@ -19,12 +19,16 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using AutoFixture;
+using Microsoft.Extensions.Logging;
 using Moq;
 using Tableau.Migration.Content;
 using Tableau.Migration.Engine;
 using Tableau.Migration.Engine.Conversion;
 using Tableau.Migration.Engine.Endpoints.Search;
+using Tableau.Migration.Engine.Hooks;
+using Tableau.Migration.Engine.Hooks.Pulled;
 using Tableau.Migration.Engine.Hooks.Transformers;
+using Tableau.Migration.Engine.Manifest;
 using Tableau.Migration.Engine.Pipelines;
 using Tableau.Migration.Engine.Preparation;
 using Tableau.Migration.Resources;
@@ -37,7 +41,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Preparation
         #region - Test Classes -
 
         public class TestPreparer<TContent, TPrepare, TPublish> : ContentItemPreparerBase<TContent, TPrepare, TPublish>
-            where TPrepare : class
+            where TPrepare : class, IContentReference
             where TPublish : class
         {
             public IResult<TPrepare> PullResult { get; set; }
@@ -46,10 +50,12 @@ namespace Tableau.Migration.Tests.Unit.Engine.Preparation
 
             public TestPreparer(IFixture fixture,
                 IMigrationPipeline pipeline,
-                IContentTransformerRunner transformerRunner,
+                IMigrationHookRunner hooks,
+                IContentTransformerRunner transformers,
                 IDestinationContentReferenceFinderFactory destinationFinderFactory,
+                ILogger<TestPreparer<TContent, TPrepare, TPublish>> logger,
                 ISharedResourcesLocalizer localizer)
-                : base(pipeline, transformerRunner, destinationFinderFactory, localizer)
+                : base(pipeline, hooks, transformers, destinationFinderFactory, logger, localizer)
             {
                 PullResult = Result<TPrepare>.Succeeded(fixture.Create<TPrepare>());
             }
@@ -63,26 +69,30 @@ namespace Tableau.Migration.Tests.Unit.Engine.Preparation
 
         public class TestPreparer<TContent, TPrepare> : TestPreparer<TContent, TPrepare, TPrepare>
            where TContent : class
-           where TPrepare : class
+           where TPrepare : class, IContentReference
         {
             public TestPreparer(IFixture fixture,
                 IMigrationPipeline pipeline,
-                IContentTransformerRunner transformerRunner,
+                IMigrationHookRunner hooks,
+                IContentTransformerRunner transformers,
                 IDestinationContentReferenceFinderFactory destinationFinderFactory,
+                ILogger<TestPreparer<TContent, TPrepare>> logger,
                 ISharedResourcesLocalizer localizer)
-                : base(fixture, pipeline, transformerRunner, destinationFinderFactory, localizer)
+                : base(fixture, pipeline, hooks, transformers, destinationFinderFactory, logger, localizer)
             { }
         }
 
         public class TestPreparer<TContent> : TestPreparer<TContent, TContent, TContent>
-            where TContent : class
+            where TContent : class, IContentReference
         {
             public TestPreparer(IFixture fixture,
                 IMigrationPipeline pipeline,
-                IContentTransformerRunner transformerRunner,
+                IMigrationHookRunner hooks,
+                IContentTransformerRunner transformers,
                 IDestinationContentReferenceFinderFactory destinationFinderFactory,
+                ILogger<TestPreparer<TContent>> logger,
                 ISharedResourcesLocalizer localizer)
-                : base(fixture, pipeline, transformerRunner, destinationFinderFactory, localizer)
+                : base(fixture, pipeline, hooks, transformers, destinationFinderFactory, logger, localizer)
             { }
         }
 
@@ -90,10 +100,12 @@ namespace Tableau.Migration.Tests.Unit.Engine.Preparation
         {
             public TestPreparer(IFixture fixture,
                 IMigrationPipeline pipeline,
-                IContentTransformerRunner transformerRunner,
+                IMigrationHookRunner hooks,
+                IContentTransformerRunner transformers,
                 IDestinationContentReferenceFinderFactory destinationFinderFactory,
+                ILogger<TestPreparer> logger,
                 ISharedResourcesLocalizer localizer)
-                : base(fixture, pipeline, transformerRunner, destinationFinderFactory, localizer)
+                : base(fixture, pipeline, hooks, transformers, destinationFinderFactory, logger, localizer)
             { }
         }
 
@@ -125,7 +137,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Preparation
 
         #region - PrepareAsync -
 
-        public class PrepareAsync : ContentItemPreparerTestBase<TestContentType, TestPublishType>
+        public sealed class PrepareAsync : ContentItemPreparerTestBase<TestContentType, TestPublishType, TestPublishType>
         {
             [Fact]
             public async Task PullsAndTransformsAsync()
@@ -134,7 +146,8 @@ namespace Tableau.Migration.Tests.Unit.Engine.Preparation
                 var result = await preparer.PrepareAsync(Item, Cancel);
 
                 result.AssertSuccess();
-                Assert.Same(preparer.PullResult.Value, result.Value);
+                Assert.False(result.IsSkipped);
+                Assert.Same(preparer.PullResult.Value, result.PublishItem);
                 Assert.Equal(1, preparer.PullCallCount);
 
                 MockTransformerRunner.Verify(x => x.ExecuteAsync(preparer.PullResult.Value, Cancel), Times.Once);
@@ -153,8 +166,9 @@ namespace Tableau.Migration.Tests.Unit.Engine.Preparation
                 var result = await preparer.PrepareAsync(Item, Cancel);
 
                 result.AssertFailure();
+                Assert.False(result.IsSkipped);
                 Assert.Equal(errors, result.Errors);
-                Assert.Null(result.Value);
+                Assert.Null(result.PublishItem);
                 Assert.Equal(1, preparer.PullCallCount);
 
                 MockTransformerRunner.Verify(x => x.ExecuteAsync(It.IsAny<TestPublishType>(), It.IsAny<CancellationToken>()), Times.Never);
@@ -162,6 +176,105 @@ namespace Tableau.Migration.Tests.Unit.Engine.Preparation
                 MockManifestEntry.Verify(x => x.SetFailed(preparer.PullResult.Errors), Times.Once);
             }
 
+            [Fact]
+            public async Task ReturnsTransformedObjectAsync()
+            {
+                var transformedResult = new TestPublishType();
+                MockTransformerRunner.Setup(x => x.ExecuteAsync(It.IsAny<TestPublishType>(), Cancel))
+                    .ReturnsAsync(transformedResult);
+
+                var preparer = Create<TestPreparer>();
+                var result = await preparer.PrepareAsync(Item, Cancel);
+
+                result.AssertSuccess();
+                Assert.False(result.IsSkipped);
+                Assert.Same(transformedResult, result.PublishItem);
+                Assert.Equal(1, preparer.PullCallCount);
+
+                MockTransformerRunner.Verify(x => x.ExecuteAsync(preparer.PullResult.Value, Cancel), Times.Once);
+
+                MockManifestEntry.Verify(x => x.SetFailed(preparer.PullResult.Errors), Times.Never);
+            }
+
+            [Fact]
+            public async Task PulledFilterAbortsPreparationAsync()
+            {
+                MockHookRunner.Setup(x => x.ExecuteAsync<IContentItemPulledHook<TestPublishType>, ContentItemPulledContext<TestPublishType>>(
+                    It.IsAny<ContentItemPulledContext<TestPublishType>>(),
+                    It.IsAny<Action<string, ContentItemPulledContext<TestPublishType>, ContentItemPulledContext<TestPublishType>>>(),
+                    Cancel))
+                    .ReturnsAsync((
+                        ContentItemPulledContext<TestPublishType> ctx,
+                        Action<string, ContentItemPulledContext<TestPublishType>, ContentItemPulledContext<TestPublishType>> afterAction,
+                        CancellationToken c) =>
+                    {
+                        MockManifestEntry.SetupGet(x => x.Status).Returns(MigrationManifestEntryStatus.Skipped);
+                        return ctx;
+                    });
+
+                var preparer = Create<TestPreparer>();
+                var result = await preparer.PrepareAsync(Item, Cancel);
+
+                result.AssertSuccess();
+                Assert.True(result.IsSkipped);
+                Assert.Equal(1, preparer.PullCallCount);
+
+                MockTransformerRunner.VerifyNoOtherCalls();
+            }
+        }
+
+        public sealed class PrepareAsyncMappedContainer : ContentItemPreparerTestBase<TestContainerContentType>
+        {
+            [Fact]
+            public async Task PreMappedDestinationProjectNotFoundAsync()
+            {
+                var item = Create<ContentMigrationItem<TestContainerContentType>>();
+                var preparer = Create<TestPreparer<TestContainerContentType>>();
+
+                var publishItem = preparer.PullResult.Value!;
+                publishItem.PublicContainer = Create<ContentReferenceStub>();
+
+                var destinationContainerLocation = MockManifestEntry.Object.MappedLocation.Parent();
+                var destinationProject = Create<ContentReferenceStub>();
+
+                MockProjectFinder.Setup(x => x.FindByMappedLocationAsync(destinationContainerLocation, Cancel))
+                    .ReturnsAsync((IContentReference?)null);
+
+                await Assert.ThrowsAsync<Exception>(() => preparer.PrepareAsync(item, Cancel));
+
+                MockProjectFinder.Verify(x => x.FindByMappedLocationAsync(destinationContainerLocation, Cancel), Times.Once);
+            }
+
+            [Fact]
+            public async Task MappedProjectNotFoundAsync()
+            {
+                MockPipeline.Setup(x => x.GetItemConverter<TestContainerContentType, TestContainerContentType>())
+                    .Returns(() => new DirectContentItemConverter<TestContainerContentType, TestContainerContentType>());
+
+                var item = Create<ContentMigrationItem<TestContainerContentType>>();
+                var preparer = Create<TestPreparer<TestContainerContentType>>();
+
+                var publishItem = preparer.PullResult.Value!;
+                publishItem.PublicContainer = Create<ContentReferenceStub>();
+
+                var sourceParentLocation = publishItem.PublicContainer.Location;
+
+                MappedLocation = sourceParentLocation.Append(Create<string>());
+
+                var destinationContainerLocation = MockManifestEntry.Object.MappedLocation.Parent();
+                var destinationProject = Create<ContentReferenceStub>();
+
+                MockProjectFinder.Setup(x => x.FindBySourceLocationAsync(sourceParentLocation, Cancel))
+                    .ReturnsAsync((IContentReference?)null);
+
+                await Assert.ThrowsAsync<Exception>(() => preparer.PrepareAsync(item, Cancel));
+
+                MockProjectFinder.Verify(x => x.FindBySourceLocationAsync(sourceParentLocation, Cancel), Times.Once);
+            }
+        }
+
+        public sealed class PrepareAsyncMapping : ContentItemPreparerTestBase<TestMappableContainerContentType>
+        {
             [Fact]
             public async Task AppliesMappingToContentAsync()
             {
@@ -259,75 +372,9 @@ namespace Tableau.Migration.Tests.Unit.Engine.Preparation
 
                 MockProjectFinder.Verify(x => x.FindBySourceLocationAsync(It.IsAny<ContentLocation>(), Cancel), Times.Never);
             }
-
-            [Fact]
-            public async Task ReturnsTransformedObjectAsync()
-            {
-                var transformedResult = new TestPublishType();
-                MockTransformerRunner.Setup(x => x.ExecuteAsync(It.IsAny<TestPublishType>(), Cancel))
-                    .ReturnsAsync(transformedResult);
-
-                var preparer = Create<TestPreparer>();
-                var result = await preparer.PrepareAsync(Item, Cancel);
-
-                result.AssertSuccess();
-                Assert.Same(transformedResult, result.Value);
-                Assert.Equal(1, preparer.PullCallCount);
-
-                MockTransformerRunner.Verify(x => x.ExecuteAsync(preparer.PullResult.Value, Cancel), Times.Once);
-
-                MockManifestEntry.Verify(x => x.SetFailed(preparer.PullResult.Errors), Times.Never);
-            }
-
-            [Fact]
-            public async Task PreMappedDestinationProjectNotFoundAsync()
-            {
-                var item = Create<ContentMigrationItem<TestContainerContentType>>();
-                var preparer = Create<TestPreparer<TestContainerContentType>>();
-
-                var publishItem = preparer.PullResult.Value!;
-                publishItem.PublicContainer = Create<ContentReferenceStub>();
-
-                var destinationContainerLocation = MockManifestEntry.Object.MappedLocation.Parent();
-                var destinationProject = Create<ContentReferenceStub>();
-
-                MockProjectFinder.Setup(x => x.FindByMappedLocationAsync(destinationContainerLocation, Cancel))
-                    .ReturnsAsync((IContentReference?)null);
-
-                await Assert.ThrowsAsync<Exception>(() => preparer.PrepareAsync(item, Cancel));
-
-                MockProjectFinder.Verify(x => x.FindByMappedLocationAsync(destinationContainerLocation, Cancel), Times.Once);
-            }
-
-            [Fact]
-            public async Task MappedProjectNotFoundAsync()
-            {
-                MockPipeline.Setup(x => x.GetItemConverter<TestContainerContentType, TestContainerContentType>())
-                    .Returns(() => new DirectContentItemConverter<TestContainerContentType, TestContainerContentType>());
-
-                var item = Create<ContentMigrationItem<TestContainerContentType>>();
-                var preparer = Create<TestPreparer<TestContainerContentType>>();
-
-                var publishItem = preparer.PullResult.Value!;
-                publishItem.PublicContainer = Create<ContentReferenceStub>();
-
-                var sourceParentLocation = publishItem.PublicContainer.Location;
-
-                MappedLocation = sourceParentLocation.Append(Create<string>());
-
-                var destinationContainerLocation = MockManifestEntry.Object.MappedLocation.Parent();
-                var destinationProject = Create<ContentReferenceStub>();
-
-                MockProjectFinder.Setup(x => x.FindBySourceLocationAsync(sourceParentLocation, Cancel))
-                    .ReturnsAsync((IContentReference?)null);
-
-                await Assert.ThrowsAsync<Exception>(() => preparer.PrepareAsync(item, Cancel));
-
-                MockProjectFinder.Verify(x => x.FindBySourceLocationAsync(sourceParentLocation, Cancel), Times.Once);
-            }
         }
 
-        public class PrepareAsyncFile : ContentItemPreparerTestBase<TestFileContentType>
+        public sealed class PrepareAsyncFile : ContentItemPreparerTestBase<TestFileContentType>
         {
             [Fact]
             public async Task FinalizesFileContentAsync()
@@ -432,7 +479,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Preparation
                 MockPipeline.Verify(x => x.GetItemConverter<TestFileContentType, TestPublishType>(), Times.Once);
                 mockConverter.Verify(x => x.ConvertAsync(preparer.PullResult.Value!, Cancel), Times.Once);
 
-                Assert.Same(convertedItem, result.Value);
+                Assert.Same(convertedItem, result.PublishItem);
             }
 
             [Fact]
@@ -455,6 +502,36 @@ namespace Tableau.Migration.Tests.Unit.Engine.Preparation
 
                 MockPipeline.Verify(x => x.GetItemConverter<TestFileContentType, TestPublishType>(), Times.Once);
                 mockConverter.Verify(x => x.ConvertAsync(preparer.PullResult.Value!, Cancel), Times.Once);
+            }
+
+            [Fact]
+            public async Task PulledFilterAbortsConversionAsync()
+            {
+                MockHookRunner.Setup(x => x.ExecuteAsync<IContentItemPulledHook<TestFileContentType>, ContentItemPulledContext<TestFileContentType>>(
+                    It.IsAny<ContentItemPulledContext<TestFileContentType>>(),
+                    It.IsAny<Action<string, ContentItemPulledContext<TestFileContentType>, ContentItemPulledContext<TestFileContentType>>>(),
+                    Cancel))
+                    .ReturnsAsync((
+                        ContentItemPulledContext<TestFileContentType> ctx,
+                        Action<string, ContentItemPulledContext<TestFileContentType>, ContentItemPulledContext<TestFileContentType>> afterAction,
+                        CancellationToken c) =>
+                    {
+                        MockManifestEntry.SetupGet(x => x.Status).Returns(MigrationManifestEntryStatus.Skipped);
+                        return ctx;
+                    });
+
+                var mockConverter = Create<Mock<IContentItemConverter<TestFileContentType, TestPublishType>>>();
+                MockPipeline.Setup(x => x.GetItemConverter<TestFileContentType, TestPublishType>())
+                    .Returns(mockConverter.Object);
+
+                var preparer = Create<TestPreparer<TestFileContentType, TestFileContentType, TestPublishType>>();
+                var result = await preparer.PrepareAsync(Item, Cancel);
+
+                result.AssertSuccess();
+                Assert.True(result.IsSkipped);
+                Assert.Equal(1, preparer.PullCallCount);
+
+                mockConverter.Verify(x => x.ConvertAsync(preparer.PullResult.Value!, Cancel), Times.Never);
             }
         }
 

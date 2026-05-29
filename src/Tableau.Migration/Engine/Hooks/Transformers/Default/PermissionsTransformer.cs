@@ -27,6 +27,7 @@ using Tableau.Migration.Content;
 using Tableau.Migration.Content.Permissions;
 using Tableau.Migration.Content.Search;
 using Tableau.Migration.Engine.Endpoints.Search;
+using Tableau.Migration.Engine.Manifest;
 using Tableau.Migration.Resources;
 
 namespace Tableau.Migration.Engine.Hooks.Transformers.Default
@@ -110,7 +111,12 @@ namespace Tableau.Migration.Engine.Hooks.Transformers.Default
                 var granteeType = group.Key.GranteeType;
 
                 var destinationGrantee = await GetDestinationGranteeAsync(group.Key.Grantee.Id, granteeType, cancel).ConfigureAwait(false);
-                if (destinationGrantee is null)
+                if(destinationGrantee.Status is MigrationManifestEntryStatus.Skipped)
+                {
+                    continue;
+                }
+
+                if (destinationGrantee.Destination is null)
                 {
                     missingGrantees.Add(group.Key);
                     continue;
@@ -124,7 +130,7 @@ namespace Tableau.Migration.Engine.Hooks.Transformers.Default
                  * Capability resolution automatically happens here since this
                  * GranteeCapability constructor applies that logic.
                  */
-                var transformedGrantee = new GranteeCapability(granteeType, destinationGrantee, destinationCapabilities);
+                var transformedGrantee = new GranteeCapability(granteeType, destinationGrantee.Destination, destinationCapabilities);
                 transformedGrantees.Add(transformedGrantee);
             }
 
@@ -135,14 +141,14 @@ namespace Tableau.Migration.Engine.Hooks.Transformers.Default
             return permissions;
         }
 
-        private async Task<IContentReference?> GetDestinationGranteeAsync(Guid groupKey, GranteeType granteeType, CancellationToken cancel)
+        private async Task<DestinationContentReferenceResult> GetDestinationGranteeAsync(Guid groupKey, GranteeType granteeType, CancellationToken cancel)
         {
             return granteeType switch
             {
-                GranteeType.Group => await _groupContentFinder.FindBySourceIdAsync(groupKey, cancel).ConfigureAwait(false),
-                GranteeType.User => await _userContentFinder.FindBySourceIdAsync(groupKey, cancel).ConfigureAwait(false),
-                GranteeType.GroupSet => await _groupSetContentFinder.FindBySourceIdAsync(groupKey, cancel).ConfigureAwait(false),
-                _ => null
+                GranteeType.Group => await _groupContentFinder.FindResultBySourceIdAsync(groupKey, cancel).ConfigureAwait(false),
+                GranteeType.User => await _userContentFinder.FindResultBySourceIdAsync(groupKey, cancel).ConfigureAwait(false),
+                GranteeType.GroupSet => await _groupSetContentFinder.FindResultBySourceIdAsync(groupKey, cancel).ConfigureAwait(false),
+                _ => new(MigrationManifestEntryStatus.Skipped, null)
             };
         }
     }

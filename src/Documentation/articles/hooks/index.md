@@ -14,11 +14,7 @@ The Migration SDK has the following types of hooks, categorized broadly based on
 
 These types of hooks run on content items.
 
-- Filters: Used to exclude certain content items based on known criteria.
-
-   > [!Note]
-   > Filters do not have a cascading effect. You will need to write similar filters or mappings for the related content items as well.
-
+- Filters: Used to exclude certain content items based on known criteria. Filters can optionally [cascade](~/articles/hooks/filter_cascading.md) to other content items that reference the skipped item.
 - Mappings: Used to map a source item to something different at the destination. The original does not change.
 - Transformers: Used to change certain properties within various content types. A good example is permissions where the source and destination have different identifiers.
   
@@ -30,6 +26,8 @@ These types of hooks run on content items.
 These types of hooks run before or after certain migration events.
 
 - Migration Initialized: Executed after preflight validation is completed successfully, but before any migration actions are started.
+
+- Pulled: Run on a source content item after the item has been fully retrieved and downloaded, but before it is converted and prepared for publishing.
 
 - Post-Publish: Run on the destination content after the items for the content type have been published.
 

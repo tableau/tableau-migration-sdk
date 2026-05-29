@@ -1,6 +1,6 @@
 cffi==2.0.0
-pycparser==2.23
+pycparser==3.0
 pythonnet==3.0.5
 typing_extensions==4.15.0
-pytest-env==1.2.0
-build==1.4.0
+pytest-env==1.6.0
+build==1.5.0

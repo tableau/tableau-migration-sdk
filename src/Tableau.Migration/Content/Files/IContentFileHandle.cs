@@ -69,6 +69,14 @@ namespace Tableau.Migration.Content.Files
         /// <returns>The XML stream to edit.</returns>
         Task<ITableauFileXmlStream> GetXmlStreamAsync(CancellationToken cancel);
 
+        /// <summary>
+        /// Gets the current read/write stream to the JSON content of the Tableau file, 
+        /// opening a new stream if necessary.
+        /// Changes to the stream will be automatically saved before publishing.
+        /// </summary>
+        /// <returns>The JSON stream to edit.</returns>
+        Task<ITableauFileJsonStream> GetJsonStreamAsync(CancellationToken cancel);
+
         internal bool? HasZipFilePath =>
             new FilePath(OriginalFileName).IsZipFile ?? new FilePath(Path).IsZipFile;
     }

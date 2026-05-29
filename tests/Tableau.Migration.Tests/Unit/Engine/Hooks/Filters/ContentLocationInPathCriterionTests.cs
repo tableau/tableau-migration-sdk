@@ -17,7 +17,6 @@
 
 using System.Collections.Immutable;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Tableau.Migration.Content;
@@ -36,7 +35,6 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Filters
             //Setup
             // Create mock data
             var users = CreateMany<ContentMigrationItem<IUser>>().ToImmutableArray();
-            var usersCount = users.Length;
 
             // Choose one of the items and create a filter from it
             var user1 = users.FirstOrDefault();
@@ -46,13 +44,12 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Filters
 
 
             // Act- Filter with the chosen filter
-            var filterResult = await filter1.ExecuteAsync(users, new CancellationToken());
+            var filterResult = await filter1.ExecuteAsync(new ContentFilterContext<IUser>(users), Cancel);
 
             // Verify - The filter returns only the item that matches the filter.
             Assert.NotNull(filterResult);
-            Assert.Single(filterResult);
-            Assert.Same(user1, filterResult.First());
-            Assert.Equal(usersCount, users.Length);
+            var migrateItem = Assert.Single(filterResult.Items, i => i.Status is FilterStatus.Migrate);
+            Assert.Equal(user1, migrateItem);
         }
     }
 }

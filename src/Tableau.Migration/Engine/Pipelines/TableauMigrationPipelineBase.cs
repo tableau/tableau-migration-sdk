@@ -49,6 +49,12 @@ namespace Tableau.Migration.Engine.Pipelines
         /// <returns>The created migration action.</returns>
         protected abstract IMigrationAction CreateSubscriptionAction();
 
+        /// <summary>
+        /// Creates the migration action for handling the flow run task content type.
+        /// </summary>
+        /// <returns>The created migration action.</returns>
+        protected abstract IMigrationAction CreateFlowRunTaskAction();
+
         /// <inheritdoc />
         protected override IEnumerable<IMigrationAction> BuildPipeline()
         {
@@ -63,10 +69,12 @@ namespace Tableau.Migration.Engine.Pipelines
             yield return CreateMigrateContentAction<IGroupSet>();
             yield return CreateMigrateContentAction<IProject>();
             yield return CreateMigrateContentAction<IDataSource>();
+            yield return CreateMigrateContentAction<IFlow>();
             yield return CreateMigrateContentAction<IWorkbook>();
             yield return CreateExtractRefreshTaskAction();
             yield return CreateMigrateContentAction<ICustomView>();
             yield return CreateSubscriptionAction();
+            yield return CreateFlowRunTaskAction();
             yield return CreateMigrateContentAction<IFavorite>();
             
         }

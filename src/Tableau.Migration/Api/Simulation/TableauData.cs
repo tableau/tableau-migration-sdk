@@ -123,6 +123,11 @@ namespace Tableau.Migration.Api.Simulation
         public ConcurrentSet<CloudResponse.ExtractRefreshTasksResponse.TaskType> CloudExtractRefreshTasks { get; set; } = new();
 
         /// <summary>
+        /// Gets or sets the Tableau Server flow run tasks.
+        /// </summary>
+        public ConcurrentSet<ServerResponse.FlowRunTasksResponse.TaskType> ServerFlowRunTasks { get; set; } = new();
+
+        /// <summary>
         /// Gets or sets the Tableau Server subscriptions.
         /// </summary>
         public ConcurrentSet<ServerResponse.GetSubscriptionsResponse.SubscriptionType> ServerSubscriptions { get; set; } = new();
@@ -215,7 +220,22 @@ namespace Tableau.Migration.Api.Simulation
         /// <summary>
         /// Gets or sets the flows.
         /// </summary>
-        public ConcurrentSet<FlowsResponse.FlowType> Flows { get; set; } = new();
+        public ConcurrentSet<FlowResponse.FlowType> Flows { get; set; } = new();
+
+        /// <summary>
+        /// Gets or sets the flow file contents, by ID.
+        /// </summary>
+        public ConcurrentDictionary<Guid, byte[]> FlowFiles { get; set; } = new();
+
+        /// <summary>
+        /// Gets or sets the flow keychain data, by ID.
+        /// </summary>
+        public ConcurrentDictionary<Guid, RetrieveKeychainResponse> FlowKeychains { get; set; } = new();
+
+        /// <summary>
+        /// Gets or sets the flow permissions.
+        /// </summary>
+        public ConcurrentDictionary<Guid, PermissionsType> FlowPermissions { get; set; } = new();
 
         /// <summary>
         /// Gets or sets the users' favorites, by user ID.
@@ -588,6 +608,17 @@ namespace Tableau.Migration.Api.Simulation
         }
 
         /// <summary>
+        /// Adds a flow to simulated dataset.
+        /// </summary>
+        /// <param name="flow">The <see cref="FlowResponse.FlowType"/> metadata</param>
+        /// <param name="fileData">A byte array representing the flow. If null, empty array is used</param>
+        internal void AddFlow(FlowResponse.FlowType flow, byte[]? fileData)
+        {
+            Flows.Add(flow);
+            FlowFiles[flow.Id] = fileData ?? Array.Empty<byte>();
+        }
+
+        /// <summary>
         /// Adds a collection to simulated dataset.
         /// </summary>
         /// <param name="collection">The <see cref="CollectionsResponse.CollectionType"/> metadata</param>
@@ -688,6 +719,9 @@ namespace Tableau.Migration.Api.Simulation
         internal void AddViewPermissions(Guid viewId, PermissionsType permission)
             => AddContentTypePermissions(RestUrlKeywords.Views, viewId, permission);
 
+        internal void AddFlowPermissions(IFlowType flow, PermissionsType permission)
+            => AddContentTypePermissions(RestUrlKeywords.Flows, flow.Id, permission);
+
         internal ConcurrentDictionary<Guid, PermissionsType> GetContentTypePermissions(string contentTypeUrlPrefix)
         {
             return contentTypeUrlPrefix.ToLower() switch
@@ -696,6 +730,7 @@ namespace Tableau.Migration.Api.Simulation
                 RestUrlKeywords.Projects => ProjectPermissions,
                 RestUrlKeywords.Workbooks => WorkbookPermissions,
                 RestUrlKeywords.Views => ViewPermissions,
+                RestUrlKeywords.Flows => FlowPermissions,
                 _ => throw new ArgumentException($"No permissions are set up for content type {contentTypeUrlPrefix}.", nameof(contentTypeUrlPrefix)),
             };
         }
@@ -724,11 +759,6 @@ namespace Tableau.Migration.Api.Simulation
             var contentTypePermissions = GetContentTypePermissions(contentTypeUrlPrefix);
 
             contentTypePermissions.AddOrUpdate(contentId, _ => permission, (_, __) => permission);
-        }
-
-        internal void AddFlow(FlowsResponse.FlowType flow)
-        {
-            Flows.Add(flow);
         }
 
         internal void AddUserFavorite(Guid userId, FavoriteContentType contentType, Guid contentId, string label)

@@ -71,15 +71,15 @@ namespace Tableau.Migration.Tests.Unit.Net
                     .ReturnsAsync(response);
             }
 
-            internal async Task VerifySendAsyncCalled(
+            internal async Task VerifySendAsyncCalledAsync(
                 Func<DefaultHttpClient, Task> execute,
                 Expression<Func<HttpRequestMessage, bool>> assertRequest)
-                => await VerifySendAsyncCalled(
+                => await VerifySendAsyncCalledAsync(
                     execute,
                     assertRequest,
                     Times.Once());
 
-            internal async Task VerifySendAsyncCalled(
+            internal async Task VerifySendAsyncCalledAsync(
                 Func<DefaultHttpClient, Task> execute,
                 Expression<Func<HttpRequestMessage, bool>> assertRequest,
                 Times times)
@@ -105,9 +105,9 @@ namespace Tableau.Migration.Tests.Unit.Net
         public class SendAsync : DefaultHttpClientTest
         {
             [Fact]
-            public async Task Calls_inner_client_SendAsync()
+            public async Task CallsInnerClientSendAsync()
             {
-                await VerifySendAsyncCalled(
+                await VerifySendAsyncCalledAsync(
                     c => c.SendAsync(new HttpRequestMessage(HttpMethod.Options, TestConstants.LocalhostUri), Cancel),
                     r => r.Method == HttpMethod.Options);
             }
@@ -116,9 +116,9 @@ namespace Tableau.Migration.Tests.Unit.Net
         public class SendAsync_with_HttpCompletionOption : DefaultHttpClientTest
         {
             [Fact]
-            public async Task Calls_inner_client_SendAsync()
+            public async Task CallsInnerClientSendAsync()
             {
-                await VerifySendAsyncCalled(
+                await VerifySendAsyncCalledAsync(
                     c => c.SendAsync(
                         new HttpRequestMessage(HttpMethod.Head, TestConstants.LocalhostUri),
                         HttpCompletionOption.ResponseHeadersRead, Cancel),
@@ -129,9 +129,9 @@ namespace Tableau.Migration.Tests.Unit.Net
         public class SendAsyncServerInfo : DefaultHttpClientTest
         {
             [Fact]
-            public async Task Calls_inner_client_SendAsync()
+            public async Task CallsInnerClientSendAsync()
             {
-                await VerifySendAsyncCalled(
+                await VerifySendAsyncCalledAsync(
                     c => c.SendAsync<ServerInfoResponse>(
                         new HttpRequestMessage(HttpMethod.Get, TestConstants.LocalhostUri),
                         Cancel),

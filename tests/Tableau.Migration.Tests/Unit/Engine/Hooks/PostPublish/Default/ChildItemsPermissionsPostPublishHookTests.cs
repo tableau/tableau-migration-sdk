@@ -85,7 +85,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.PostPublish.Default
         public class ExecuteAsync : ChildsItemMigrationCompletedHookTest
         {
             [Fact]
-            public async Task Returns_when_source_permissions_fails()
+            public async Task ReturnsWhenSourcePermissionsFailsAsync()
             {
                 var manifestEntry = Create<IMigrationManifestEntryEditor>();
                 var item = Create<ChildItemsPermissionsContentType>();
@@ -103,7 +103,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.PostPublish.Default
             }
 
             [Fact]
-            public async Task Returns_when_noop()
+            public async Task ReturnsWhenNoopAsync()
             {
                 var manifestEntry = Create<IMigrationManifestEntryEditor>();
                 var item = Create<ChildItemsPermissionsContentType>();
@@ -119,7 +119,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.PostPublish.Default
             }
 
             [Fact]
-            public async Task Returns_when_project_locked()
+            public async Task ReturnsWhenProjectLockedAsync()
             {
                 var manifestEntry = Create<IMigrationManifestEntryEditor>();
                 var item = Create<ChildItemsPermissionsContentType>();
@@ -136,7 +136,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.PostPublish.Default
             }
 
             [Fact]
-            public async Task Transforms_permissions()
+            public async Task TransformsPermissionsAsync()
             {
                 var manifestEntry = Create<IMigrationManifestEntryEditor>();
                 var item = Create<ChildItemsPermissionsContentType>();

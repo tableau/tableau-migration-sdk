@@ -31,7 +31,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
         public class GetByIdAsync : SchedulesApiClientTest
         {
             [Fact]
-            public async Task Returns_Schedule_on_success()
+            public async Task ReturnsScheduleOnSuccessAsync()
             {
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
 
@@ -46,7 +46,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
             }
 
             [Fact]
-            public async Task Returns_error_when_not_found()
+            public async Task ReturnsErrorWhenNotFoundAsync()
             {
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
 
@@ -63,7 +63,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
         public class GetScheduleExtractRefreshTasksAsync : SchedulesApiClientTest
         {
             [Fact]
-            public async Task Returns_success_on_success()
+            public async Task ReturnsSuccessOnSuccessAsync()
             {
                 // Arrange 
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
@@ -99,7 +99,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
             }
 
             [Fact]
-            public async Task Returns_success_when_no_schedules_exist()
+            public async Task ReturnsSuccessWhenNoSchedulesExistAsync()
             {
                 // Arrange 
                 await using var sitesClient = await GetSitesClientAsync(Cancel);

@@ -26,6 +26,7 @@ using Tableau.Migration.Config;
 using Tableau.Migration.Engine;
 using Tableau.Migration.Engine.Migrators.Batch;
 using Tableau.Migration.Engine.Pipelines;
+using Tableau.Migration.Engine.Preparation;
 using Xunit;
 
 namespace Tableau.Migration.Tests.Unit.Engine.Migrators.Batch
@@ -75,22 +76,22 @@ namespace Tableau.Migration.Tests.Unit.Engine.Migrators.Batch
                 Assert.All(MockManifestEntries, e => e.Verify(x => x.SetMigrated(), Times.Once));
             }
 
-            private async Task<IResult<TestPublishType>> PrepareItemWithSuccessAsync(ContentMigrationItem<TestContentType> item, CancellationToken itemCancel)
+            private async Task<IContentItemPreparationResult<TestPublishType>> PrepareItemWithSuccessAsync(ContentMigrationItem<TestContentType> item, CancellationToken itemCancel)
             {
                 itemCancel.ThrowIfCancellationRequested();
                 await Task.Delay(30_000, itemCancel);
 
                 itemCancel.ThrowIfCancellationRequested();
-                return Result<TestPublishType>.Succeeded(new());
+                return ContentItemPreparationResult<TestPublishType>.Succeeded(new());
             }
 
-            private async Task<IResult<TestPublishType>> PrepareItemCancelBatchAsync(ContentMigrationItem<TestContentType> item, CancellationToken itemCancel)
+            private async Task<IContentItemPreparationResult<TestPublishType>> PrepareItemCancelBatchAsync(ContentMigrationItem<TestContentType> item, CancellationToken itemCancel)
             {
                 await Task.Delay(500, itemCancel);
 
                 _batchMigrator.CurrentBatch?.BatchCancelSource?.Cancel();
 
-                return Result<TestPublishType>.Succeeded(new());
+                return ContentItemPreparationResult<TestPublishType>.Succeeded(new());
             }
 
             // TODO: W-14188246 - Fix Flaky Test.

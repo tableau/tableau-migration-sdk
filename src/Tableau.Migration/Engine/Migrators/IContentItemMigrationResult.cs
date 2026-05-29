@@ -31,8 +31,15 @@ namespace Tableau.Migration.Engine.Migrators
 
         /// <summary>
         /// Gets whether the item migration was canceled.
+        /// See <see cref="MigrationManifestEntryStatus.Canceled"/> for cancellation meaning.
         /// </summary>
         bool IsCanceled { get; }
+
+        /// <summary>
+        /// Gets whether the item migration was skipped.
+        /// See <see cref="MigrationManifestEntryStatus.Skipped"/> for skipped meaning.
+        /// </summary>
+        bool IsSkipped { get; }
 
         /// <summary>
         /// Gets the manifest entry for the content item.

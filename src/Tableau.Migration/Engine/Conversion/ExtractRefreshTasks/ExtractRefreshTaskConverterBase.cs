@@ -15,33 +15,40 @@
 //  limitations under the License.
 //
 
-using System.Threading;
-using System.Threading.Tasks;
 using Tableau.Migration.Content.Schedules;
 using Tableau.Migration.Engine.Conversion.Schedules;
 
 namespace Tableau.Migration.Engine.Conversion.ExtractRefreshTasks
 {
-    internal abstract class ExtractRefreshTaskConverterBase<TSourceTask, TSourceSchedule, TTargetTask, TTargetSchedule> : IExtractRefreshTaskConverter<TSourceTask, TTargetTask>
+    /// <summary>
+    /// Base class for converting extract refresh tasks from one type to another.
+    /// </summary>
+    internal abstract class ExtractRefreshTaskConverterBase<TSourceTask, TSourceSchedule, TTargetTask, TTargetSchedule>
+        : ScheduledTaskConverterBase<TSourceTask, TSourceSchedule, TTargetTask, TTargetSchedule>,
+          IExtractRefreshTaskConverter<TSourceTask, TTargetTask>
         where TSourceTask : IExtractRefreshTask<TSourceSchedule>
         where TSourceSchedule : ISchedule
         where TTargetTask : IExtractRefreshTask<TTargetSchedule>
         where TTargetSchedule : ISchedule
     {
-        private readonly IScheduleConverter<TSourceSchedule, TTargetSchedule> _scheduleConverter;
-
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ExtractRefreshTaskConverterBase{TSourceTask, TSourceSchedule, TTargetTask, TTargetSchedule}"/> class.
+        /// </summary>
+        /// <param name="scheduleConverter">The schedule converter to use for converting schedules.</param>
         protected ExtractRefreshTaskConverterBase(IScheduleConverter<TSourceSchedule, TTargetSchedule> scheduleConverter)
-        {
-            _scheduleConverter = scheduleConverter;
-        }
+            : base(scheduleConverter)
+        { }
+
+        /// <summary>
+        /// Converts the extract refresh task after the schedule has been converted.
+        /// </summary>
+        /// <param name="source">The source extract refresh task.</param>
+        /// <param name="targetSchedule">The converted target schedule.</param>
+        /// <returns>The converted target extract refresh task.</returns>
+        protected abstract TTargetTask ConvertExtractRefreshTask(TSourceTask source, TTargetSchedule targetSchedule);
 
         /// <inheritdoc />
-        public async Task<TTargetTask> ConvertAsync(TSourceTask source, CancellationToken cancel)
-        {
-            var targetSchedule = await _scheduleConverter.ConvertAsync(source.Schedule, cancel).ConfigureAwait(false);
-            return ConvertExtractRefreshTask(source, targetSchedule);
-        }
-
-        protected abstract TTargetTask ConvertExtractRefreshTask(TSourceTask source, TTargetSchedule targetSchedule);
+        protected override TTargetTask ConvertTask(TSourceTask source, TTargetSchedule targetSchedule)
+            => ConvertExtractRefreshTask(source, targetSchedule);
     }
 }

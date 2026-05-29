@@ -43,7 +43,7 @@ namespace Tableau.Migration.Tests.Unit.Api.Publishing
         public class PublishAsync : WorkbookPublisherTest
         {
             [Fact]
-            public async Task Publishes()
+            public async Task PublishesAsync()
             {
                 var initiateResponse = SetupSuccessResponse<FileUploadResponse, FileUploadResponse.FileUploadType>();
                 var getWorkbookResponse = SetupSuccessResponse<WorkbookResponse, WorkbookResponse.WorkbookType>();

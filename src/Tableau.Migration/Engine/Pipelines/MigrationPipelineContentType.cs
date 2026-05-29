@@ -22,6 +22,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using Tableau.Migration.Content;
+using Tableau.Migration.Content.Schedules;
 using Tableau.Migration.Content.Schedules.Cloud;
 using Tableau.Migration.Content.Schedules.Server;
 
@@ -75,6 +76,14 @@ namespace Tableau.Migration.Engine.Pipelines
             .WithResultType<IWorkbookDetails>();
 
         /// <summary>
+        /// Gets the flow <see cref="MigrationPipelineContentType"/>.
+        /// </summary>
+        public static readonly MigrationPipelineContentType Flows = new MigrationPipelineContentType<IFlow>()
+            .WithPrepareType<IPublishableFlow>()
+            .WithPublishType<IPublishableFlow>()
+            .WithResultType<IFlow>();
+
+        /// <summary>
         /// Gets the view <see cref="MigrationPipelineContentType"/>.
         /// </summary>
         public static readonly MigrationPipelineContentType Views = new MigrationPipelineContentType<IView>();
@@ -117,6 +126,22 @@ namespace Tableau.Migration.Engine.Pipelines
         /// Gets the cloud to cloud subscription <see cref="MigrationPipelineContentType"/>.
         /// </summary>
         public static readonly MigrationPipelineContentType CloudToCloudSubscriptions = new MigrationPipelineContentType<ICloudSubscription>();
+
+        /// <summary>
+        /// Gets the server to server flow run task <see cref="MigrationPipelineContentType"/>.
+        /// </summary>
+        public static readonly MigrationPipelineContentType ServerToServerFlowRunTasks = new MigrationPipelineContentType<IServerFlowRunTask>();
+
+        /// <summary>
+        /// Gets the server to cloud flow run task <see cref="MigrationPipelineContentType"/>.
+        /// </summary>
+        public static readonly MigrationPipelineContentType ServerToCloudFlowRunTasks = new MigrationPipelineContentType<IServerFlowRunTask>()
+            .WithPublishType<ICloudFlowRunTask>();
+
+        /// <summary>
+        /// Gets the cloud to cloud flow run task <see cref="MigrationPipelineContentType"/>.
+        /// </summary>
+        public static readonly MigrationPipelineContentType CloudToCloudFlowRunTasks = new MigrationPipelineContentType<ICloudFlowRunTask>();
 
         /// <summary>
         /// Gets the favorite <see cref="MigrationPipelineContentType"/>.

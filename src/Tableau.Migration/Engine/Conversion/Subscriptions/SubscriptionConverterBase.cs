@@ -15,34 +15,41 @@
 //  limitations under the License.
 //
 
-using System.Threading;
-using System.Threading.Tasks;
 using Tableau.Migration.Content;
 using Tableau.Migration.Content.Schedules;
 using Tableau.Migration.Engine.Conversion.Schedules;
 
 namespace Tableau.Migration.Engine.Conversion.Subscriptions
 {
-    internal abstract class SubscriptionConverterBase<TSourceSubscription, TSourceSchedule, TTargetSubscription, TTargetSchedule> : ISubscriptionConverter<TSourceSubscription, TTargetSubscription>
+    /// <summary>
+    /// Base class for converting subscriptions from one type to another.
+    /// </summary>
+    internal abstract class SubscriptionConverterBase<TSourceSubscription, TSourceSchedule, TTargetSubscription, TTargetSchedule>
+        : ScheduledTaskConverterBase<TSourceSubscription, TSourceSchedule, TTargetSubscription, TTargetSchedule>,
+          ISubscriptionConverter<TSourceSubscription, TTargetSubscription>
         where TSourceSubscription : ISubscription<TSourceSchedule>
         where TSourceSchedule : ISchedule
         where TTargetSubscription : ISubscription<TTargetSchedule>
         where TTargetSchedule : ISchedule
     {
-        private readonly IScheduleConverter<TSourceSchedule, TTargetSchedule> _scheduleConverter;
-
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SubscriptionConverterBase{TSourceSubscription, TSourceSchedule, TTargetSubscription, TTargetSchedule}"/> class.
+        /// </summary>
+        /// <param name="scheduleConverter">The schedule converter to use for converting schedules.</param>
         protected SubscriptionConverterBase(IScheduleConverter<TSourceSchedule, TTargetSchedule> scheduleConverter)
-        {
-            _scheduleConverter = scheduleConverter;
-        }
+            : base(scheduleConverter)
+        { }
+
+        /// <summary>
+        /// Converts the subscription after the schedule has been converted.
+        /// </summary>
+        /// <param name="source">The source subscription.</param>
+        /// <param name="targetSchedule">The converted target schedule.</param>
+        /// <returns>The converted target subscription.</returns>
+        protected abstract TTargetSubscription ConvertSubscription(TSourceSubscription source, TTargetSchedule targetSchedule);
 
         /// <inheritdoc />
-        public async Task<TTargetSubscription> ConvertAsync(TSourceSubscription source, CancellationToken cancel)
-        {
-            var targetSchedule = await _scheduleConverter.ConvertAsync(source.Schedule, cancel).ConfigureAwait(false);
-            return ConvertSubscription(source, targetSchedule);
-        }
-
-        protected abstract TTargetSubscription ConvertSubscription(TSourceSubscription source, TTargetSchedule targetSchedule);
+        protected override TTargetSubscription ConvertTask(TSourceSubscription source, TTargetSchedule targetSchedule)
+            => ConvertSubscription(source, targetSchedule);
     }
 }

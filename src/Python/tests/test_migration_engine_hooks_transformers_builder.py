@@ -16,13 +16,14 @@
 from typing import TypeVar
 from uuid import UUID, uuid4
 from xml.etree import ElementTree
+import json
 
 from tableau_migration.migration import PyContentReference
 from tableau_migration.migration_api_rest_models import PyPermissionsCapabilityModes, PyPermissionsCapabilityNames
 from tableau_migration.migration_content import PyPublishableWorkbook, PyUser
 from tableau_migration.migration_content_permissions import PyCapability, PyGranteeCapability, PyGranteeType, PyPermissionSet
-from tableau_migration.migration_engine_hooks_transformers import PyContentTransformerBuilder
-from tableau_migration.migration_engine_hooks_transformers_interop import PyContentTransformerBase, PyXmlContentTransformerBase
+from tableau_migration.migration_engine_hooks_transformers_builder import PyContentTransformerBuilder
+from tableau_migration.migration_engine_hooks_transformers_interop import PyContentTransformerBase, PyJsonContentTransformerBase, PyXmlContentTransformerBase
 from tableau_migration.migration_services import ScopedMigrationServices
 
 from tests.helpers.autofixture import AutoFixtureTestBase
@@ -30,12 +31,13 @@ from tests.helpers.autofixture import AutoFixtureTestBase
 from System import IServiceProvider
 from System.IO import MemoryStream, StreamReader
 from System.Threading import CancellationToken
+from System.Text.Json.Nodes import JsonNode
 from System.Xml import XmlWriter
 from System.Xml.Linq import LoadOptions, XDocument, XName
 from Tableau.Migration.Content import IPublishableWorkbook, IUser
 from Tableau.Migration.Content.Permissions import IPermissionSet
 from Tableau.Migration.Engine.Hooks import IMigrationHook
-from Tableau.Migration.Engine.Hooks.Transformers import ContentTransformerBuilder, IContentTransformer, IXmlContentTransformer
+from Tableau.Migration.Engine.Hooks.Transformers import ContentTransformerBuilder, IContentTransformer, IJsonContentTransformer, IXmlContentTransformer
 
 T = TypeVar("T")
 
@@ -235,7 +237,7 @@ class TestXmlTransformerInterop(AutoFixtureTestBase):
 
         assert ctx.Description == "18.1"
         assert self._save_xml(xml) == self._clean_xml_text(_expected_twb)
-    
+
     def test_transformer_interop_callback_services(self):
         hook_builder = PyContentTransformerBuilder(ContentTransformerBuilder())
 
@@ -247,15 +249,122 @@ class TestXmlTransformerInterop(AutoFixtureTestBase):
 
         hook_factories = hook_builder.build().get_hooks(IContentTransformer[IPublishableWorkbook])
         assert len(hook_factories) == 1
-        
+
         services = self.create(IServiceProvider)
-        
+
         hook = hook_factories[0].Create[IXmlContentTransformer[IPublishableWorkbook]](services)
         hook.TransformAsync(ctx, xml, CancellationToken(False)).GetAwaiter().GetResult()
 
         assert ctx.Description == "18.1"
         assert self._save_xml(xml) == self._clean_xml_text(_expected_twb)
 
+class PyJsonTransformer(PyJsonContentTransformerBase[T]):
+    def transform(self, ctx: T, json_obj) -> None:
+        pass
+
+_test_json = """{
+  "connections": {
+    "c1": {
+      "connectionAttributes": {
+        "server": "source-server"
+      }
+    }
+  }
+}"""
+
+class PyWorkbookJsonTransformer(PyJsonTransformer[PyPublishableWorkbook]):
+
+    def needs_json_transforming(self, ctx: PyPublishableWorkbook) -> bool:
+        return ctx.description == "mark"
+
+    def transform(self, ctx: PyPublishableWorkbook, json_obj) -> None:
+        json_obj["connections"]["c1"]["connectionAttributes"]["server"] = "class-server"
+
+def transform_workbook_json(ctx: PyPublishableWorkbook, json_obj) -> None:
+    json_obj["connections"]["c1"]["connectionAttributes"]["server"] = "callback-server"
+
+def transform_workbook_json_services(ctx: PyPublishableWorkbook, json_obj, services: ScopedMigrationServices) -> None:
+    json_obj["connections"]["c1"]["connectionAttributes"]["server"] = "services-server"
+
+class TestJsonTransformerInterop(AutoFixtureTestBase):
+
+    def _parse_json(self, json_node: JsonNode):
+        parsed = json.loads(json_node.ToJsonString())
+        return parsed["connections"]["c1"]["connectionAttributes"]["server"]
+
+    def test_transformer_interop_class(self):
+        hook_builder = PyContentTransformerBuilder(ContentTransformerBuilder())
+
+        result = hook_builder.add(PyWorkbookJsonTransformer)
+        assert result is hook_builder
+
+        hook_factories = hook_builder.build().get_hooks(IContentTransformer[IPublishableWorkbook])
+        assert len(hook_factories) == 1
+
+        services = self.create(IServiceProvider)
+        ctx = self.create(IPublishableWorkbook)
+        json_node = JsonNode.Parse(_test_json)
+
+        hook = hook_factories[0].Create[IJsonContentTransformer[IPublishableWorkbook]](services)
+        hook.TransformAsync(ctx, json_node, CancellationToken(False)).GetAwaiter().GetResult()
+
+        assert self._parse_json(json_node) == "class-server"
+
+    def test_transformer_needs_transforming(self):
+        hook_builder = PyContentTransformerBuilder(ContentTransformerBuilder())
+
+        result = hook_builder.add(PyWorkbookJsonTransformer)
+        assert result is hook_builder
+
+        hook_factories = hook_builder.build().get_hooks(IContentTransformer[IPublishableWorkbook])
+        assert len(hook_factories) == 1
+
+        services = self.create(IServiceProvider)
+        ctx = self.create(IPublishableWorkbook)
+        hook = hook_factories[0].Create[IJsonContentTransformer[IPublishableWorkbook]](services)
+
+        ctx.Description = "notmark"
+        assert hook.NeedsJsonTransforming(ctx) == False
+
+        ctx.Description = "mark"
+        assert hook.NeedsJsonTransforming(ctx) == True
+
+    def test_transformer_interop_callback(self):
+        hook_builder = PyContentTransformerBuilder(ContentTransformerBuilder())
+
+        result = hook_builder.add(PyPublishableWorkbook, transform_workbook_json, is_json = True)
+        assert result is hook_builder
+
+        hook_factories = hook_builder.build().get_hooks(IContentTransformer[IPublishableWorkbook])
+        assert len(hook_factories) == 1
+
+        services = self.create(IServiceProvider)
+        ctx = self.create(IPublishableWorkbook)
+        json_node = JsonNode.Parse(_test_json)
+
+        hook = hook_factories[0].Create[IJsonContentTransformer[IPublishableWorkbook]](services)
+        hook.TransformAsync(ctx, json_node, CancellationToken(False)).GetAwaiter().GetResult()
+
+        assert self._parse_json(json_node) == "callback-server"
+
+    def test_transformer_interop_callback_services(self):
+        hook_builder = PyContentTransformerBuilder(ContentTransformerBuilder())
+
+        result = hook_builder.add(PyPublishableWorkbook, transform_workbook_json_services, is_json = True)
+        assert result is hook_builder
+
+        hook_factories = hook_builder.build().get_hooks(IContentTransformer[IPublishableWorkbook])
+        assert len(hook_factories) == 1
+
+        services = self.create(IServiceProvider)
+        ctx = self.create(IPublishableWorkbook)
+        json_node = JsonNode.Parse(_test_json)
+
+        hook = hook_factories[0].Create[IJsonContentTransformer[IPublishableWorkbook]](services)
+        hook.TransformAsync(ctx, json_node, CancellationToken(False)).GetAwaiter().GetResult()
+
+        assert self._parse_json(json_node) == "services-server"
+    
 test_grantee_id = uuid4()
 class PyPermissionTransformer(PyContentTransformerBase[PyPermissionSet]):
     def transform(self, item_to_transform: PyPermissionSet) -> PyPermissionSet:

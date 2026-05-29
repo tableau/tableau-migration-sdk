@@ -130,9 +130,48 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Filters
             [Fact]
             public void AddFromType()
             {
+                var builder = new ContentFilterBuilder().Add((ContentFilterContext<IUser> context) => null);
+
+                var result = builder.Build();
+                Assert.NotNull(result);
+
+                var mappings = result.GetHooks<IContentFilter<IUser>>();
+                Assert.Single(mappings);
+            }
+
+            [Fact]
+            public void AddAsyncFromType()
+            {
                 var builder = new ContentFilterBuilder().Add(
-                    (IEnumerable<ContentMigrationItem<IUser>> context,
+                    (ContentFilterContext<IUser> context,
                     CancellationToken cancel)
+                    => Task.FromResult(null as ContentFilterContext<IUser>));
+
+                var result = builder.Build();
+                Assert.NotNull(result);
+
+                var mappings = result.GetHooks<IContentFilter<IUser>>();
+                Assert.Single(mappings);
+            }
+
+            [Fact]
+            public void AddEnumerableCallbackBackwardsCompatible()
+            {
+                var builder = ((IContentFilterBuilder)new ContentFilterBuilder()).Add(
+                    (IEnumerable<ContentMigrationItem<IUser>> context) => null);
+
+                var result = builder.Build();
+                Assert.NotNull(result);
+
+                var mappings = result.GetHooks<IContentFilter<IUser>>();
+                Assert.Single(mappings);
+            }
+
+            [Fact]
+            public void AddAsyncEnumerableCallbackBackwardsCompatible()
+            {
+                var builder = ((IContentFilterBuilder)new ContentFilterBuilder()).Add(
+                    (IEnumerable<ContentMigrationItem<IUser>> context, CancellationToken cancel)
                     => Task.FromResult(null as IEnumerable<ContentMigrationItem<IUser>>));
 
                 var result = builder.Build();
@@ -143,11 +182,11 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Filters
             }
         }
 
-        public class AddRawFilterInterface
+        public sealed class AddRawFilterInterface : AutoFixtureTestBase
         {
             private class RawHook : IContentFilter<IUser>
             {
-                public Task<IEnumerable<ContentMigrationItem<IUser>>?> ExecuteAsync(IEnumerable<ContentMigrationItem<IUser>> ctx, CancellationToken cancel)
+                public Task<ContentFilterContext<IUser>?> ExecuteAsync(ContentFilterContext<IUser> ctx, CancellationToken cancel)
                 {
                     throw new NotImplementedException();
                 }
@@ -157,7 +196,6 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Filters
             public async Task IgnoresRawHookInterfaceAsync()
             {
                 // Arrange
-                var users = new List<ContentMigrationItem<IUser>>();
                 var collection = new ServiceCollection()
                     .AddSingleton<RawHook>();
                 var builder = new ContentFilterBuilder()
@@ -169,7 +207,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Filters
                 // Act/Assert
                 await Assert.ThrowsAsync<NotImplementedException>(async () =>
                 {
-                    await hook.ExecuteAsync(users, CancellationToken.None);
+                    await hook.ExecuteAsync(Create<ContentFilterContext<IUser>>(), Cancel);
                 });
             }
         }
@@ -499,29 +537,29 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Filters
             public void BuildAndCreateCallback()
             {
                 // Arrange
-                static Task<IEnumerable<ContentMigrationItem<IUser>>?> callback(IEnumerable<ContentMigrationItem<IUser>> context,
+                static Task<ContentFilterContext<IUser>?> callback(ContentFilterContext<IUser> context,
                     CancellationToken cancel)
-                    => Task.FromResult(null as IEnumerable<ContentMigrationItem<IUser>>);
+                    => Task.FromResult(null as ContentFilterContext<IUser>);
                 var serviceProvider = new ServiceCollection().BuildServiceProvider();
                 var hookFactory = new ContentFilterBuilder()
                     .Add<IUser>(callback)
                     .Build()
                     .GetHooks<IContentFilter<IUser>>();
                 Assert.Single(hookFactory);
-                IMigrationHook<IEnumerable<ContentMigrationItem<IUser>>>? firstScopeHook1;
-                IMigrationHook<IEnumerable<ContentMigrationItem<IUser>>>? firstScopeHook2;
-                IMigrationHook<IEnumerable<ContentMigrationItem<IUser>>>? lastScopeHook;
+                IMigrationHook<ContentFilterContext<IUser>>? firstScopeHook1;
+                IMigrationHook<ContentFilterContext<IUser>>? firstScopeHook2;
+                IMigrationHook<ContentFilterContext<IUser>>? lastScopeHook;
 
                 // Act
                 using (var scope1 = serviceProvider.CreateScope())
                 {
-                    firstScopeHook1 = hookFactory[0].Create<IMigrationHook<IEnumerable<ContentMigrationItem<IUser>>>>(scope1.ServiceProvider);
-                    firstScopeHook2 = hookFactory[0].Create<IMigrationHook<IEnumerable<ContentMigrationItem<IUser>>>>(scope1.ServiceProvider);
+                    firstScopeHook1 = hookFactory[0].Create<IMigrationHook<ContentFilterContext<IUser>>>(scope1.ServiceProvider);
+                    firstScopeHook2 = hookFactory[0].Create<IMigrationHook<ContentFilterContext<IUser>>>(scope1.ServiceProvider);
                 }
 
                 using (var scope2 = serviceProvider.CreateScope())
                 {
-                    lastScopeHook = hookFactory[0].Create<IMigrationHook<IEnumerable<ContentMigrationItem<IUser>>>>(scope2.ServiceProvider);
+                    lastScopeHook = hookFactory[0].Create<IMigrationHook<ContentFilterContext<IUser>>>(scope2.ServiceProvider);
                 }
 
                 // Assert

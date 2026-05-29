@@ -24,6 +24,7 @@ using Moq;
 using Tableau.Migration.Content;
 using Tableau.Migration.Engine.Endpoints.Search;
 using Tableau.Migration.Engine.Hooks.Transformers.Default;
+using Tableau.Migration.Engine.Manifest;
 using Xunit;
 
 namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
@@ -42,8 +43,8 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
                 MockLogger = Create<Mock<ILogger<CustomViewDefaultUserReferencesTransformer>>>();
 
                 MockUserFinder
-                    .Setup(p => p.FindBySourceLocationAsync(It.IsAny<ContentLocation>(), Cancel))
-                    .Returns(Task.FromResult((IContentReference?)Create<IContentReference>()));
+                    .Setup(p => p.FindResultBySourceLocationAsync(It.IsAny<ContentLocation>(), Cancel))
+                    .Returns(Task.FromResult(new DestinationContentReferenceResult(MigrationManifestEntryStatus.Migrated, Create<IContentReference>())));
 
                 var mockFinderFactory = new Mock<IDestinationContentReferenceFinderFactory>();
                 mockFinderFactory.Setup(x => x.ForDestinationContentType<IUser>()).Returns(MockUserFinder.Object);
@@ -66,8 +67,8 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
                 }
 
                 MockUserFinder
-                   .Setup(p => p.FindBySourceLocationAsync(It.IsAny<ContentLocation>(), Cancel))
-                   .Returns(Task.FromResult((IContentReference?)null));
+                   .Setup(p => p.FindResultBySourceLocationAsync(It.IsAny<ContentLocation>(), Cancel))
+                   .Returns(Task.FromResult(DestinationContentReferenceResult.Empty));
 
                 await Assert.ThrowsAsync<Exception>(() => Transformer.TransformAsync(sourceCustomView, Cancel));
             }
@@ -94,6 +95,29 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
             }
 
             [Fact]
+            public async Task AutomaticCascadeFilterManyToManyAsync()
+            {
+                var sourceCustomView = Create<IPublishableCustomView>();
+
+                var sourceUsers = new List<IContentReference>();
+                foreach (var item in sourceCustomView.DefaultUsers)
+                {
+                    sourceUsers.Add(item);
+                }
+
+                MockUserFinder
+                    .Setup(p => p.FindResultBySourceLocationAsync(It.IsAny<ContentLocation>(), Cancel))
+                    .Returns(Task.FromResult(new DestinationContentReferenceResult(MigrationManifestEntryStatus.Skipped, Create<IContentReference>())));
+
+                var result = await Transformer.TransformAsync(sourceCustomView, Cancel);
+
+                Assert.NotNull(result);
+                Assert.Empty(result.DefaultUsers);
+
+                MockLogger.VerifyDebug(Times.Never());
+            }
+
+            [Fact]
             public async Task ThrowsWhenUsersPartiallyFoundAsync()
             {
                 var sourceCustomView = Create<IPublishableCustomView>();
@@ -106,8 +130,8 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
 
                 var userNotOnDestination = sourceCustomView.DefaultUsers.First();
                 MockUserFinder
-                   .Setup(p => p.FindBySourceLocationAsync(userNotOnDestination.Location, Cancel))
-                   .Returns(Task.FromResult((IContentReference?)null));
+                   .Setup(p => p.FindResultBySourceLocationAsync(userNotOnDestination.Location, Cancel))
+                   .Returns(Task.FromResult(DestinationContentReferenceResult.Empty));
 
                 await Assert.ThrowsAsync<Exception>(() => Transformer.TransformAsync(sourceCustomView, Cancel));
             }

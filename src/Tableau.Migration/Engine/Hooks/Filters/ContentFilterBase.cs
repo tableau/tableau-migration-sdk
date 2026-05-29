@@ -15,8 +15,6 @@
 //  limitations under the License.
 //
 
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -41,19 +39,47 @@ namespace Tableau.Migration.Engine.Hooks.Filters
         { }
 
         /// <inheritdoc />
-        public override Task<IEnumerable<ContentMigrationItem<TContent>>?> ExecuteAsync(
-            IEnumerable<ContentMigrationItem<TContent>> unfilteredItems, 
-            CancellationToken cancel)
+        public override Task<ContentFilterContext<TContent>?> ExecuteAsync(ContentFilterContext<TContent> ctx, CancellationToken cancel)
         {
-            var result = unfilteredItems;
-
-            // Avoid re-allocation on a no-op/disabled filter.
             if (!Disabled)
             {
-                result = unfilteredItems.Where(ShouldMigrate);
+                foreach (var item in ctx.Items)
+                {
+                    Filter(item);
+                }
             }
 
-            return Task.FromResult((IEnumerable<ContentMigrationItem<TContent>>?)result);
+            return Task.FromResult((ContentFilterContext<TContent>?)ctx);
+        }
+
+        /// <summary>
+        /// Considers the content item for filtering.
+        /// </summary>
+        /// <param name="item">The item to potentially filter.</param>
+        public virtual void Filter(ContentFilterContextItem<TContent> item)
+        {
+            /*
+             * To reduce the impact of the breaking change between
+             * pre-cascading filters and post-cascading filters,
+             * we default filter base classes to emulate the  pre-cascading filter behavior.
+             * Base class callers can opt-in to the new cascading filter behavior by
+             * overridding Filter (this method) instead of ShouldMigrate.
+             * 
+             * Pre-cascading behavior considered all items filtered out as "skip without cascade,"
+             * and the decision to filter out an item was final.
+             * The following filters were not called with items that were already filtered out,
+             * and could not reverse that decision.
+             */
+            if (item.Status is not FilterStatus.Migrate)
+            {
+                return;
+            }
+
+            var shouldMigrate = ShouldMigrate(item);
+            if (!shouldMigrate)
+            {
+                item.Status = FilterStatus.Skip;
+            }
         }
 
         /// <summary>
@@ -61,7 +87,7 @@ namespace Tableau.Migration.Engine.Hooks.Filters
         /// </summary>
         /// <param name="item">The item to evaluate.</param>
         /// <returns>True if the item should be migrated.</returns>
-        public abstract bool ShouldMigrate(ContentMigrationItem<TContent> item);
+        public virtual bool ShouldMigrate(ContentMigrationItem<TContent> item) => true;
     }
 }
 

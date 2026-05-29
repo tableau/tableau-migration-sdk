@@ -20,7 +20,7 @@ T = TypeVar("T")
 
 from tableau_migration.migration_content import PyUser
 from tableau_migration.migration_engine_actions import PyMigrationActionResult
-from tableau_migration.migration_engine_hooks import PyMigrationHookBuilder
+from tableau_migration.migration_engine_hooks_builder import PyMigrationHookBuilder
 from tableau_migration.migration_engine_hooks_interop import (
     PyContentBatchMigrationCompletedHookBase,
     PyInitializeMigrationHookBase,

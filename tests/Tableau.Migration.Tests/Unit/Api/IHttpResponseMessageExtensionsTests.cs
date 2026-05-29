@@ -79,7 +79,7 @@ namespace Tableau.Migration.Tests.Unit.Api
         public class ToResultAsyncSerializer : IHttpResponseMessageExtensionsTest
         {
             [Fact]
-            public async Task Returns_failure_on_exception()
+            public async Task ReturnsFailureOnExceptionAsync()
             {
                 var expectedException = new Exception();
 
@@ -94,7 +94,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async Task Returns_failure_on_server_error()
+            public async Task ReturnsFailureOnServerErrorAsync()
             {
                 var mockLocalizer = new Mock<ISharedResourcesLocalizer>();
                 mockLocalizer
@@ -120,7 +120,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async Task Returns_success()
+            public async Task ReturnsSuccessAsync()
             {
                 var result = await MockResponse.Object.ToResultAsync(MockSerializer.Object, Mock.Of<ISharedResourcesLocalizer>(), Cancel);
 
@@ -135,7 +135,7 @@ namespace Tableau.Migration.Tests.Unit.Api
         public class ToResultAsyncModelAsync : IHttpResponseMessageExtensionsTest<TestTableauServerResponse>
         {
             [Fact]
-            public async Task Returns_failure_on_exception()
+            public async Task ReturnsFailureOnExceptionAsync()
             {
                 var expectedException = new Exception();
 
@@ -154,7 +154,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async Task Returns_failure_on_server_error()
+            public async Task ReturnsFailureOnServerErrorAsync()
             {
                 var mockLocalizer = new Mock<ISharedResourcesLocalizer>();
                 mockLocalizer
@@ -180,7 +180,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async Task Returns_success()
+            public async Task ReturnsSuccessAsync()
             {
                 var resp = new TestTableauServerResponse();
                 MockResponse.Setup(x => x.DeserializedContent).Returns(resp);
@@ -203,7 +203,7 @@ namespace Tableau.Migration.Tests.Unit.Api
         public class ToPagedResultSync : IHttpResponseMessageExtensionsTest<TestPagedTableauServerResponse>
         {
             [Fact]
-            public void Returns_failure_on_exception()
+            public void ReturnsFailureOnExceptionAsync()
             {
                 var expectedException = new Exception();
 
@@ -218,7 +218,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public void Returns_failure_on_server_error()
+            public void ReturnsFailureOnServerErrorAsync()
             {
                 var mockLocalizer = new Mock<ISharedResourcesLocalizer>();
                 mockLocalizer
@@ -240,7 +240,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public void Returns_success()
+            public void ReturnsSuccessAsync()
             {
                 var error = new TestPagedTableauServerResponse();
 

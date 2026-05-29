@@ -95,8 +95,13 @@ class PyContentItemMigrationResult(Generic[TContent], PyResult):
     
     @property
     def is_canceled(self) -> bool:
-        """Gets whether the item migration was canceled."""
+        """Gets whether the item migration was canceled. See Canceled for cancellation meaning."""
         return self._dotnet.IsCanceled
+    
+    @property
+    def is_skipped(self) -> bool:
+        """Gets whether the item migration was skipped. See Skipped for skipped meaning."""
+        return self._dotnet.IsSkipped
     
     @property
     def manifest_entry(self) -> PyMigrationManifestEntry:

@@ -1,4 +1,4 @@
-﻿//
+//
 //  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
@@ -16,6 +16,7 @@
 //
 
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -29,6 +30,12 @@ namespace Tableau.Migration.TestApplication
 
         public static async Task Main(string[] args)
         {
+            var commandLineOptions = new CommandLineOptions
+            {
+                CredentialMigrationEnabled = HasFlag(args, CommandLineArgKeys.CredentialMigrationEnabled),
+                UseExistingManifest = HasFlag(args, CommandLineArgKeys.UseExistingManifest)
+            };
+
             // Set the DOTNET_ENVIRONMENT environment variable to the name of the environment.
             // This loads the appsettings.<DOTNET_ENVIRONMENT>.json config file.
             // If no DOTNET_ENVIRONMENT is set, appsettings.json will be used
@@ -36,6 +43,7 @@ namespace Tableau.Migration.TestApplication
                 .ConfigureServices((ctx, services) =>
                 {
                     services
+                        .AddSingleton(commandLineOptions)
                         .AddAppConfiguration(ctx)
                         .AddTableauMigrationSdk(ctx.Configuration.GetSection("tableau:migrationSdk"))
                         .AddHostedService<TestApplication>()
@@ -45,6 +53,15 @@ namespace Tableau.Migration.TestApplication
                 .Build();
 
             await host.RunAsync();
+        }
+
+        private static bool HasFlag(string[] args, string flagName)
+        {
+            if (string.IsNullOrWhiteSpace(flagName))
+                return false;
+
+            var normalizedFlag = flagName.Trim().TrimStart('-');
+            return args.Any(arg => arg.Trim().TrimStart('-').Equals(normalizedFlag, StringComparison.OrdinalIgnoreCase));
         }
     }
 }

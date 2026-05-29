@@ -25,7 +25,6 @@ using Tableau.Migration.Api.Rest.Models.Types;
 using Tableau.Migration.Content.Schedules;
 using Tableau.Migration.Content.Schedules.Cloud;
 using Tableau.Migration.Content.Schedules.Server;
-using Tableau.Migration.ContentConverters.Schedules;
 using Tableau.Migration.Engine.Conversion.Schedules;
 using Tableau.Migration.Resources;
 using Xunit;
@@ -232,8 +231,9 @@ namespace Tableau.Migration.Tests.Unit.Engine.Conversion.Schedules
                 // 6 - Daily requires weekday intervals
                 {
                     CreateServerSchedule(ScheduleFrequencies.Daily, "02:00:00", null, null),
-                    CreateCloudSchedule(ScheduleFrequencies.Daily, "02:00:00", null,
+                    CreateCloudSchedule(ScheduleFrequencies.Daily, "02:00:00", "02:00:00",
                     [
+                        Interval.WithHours(24),
                         Interval.WithWeekday(WeekDays.Monday),
                         Interval.WithWeekday(WeekDays.Tuesday),
                         Interval.WithWeekday(WeekDays.Wednesday),
@@ -247,8 +247,9 @@ namespace Tableau.Migration.Tests.Unit.Engine.Conversion.Schedules
                 // 7 - Daily on the :30. End time must be removed from cloud because no hours intervals exist
                 {
                     CreateServerSchedule(ScheduleFrequencies.Daily, "23:30:00", "00:30:00", null),
-                    CreateCloudSchedule(ScheduleFrequencies.Daily, "23:30:00", null,
+                    CreateCloudSchedule(ScheduleFrequencies.Daily, "23:30:00", "00:30:00",
                     [
+                        Interval.WithHours(24),
                         Interval.WithWeekday(WeekDays.Monday),
                         Interval.WithWeekday(WeekDays.Tuesday),
                         Interval.WithWeekday(WeekDays.Wednesday),
@@ -262,8 +263,9 @@ namespace Tableau.Migration.Tests.Unit.Engine.Conversion.Schedules
                 // 8 - Daily on the :15. End time must be removed from cloud because no hours intervals exist
                 {
                     CreateServerSchedule(ScheduleFrequencies.Daily, "12:15:00", "00:15:00", null),
-                    CreateCloudSchedule(ScheduleFrequencies.Daily, "12:15:00", null,
+                    CreateCloudSchedule(ScheduleFrequencies.Daily, "12:15:00", "00:15:00",
                     [
+                        Interval.WithHours(24),
                         Interval.WithWeekday(WeekDays.Monday),
                         Interval.WithWeekday(WeekDays.Tuesday),
                         Interval.WithWeekday(WeekDays.Wednesday),
@@ -298,8 +300,8 @@ namespace Tableau.Migration.Tests.Unit.Engine.Conversion.Schedules
                     //    Interval.WithWeekday(WeekDays.Friday),
                     //    Interval.WithHours(24)
                     //])
-                    CreateCloudSchedule(ScheduleFrequencies.Daily, "06:00:00", null,
-                    [Interval.WithWeekday(WeekDays.Monday),Interval.WithWeekday(WeekDays.Tuesday),Interval.WithWeekday(WeekDays.Wednesday),Interval.WithWeekday(WeekDays.Thursday),Interval.WithWeekday(WeekDays.Friday)])
+                    CreateCloudSchedule(ScheduleFrequencies.Daily, "06:00:00", "06:00:00",
+                    [Interval.WithHours(24),Interval.WithWeekday(WeekDays.Monday),Interval.WithWeekday(WeekDays.Tuesday),Interval.WithWeekday(WeekDays.Wednesday),Interval.WithWeekday(WeekDays.Thursday),Interval.WithWeekday(WeekDays.Friday)])
                 },
 
                 // 10 - Weekly on Saturday only

@@ -57,6 +57,11 @@ class TestPyMigrationPipelineContentTypeGenerated(AutoFixtureTestBase):
         py = PyMigrationPipelineContentType(dotnet)
         assert py.get_workbooks() == None if MigrationPipelineContentType.Workbooks is None else PyMigrationPipelineContentType(MigrationPipelineContentType.Workbooks)
     
+    def test_flows_getter(self):
+        dotnet = self.create(MigrationPipelineContentType)
+        py = PyMigrationPipelineContentType(dotnet)
+        assert py.get_flows() == None if MigrationPipelineContentType.Flows is None else PyMigrationPipelineContentType(MigrationPipelineContentType.Flows)
+    
     def test_views_getter(self):
         dotnet = self.create(MigrationPipelineContentType)
         py = PyMigrationPipelineContentType(dotnet)
@@ -97,6 +102,21 @@ class TestPyMigrationPipelineContentTypeGenerated(AutoFixtureTestBase):
         py = PyMigrationPipelineContentType(dotnet)
         assert py.get_cloud_to_cloud_subscriptions() == None if MigrationPipelineContentType.CloudToCloudSubscriptions is None else PyMigrationPipelineContentType(MigrationPipelineContentType.CloudToCloudSubscriptions)
     
+    def test_server_to_server_flow_run_tasks_getter(self):
+        dotnet = self.create(MigrationPipelineContentType)
+        py = PyMigrationPipelineContentType(dotnet)
+        assert py.get_server_to_server_flow_run_tasks() == None if MigrationPipelineContentType.ServerToServerFlowRunTasks is None else PyMigrationPipelineContentType(MigrationPipelineContentType.ServerToServerFlowRunTasks)
+    
+    def test_server_to_cloud_flow_run_tasks_getter(self):
+        dotnet = self.create(MigrationPipelineContentType)
+        py = PyMigrationPipelineContentType(dotnet)
+        assert py.get_server_to_cloud_flow_run_tasks() == None if MigrationPipelineContentType.ServerToCloudFlowRunTasks is None else PyMigrationPipelineContentType(MigrationPipelineContentType.ServerToCloudFlowRunTasks)
+    
+    def test_cloud_to_cloud_flow_run_tasks_getter(self):
+        dotnet = self.create(MigrationPipelineContentType)
+        py = PyMigrationPipelineContentType(dotnet)
+        assert py.get_cloud_to_cloud_flow_run_tasks() == None if MigrationPipelineContentType.CloudToCloudFlowRunTasks is None else PyMigrationPipelineContentType(MigrationPipelineContentType.CloudToCloudFlowRunTasks)
+    
     def test_favorites_getter(self):
         dotnet = self.create(MigrationPipelineContentType)
         py = PyMigrationPipelineContentType(dotnet)
@@ -125,8 +145,8 @@ class TestPyMigrationPipelineContentTypeGenerated(AutoFixtureTestBase):
     def test_types_getter(self):
         dotnet = self.create(MigrationPipelineContentType)
         py = PyMigrationPipelineContentType(dotnet)
-        assert len(dotnet.Types) != 0
-        assert len(py.types) == len(dotnet.Types)
+        assert dotnet.Types.Count != 0
+        assert len(py.types) == dotnet.Types.Count
     
 class TestPyServerToCloudMigrationPipelineGenerated(AutoFixtureTestBase):
     

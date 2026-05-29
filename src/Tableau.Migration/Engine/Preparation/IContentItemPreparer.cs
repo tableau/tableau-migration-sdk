@@ -34,6 +34,6 @@ namespace Tableau.Migration.Engine.Preparation
         /// <param name="item">The item to prepare.</param>
         /// <param name="cancel">A cancellation token to obye.</param>
         /// <returns>The preparation result.</returns>
-        Task<IResult<TPublish>> PrepareAsync(ContentMigrationItem<TContent> item, CancellationToken cancel);
+        Task<IContentItemPreparationResult<TPublish>> PrepareAsync(ContentMigrationItem<TContent> item, CancellationToken cancel);
     }
 }

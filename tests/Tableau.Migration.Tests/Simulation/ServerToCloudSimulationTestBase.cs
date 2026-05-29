@@ -36,6 +36,7 @@ using Tableau.Migration.Config;
 using Tableau.Migration.Content;
 using Tableau.Migration.Content.Permissions;
 using Tableau.Migration.Engine.Endpoints;
+using Tableau.Migration.Engine.Manifest;
 using Tableau.Migration.Engine.Services;
 using Tableau.Migration.Tests.Content.Permissions;
 using Tableau.Migration.Tests.Simulation.DataPreparation;
@@ -183,6 +184,12 @@ namespace Tableau.Migration.Tests.Simulation
             return new ContentReferenceStub(destinationView.Id, destinationView.ContentUrl!, workbookEntry.Destination.Location.Append(destinationView.Name!));
         }
 
+        protected IMigrationManifestEntry? FindManifestEntry<TContent>(IMigrationManifest manifest, Guid sourceId)
+        {
+            var entries = manifest.Entries.ForContentType<TContent>();
+            return entries.SingleOrDefault(e => e.Source.Id == sourceId);
+        }
+
         protected IContentReference? MapReference<TContent>(IMigrationManifest manifest, Guid sourceId)
         {
             if (typeof(TContent) == typeof(IView))
@@ -190,46 +197,44 @@ namespace Tableau.Migration.Tests.Simulation
                 return MapViewReference(manifest, sourceId);
             }
 
-            var entries = manifest.Entries.ForContentType<TContent>();
-            var entry = entries.Single(e => e.Source.Id == sourceId);
-            return entry.Destination;
+            return FindManifestEntry<TContent>(manifest, sourceId)?.Destination;
         }
 
-        protected IGranteeCapability MapGrantee(IMigrationManifest manifest, GranteeCapabilityType capability)
+        protected (IMigrationManifestEntry Entry, IGranteeCapability Grantee) MapGrantee(IMigrationManifest manifest, GranteeCapabilityType capability)
         {
+            IMigrationManifestEntry entry;
             GranteeCapabilityType granteeResponse;
-            IContentReference grantee;
             switch (capability.GranteeType)
             {
                 case GranteeType.User:
-                    grantee = MapReference<IUser>(manifest, capability.GranteeId)!;
-                    granteeResponse = new()
+                    entry = FindManifestEntry<IUser>(manifest, capability.GranteeId)!;
+                    granteeResponse = new GranteeCapabilityType()
                     {
                         User = new()
                         {
-                            Id = grantee!.Id
+                            Id = entry.Destination!.Id
                         },
                         Capabilities = capability.Capabilities
                     };
                     break;
                 case GranteeType.Group:
-                    grantee = MapReference<IGroup>(manifest, capability.GranteeId)!;
-                    granteeResponse = new()
+                    entry = FindManifestEntry<IGroup>(manifest, capability.GranteeId)!;
+                    granteeResponse = new GranteeCapabilityType()
                     {
                         Group = new()
                         {
-                            Id = grantee!.Id
+                            Id = entry.Destination!.Id
                         },
                         Capabilities = capability.Capabilities
                     };
                     break;
                 case GranteeType.GroupSet:
-                    grantee = MapReference<IGroupSet>(manifest, capability.GranteeId)!;
-                    granteeResponse = new()
+                    entry = FindManifestEntry<IGroupSet>(manifest, capability.GranteeId)!;
+                    granteeResponse = new GranteeCapabilityType()
                     {
                         GroupSet = new()
                         {
-                            Id = grantee!.Id
+                            Id = entry.Destination!.Id
                         },
                         Capabilities = capability.Capabilities
                     };
@@ -238,7 +243,7 @@ namespace Tableau.Migration.Tests.Simulation
                     throw new ArgumentException($"Grantee Type {capability.GranteeType} is invalid.", nameof(capability));
             }
 
-            return new GranteeCapability(grantee, granteeResponse);
+            return (entry, new GranteeCapability(entry.Destination, granteeResponse));
         }
 
         protected void AssertPermissionsMigrated(IMigrationManifest manifest, PermissionsType? sourcePermissions, PermissionsType? destinationPermissions)
@@ -252,11 +257,16 @@ namespace Tableau.Migration.Tests.Simulation
             Assert.NotNull(sourceGranteeCapabilities);
             Assert.NotNull(destinationGranteeCapabilities);
 
-            var mappedGranteeCapabilities = sourceGranteeCapabilities.Select(g => MapGrantee(manifest, g)).ToImmutableList();
+            var mappedGranteeCapabilities = sourceGranteeCapabilities
+                .Select(g => MapGrantee(manifest, g))
+                .Where(mg => mg.Entry.Status is not MigrationManifestEntryStatus.Skipped)
+                .Select(mg => mg.Grantee)
+                .ToImmutableList();
+
             var destinationIGranteeCapabilities = destinationGranteeCapabilities.Select(g =>
             {
                 IContentReference grantee;
-                switch(g.GranteeType)
+                switch (g.GranteeType)
                 {
                     case GranteeType.User:
                         grantee = new User(CloudDestinationApi.Data.Users.Single(u => u.Id == g.GranteeId));
@@ -273,7 +283,7 @@ namespace Tableau.Migration.Tests.Simulation
                 return new GranteeCapability(grantee, g);
             }).Cast<IGranteeCapability>().ToImmutableList();
 
-            var comparer = new IGranteeCapabilityComparer(false);
+            var comparer = new IGranteeCapabilityComparer(true);
 
             Assert.Equal(mappedGranteeCapabilities, destinationIGranteeCapabilities, comparer);
         }
@@ -383,6 +393,9 @@ namespace Tableau.Migration.Tests.Simulation
 
         protected List<DataSourceResponse.DataSourceType> PrepareSourceDataSourceData()
             => DataSourcesDataPreparation.PrepareServerSource(SourceApi, AutoFixture);
+
+        protected List<FlowResponse.FlowType> PrepareSourceFlowsData()
+            => FlowsDataPreparation.PrepareServerSource(SourceApi, AutoFixture);
 
         protected List<WorkbookResponse.WorkbookType> PrepareSourceWorkbooksData()
             => WorkbooksDataPreparation.PrepareServerSource(SourceApi, AutoFixture);

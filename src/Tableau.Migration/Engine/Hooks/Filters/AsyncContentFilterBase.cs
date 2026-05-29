@@ -15,8 +15,6 @@
 //  limitations under the License.
 //
 
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -41,24 +39,49 @@ namespace Tableau.Migration.Engine.Hooks.Filters
         { }
 
         /// <inheritdoc />
-        public override async Task<IEnumerable<ContentMigrationItem<TContent>>?> ExecuteAsync(IEnumerable<ContentMigrationItem<TContent>> ctx, CancellationToken cancel)
+        public override async Task<ContentFilterContext<TContent>?> ExecuteAsync(ContentFilterContext<TContent> ctx, CancellationToken cancel)
         {
-            // Avoid re-allocation on a no-op/disabled filter.
-            if (Disabled)
+            if (!Disabled)
             {
-                return ctx;
-            }
-
-            var builder = ImmutableArray.CreateBuilder<ContentMigrationItem<TContent>>();
-            foreach (var item in ctx)
-            {
-                if(await ShouldMigrateAsync(item, cancel).ConfigureAwait(false))
+                foreach (var item in ctx.Items)
                 {
-                    builder.Add(item);
+                    await FilterAsync(item, cancel).ConfigureAwait(false);
                 }
             }
 
-            return builder.ToImmutable();
+            return ctx;
+        }
+
+        /// <summary>
+        /// Considers the content item for filtering.
+        /// </summary>
+        /// <param name="item">The item to potentially filter.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
+        /// <returns>The task to await.</returns>
+        public virtual async Task FilterAsync(ContentFilterContextItem<TContent> item, CancellationToken cancel)
+        {
+            /*
+             * To reduce the impact of the breaking change between
+             * pre-cascading filters and post-cascading filters,
+             * we default filter base classes to emulate the  pre-cascading filter behavior.
+             * Base class callers can opt-in to the new cascading filter behavior by
+             * overridding FilterAsync (this method) instead of ShouldMigrateAsync.
+             * 
+             * Pre-cascading behavior considered all items filtered out as "skip without cascade,"
+             * and the decision to filter out an item was final.
+             * The following filters were not called with items that were already filtered out,
+             * and could not reverse that decision.
+             */
+            if (item.Status is not FilterStatus.Migrate)
+            {
+                return;
+            }
+
+            var shouldMigrate = await ShouldMigrateAsync(item, cancel).ConfigureAwait(false);
+            if (!shouldMigrate)
+            {
+                item.Status = FilterStatus.Skip;
+            }
         }
 
         /// <summary>
@@ -67,6 +90,7 @@ namespace Tableau.Migration.Engine.Hooks.Filters
         /// <param name="item">The item to evaluate.</param>
         /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>True if the item should be migrated.</returns>
-        public abstract Task<bool> ShouldMigrateAsync(ContentMigrationItem<TContent> item, CancellationToken cancel);
+        public virtual Task<bool> ShouldMigrateAsync(ContentMigrationItem<TContent> item, CancellationToken cancel)
+            => Task.FromResult(true);
     }
 }

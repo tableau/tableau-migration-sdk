@@ -22,40 +22,49 @@ from migration_enum import StrEnum # noqa: E402, F401
 class PyAuthenticationTypes(StrEnum):
     """Class containing authentication type constants. See https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_users_and_groups.htm#add_user_to_site for documentation."""
     
-    """Gets the name of the server default authentication type."""
+    #: Gets the name of the server default authentication type.
     SERVER_DEFAULT = "ServerDefault"
     
-    """Gets the name of the Open ID authentication type."""
+    #: Gets the name of the Open ID authentication type.
     OPEN_ID = "OpenID"
     
-    """Gets the name of the SAML authentication type."""
+    #: Gets the name of the SAML authentication type.
     SAML = "SAML"
     
-    """Gets the name of the Tableau ID with MFA authentication type."""
+    #: Gets the name of the Tableau ID with MFA authentication type.
     TABLEAU_ID_WITH_MFA = "TableauIDWithMFA"
     
 class PyDataSourceFileTypes(StrEnum):
     """Class containing data source file type constants. See https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_data_sources.htm#publish_data_source for documentation."""
     
-    """Gets the name of the Hyper data source file type."""
+    #: Gets the name of the Hyper data source file type.
     HYPER = "hyper"
     
-    """Gets the name of the Tds data source file type."""
+    #: Gets the name of the Tds data source file type.
     TDS = "tds"
     
-    """Gets the name of the Tdsx data source file type."""
+    #: Gets the name of the Tdsx data source file type.
     TDSX = "tdsx"
     
-    """Gets the name of the Tde data source file type."""
+    #: Gets the name of the Tde data source file type.
     TDE = "tde"
+    
+class PyFlowFileTypes(StrEnum):
+    """Class containing prep flow file type constants. See https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_flow.htm#publish_flow for documentation."""
+    
+    #: Gets the name of the TFL prep flow file type.
+    TFL = "tfl"
+    
+    #: Gets the name of the TFLX prep flow file type.
+    TFLX = "tflx"
     
 class PyWorkbookFileTypes(StrEnum):
     """Class containing workbook file type constants. See https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_publishing.htm#publish_workbook for documentation."""
     
-    """Gets the name of the twb workbook file type."""
+    #: Gets the name of the twb workbook file type.
     TWB = "twb"
     
-    """Gets the name of the twbx workbook file type."""
+    #: Gets the name of the twbx workbook file type.
     TWBX = "twbx"
     
 

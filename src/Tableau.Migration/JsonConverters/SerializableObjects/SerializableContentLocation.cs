@@ -83,7 +83,7 @@ namespace Tableau.Migration.JsonConverters.SerializableObjects
             if (!string.Equals(Name, expectedName, StringComparison.Ordinal))
                 throw new MismatchException($"{nameof(Name)} should be {expectedName} but is {Name}.");
 
-            var expectedPath = string.Join(PathSeparator, PathSegments);
+            var expectedPath = string.Join(PathSeparator, PathSegments.Select(s => ContentLocation.EscapeSegment(s, PathSeparator)));
             if (!string.Equals(Path, expectedPath, StringComparison.Ordinal))
                 throw new MismatchException($"{nameof(Path)} should be {expectedPath} but is {Path}.");
 

@@ -22,6 +22,7 @@ using Microsoft.Extensions.Logging;
 using Tableau.Migration.Content;
 using Tableau.Migration.Content.Search;
 using Tableau.Migration.Engine.Endpoints.Search;
+using Tableau.Migration.Engine.Manifest;
 using Tableau.Migration.Resources;
 
 namespace Tableau.Migration.Engine.Hooks.Transformers.Default
@@ -49,21 +50,30 @@ namespace Tableau.Migration.Engine.Hooks.Transformers.Default
         /// <inheritdoc />
         public override async Task<IPublishableGroup?> TransformAsync(IPublishableGroup sourceGroup, CancellationToken cancel)
         {
+            var filteredUsers = new List<IGroupUser>();
             var missingUsers = new List<ContentLocation>();
 
             foreach (var user in sourceGroup.Users)
             {
-                var destinationUser = await _userFinder.FindBySourceLocationAsync(user.User.Location, cancel)
+                var destinationUser = await _userFinder.FindResultBySourceLocationAsync(user.User.Location, cancel)
                     .ConfigureAwait(false);
 
-                if (destinationUser is null)
+                if(destinationUser.Status is MigrationManifestEntryStatus.Skipped)
+                {
+                    filteredUsers.Add(user);
+                    continue;
+                }
+
+                if (destinationUser.Destination is null)
                 {
                     missingUsers.Add(user.User.Location);
                     continue;
                 }
 
-                user.User = destinationUser;
+                user.User = destinationUser.Destination;
             }
+
+            sourceGroup.Users = sourceGroup.Users.ExceptIfAny(filteredUsers);
 
             missingUsers.ThrowOnMissingContentReferences<IUser>(Localizer, "group users");
 

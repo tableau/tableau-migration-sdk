@@ -516,13 +516,14 @@ namespace Tableau.Migration.Tests.Unit.Engine.Manifest
                     (item, entry) => (item, entry), 0);
 
                 string reason = "Test Skip";
-                results[0].Entry.SetSkipped(reason);
+                results[0].Entry.SetSkipped(cascade: false, reason);
 
                 var statusTotals = Partition.GetStatusTotals();
 
                 Assert.Equal(sourceItems.Length - 1, statusTotals[MigrationManifestEntryStatus.Pending]);
                 Assert.Equal(1, statusTotals[MigrationManifestEntryStatus.Skipped]);
                 Assert.Same(reason, results[0].Entry.SkippedReason);
+                Assert.False(results[0].Entry.CascadeSkip);
             }
 
             [Fact]

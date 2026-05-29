@@ -1,20 +1,21 @@
 {
-    "version": "0.2",
-    "ignorePaths": [],
-    "dictionaryDefinitions": [],
-    "dictionaries": [],
-    "words": [
-        "appsettings"
-    ],
-    "ignoreWords": [
-        "configparser",
-        "docfx",
-        "statictoc",
-        "MIGRATIONSDK",
-        "Serilog",
-        "api",
-        "md",
-        "markdownlint"
-    ],
-    "import": []
+  "version": "0.2",
+  "ignorePaths": [],
+  "dictionaryDefinitions": [],
+  "dictionaries": [],
+  "words": [
+    "appsettings",
+    "pyproject"
+  ],
+  "ignoreWords": [
+    "configparser",
+    "docfx",
+    "statictoc",
+    "MIGRATIONSDK",
+    "Serilog",
+    "api",
+    "md",
+    "markdownlint"
+  ],
+  "import": []
 }

@@ -53,6 +53,11 @@ namespace Tableau.Migration.PythonGenerator
             foreach (var p in Properties)
             {
                 yield return p.Type;
+
+                if(p.Setter && p.Type.ConversionMode is ConversionMode.Enum)
+                {
+                    yield return new PythonTypeReference(p.DotNetPropertyType.Name, ImportModule: p.DotNetPropertyType.ContainingNamespace.ToDisplayString(), ConversionMode.Wrap);
+                }
             }
 
             foreach (var m in Methods)

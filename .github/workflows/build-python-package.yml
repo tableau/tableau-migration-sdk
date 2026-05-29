@@ -58,7 +58,7 @@ jobs:
             ${{ runner.os }}-py${{ vars.PYTHON_TEST_VERSIONS }}-hatch-
 
       # Download the product artifact
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@v8
         with:
           name: product-${{ inputs.build-config }}-net${{ inputs.dotnet-build-version }}
           path: ./src/Python/src/tableau_migration/bin/
@@ -82,7 +82,7 @@ jobs:
 
       # Upload PyPI artifact
       - name: Upload Pypi Artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: pypi-package-bundle
           path: ${{ env.WORKING_DIRECTORY }}/tableau_migration-pypi.zip
@@ -90,7 +90,7 @@ jobs:
 
       # Upload PyPI artifact
       - name: Upload Pypi Artifacts
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: pypi-package
           path: ${{ env.WORKING_DIRECTORY }}/dist/*

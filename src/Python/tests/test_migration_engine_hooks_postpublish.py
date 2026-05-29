@@ -17,7 +17,7 @@ from typing import TypeVar
 from uuid import UUID
 
 from tableau_migration.migration_content import PyUser, PyPublishableWorkbook, PyWorkbookDetails
-from tableau_migration.migration_engine_hooks import PyMigrationHookBuilder
+from tableau_migration.migration_engine_hooks_builder import PyMigrationHookBuilder
 from tableau_migration.migration_engine_hooks_postpublish import PyBulkPostPublishContext, PyContentItemPostPublishContext
 from tableau_migration.migration_engine_hooks_postpublish_interop import PyBulkPostPublishHookBase, PyContentItemPostPublishHookBase
 from tableau_migration.migration_services import ScopedMigrationServices

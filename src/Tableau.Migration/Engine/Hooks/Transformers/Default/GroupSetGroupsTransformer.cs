@@ -54,16 +54,21 @@ namespace Tableau.Migration.Engine.Hooks.Transformers.Default
 
             foreach (var group in sourceGroupSet.Groups)
             {
-                var destinationGroup = await _groupFinder.FindBySourceLocationAsync(group.Location, cancel)
+                var destinationGroup = await _groupFinder.FindResultBySourceLocationAsync(group.Location, cancel)
                     .ConfigureAwait(false);
 
-                if (destinationGroup is null)
+                if(destinationGroup.Status is Manifest.MigrationManifestEntryStatus.Skipped)
+                {
+                    continue;
+                }
+
+                if (destinationGroup.Destination is null)
                 {
                     missingGroups.Add(group.Location);
                     continue;
                 }
 
-                transformedGroups.Add(destinationGroup);
+                transformedGroups.Add(destinationGroup.Destination);
             }
 
             missingGroups.ThrowOnMissingContentReferences<IGroup>(Localizer, "group set groups");

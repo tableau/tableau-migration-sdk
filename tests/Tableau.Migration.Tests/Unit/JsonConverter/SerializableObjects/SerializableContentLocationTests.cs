@@ -22,7 +22,7 @@ using Xunit;
 
 namespace Tableau.Migration.Tests.Unit.JsonConverter.SerializableObjects
 {
-    public class TestSerializableContentLocation : AutoFixtureTestBase
+    public class SerializableContentLocationTests : AutoFixtureTestBase
     {
         [Fact]
         public void AsContentLocation()
@@ -99,6 +99,23 @@ namespace Tableau.Migration.Tests.Unit.JsonConverter.SerializableObjects
             input.IsEmpty = !input.IsEmpty;
 
             Assert.Throws<MismatchException>(() => input.AsContentLocation());
+        }
+
+        [Fact]
+        public void EscapedPath()
+        {
+            // Ensure path segments with escape characters are property roundtripped.
+            var expected = Create<ContentLocation>();
+            expected = expected.Append($"A{expected.PathSeparator}B");
+
+            var input = new SerializableContentLocation(expected);
+            var result = input.AsContentLocation();
+
+            Assert.Equal(input.Path, result.Path);
+            Assert.Equal(input.PathSegments, result.PathSegments);
+            Assert.Equal(input.PathSeparator, result.PathSeparator);
+            Assert.Equal(input.IsEmpty, result.IsEmpty);
+            Assert.Equal(input.Name, result.Name);
         }
     }
 }

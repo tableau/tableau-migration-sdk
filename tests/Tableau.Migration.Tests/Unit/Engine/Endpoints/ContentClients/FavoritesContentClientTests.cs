@@ -55,7 +55,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints.ContentClients
         }
 
         [Fact]
-        public async Task GetAllByUser_ShouldReturnFavorites_WhenPagerReturnsResults()
+        public async Task GetAllByUserShouldReturnFavoritesWhenPagerReturnsResultsAsync()
         {
             // Arrange
             var user = Mock.Of<IContentReference>();
@@ -82,7 +82,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints.ContentClients
         }
 
         [Fact]
-        public async Task GetAllByUser_ShouldReturnFailure_WhenPagerFails()
+        public async Task GetAllByUserShouldReturnFailureWhenPagerFailsAsync()
         {
             // Arrange
             var user = Mock.Of<IContentReference>();
@@ -108,7 +108,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints.ContentClients
         }
 
         [Fact]
-        public async Task DeleteFavoriteForUserId_ShouldReturnSuccess_WhenApiCallSucceeds()
+        public async Task DeleteFavoriteForUserIdShouldReturnSuccessWhenApiCallSucceedsAsync()
         {
             // Arrange
             var userId = Guid.NewGuid();
@@ -126,7 +126,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints.ContentClients
         }
 
         [Fact]
-        public async Task DeleteFavoriteForUserId_ShouldReturnFailure_WhenApiCallFails()
+        public async Task DeleteFavoriteForUserIdShouldReturnFailureWhenApiCallFailsAsync()
         {
             // Arrange
             var userId = Guid.NewGuid();

@@ -90,14 +90,14 @@ jobs:
 
       # Download the product binaries
       - name: Download product binaries
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: product-${{ matrix.config }}-net${{ inputs.dotnet-build-version }}
           path: ./src/Python/src/tableau_migration/bin/
 
       # Download the test binaries
       - name: Download test binaries
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: tests-${{ matrix.config }}-net${{ inputs.dotnet-build-version }}
           path: ./dist/tests/
@@ -120,7 +120,7 @@ jobs:
       # Upload test results
       - name: Upload Test Results
         if: ${{ !(matrix.dotnet-version == '8.0.x') }}
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ inputs.test-name }}-results-${{ matrix.os }}-${{ matrix.config }}-net${{ matrix.dotnet-version }}
           path: ${{ inputs.working-directory }}/TestResults

@@ -158,7 +158,7 @@ namespace Tableau.Migration.Tests.Unit.Net
             }
 
             [Fact]
-            public async Task SendsRequests()
+            public async Task SendsRequestsAsync()
             {
                 // Arrange
                 using var memoryStream = new MemoryStream(Constants.DefaultEncoding.GetBytes("Test"));
@@ -175,7 +175,7 @@ namespace Tableau.Migration.Tests.Unit.Net
             }
 
             [Fact]
-            public async Task ConfigurationChange_ClientSendStreamWithRefreshedConfiguration()
+            public async Task ConfigurationChangeClientSendStreamWithRefreshedConfigurationAsync()
             {
                 // Arrange
                 MigrationSdkOptions.Network.FileChunkSizeKB = 1;
@@ -250,7 +250,7 @@ namespace Tableau.Migration.Tests.Unit.Net
             // configurationChunkSizeKB
             // 64 MB
             [InlineData("POST", 500, 50L * 1024, 50 * 1024, true)]
-            public async Task SendsStreamRequests(
+            public async Task SendsStreamRequestsAsync(
                 string method,
                 int expectedRequests,
                 long expectedChunkSizeKB = NetworkOptions.Defaults.FILE_CHUNK_SIZE_KB,

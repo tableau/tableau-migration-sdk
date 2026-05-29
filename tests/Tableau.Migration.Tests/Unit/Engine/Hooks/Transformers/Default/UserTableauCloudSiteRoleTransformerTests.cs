@@ -67,7 +67,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
         [InlineData(SiteRoles.ServerAdministrator, SiteRoles.SiteAdministratorCreator)]
         [InlineData("serverAdministrator", SiteRoles.SiteAdministratorCreator)]
         [InlineData("Serveradministrator", SiteRoles.SiteAdministratorCreator)]
-        public async Task Transforms_server_admin_role(string siteRole, string expectedSiteRole)
+        public async Task TransformsServerAdminRoleAsync(string siteRole, string expectedSiteRole)
         {
             // Arrange            
             var siteRoleTransformer = new UserTableauCloudSiteRoleTransformer(_mockLocalizer.Object, _mockLogger.Object);
@@ -86,7 +86,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
 
         [Theory]
         [InlineData("", "")]
-        public async Task Handles_Blank(string siteRole, string expectedSiteRole)
+        public async Task HandlesBlankAsync(string siteRole, string expectedSiteRole)
         {
             // Arrange            
             var siteRoleTransformer = new UserTableauCloudSiteRoleTransformer(_mockLocalizer.Object, _mockLogger.Object);
@@ -115,7 +115,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
         [InlineData(SiteRoles.SupportUser)]
         [InlineData(SiteRoles.Unlicensed)]
         [InlineData(SiteRoles.Viewer)]
-        public async Task Ignores_otherRoles(string siteRole)
+        public async Task IgnoresOtherRolesAsync(string siteRole)
         {
             // Arrange            
             var siteRoleTransformer = new UserTableauCloudSiteRoleTransformer(_mockLocalizer.Object, _mockLogger.Object);

@@ -161,6 +161,42 @@ namespace Tableau.Migration.Tests.Unit.Engine.Manifest
         public class GetPartition : MigrationManifestEntryCollectionTest
         {
             [Fact]
+            public void NotCreated()
+            {
+                var p1 = Collection.GetPartition(typeof(TestContentType));
+
+                Assert.Null(p1);
+            }
+
+            [Fact]
+            public void ReusesPartitions()
+            {
+                var p1 = Collection.GetOrCreatePartition<TestContentType>();
+                var p2 = Collection.GetPartition(typeof(TestContentType));
+                var p3 = Collection.GetPartition(typeof(TestContentType));
+
+                Assert.NotNull(p2);
+                Assert.NotNull(p3);
+                Assert.Same(p2, p3);
+            }
+
+            [Fact]
+            public void GenericOverload()
+            {
+                var p1 = Collection.GetOrCreatePartition<TestContentType>();
+                var p2 = Collection.GetPartition<TestContentType>();
+
+                Assert.Same(p1, p2);
+            }
+        }
+
+        #endregion
+
+        #region - GetOrCreatePartition -
+
+        public class GetOrCreatePartition : MigrationManifestEntryCollectionTest
+        {
+            [Fact]
             public void GenericOverload()
             {
                 var p1 = Collection.GetOrCreatePartition<TestContentType>();

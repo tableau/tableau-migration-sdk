@@ -90,7 +90,7 @@ namespace Tableau.Migration.Api.Publishing
                     fileInfo.Length);
             }
 
-            var initiateResult = await InitiateFileUpload(cancel)
+            var initiateResult = await InitiateFileUploadAsync(cancel)
                 .ToResultAsync(r => r, SharedResourcesLocalizer)
                 .ConfigureAwait(false);
 
@@ -144,7 +144,7 @@ namespace Tableau.Migration.Api.Publishing
             MultipartContent content,
             CancellationToken cancel);
 
-        private async Task<IHttpResponseMessage<FileUploadResponse>> InitiateFileUpload(CancellationToken cancel)
+        private async Task<IHttpResponseMessage<FileUploadResponse>> InitiateFileUploadAsync(CancellationToken cancel)
         {
             return await RestRequestBuilderFactory
                 .CreateUri(RestUrlKeywords.FileUploads)

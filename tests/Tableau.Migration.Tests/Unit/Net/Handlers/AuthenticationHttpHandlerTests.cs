@@ -73,7 +73,7 @@ namespace Tableau.Migration.Tests.Unit.Net.Handlers
         public class SendAsync : AuthenticationHttpHandlerTest
         {
             [Fact]
-            public async Task Skips_if_not_Rest_request()
+            public async Task SkipsIfNotRestRequestAsync()
             {
                 var mockHandler = CreateMockDelegatingHandler(
                     HttpStatusCode.OK,
@@ -92,7 +92,7 @@ namespace Tableau.Migration.Tests.Unit.Net.Handlers
             }
 
             [Fact]
-            public async Task Sets_token()
+            public async Task SetsTokenAsync()
             {
                 var token = Create<string>();
 
@@ -115,7 +115,7 @@ namespace Tableau.Migration.Tests.Unit.Net.Handlers
             }
 
             [Fact]
-            public async Task Overwrites_token_with_provider_value()
+            public async Task OverwritesTokenWithProviderValueAsync()
             {
                 var token = Create<string>();
 
@@ -139,7 +139,7 @@ namespace Tableau.Migration.Tests.Unit.Net.Handlers
             }
 
             [Fact]
-            public async Task Refreshes_token()
+            public async Task RefreshesTokenAsync()
             {
                 var token1 = Create<string>();
                 var token2 = Create<string>();
@@ -167,7 +167,7 @@ namespace Tableau.Migration.Tests.Unit.Net.Handlers
             }
 
             [Fact]
-            public async Task Does_not_set_token_on_sign_in_attempts()
+            public async Task DoesNotSetTokenOnSignInAttemptsAsync()
             {
                 var mockHandler = CreateMockDelegatingHandler(HttpStatusCode.Unauthorized);
 

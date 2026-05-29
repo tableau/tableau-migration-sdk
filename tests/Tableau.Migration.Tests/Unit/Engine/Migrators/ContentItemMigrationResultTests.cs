@@ -33,6 +33,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Migrators
                 var r = ContentItemMigrationResult<TestContentType>.Succeeded(entry);
 
                 Assert.True(r.Success);
+                Assert.False(r.IsSkipped);
                 Assert.True(r.ContinueBatch);
                 Assert.Empty(r.Errors);
                 Assert.Same(entry, r.ManifestEntry);
@@ -45,6 +46,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Migrators
                 var r = ContentItemMigrationResult<TestContentType>.Succeeded(entry, false);
 
                 Assert.True(r.Success);
+                Assert.False(r.IsSkipped);
                 Assert.False(r.ContinueBatch);
                 Assert.Empty(r.Errors);
                 Assert.Same(entry, r.ManifestEntry);
@@ -61,6 +63,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Migrators
                 var r = ContentItemMigrationResult<TestContentType>.Failed(entry, errors);
 
                 Assert.False(r.Success);
+                Assert.False(r.IsSkipped);
                 Assert.True(r.ContinueBatch);
                 Assert.Equal(errors, r.Errors);
                 Assert.Same(entry, r.ManifestEntry);
@@ -74,6 +77,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Migrators
                 var r = ContentItemMigrationResult<TestContentType>.Failed(entry, errors, false);
 
                 Assert.False(r.Success);
+                Assert.False(r.IsSkipped);
                 Assert.False(r.ContinueBatch);
                 Assert.Equal(errors, r.Errors);
                 Assert.Same(entry, r.ManifestEntry);
@@ -90,6 +94,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Migrators
                 var r = ContentItemMigrationResult<TestContentType>.Canceled(entry, errors);
 
                 Assert.False(r.Success);
+                Assert.False(r.IsSkipped);
                 Assert.True(r.IsCanceled);
                 Assert.True(r.ContinueBatch);
                 Assert.Equal(errors, r.Errors);
@@ -104,9 +109,26 @@ namespace Tableau.Migration.Tests.Unit.Engine.Migrators
                 var r = ContentItemMigrationResult<TestContentType>.Canceled(entry, errors, false);
 
                 Assert.False(r.Success);
+                Assert.False(r.IsSkipped);
                 Assert.True(r.IsCanceled);
                 Assert.False(r.ContinueBatch);
                 Assert.Equal(errors, r.Errors);
+                Assert.Same(entry, r.ManifestEntry);
+            }
+        }
+
+        public class Skipped : AutoFixtureTestBase
+        {
+            [Fact]
+            public void DefaultNextBatch()
+            {
+                var entry = Create<IMigrationManifestEntry>();
+                var r = ContentItemMigrationResult<TestContentType>.Skipped(entry);
+
+                Assert.True(r.Success);
+                Assert.True(r.IsSkipped);
+                Assert.True(r.ContinueBatch);
+                Assert.Empty(r.Errors);
                 Assert.Same(entry, r.ManifestEntry);
             }
         }
@@ -121,6 +143,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Migrators
                 var r = ContentItemMigrationResult<TestContentType>.FromResult(resultToCopy, entry);
 
                 r.AssertSuccess();
+                Assert.False(r.IsSkipped);
                 Assert.True(r.ContinueBatch);
                 Assert.Same(entry, r.ManifestEntry);
             }
@@ -134,6 +157,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Migrators
                 var r = ContentItemMigrationResult<TestContentType>.FromResult(resultToCopy, entry);
 
                 r.AssertFailure();
+                Assert.False(r.IsSkipped);
                 Assert.True(r.ContinueBatch);
                 Assert.Equal(errors, r.Errors);
                 Assert.Same(entry, r.ManifestEntry);
@@ -147,6 +171,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Migrators
                 var r = ContentItemMigrationResult<TestContentType>.FromResult(resultToCopy, entry, false);
 
                 r.AssertSuccess();
+                Assert.False(r.IsSkipped);
                 Assert.False(r.ContinueBatch);
                 Assert.Same(entry, r.ManifestEntry);
             }
@@ -162,6 +187,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Migrators
                 var r2 = r1.ForContinueBatch(false);
 
                 Assert.Equal(r1.Success, r2.Success);
+                Assert.Equal(r1.IsSkipped, r2.IsSkipped);
                 Assert.Equal(r1.Errors, r2.Errors);
                 Assert.Same(r1.ManifestEntry, r2.ManifestEntry);
                 Assert.NotEqual(r1.ContinueBatch, r2.ContinueBatch);

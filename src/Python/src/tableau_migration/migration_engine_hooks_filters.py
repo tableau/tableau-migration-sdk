@@ -15,73 +15,82 @@
 
 """Wrapper for classes in Tableau.Migration.Engine.Hooks.Filters namespace."""
 
-from typing import  Callable, Union
-from typing_extensions import Self
+# region _generated
 
-from System import IServiceProvider, Func
-from Tableau.Migration.Engine.Hooks.Filters import IContentFilterBuilder
-from tableau_migration.migration_engine_hooks import PyMigrationHookFactoryCollection
+from enum import IntEnum # noqa: E402, F401
+from tableau_migration.migration import _generic_wrapper # noqa: E402, F401
+from tableau_migration.migration_engine import PyContentMigrationItem # noqa: E402, F401
+from typing import (  # noqa: E402, F401
+    Generic,
+    TypeVar,
+    Sequence
+)
 
-class PyContentFilterBuilder():
-    """Default IContentFilterBuilder implementation."""
+from Tableau.Migration.Engine.Hooks.Filters import (  # noqa: E402, F401
+    ContentFilterContext,
+    ContentFilterContextItem,
+    FilterStatus
+)
 
-    _dotnet_base = IContentFilterBuilder
+TContent = TypeVar("TContent")
 
-    def __init__(self, content_filters_builder: IContentFilterBuilder) -> None:
-        """Default init.
-
+class PyFilterStatus(IntEnum):
+    """Enumeration of the various filter states for a content item."""
+    
+    #: The content item will attempt to migrate.
+    MIGRATE = 0
+    
+    #: The content item will not migrate, but items that reference this one will still migrate.
+    SKIP = 1
+    
+    #: The content item will not migrate, and items that reference this one will also not migrate.
+    CASCADE_SKIP = 2
+    
+class PyContentFilterContextItem(Generic[TContent], PyContentMigrationItem[TContent]):
+    """Context for IContentFilter operations, determining whether a content item should be migrated and whether to cascade filtering to dependent content types."""
+    
+    _dotnet_base = ContentFilterContextItem
+    
+    def __init__(self, content_filter_context_item: ContentFilterContextItem) -> None:
+        """Creates a new PyContentFilterContextItem object.
+        
         Args:
-            content_filters_builder: Interface for a builder of filters that use a common content type
+            content_filter_context_item: A ContentFilterContextItem object.
         
         Returns: None.
         """
-        self._content_filters_builder = content_filters_builder
-
-
-    def clear(self) -> Self:
-        """Removes all currently registered filters.
-
-        Returns:
-            The same filter builder object for fluent API calls
-        """
-        self._content_filters_builder.Clear()
-        return self
-
-
-    def add(self, input_0: type, input_1: Union[Callable, None] = None) -> Self:
-        """Adds an object or function to execute filters.
-
-        Args:
-            input_0: Either: 
-                1) The filter type to execute, or
-                2) The content type for a callback function
-            input_1: Either:
-                1) The callback function to execute, or
-                2) None
-
-        Returns:
-            The same mapping builder object for fluent API calls.
-        """
-        from migration_engine_hooks_filters_interop import _PyFilterWrapperBuilder
+        self._dotnet = content_filter_context_item
         
-        wrapper_builder = _PyFilterWrapperBuilder(input_0, input_1)
-        self._content_filters_builder.Add[wrapper_builder.wrapper_type, wrapper_builder.dotnet_content_type](Func[IServiceProvider, wrapper_builder.wrapper_type](wrapper_builder.factory))
+    @property
+    def status(self) -> PyFilterStatus:
+        """Gets or sets the current filtering status for the content item."""
+        return None if self._dotnet.Status is None else PyFilterStatus(self._dotnet.Status.value__)
     
-        return self
-
-    def by_content_type(self):
-        """Gets the currently registered hook factories by their content types.
-
-        Returns:
-            The hook factories by their content types.
+    @status.setter
+    def status(self, value: PyFilterStatus) -> None:
+        """Gets or sets the current filtering status for the content item."""
+        self._dotnet.Status = FilterStatus(value)
+    
+class PyContentFilterContext(Generic[TContent]):
+    """Context for IContentFilter operations, determining which items should be migrated and whether to cascade filtering to dependent content types."""
+    
+    _dotnet_base = ContentFilterContext
+    
+    def __init__(self, content_filter_context: ContentFilterContext) -> None:
+        """Creates a new PyContentFilterContext object.
+        
+        Args:
+            content_filter_context: A ContentFilterContext object.
+        
+        Returns: None.
         """
-        return self._content_filters_builder.ByContentType()
+        self._dotnet = content_filter_context
+        
+    @property
+    def items(self) -> Sequence[PyContentFilterContextItem[TContent]]:
+        """Gets the items to potentially filter."""
+        return None if self._dotnet.Items is None else list((None if x is None else PyContentFilterContextItem[TContent](x)) for x in self._dotnet.Items)
+    
 
+# endregion
 
-    def build(self) -> PyMigrationHookFactoryCollection:
-        """Builds an immutable collection from the currently added filters.
-
-        Returns:
-            The created collection.
-        """
-        return PyMigrationHookFactoryCollection(self._content_filters_builder.Build())

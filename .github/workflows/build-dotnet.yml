@@ -109,7 +109,7 @@ jobs:
       # Upload product artifacts
       - name: Upload product artifacts for python library
         if: ${{ env.SHOULD_PUBLISH == 'true' }}
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: product-${{ matrix.config }}-net${{ inputs.dotnet-sdk-version }}
           path: "./src/Python/src/tableau_migration/bin/**"
@@ -118,7 +118,7 @@ jobs:
       # Upload test artifacts
       - name: Upload Tests Artifacts
         if: ${{ env.SHOULD_PUBLISH == 'true' }}
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: tests-${{ matrix.config }}-net${{ inputs.dotnet-sdk-version }}
           path: "./dist/tests/**"
@@ -127,7 +127,7 @@ jobs:
       # Upload NuGet package artifact
       - name: Upload NuGet Artifact
         if: ${{ env.SHOULD_PUBLISH == 'true' }}
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: nuget-package-${{ matrix.config }}-net${{ inputs.dotnet-sdk-version }}
           path: "./src/${{ vars.NUGET_PACKAGE_FOLDER }}/bin/${{ matrix.config }}/*.nupkg"
@@ -136,7 +136,7 @@ jobs:
       # Upload build output for tests
       - name: Upload Build Output
         if: ${{ env.SHOULD_PUBLISH == 'true' }}
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: build-output-${{ matrix.config }}-net${{ inputs.dotnet-sdk-version }}
           path: |

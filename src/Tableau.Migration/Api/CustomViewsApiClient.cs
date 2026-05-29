@@ -325,7 +325,7 @@ namespace Tableau.Migration.Api
         {
             int pageNum = 1;
 
-            var existingCustomViewResult = await GetFilteredPage(workbookId, pageNum, cancel).ConfigureAwait(false);
+            var existingCustomViewResult = await GetFilteredPageAsync(workbookId, pageNum, cancel).ConfigureAwait(false);
 
             if (!existingCustomViewResult.Success)
             {
@@ -341,7 +341,7 @@ namespace Tableau.Migration.Api
             while (!existingCustomViewResult.FetchedAllPages)
             {
                 pageNum++;
-                existingCustomViewResult = await GetFilteredPage(workbookId, pageNum, cancel).ConfigureAwait(false);
+                existingCustomViewResult = await GetFilteredPageAsync(workbookId, pageNum, cancel).ConfigureAwait(false);
 
                 if (!existingCustomViewResult.Success)
                 {
@@ -364,7 +364,7 @@ namespace Tableau.Migration.Api
 
             return Result<ICustomView>.Succeeded(existingCustomView);
 
-            async Task<IPagedResult<ICustomView>> GetFilteredPage(Guid workbookId, int pageNum, CancellationToken cancel)
+            async Task<IPagedResult<ICustomView>> GetFilteredPageAsync(Guid workbookId, int pageNum, CancellationToken cancel)
             {
                 var filters = new List<Filter>
                 {

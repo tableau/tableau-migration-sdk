@@ -1,4 +1,4 @@
-﻿//
+//
 //  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
@@ -20,12 +20,14 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Tableau.Migration.Config;
 using Tableau.Migration.Content.Schedules;
 using Tableau.Migration.Content.Schedules.Cloud;
 using Tableau.Migration.Content.Schedules.Server;
 using Tableau.Migration.Engine.Endpoints;
 using Tableau.Migration.Engine.Endpoints.Search;
+using Tableau.Migration.Engine.Hooks;
 using Tableau.Migration.Engine.Hooks.Transformers;
 using Tableau.Migration.Engine.Pipelines;
 using Tableau.Migration.Resources;
@@ -48,18 +50,22 @@ namespace Tableau.Migration.Engine.Preparation
         /// </summary>
         /// <param name="destination">The destination endpoint.</param>
         /// <param name="pipeline"><inheritdoc /></param>
-        /// <param name="transformerRunner"><inheritdoc /></param>
+        /// <param name="hooks"><inheritdoc /></param>
+        /// <param name="transformers"><inheritdoc /></param>
         /// <param name="destinationFinderFactory"><inheritdoc /></param>
+        /// <param name="logger"><inheritdoc /></param>
         /// <param name="localizer"><inheritdoc /></param>
         /// <param name="configReader">A config reader.</param>
         public ExtractRefreshTaskServerToCloudPreparer(
             IDestinationEndpoint destination,
             IMigrationPipeline pipeline,
-            IContentTransformerRunner transformerRunner,
+            IMigrationHookRunner hooks,
+            IContentTransformerRunner transformers,
             IDestinationContentReferenceFinderFactory destinationFinderFactory,
+            ILogger<ExtractRefreshTaskServerToCloudPreparer> logger,
             ISharedResourcesLocalizer localizer,
             IConfigReader configReader)
-            : base(pipeline, transformerRunner, destinationFinderFactory, localizer)
+            : base(pipeline, hooks, transformers, destinationFinderFactory, logger, localizer)
         {
             if (destination is IDestinationApiEndpoint destinationApi)
             {
@@ -70,10 +76,7 @@ namespace Tableau.Migration.Engine.Preparation
             _destinationExtractRefreshTasksCache = new(
                 async cancel =>
                 {
-                    var result = await _destinationApi!
-                        .SiteApi
-                        .CloudTasks
-                        .GetAllExtractRefreshTasksAsync(cancel)
+                    var result = await _destinationApi!.SiteApi.CloudTasks.GetAllExtractRefreshTasksAsync(cancel)
                         .ConfigureAwait(false);
 
                     if (!result.Success)
@@ -89,28 +92,20 @@ namespace Tableau.Migration.Engine.Preparation
         }
 
         /// <inheritdoc />
-        protected override async Task<IResult<ICloudExtractRefreshTask>> TransformAsync(
-            ICloudExtractRefreshTask publishItem,
-            CancellationToken cancel)
+        protected override async Task<IResult<ICloudExtractRefreshTask>> TransformAsync(ICloudExtractRefreshTask publishItem, CancellationToken cancel)
         {
             var result = await base.TransformAsync(publishItem, cancel).ConfigureAwait(false);
 
             if (result.Success)
             {
-                await CleanExtractRefreshTasks(
-                    publishItem.ContentType,
-                    publishItem.Content.Id,
-                    cancel)
+                await CleanExtractRefreshTasksAsync(publishItem.ContentType, publishItem.Content.Id, cancel)
                     .ConfigureAwait(false);
             }
 
             return result;
         }
 
-        private async Task CleanExtractRefreshTasks(
-            ExtractRefreshContentType contentType,
-            Guid contentId,
-            CancellationToken cancel)
+        private async Task CleanExtractRefreshTasksAsync(ExtractRefreshContentType contentType, Guid contentId, CancellationToken cancel)
         {
             if (_destinationApi is null)
             {
@@ -118,9 +113,7 @@ namespace Tableau.Migration.Engine.Preparation
             }
 
             var items = await _destinationExtractRefreshTasksCache
-                .GetAndRelease(
-                    (contentType, contentId),
-                    cancel)
+                .GetAndReleaseAsync((contentType, contentId), cancel)
                 .ConfigureAwait(false);
 
             if (items is null)
@@ -129,8 +122,7 @@ namespace Tableau.Migration.Engine.Preparation
             }
 
             await Parallel
-                .ForEachAsync(
-                    items,
+                .ForEachAsync(items,
                     new ParallelOptions
                     {
                         CancellationToken = cancel,
@@ -138,12 +130,7 @@ namespace Tableau.Migration.Engine.Preparation
                     },
                     async (item, itemCancel) =>
                     {
-                        await _destinationApi
-                            .SiteApi
-                            .CloudTasks
-                            .DeleteExtractRefreshTaskAsync(
-                                item.Id,
-                                cancel)
+                        await _destinationApi.SiteApi.CloudTasks.DeleteExtractRefreshTaskAsync(item.Id, cancel)
                             .ConfigureAwait(false);
                     })
                 .ConfigureAwait(false);

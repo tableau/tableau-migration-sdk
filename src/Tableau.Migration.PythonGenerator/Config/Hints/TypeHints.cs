@@ -24,5 +24,7 @@ namespace Tableau.Migration.PythonGenerator.Config.Hints
         public string Type { get; set; } = string.Empty;
 
         public string[] ExcludeMembers { get; set; } = Array.Empty<string>();
+
+        public string[] ExcludeInheritedTypes { get; set; } = Array.Empty<string>();
     }
 }

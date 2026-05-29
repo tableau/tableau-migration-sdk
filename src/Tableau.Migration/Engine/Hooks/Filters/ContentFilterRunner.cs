@@ -16,7 +16,6 @@
 //
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -48,25 +47,27 @@ namespace Tableau.Migration.Engine.Hooks.Filters
             _logger = logger;
         }
 
-        public async Task<IEnumerable<ContentMigrationItem<TContent>>> ExecuteAsync<TContent>(IEnumerable<ContentMigrationItem<TContent>> context, CancellationToken cancel)
+        public async Task<ImmutableArray<ContentMigrationItem<TContent>>> ExecuteAsync<TContent>(ImmutableArray<ContentMigrationItem<TContent>> itemsToFilter, CancellationToken cancel)
             where TContent : IContentReference
-            => await ExecuteAsync<IContentFilter<TContent>, IEnumerable<ContentMigrationItem<TContent>>>(context, AfterHookAction, cancel).ConfigureAwait(false);
+        {
+            var ctx = new ContentFilterContext<TContent>(itemsToFilter);
+            var result = await ExecuteAsync<IContentFilter<TContent>, ContentFilterContext<TContent>>(ctx, AfterHookAction, cancel).ConfigureAwait(false);
+
+            return result.Items
+                .Where(i => i.ManifestEntry.Status is not Manifest.MigrationManifestEntryStatus.Skipped)
+                .Cast<ContentMigrationItem<TContent>>()
+                .ToImmutableArray();
+        }
 
         protected sealed override ImmutableArray<IMigrationHookFactory> GetFactoryCollection<THook, TContext>()
             => Plan.Filters.GetHooks<THook>();
 
-        protected void AfterHookAction<TContent>(string hookName, IEnumerable<ContentMigrationItem<TContent>> inContext, IEnumerable<ContentMigrationItem<TContent>> outContext)
+        protected void AfterHookAction<TContent>(string hookName, ContentFilterContext<TContent> inContext, ContentFilterContext<TContent> outContext)
             where TContent : IContentReference
         {
-            var filteredItems = inContext.Except(outContext).ToList();
-            foreach (var filteredItem in filteredItems)
+            foreach(var filterItem in outContext.Items)
             {
-                filteredItem.ManifestEntry.SetSkipped(hookName);
-
-                _logger.LogDebug(
-                    _localizer[SharedResourceKeys.ContentFilterBaseDebugMessage],
-                    hookName,
-                    filteredItem.SourceItem.ToStringForLog());
+                filterItem.ApplyFilterAfterHook(hookName, _logger, _localizer);
             }
         }
     }

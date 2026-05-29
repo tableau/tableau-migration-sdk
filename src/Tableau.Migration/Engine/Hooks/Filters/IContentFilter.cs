@@ -15,8 +15,6 @@
 //  limitations under the License.
 //
 
-using System.Collections.Generic;
-
 namespace Tableau.Migration.Engine.Hooks.Filters
 {
     /// <summary>
@@ -24,7 +22,7 @@ namespace Tableau.Migration.Engine.Hooks.Filters
     /// </summary>
     /// <typeparam name="TContent">Type of entity to be filtered</typeparam>
     public interface IContentFilter<TContent>
-        : IMigrationHook<IEnumerable<ContentMigrationItem<TContent>>>
+        : IMigrationHook<ContentFilterContext<TContent>>
         where TContent : IContentReference
     { }
 }

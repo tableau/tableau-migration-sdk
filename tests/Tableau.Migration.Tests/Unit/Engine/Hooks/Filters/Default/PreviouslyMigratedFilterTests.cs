@@ -20,6 +20,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Moq;
 using Tableau.Migration.Engine;
+using Tableau.Migration.Engine.Hooks.Filters;
 using Tableau.Migration.Engine.Hooks.Filters.Default;
 using Tableau.Migration.Engine.Options;
 using Xunit;
@@ -50,12 +51,15 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Filters.Default
             {
                 PreviousManifest = null;
 
-                var allItems = CreateMany<ContentMigrationItem<TestContentType>>().ToImmutableList();
+                var ctx = Create<ContentFilterContext<TestContentType>>();
 
                 var filter = Create<PreviouslyMigratedFilter<TestContentType>>();
-                var results = await filter.ExecuteAsync(allItems, Cancel);
+                var results = await filter.ExecuteAsync(ctx, Cancel);
 
-                Assert.Same(allItems, results);
+                Assert.NotNull(results);
+                Assert.Same(ctx, results);
+
+                Assert.All(results.Items, i => Assert.Equal(FilterStatus.Migrate, i.Status));
             }
 
             [Fact]
@@ -63,26 +67,36 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Filters.Default
             {
                 _options = new() { Disabled = true };
 
-                var allItems = CreateMany<ContentMigrationItem<TestContentType>>().ToImmutableList();
+                var ctx = Create<ContentFilterContext<TestContentType>>();
 
                 var filter = Create<PreviouslyMigratedFilter<TestContentType>>();
-                var results = await filter.ExecuteAsync(allItems, Cancel);
+                var results = await filter.ExecuteAsync(ctx, Cancel);
 
-                Assert.Same(allItems, results);
+                Assert.NotNull(results);
+                Assert.Same(ctx, results);
+
+                Assert.All(results.Items, i => Assert.Equal(FilterStatus.Migrate, i.Status));
             }
 
             [Fact]
             public async Task FiltersPreviouslyMigratedAsync()
             {
-                var allItems = CreateMany<ContentMigrationItem<TestContentType>>().ToImmutableList();
+                var ctx = Create<ContentFilterContext<TestContentType>>();
 
                 var filter = Create<PreviouslyMigratedFilter<TestContentType>>();
-                var results = await filter.ExecuteAsync(allItems, Cancel);
+                var results = await filter.ExecuteAsync(ctx, Cancel);
 
-                Assert.NotSame(allItems, results);
                 Assert.NotNull(results);
-                Assert.NotEqual(allItems.Count, results.Count());
-                Assert.All(results, i => Assert.False(i.ManifestEntry.HasMigrated));
+                Assert.Same(ctx, results);
+
+                var previouslyMigratedItems = results.Items.Where(i => i.ManifestEntry.HasMigrated).ToImmutableArray();
+                var nonMigratedItems = results.Items.Except(previouslyMigratedItems).ToImmutableArray();
+
+                Assert.NotEmpty(previouslyMigratedItems);
+                Assert.All(previouslyMigratedItems, i => Assert.Equal(FilterStatus.Skip, i.Status));
+
+                Assert.NotEmpty(nonMigratedItems);
+                Assert.All(nonMigratedItems, i => Assert.Equal(FilterStatus.Migrate, i.Status));
             }
         }
     }

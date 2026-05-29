@@ -25,6 +25,7 @@ using Tableau.Migration.Content.Schedules.Server;
 using Tableau.Migration.Engine.Actions;
 using Tableau.Migration.Engine.Conversion;
 using Tableau.Migration.Engine.Conversion.ExtractRefreshTasks;
+using Tableau.Migration.Engine.Conversion.FlowRunTasks;
 using Tableau.Migration.Engine.Conversion.Subscriptions;
 using Tableau.Migration.Engine.Migrators.Batch;
 
@@ -45,10 +46,12 @@ namespace Tableau.Migration.Engine.Pipelines
             MigrationPipelineContentType.GroupSets,
             MigrationPipelineContentType.Projects,
             MigrationPipelineContentType.DataSources,
+            MigrationPipelineContentType.Flows,
             MigrationPipelineContentType.Workbooks,
             MigrationPipelineContentType.ServerToCloudExtractRefreshTasks,
             MigrationPipelineContentType.CustomViews,
             MigrationPipelineContentType.ServerToCloudSubscriptions,
+            MigrationPipelineContentType.ServerToCloudFlowRunTasks,
             MigrationPipelineContentType.Favorites
         ];
 
@@ -70,6 +73,10 @@ namespace Tableau.Migration.Engine.Pipelines
             => CreateMigrateContentAction<IServerSubscription>();
 
         /// <inheritdoc />
+        protected override IMigrationAction CreateFlowRunTaskAction()
+            => CreateMigrateContentAction<IServerFlowRunTask>();
+
+        /// <inheritdoc />
         public override IContentBatchMigrator<TContent> GetBatchMigrator<TContent>()
         {
             switch (typeof(TContent))
@@ -79,6 +86,9 @@ namespace Tableau.Migration.Engine.Pipelines
 
                 case Type subscription when subscription == typeof(IServerSubscription):
                     return Services.GetRequiredService<ItemPublishContentBatchMigrator<TContent, IServerSubscription, ICloudSubscription, ICloudSubscription>>();
+
+                case Type flowRunTask when flowRunTask == typeof(IServerFlowRunTask):
+                    return Services.GetRequiredService<ItemPublishContentBatchMigrator<TContent, IServerFlowRunTask, ICloudFlowRunTask, ICloudFlowRunTask>>();
 
                 default:
                     return base.GetBatchMigrator<TContent>();
@@ -95,6 +105,9 @@ namespace Tableau.Migration.Engine.Pipelines
 
                 case Type serverSubscription when serverSubscription == typeof(IServerSubscription):
                     return Services.GetRequiredService<ISubscriptionConverter<TPrepare, TPublish>>();
+
+                case Type serverFlowRunTask when serverFlowRunTask == typeof(IServerFlowRunTask):
+                    return Services.GetRequiredService<IFlowRunTaskConverter<TPrepare, TPublish>>();
 
                 default:
                     return base.GetItemConverter<TPrepare, TPublish>();

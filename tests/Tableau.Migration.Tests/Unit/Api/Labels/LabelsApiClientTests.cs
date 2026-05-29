@@ -50,7 +50,7 @@ namespace Tableau.Migration.Tests.Unit.Api.Labels
         public class GetLabelsAsync : LabelsApiClientTest
         {
             [Fact]
-            public async Task Returns_success()
+            public async Task ReturnsSuccessAsync()
             {
                 var response = AutoFixture.CreateResponse<LabelsResponse>();
 
@@ -73,7 +73,7 @@ namespace Tableau.Migration.Tests.Unit.Api.Labels
             }
 
             [Fact]
-            public async Task Returns_success_with_category_input()
+            public async Task ReturnsSuccessWithCategoryInputAsync()
             {
                 var response = AutoFixture.CreateResponse<LabelsResponse>();
 
@@ -99,7 +99,7 @@ namespace Tableau.Migration.Tests.Unit.Api.Labels
             }
 
             [Fact]
-            public async Task Returns_success_on_empty_labels()
+            public async Task ReturnsSuccessOnEmptyLabelsAsync()
             {
                 var response = AutoFixture.CreateResponse<LabelsResponse>();
                 response.Items = Array.Empty<LabelsResponse.LabelType>();
@@ -121,7 +121,7 @@ namespace Tableau.Migration.Tests.Unit.Api.Labels
         public class UpdateLabelsAsync : LabelsApiClientTest
         {
             [Fact]
-            public async Task Returns_success()
+            public async Task ReturnsSuccessAsync()
             {
                 var labels = CreateMany<LabelsResponse.LabelType>().ToList();
 

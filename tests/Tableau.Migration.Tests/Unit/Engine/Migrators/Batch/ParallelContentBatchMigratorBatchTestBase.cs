@@ -21,8 +21,8 @@ using Tableau.Migration.Config;
 namespace Tableau.Migration.Tests.Unit.Engine.Migrators.Batch
 {
     public class ParallelContentBatchMigratorBatchTestBase<TContent, TPrepare, TPublish> : ContentBatchMigratorTestBase<TContent, TPrepare, TPublish>
-        where TContent : class
-        where TPrepare : class
+        where TContent : class, IContentReference
+        where TPrepare : class, IContentReference
         where TPublish : class
     {
         protected readonly Mock<IConfigReader> MockConfigReader;

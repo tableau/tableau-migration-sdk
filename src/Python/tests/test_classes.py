@@ -51,16 +51,18 @@ from tableau_migration.migration_engine_endpoints_search import (
     PySourceContentReferenceFinderFactory)
 
 from tableau_migration.migration_engine_hooks import (
-    PyMigrationHookBuilder,
     PyMigrationHookFactoryCollection)
 
-from tableau_migration.migration_engine_hooks_transformers import (
+from tableau_migration.migration_engine_hooks_builder import (
+    PyMigrationHookBuilder)
+
+from tableau_migration.migration_engine_hooks_transformers_builder import (
     PyContentTransformerBuilder)
 
-from tableau_migration.migration_engine_hooks_mappings import (
+from tableau_migration.migration_engine_hooks_mappings_builder import (
     PyContentMappingBuilder)
 
-from tableau_migration.migration_engine_hooks_filters import (
+from tableau_migration.migration_engine_hooks_filters_builder import (
     PyContentFilterBuilder)
 
 from tableau_migration.migration_engine_options import (
@@ -245,6 +247,7 @@ from tableau_migration.migration_api_rest_models import (  # noqa: E402, F401
 from tableau_migration.migration_api_rest_models_types import (  # noqa: E402, F401
     PyAuthenticationTypes,
     PyDataSourceFileTypes,
+    PyFlowFileTypes,
     PyWorkbookFileTypes
 )
 
@@ -260,6 +263,9 @@ from tableau_migration.migration_content import (  # noqa: E402, F401
     PyExtractContent,
     PyFavorite,
     PyFavoriteContentType,
+    PyFlow,
+    PyFlowDetails,
+    PyFlowOutputStep,
     PyGroup,
     PyGroupSet,
     PyGroupUser,
@@ -267,6 +273,7 @@ from tableau_migration.migration_content import (  # noqa: E402, F401
     PyProject,
     PyPublishableCustomView,
     PyPublishableDataSource,
+    PyPublishableFlow,
     PyPublishableGroup,
     PyPublishableGroupSet,
     PyPublishableWorkbook,
@@ -315,12 +322,20 @@ from tableau_migration.migration_engine import PyContentMigrationItem # noqa: E4
 
 from tableau_migration.migration_engine_actions import PyMigrationActionResult # noqa: E402, F401
 
+from tableau_migration.migration_engine_hooks_filters import (  # noqa: E402, F401
+    PyContentFilterContext,
+    PyContentFilterContextItem,
+    PyFilterStatus
+)
+
 from tableau_migration.migration_engine_hooks_mappings import PyContentMappingContext # noqa: E402, F401
 
 from tableau_migration.migration_engine_hooks_postpublish import (  # noqa: E402, F401
     PyBulkPostPublishContext,
     PyContentItemPostPublishContext
 )
+
+from tableau_migration.migration_engine_hooks_pulled import PyContentItemPulledContext # noqa: E402, F401
 
 from tableau_migration.migration_engine_manifest import (  # noqa: E402, F401
     PyMigrationManifestEntry,
@@ -350,10 +365,12 @@ from Tableau.Migration.Api.Rest.Models import PermissionsCapabilityNames
 from Tableau.Migration.Api.Rest.Models import SiteRoles
 from Tableau.Migration.Api.Rest.Models.Types import AuthenticationTypes
 from Tableau.Migration.Api.Rest.Models.Types import DataSourceFileTypes
+from Tableau.Migration.Api.Rest.Models.Types import FlowFileTypes
 from Tableau.Migration.Api.Rest.Models.Types import WorkbookFileTypes
 from Tableau.Migration.Content import FavoriteContentType
 from Tableau.Migration.Content.Permissions import GranteeType
 from Tableau.Migration.Content.Schedules import ExtractRefreshContentType
+from Tableau.Migration.Engine.Hooks.Filters import FilterStatus
 from Tableau.Migration.Engine.Manifest import MigrationManifestEntryStatus
 
 _generated_class_data = {
@@ -372,6 +389,9 @@ _generated_class_data = {
     PyDescriptionContent: (PyDescriptionContent, None, []),
     PyExtractContent: (PyExtractContent, None, []),
     PyFavorite: (PyFavorite, None, []),
+    PyFlow: (PyFlow, [ "SetLocation" ], []),
+    PyFlowDetails: (PyFlowDetails, [ "SetLocation" ], []),
+    PyFlowOutputStep: (PyFlowOutputStep, [ "Name" ], []),
     PyGroup: (PyGroup, [ "SetLocation" ], []),
     PyGroupSet: (PyGroupSet, [ "SetLocation" ], []),
     PyGroupUser: (PyGroupUser, None, []),
@@ -379,6 +399,7 @@ _generated_class_data = {
     PyProject: (PyProject, [ "Container", "SetLocation" ], []),
     PyPublishableCustomView: (PyPublishableCustomView, [ "DisposeAsync", "File" ], []),
     PyPublishableDataSource: (PyPublishableDataSource, [ "DisposeAsync", "File", "SetLocation" ], []),
+    PyPublishableFlow: (PyPublishableFlow, [ "DisposeAsync", "File", "SetLocation" ], []),
     PyPublishableGroup: (PyPublishableGroup, [ "SetLocation" ], []),
     PyPublishableGroupSet: (PyPublishableGroupSet, [ "SetLocation" ], []),
     PyPublishableWorkbook: (PyPublishableWorkbook, [ "ChildPermissionContentItems", "ChildType", "DisposeAsync", "File", "SetLocation", "ShouldMigrateChildPermissions" ], []),
@@ -412,9 +433,12 @@ _generated_class_data = {
     PyContentReferenceFinder: (PyContentReferenceFinder, None, []),
     PyContentMigrationItem: (PyContentMigrationItem, None, []),
     PyMigrationActionResult: (PyMigrationActionResult, [ "CastFailure" ], []),
+    PyContentFilterContext: (PyContentFilterContext, None, []),
+    PyContentFilterContextItem: (PyContentFilterContextItem, None, []),
     PyContentMappingContext: (PyContentMappingContext, [ "ToTask" ], []),
     PyBulkPostPublishContext: (PyBulkPostPublishContext, [ "ToTask" ], []),
     PyContentItemPostPublishContext: (PyContentItemPostPublishContext, [ "ToTask" ], []),
+    PyContentItemPulledContext: (PyContentItemPulledContext, [ "ToTask" ], []),
     PyMigrationManifestEntry: (PyMigrationManifestEntry, None, []),
     PyMigrationManifestEntryEditor: (PyMigrationManifestEntryEditor, [ "SetFailed" ], []),
     PyContentItemMigrationResult: (PyContentItemMigrationResult, [ "CastFailure" ], []),
@@ -436,10 +460,12 @@ _generated_enum_data = [
     (PySiteRoles, SiteRoles),
     (PyAuthenticationTypes, AuthenticationTypes),
     (PyDataSourceFileTypes, DataSourceFileTypes),
+    (PyFlowFileTypes, FlowFileTypes),
     (PyWorkbookFileTypes, WorkbookFileTypes),
     (PyFavoriteContentType, FavoriteContentType),
     (PyGranteeType, GranteeType),
     (PyExtractRefreshContentType, ExtractRefreshContentType),
+    (PyFilterStatus, FilterStatus),
     (PyMigrationManifestEntryStatus, MigrationManifestEntryStatus)
 ]
 
@@ -459,7 +485,7 @@ _test_class_data = {
     PyMigrationPlanOptionsBuilder: (PyMigrationPlanOptionsBuilder, None, []),
     PyMigrationPlanOptionsCollection: (PyMigrationPlanOptionsCollection, None, []),
     PyMigrationHookFactoryCollection: (PyMigrationHookFactoryCollection, None, []),
-    PyDestinationContentReferenceFinder: (PyDestinationContentReferenceFinder, None, []),
+    PyDestinationContentReferenceFinder: (PyDestinationContentReferenceFinder, [ "FindResultBySourceLocationAsync", "FindResultBySourceIdAsync" ], []),
     PyDestinationContentReferenceFinderFactory: (PyDestinationContentReferenceFinderFactory, [ "ForContentType" ], []),
     PySourceContentReferenceFinder: (PySourceContentReferenceFinder, None, []),
     PySourceContentReferenceFinderFactory: (PySourceContentReferenceFinderFactory, [ "ForContentType" ], []),

@@ -21,11 +21,14 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Moq;
 using Tableau.Migration.Api;
+using Tableau.Migration.Api.Rest.Models.Requests;
 using Tableau.Migration.Api.Rest.Models.Responses.Server;
 using Tableau.Migration.Config;
 using Tableau.Migration.Content.Schedules.Server;
 using Tableau.Migration.Net.Rest;
 using Xunit;
+
+using ServerResponses = Tableau.Migration.Api.Rest.Models.Responses.Server;
 
 namespace Tableau.Migration.Tests.Unit.Api
 {
@@ -48,12 +51,16 @@ namespace Tableau.Migration.Tests.Unit.Api
             {
                 request.AssertRelativeUri($"{_baseApiUri}/sites/{SiteId}/schedules/{scheduleId.ToUrlSegment()}/extracts");
             }
+            protected internal void AssertScheduleFlowTaskRelativeUri(HttpRequestMessage request, Guid scheduleId)
+            {
+                request.AssertRelativeUri($"{_baseApiUri}/sites/{SiteId}/schedules/{scheduleId.ToUrlSegment()}/flows");
+            }
         }
 
         public class GetByIdAsync : SchedulesApiClientTest
         {
             [Fact]
-            public async Task Returns_success()
+            public async Task ReturnsSuccessAsync()
             {
                 var scheduleResponse = AutoFixture.CreateResponse<ScheduleResponse>();
 
@@ -97,7 +104,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async Task Returns_failure()
+            public async Task ReturnsFailureAsync()
             {
                 var exception = new Exception();
 
@@ -124,7 +131,7 @@ namespace Tableau.Migration.Tests.Unit.Api
         public class GetScheduleExtractRefreshTasksAsync : SchedulesApiClientTest
         {
             [Fact]
-            public async Task Returns_success()
+            public async Task ReturnsSuccessAsync()
             {
                 var response = AutoFixture.CreateResponse<ScheduleExtractRefreshTasksResponse>();
 
@@ -143,7 +150,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async Task Returns_failure()
+            public async Task ReturnsFailureAsync()
             {
                 var exception = new Exception();
 
@@ -162,6 +169,53 @@ namespace Tableau.Migration.Tests.Unit.Api
                 var request = MockHttpClient.AssertSingleRequest();
 
                 AssertScheduleExtractsRelativeUri(request, scheduleId);
+            }
+        }
+
+        public class AddFlowTaskToScheduleAsync : SchedulesApiClientTest
+        {
+            [Fact]
+            public async Task ReturnsSuccessAsync()
+            {
+                var response = AutoFixture.CreateResponse<ServerResponses.AddFlowTaskToScheduleResponse>();
+
+                var mockResponse = new MockHttpResponseMessage<ServerResponses.AddFlowTaskToScheduleResponse>(response);
+
+                MockHttpClient.SetupResponse(mockResponse);
+
+                var scheduleId = Guid.NewGuid();
+                var flowId = Guid.NewGuid();
+
+                var result = await SchedulesApiClient.AddFlowTaskToScheduleAsync(scheduleId, flowId, null, Cancel);
+
+                Assert.True(result.Success);
+
+                var request = MockHttpClient.AssertSingleRequest();
+                request.AssertHttpMethod(HttpMethod.Put);
+                AssertScheduleFlowTaskRelativeUri(request, scheduleId);
+            }
+
+            [Fact]
+            public async Task ReturnsFailureAsync()
+            {
+                var exception = new Exception();
+
+                var mockResponse =
+                    new MockHttpResponseMessage<ServerResponses.AddFlowTaskToScheduleResponse>(HttpStatusCode.InternalServerError, null);
+                mockResponse.Setup(r => r.EnsureSuccessStatusCode()).Throws(exception);
+
+                MockHttpClient.SetupResponse(mockResponse);
+
+                var scheduleId = Guid.NewGuid();
+                var flowId = Guid.NewGuid();
+
+                var result = await SchedulesApiClient.AddFlowTaskToScheduleAsync(scheduleId, flowId, null, Cancel);
+
+                Assert.False(result.Success);
+
+                var request = MockHttpClient.AssertSingleRequest();
+                request.AssertHttpMethod(HttpMethod.Put);
+                AssertScheduleFlowTaskRelativeUri(request, scheduleId);
             }
         }
     }

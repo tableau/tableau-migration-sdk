@@ -30,6 +30,7 @@ using Tableau.Migration.Api.Rest.Models.Responses;
 using Tableau.Migration.Api.Tags;
 using Tableau.Migration.Config;
 using Tableau.Migration.Content;
+using Tableau.Migration.Content.Files;
 using Tableau.Migration.Content.Schedules.Server;
 using Tableau.Migration.Content.Search;
 using Tableau.Migration.Net;
@@ -67,6 +68,8 @@ namespace Tableau.Migration.Tests.Unit.Api
         public Mock<ITaskDelayer> MockTaskDelayer => Dependencies.MockTaskDelayer;
         public Mock<IDataSourcePublisher> MockDataSourcePublisher => Dependencies.MockDataSourcePublisher;
         public Mock<IWorkbookPublisher> MockWorkbookPublisher => Dependencies.MockWorkbookPublisher;
+        public Mock<IFlowPublisher> MockFlowPublisher => Dependencies.MockFlowPublisher;
+        public Mock<IContentFileStore> MockFileStore => Dependencies.MockFileStore;
         public Mock<ITagsApiClient> MockTagsApiClient => Dependencies.MockTagsApiClient;
         public Mock<IViewsApiClient> MockViewsApiClient => Dependencies.MockViewsApiClient;
         public Mock<IEmbeddedCredentialsApiClient> MockEmbeddedCredentialsApiClient => Dependencies.MockEmbeddedCredentialsApiClient;

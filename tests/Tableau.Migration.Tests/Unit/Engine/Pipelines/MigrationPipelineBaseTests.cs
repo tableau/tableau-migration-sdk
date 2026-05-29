@@ -217,6 +217,15 @@ namespace Tableau.Migration.Tests.Unit.Engine.Pipelines
                 Assert.IsType<ExtractRefreshTaskServerToCloudPreparer>(preparer);
                 MockServices.Verify(x => x.GetService(typeof(ExtractRefreshTaskServerToCloudPreparer)), Times.Once);
             }
+
+            [Fact]
+            public void CreatesFlowRunTaskServerToCloudPreparer()
+            {
+                var preparer = Pipeline.GetItemPreparer<IServerFlowRunTask, ICloudFlowRunTask, ICloudFlowRunTask>();
+
+                Assert.IsType<FlowRunTaskServerToCloudPreparer>(preparer);
+                MockServices.Verify(x => x.GetService(typeof(FlowRunTaskServerToCloudPreparer)), Times.Once);
+            }
         }
 
         #endregion

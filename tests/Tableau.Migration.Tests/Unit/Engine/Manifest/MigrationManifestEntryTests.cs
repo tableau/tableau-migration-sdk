@@ -226,10 +226,27 @@ namespace Tableau.Migration.Tests.Unit.Engine.Manifest
                 var e = new MigrationManifestEntry(MockEntryBuilder.Object, Create<ContentReferenceStub>());
                 string reason = "Test Skip";
 
-                var e2 = e.SetSkipped(reason);
+                var e2 = e.SetSkipped(cascade: false, reason);
 
                 Assert.Same(e, e2);
                 Assert.Equal(MigrationManifestEntryStatus.Skipped, e.Status);
+                Assert.False(e.CascadeSkip);
+                Assert.Same(reason, e.SkippedReason);
+
+                MockEntryBuilder.Verify(x => x.StatusUpdated(e, MigrationManifestEntryStatus.Pending), Times.Once);
+            }
+
+            [Fact]
+            public void CascadeSkip()
+            {
+                var e = new MigrationManifestEntry(MockEntryBuilder.Object, Create<ContentReferenceStub>());
+                string reason = "Test Skip";
+
+                var e2 = e.SetSkipped(cascade: true, reason);
+
+                Assert.Same(e, e2);
+                Assert.Equal(MigrationManifestEntryStatus.Skipped, e.Status);
+                Assert.True(e.CascadeSkip);
                 Assert.Same(reason, e.SkippedReason);
 
                 MockEntryBuilder.Verify(x => x.StatusUpdated(e, MigrationManifestEntryStatus.Pending), Times.Once);
@@ -496,13 +513,14 @@ namespace Tableau.Migration.Tests.Unit.Engine.Manifest
                 var sourceRef = Create<ContentReferenceStub>();
                 var e = new MigrationManifestEntry(MockEntryBuilder.Object, sourceRef);
 
-                e.SetSkipped(reason);
+                e.SetSkipped(cascade: true, reason);
 
                 var result = e.ResetStatus();
 
                 Assert.Same(e, result);
                 Assert.Equal(MigrationManifestEntryStatus.Pending, e.Status);
                 Assert.Empty(e.SkippedReason);
+                Assert.Null(e.CascadeSkip);
 
                 MockEntryBuilder.Verify(x => x.StatusUpdated(e, MigrationManifestEntryStatus.Skipped), Times.Once);
             }

@@ -1,12 +1,12 @@
 from tableau_migration import (
-    IUser,
-    ContentMigrationItem,
     ContentFilterBase,
-    SiteRoles)
-    
+    ContentFilterContextItem,
+    FilterStatus,
+    IUser,
+    SiteRoles)    
 
 class UnlicensedUserFilter(ContentFilterBase[IUser]):
-    def should_migrate(self, item: ContentMigrationItem[IUser]) -> bool:
+
+    def filter(self, item: ContentFilterContextItem[IUser]) -> None:
         if item.source_item.license_level.casefold() == SiteRoles.UNLICENSED.casefold():
-            return False
-        return True
+            item.status = FilterStatus.SKIP

@@ -69,8 +69,8 @@ namespace Tableau.Migration.Engine.Pipelines
         /// <typeparam name="TPublish">The publish type.</typeparam>
         /// <returns>The content preparer.</returns>
         IContentItemPreparer<TContent, TPublish> GetItemPreparer<TContent, TPrepare, TPublish>()
-            where TContent : class
-            where TPrepare : class
+            where TContent : class, IContentReference
+            where TPrepare : class, IContentReference
             where TPublish : class;
 
         /// <summary>

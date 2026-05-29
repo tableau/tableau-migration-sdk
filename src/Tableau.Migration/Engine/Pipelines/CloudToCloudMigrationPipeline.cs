@@ -20,6 +20,7 @@ using System.Collections.Immutable;
 using Microsoft.Extensions.DependencyInjection;
 using Tableau.Migration.Config;
 using Tableau.Migration.Content;
+using Tableau.Migration.Content.Schedules;
 using Tableau.Migration.Content.Schedules.Cloud;
 using Tableau.Migration.Engine.Actions;
 using Tableau.Migration.Engine.Migrators.Batch;
@@ -41,10 +42,12 @@ namespace Tableau.Migration.Engine.Pipelines
             MigrationPipelineContentType.GroupSets,
             MigrationPipelineContentType.Projects,
             MigrationPipelineContentType.DataSources,
+            MigrationPipelineContentType.Flows,
             MigrationPipelineContentType.Workbooks,
             MigrationPipelineContentType.CloudToCloudExtractRefreshTasks,
             MigrationPipelineContentType.CustomViews,
             MigrationPipelineContentType.CloudToCloudSubscriptions,
+            MigrationPipelineContentType.CloudToCloudFlowRunTasks,
             MigrationPipelineContentType.Favorites
         ];
 
@@ -66,6 +69,10 @@ namespace Tableau.Migration.Engine.Pipelines
             => CreateMigrateContentAction<ICloudSubscription>();
 
         /// <inheritdoc />
+        protected override IMigrationAction CreateFlowRunTaskAction()
+            => CreateMigrateContentAction<ICloudFlowRunTask>();
+
+        /// <inheritdoc />
         public override IContentBatchMigrator<TContent> GetBatchMigrator<TContent>()
         {
             switch (typeof(TContent))
@@ -74,6 +81,9 @@ namespace Tableau.Migration.Engine.Pipelines
                     return Services.GetRequiredService<ItemPublishContentBatchMigrator<TContent>>();
 
                 case Type subscription when subscription == typeof(ICloudSubscription):
+                    return Services.GetRequiredService<ItemPublishContentBatchMigrator<TContent>>();
+
+                case Type flowRunTask when flowRunTask == typeof(ICloudFlowRunTask):
                     return Services.GetRequiredService<ItemPublishContentBatchMigrator<TContent>>();
 
                 default:

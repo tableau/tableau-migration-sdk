@@ -20,13 +20,23 @@ namespace Tableau.Migration.PythonGenerator.Keywords.Python
     internal static class Types
     {
         public const string AUTOFIXTURE_TESTBASE = "AutoFixtureTestBase";
-        public const string UUID = "UUID";
-        public const string SEQUENCE = "Sequence";
-        public const string SET = "Set";
-        public const string LIST_WRAPPED = "List";
+
         public const string BOOL = "bool";
-        public const string STR = "str";
+
         public const string INT = "int";
+
+        public const string LIST_WRAPPED = "List";
+
+        public const string OPTIONAL = "Optional";
+
+        public const string UUID = "UUID";
+
+        public const string SEQUENCE = "Sequence";
+
+        public const string SET = "Set";
+
+        public const string STR = "str";
+
         public const string TIME = "time";
     }
 }

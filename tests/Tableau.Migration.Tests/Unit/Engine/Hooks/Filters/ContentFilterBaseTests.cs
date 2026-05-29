@@ -32,9 +32,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Filters
     {
         public class TestFilter : ContentFilterBase<TestContentType>
         {
-            public TestFilter(
-                ISharedResourcesLocalizer localizer,
-                ILogger<IContentFilter<TestContentType>> logger)
+            public TestFilter(ISharedResourcesLocalizer localizer, ILogger<IContentFilter<TestContentType>> logger)
                     : base(localizer, logger) { }
 
             public bool PublicDisabled
@@ -43,10 +41,20 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Filters
                 set => base.Disabled = value;
             }
 
-            public Func<ContentMigrationItem<TestContentType>, bool> FilterCallback { get; set; } = i => true;
+            public Func<ContentMigrationItem<TestContentType>, bool> ShouldMigrateCallback { get; set; } = i => true;
+
+            public Action<ContentFilterContextItem<TestContentType>>? FilterCallback { get; set; }
 
             public override bool ShouldMigrate(ContentMigrationItem<TestContentType> item)
-                => FilterCallback(item);
+                => ShouldMigrateCallback(item);
+
+            public override void Filter(ContentFilterContextItem<TestContentType> item)
+            {
+                if (FilterCallback is not null)
+                    FilterCallback(item);
+                else
+                    base.Filter(item);
+            }
         }
 
         public class ExecuteAsync : AutoFixtureTestBase
@@ -60,36 +68,74 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Filters
             }
 
             [Fact]
-            public async Task NoAllocationOnDisabledAsync()
+            public async Task DisabledSkipsAsync()
             {
                 var filter = new TestFilter(MockLocalizer.Object, MockLogger.Object)
                 {
-                    PublicDisabled = true
+                    PublicDisabled = true,
+                    ShouldMigrateCallback = i => false
                 };
 
-                var allItems = CreateMany<ContentMigrationItem<TestContentType>>();
+                var ctx = Create<ContentFilterContext<TestContentType>>();
 
-                var results = await filter.ExecuteAsync(allItems, Cancel);
+                var results = await filter.ExecuteAsync(ctx, Cancel);
 
-                Assert.Same(allItems, results);
+                Assert.NotNull(results);
+                Assert.Same(ctx, results);
+                Assert.All(results.Items, i => Assert.Equal(FilterStatus.Migrate, i.Status));
             }
 
             [Fact]
-            public async Task AppliesFilterAsync()
+            public async Task AppliesShouldMigrateFilterAsync()
             {
-                var allItems = CreateMany<ContentMigrationItem<TestContentType>>().ToImmutableList();
+                var ctx = Create<ContentFilterContext<TestContentType>>();
 
                 MockLogger.Setup(x => x.IsEnabled(LogLevel.Debug)).Returns(true);
 
                 var filter = new TestFilter(MockLocalizer.Object, MockLogger.Object)
                 {
-                    FilterCallback = i => allItems.IndexOf(i) % 2 == 0
+                    ShouldMigrateCallback = i => ctx.Items.IndexOf(ctx.Items.Single(it => i == it)) % 2 == 0
                 };
 
-                var results = await filter.ExecuteAsync(allItems, Cancel);
+                var results = await filter.ExecuteAsync(ctx, Cancel);
 
-                Assert.NotSame(allItems, results);
-                Assert.Equal(allItems.Where(filter.FilterCallback), results);
+                Assert.NotNull(results);
+                Assert.Same(ctx, results);
+
+                var shouldMigrateItems = ctx.Items.Where(i => filter.ShouldMigrateCallback(i)).ToImmutableArray();
+                var filterItems = ctx.Items.Except(shouldMigrateItems).ToImmutableArray();
+                Assert.All(shouldMigrateItems, i => Assert.Equal(FilterStatus.Migrate, i.Status));
+                Assert.All(filterItems, i => Assert.Equal(FilterStatus.Skip, i.Status));
+            }
+
+            [Fact]
+            public async Task CanCascadeFilterAsync()
+            {
+                var ctx = Create<ContentFilterContext<TestContentType>>();
+
+                MockLogger.Setup(x => x.IsEnabled(LogLevel.Debug)).Returns(true);
+
+                bool IsEvenItem(ContentFilterContextItem<TestContentType> i)
+                    => ctx.Items.IndexOf(ctx.Items.Single(it => i == it)) % 2 == 0;
+
+                var filter = new TestFilter(MockLocalizer.Object, MockLogger.Object)
+                {
+                    FilterCallback = i =>
+                    {
+                        if (IsEvenItem(i))
+                            i.Status = FilterStatus.CascadeSkip;
+                    }
+                };
+
+                var results = await filter.ExecuteAsync(ctx, Cancel);
+
+                Assert.NotNull(results);
+                Assert.Same(ctx, results);
+
+                var cascadeFilterItems = ctx.Items.Where(IsEvenItem).ToImmutableArray();
+                var migrateItems = ctx.Items.Except(cascadeFilterItems).ToImmutableArray();
+                Assert.All(cascadeFilterItems, i => Assert.Equal(FilterStatus.CascadeSkip, i.Status));
+                Assert.All(migrateItems, i => Assert.Equal(FilterStatus.Migrate, i.Status));
             }
         }
     }

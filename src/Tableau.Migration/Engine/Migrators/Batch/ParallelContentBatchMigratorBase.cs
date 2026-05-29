@@ -29,7 +29,7 @@ namespace Tableau.Migration.Engine.Migrators.Batch
     /// <typeparam name="TPublish"><inheritdoc /></typeparam>
     public abstract class ParallelContentBatchMigratorBatchBase<TContent, TPrepare, TPublish> : ContentBatchMigratorBase<TContent, TPrepare, TPublish>
         where TContent : class, IContentReference
-        where TPrepare : class
+        where TPrepare : class, IContentReference
         where TPublish : class
     {
         private readonly IConfigReader _configReader;

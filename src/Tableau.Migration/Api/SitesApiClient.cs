@@ -106,6 +106,8 @@ namespace Tableau.Migration.Api
             { typeof(IServerSchedule), client => client.Schedules },
             { typeof(IServerExtractRefreshTask), client => client.ServerTasks },
             { typeof(ICloudExtractRefreshTask), client => client.CloudTasks },
+            { typeof(IServerFlowRunTask), client => client.ServerTasks },
+            { typeof(ICloudFlowRunTask), client => client.CloudTasks },
             { typeof(ICustomView), client => client.CustomViews },
             { typeof(IServerSubscription), client => client.ServerSubscriptions },
             { typeof(ICloudSubscription), client => client.CloudSubscriptions },

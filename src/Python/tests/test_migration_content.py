@@ -137,6 +137,7 @@ from tableau_migration.migration_content_schedules import PyWithSchedule # noqa:
 from tableau_migration.migration_content_schedules_cloud import PyCloudSchedule # noqa: E402, F401
 from tableau_migration.migration_content_schedules_server import PyServerSchedule # noqa: E402, F401
 from typing import (  # noqa: E402, F401
+    Optional,
     Sequence,
     Generic,
     TypeVar
@@ -163,6 +164,9 @@ from Tableau.Migration.Content import (  # noqa: E402, F401
     IDescriptionContent,
     IExtractContent,
     IFavorite,
+    IFlow,
+    IFlowDetails,
+    IFlowOutputStep,
     IGroup,
     IGroupSet,
     IGroupUser,
@@ -170,6 +174,7 @@ from Tableau.Migration.Content import (  # noqa: E402, F401
     IProject,
     IPublishableCustomView,
     IPublishableDataSource,
+    IPublishableFlow,
     IPublishableGroup,
     IPublishableGroupSet,
     IPublishableWorkbook,
@@ -203,6 +208,9 @@ from tableau_migration.migration_content import (  # noqa: E402, F401
     PyExtractContent,
     PyFavorite,
     PyFavoriteContentType,
+    PyFlow,
+    PyFlowDetails,
+    PyFlowOutputStep,
     PyGroup,
     PyGroupSet,
     PyGroupUser,
@@ -210,6 +218,7 @@ from tableau_migration.migration_content import (  # noqa: E402, F401
     PyProject,
     PyPublishableCustomView,
     PyPublishableDataSource,
+    PyPublishableFlow,
     PyPublishableGroup,
     PyPublishableGroupSet,
     PyPublishableWorkbook,
@@ -307,8 +316,8 @@ class TestPyConnectionsContentGenerated(AutoFixtureTestBase):
     def test_connections_getter(self):
         dotnet = self.create(IConnectionsContent)
         py = PyConnectionsContent(dotnet)
-        assert len(dotnet.Connections) != 0
-        assert len(py.connections) == len(dotnet.Connections)
+        assert dotnet.Connections.Count != 0
+        assert len(py.connections) == dotnet.Connections.Count
     
     def test_has_embedded_password_getter(self):
         dotnet = self.create(IConnectionsContent)
@@ -550,6 +559,44 @@ class TestPyFavoriteGenerated(AutoFixtureTestBase):
         py = PyFavorite(dotnet)
         assert py.content_type.value == (None if dotnet.ContentType is None else PyFavoriteContentType(dotnet.ContentType.value__)).value
     
+class TestPyFlowGenerated(AutoFixtureTestBase):
+    
+    def test_ctor(self):
+        dotnet = self.create(IFlow)
+        py = PyFlow(dotnet)
+        assert py._dotnet == dotnet
+    
+    def test_file_type_getter(self):
+        dotnet = self.create(IFlow)
+        py = PyFlow(dotnet)
+        assert py.file_type == dotnet.FileType
+    
+    def test_file_type_setter(self):
+        dotnet = self.create(IFlow)
+        py = PyFlow(dotnet)
+        
+        # create test data
+        testValue = self.create(String)
+        
+        # set property to new test value
+        py.file_type = testValue
+        
+        # assert value
+        assert py.file_type == testValue
+    
+class TestPyFlowDetailsGenerated(AutoFixtureTestBase):
+    
+    def test_ctor(self):
+        dotnet = self.create(IFlowDetails)
+        py = PyFlowDetails(dotnet)
+        assert py._dotnet == dotnet
+    
+    def test_flow_output_steps_getter(self):
+        dotnet = self.create(IFlowDetails)
+        py = PyFlowDetails(dotnet)
+        assert dotnet.FlowOutputSteps.Count != 0
+        assert len(py.flow_output_steps) == dotnet.FlowOutputSteps.Count
+    
 class TestPyGroupGenerated(AutoFixtureTestBase):
     
     def test_ctor(self):
@@ -725,8 +772,8 @@ class TestPyPublishableCustomViewGenerated(AutoFixtureTestBase):
     def test_default_users_getter(self):
         dotnet = self.create(IPublishableCustomView)
         py = PyPublishableCustomView(dotnet)
-        assert len(dotnet.DefaultUsers) != 0
-        assert len(py.default_users) == len(dotnet.DefaultUsers)
+        assert dotnet.DefaultUsers.Count != 0
+        assert len(py.default_users) == dotnet.DefaultUsers.Count
     
     def test_default_users_setter(self):
         dotnet = self.create(IPublishableCustomView)
@@ -756,8 +803,8 @@ class TestPyPublishableGroupGenerated(AutoFixtureTestBase):
     def test_users_getter(self):
         dotnet = self.create(IPublishableGroup)
         py = PyPublishableGroup(dotnet)
-        assert len(dotnet.Users) != 0
-        assert len(py.users) == len(dotnet.Users)
+        assert dotnet.Users.Count != 0
+        assert len(py.users) == dotnet.Users.Count
     
     def test_users_setter(self):
         dotnet = self.create(IPublishableGroup)
@@ -787,8 +834,8 @@ class TestPyPublishableGroupSetGenerated(AutoFixtureTestBase):
     def test_groups_getter(self):
         dotnet = self.create(IPublishableGroupSet)
         py = PyPublishableGroupSet(dotnet)
-        assert len(dotnet.Groups) != 0
-        assert len(py.groups) == len(dotnet.Groups)
+        assert dotnet.Groups.Count != 0
+        assert len(py.groups) == dotnet.Groups.Count
     
     def test_groups_setter(self):
         dotnet = self.create(IPublishableGroupSet)
@@ -836,8 +883,8 @@ class TestPyPublishableWorkbookGenerated(AutoFixtureTestBase):
     def test_hidden_view_names_getter(self):
         dotnet = self.create(IPublishableWorkbook)
         py = PyPublishableWorkbook(dotnet)
-        assert len(dotnet.HiddenViewNames) != 0
-        assert len(py.hidden_view_names) == len(dotnet.HiddenViewNames)
+        assert dotnet.HiddenViewNames.Count != 0
+        assert len(py.hidden_view_names) == dotnet.HiddenViewNames.Count
     
     def test_hidden_view_names_setter(self):
         dotnet = self.create(IPublishableWorkbook)
@@ -1281,8 +1328,8 @@ class TestPyWithTagsGenerated(AutoFixtureTestBase):
     def test_tags_getter(self):
         dotnet = self.create(IWithTags)
         py = PyWithTags(dotnet)
-        assert len(dotnet.Tags) != 0
-        assert len(py.tags) == len(dotnet.Tags)
+        assert dotnet.Tags.Count != 0
+        assert len(py.tags) == dotnet.Tags.Count
     
     def test_tags_setter(self):
         dotnet = self.create(IWithTags)
@@ -1362,8 +1409,8 @@ class TestPyWorkbookDetailsGenerated(AutoFixtureTestBase):
     def test_views_getter(self):
         dotnet = self.create(IWorkbookDetails)
         py = PyWorkbookDetails(dotnet)
-        assert len(dotnet.Views) != 0
-        assert len(py.views) == len(dotnet.Views)
+        assert dotnet.Views.Count != 0
+        assert len(py.views) == dotnet.Views.Count
     
 class TestPyUserAuthenticationTypeGenerated(AutoFixtureTestBase):
     

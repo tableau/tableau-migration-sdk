@@ -107,7 +107,7 @@ namespace Tableau.Migration.Engine.Migrators
                 cancel.ThrowIfCancellationRequested();
 
                 //Apply filters.
-                var filteredItems = (await _filterRunner.ExecuteAsync(batchItems, cancel).ConfigureAwait(false)).ToImmutableArray();
+                var filteredItems = await _filterRunner.ExecuteAsync(batchItems, cancel).ConfigureAwait(false);
 
                 cancel.ThrowIfCancellationRequested();
 

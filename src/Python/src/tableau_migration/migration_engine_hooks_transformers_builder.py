@@ -48,7 +48,7 @@ class PyContentTransformerBuilder():
         return self
 
 
-    def add(self, input_0: type, input_1: Union[Callable, None] = None, is_xml: bool = False) -> Self:
+    def add(self, input_0: type, input_1: Union[Callable, None] = None, is_xml: bool = False, is_json: bool = False) -> Self:
         """Adds an object or function to execute transformers.
 
         Args:
@@ -58,17 +58,30 @@ class PyContentTransformerBuilder():
             input_1: Either:
                 1) The callback function to execute, or
                 2) None
-            is_xml: True if the given callback function is an xml transformer callback, otherwise false.
+            is_xml: True if the given callback function is an XML transformer callback, otherwise false.
+            is_json: True if the given callback function is a JSON transformer callback, otherwise false.
 
         Returns:
             The same mapping builder object for fluent API calls.
         """
-        from migration_engine_hooks_transformers_interop import _PyTransformerWrapperBuilder, _PyXmlTransformerWrapperBuilder
+        from migration_engine_hooks_transformers_interop import (
+            _PyJsonTransformerWrapperBuilder,
+            _PyTransformerWrapperBuilder,
+            _PyXmlTransformerWrapperBuilder
+        )
 
         if input_1 is None:
             wrapper_builder = input_0._wrapper_builder(input_0)
         else:
-            wrap_builder_type = _PyXmlTransformerWrapperBuilder if is_xml else _PyTransformerWrapperBuilder
+            if is_xml and is_json:
+                raise ValueError("A transformer callback cannot be both XML and JSON.")
+
+            if is_xml:
+                wrap_builder_type = _PyXmlTransformerWrapperBuilder
+            elif is_json:
+                wrap_builder_type = _PyJsonTransformerWrapperBuilder
+            else:
+                wrap_builder_type = _PyTransformerWrapperBuilder
             wrapper_builder = wrap_builder_type(input_0, input_1)
         
         self._content_transformer_builder.Add[wrapper_builder.wrapper_type, wrapper_builder.dotnet_publish_type](Func[IServiceProvider, wrapper_builder.wrapper_type](wrapper_builder.factory))

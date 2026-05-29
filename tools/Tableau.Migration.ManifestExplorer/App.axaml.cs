@@ -60,7 +60,7 @@ namespace Tableau.Migration.ManifestExplorer
             var services = BuildServices();
 
             var mainData = services.GetRequiredService<MainViewModel>();
-            mainData.Initialize(CommandLineArgs); // Pass the command line arguments to the MainViewModel
+            mainData.InitializeAsync(CommandLineArgs); // Pass the command line arguments to the MainViewModel
 
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {

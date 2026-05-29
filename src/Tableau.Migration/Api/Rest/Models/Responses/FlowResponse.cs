@@ -29,16 +29,30 @@ namespace Tableau.Migration.Api.Rest.Models.Responses
     public class FlowResponse : TableauServerResponse<FlowResponse.FlowType>
     {
         /// <summary>
+        /// Gets or sets the flow output steps for the response.
+        /// </summary>
+        [XmlArray("flowOutputSteps")]
+        [XmlArrayItem("flowOutputStep")]
+        public FlowOutputStepType[] FlowOutputSteps { get; set; } = Array.Empty<FlowOutputStepType>();
+
+        /// <summary>
         /// Gets or sets the prep flow for the response.
         /// </summary>
         [XmlElement("flow")]
         public override FlowType? Item { get; set; }
 
         /// <summary>
-        /// Class representing a site response.
+        /// Class representing a flow response.
         /// </summary>
-        public class FlowType : IFlowType
+        public class FlowType : IFlowDetailsType
         {
+            /// <summary>
+            /// Gets or sets the flow output steps for the response.
+            /// Note: This is populated from the parent response's FlowOutputSteps in the API client.
+            /// This property is not serialized; it's populated programmatically.
+            /// </summary>
+            [XmlIgnore]
+            public IFlowOutputStepType[] FlowOutputSteps { get; set; } = Array.Empty<IFlowOutputStepType>();
             /// <summary>
             /// Gets or sets the ID for the response.
             /// </summary>
@@ -173,6 +187,24 @@ namespace Tableau.Migration.Api.Rest.Models.Responses
                     Label = tag.Label;
                 }
             }
+        }
+
+        /// <summary>
+        /// Class representing a flow output step response.
+        /// </summary>
+        public class FlowOutputStepType : IFlowOutputStepType
+        {
+            /// <summary>
+            /// Gets or sets the ID for the response.
+            /// </summary>
+            [XmlAttribute("id")]
+            public Guid Id { get; set; }
+
+            /// <summary>
+            /// Gets or sets the name for the response.
+            /// </summary>
+            [XmlAttribute("name")]
+            public string? Name { get; set; }
         }
     }
 }

@@ -199,7 +199,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.PostPublish.Default
         public class ExecuteAsync : EmbeddedCredentialsItemPostPublishHookTest
         {
             [Fact]
-            public async Task Skips_when_no_embedded_creds()
+            public async Task SkipsWhenNoEmbeddedCredsAsync()
             {
                 var manifestEntry = Create<IMigrationManifestEntryEditor>();
 
@@ -219,7 +219,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.PostPublish.Default
             }
 
             [Fact]
-            public async Task Skips_when_cabaility_disabled()
+            public async Task SkipsWhenCabailityDisabledAsync()
             {
                 var manifestEntry = Create<IMigrationManifestEntryEditor>();
 
@@ -241,7 +241,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.PostPublish.Default
             }
 
             [Fact]
-            public async Task Migrates_non_OAuth_embedded_creds()
+            public async Task MigratesNonOAuthEmbeddedCredsAsync()
             {
                 var sourceItem = CreateSourceItem(embedPassword: true);
 
@@ -260,7 +260,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.PostPublish.Default
             }
 
             [Fact]
-            public async Task Warns_on_managed_OAuth_embedded_creds()
+            public async Task WarnsOnManagedOAuthEmbeddedCredsAsync()
             {
                 var sourceItem = CreateSourceItem(embedPassword: true, useOAuthManagedKeychain: true);
 
@@ -285,7 +285,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.PostPublish.Default
             }
 
             [Fact]
-            public async Task Migrates_OAuth_embedded_creds()
+            public async Task MigratesOAuthEmbeddedCredsAsync()
             {
                 var sourceItem = CreateSourceItem(embedPassword: true);
 
@@ -317,7 +317,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.PostPublish.Default
 
 
             [Fact]
-            public async Task Migrates_OAuth_embedded_creds_using_cache()
+            public async Task MigratesOAuthEmbeddedCredsUsingCacheAsync()
             {
                 var sourceItem = CreateSourceItem(embedPassword: true);
 
@@ -357,7 +357,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.PostPublish.Default
             }
 
             [Fact]
-            public async Task Migrates_OAuth_embedded_creds_and_updates_cache()
+            public async Task MigratesOAuthEmbeddedCredsAndUpdatesCacheAsync()
             {
                 var sourceItem = CreateSourceItem(embedPassword: true);
 

@@ -29,6 +29,8 @@ namespace Tableau.Migration
             StringComparer.OrdinalIgnoreCase,
             WorkbookFileTypes.Twbx,
             DataSourceFileTypes.Tdsx,
+            FlowFileTypes.Tfl,
+            FlowFileTypes.Tflx,
             "zip",
             "7z",
             "gz",

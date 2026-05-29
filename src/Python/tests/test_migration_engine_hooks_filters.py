@@ -13,102 +13,77 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import TypeVar
-from uuid import UUID
+from tableau_migration.migration import PyContentReference # noqa: E402, F401
 
-from tableau_migration.migration_content import PyUser
-from tableau_migration.migration_engine import PyContentMigrationItem
-from tableau_migration.migration_engine_hooks_filters import PyContentFilterBuilder
-from tableau_migration.migration_engine_hooks_filters_interop import PyContentFilterBase
-from tableau_migration.migration_services import ScopedMigrationServices
+from Tableau.Migration import IContentReference # noqa: E402, F401
 
-from tests.helpers.autofixture import AutoFixtureTestBase
+# region _generated
 
-from System import IServiceProvider
-from System.Collections.Generic import IEnumerable
-from System.Threading import CancellationToken
-from Tableau.Migration.Content import IUser
-from Tableau.Migration.Engine import ContentMigrationItem
-from Tableau.Migration.Engine.Hooks import IMigrationHook
-from Tableau.Migration.Engine.Hooks.Filters import ContentFilterBuilder, IContentFilter
+from enum import IntEnum # noqa: E402, F401
+from tableau_migration.migration import _generic_wrapper # noqa: E402, F401
+from tableau_migration.migration_engine import PyContentMigrationItem # noqa: E402, F401
+from typing import (  # noqa: E402, F401
+    Generic,
+    TypeVar,
+    Sequence
+)
 
-T = TypeVar("T")
+from Tableau.Migration.Engine.Hooks.Filters import (  # noqa: E402, F401
+    ContentFilterContext,
+    ContentFilterContextItem,
+    FilterStatus
+)
 
-class PyFilter(PyContentFilterBase[T]):
-        
-    def should_migrate(self, item: PyContentMigrationItem[T]) -> bool:
-        return self.search_id is None or item.source_item.id != self.search_id
+from tableau_migration.migration_engine_hooks_filters import (  # noqa: E402, F401
+    PyContentFilterContext,
+    PyContentFilterContextItem,
+    PyFilterStatus
+)
 
-class PyUserFilter(PyFilter[PyUser]):
-    pass  
 
-def create_filter_users(search_id: int):
-    def filter_users(item: PyContentMigrationItem[PyUser]) -> bool:
-        return item.source_item.id != search_id
+from Tableau.Migration.Engine.Hooks.Filters import FilterStatus
 
-    return filter_users
+# Extra imports for tests.
+from tests.helpers.autofixture import AutoFixtureTestBase # noqa: E402, F401
 
-def create_filter_users_services(search_id: int):
-    def filter_users_service(item: PyContentMigrationItem[PyUser], services: ScopedMigrationServices) -> bool:
-        return item.source_item.id != search_id
-
-    return filter_users_service
-
-class TestFilterInterop(AutoFixtureTestBase):
-    def test_filter_interop_class(self):
-        hook_builder = PyContentFilterBuilder(ContentFilterBuilder())
-        
-        result = hook_builder.add(PyUserFilter)
-        assert result is hook_builder
-        
-        hook_factories = hook_builder.build().get_hooks(IContentFilter[IUser])
-        assert len(hook_factories) == 1
-
-        services = self.create(IServiceProvider)
-        users = self.create_many(ContentMigrationItem[IUser])
-        
-        PyUserFilter.search_id = UUID(list(users)[0].SourceItem.Id.ToString())
-
-        hook = hook_factories[0].Create[IMigrationHook[IEnumerable[ContentMigrationItem[IUser]]]](services)
-        hook_result = hook.ExecuteAsync(users, CancellationToken(False)).GetAwaiter().GetResult()
-
-        assert len(list(users)) - 1 == len(list(hook_result))
-
-    def test_filter_interop_callback(self):
-        hook_builder = PyContentFilterBuilder(ContentFilterBuilder())
-
-        users = self.create_many(ContentMigrationItem[IUser])
-        search_id = UUID(list(users)[0].SourceItem.Id.ToString())
-
-        result = hook_builder.add(PyUser, create_filter_users(search_id))
-        assert result is hook_builder
-
-        hook_factories = hook_builder.build().get_hooks(IContentFilter[IUser])
-        assert len(hook_factories) == 1
-        
-        services = self.create(IServiceProvider)
-        
-        hook = hook_factories[0].Create[IMigrationHook[IEnumerable[ContentMigrationItem[IUser]]]](services)
-        hook_result = hook.ExecuteAsync(users, CancellationToken(False)).GetAwaiter().GetResult()
-
-        assert len(list(users)) - 1 == len(list(hook_result))
+class TestPyContentFilterContextGenerated(AutoFixtureTestBase):
     
-    def test_filter_interop_callback_services(self):
-        hook_builder = PyContentFilterBuilder(ContentFilterBuilder())
-
-        users = self.create_many(ContentMigrationItem[IUser])
-        search_id = UUID(list(users)[0].SourceItem.Id.ToString())
-
-        result = hook_builder.add(PyUser, create_filter_users_services(search_id))
-        assert result is hook_builder
-
-        hook_factories = hook_builder.build().get_hooks(IContentFilter[IUser])
-        assert len(hook_factories) == 1
+    def test_ctor(self):
+        dotnet = self.create(ContentFilterContext[IContentReference])
+        py = PyContentFilterContext[PyContentReference](dotnet)
+        assert py._dotnet == dotnet
+    
+    def test_items_getter(self):
+        dotnet = self.create(ContentFilterContext[IContentReference])
+        py = PyContentFilterContext[PyContentReference](dotnet)
+        assert dotnet.Items.Count != 0
+        assert len(py.items) == dotnet.Items.Count
+    
+class TestPyContentFilterContextItemGenerated(AutoFixtureTestBase):
+    
+    def test_ctor(self):
+        dotnet = self.create(ContentFilterContextItem[IContentReference])
+        py = PyContentFilterContextItem[PyContentReference](dotnet)
+        assert py._dotnet == dotnet
+    
+    def test_status_getter(self):
+        dotnet = self.create(ContentFilterContextItem[IContentReference])
+        py = PyContentFilterContextItem[PyContentReference](dotnet)
+        assert py.status.value == (None if dotnet.Status is None else PyFilterStatus(dotnet.Status.value__)).value
+    
+    def test_status_setter(self):
+        dotnet = self.create(ContentFilterContextItem[IContentReference])
+        py = PyContentFilterContextItem[PyContentReference](dotnet)
         
-        services = self.create(IServiceProvider)
+        # create test data
+        testValue = self.create(FilterStatus)
         
-        hook = hook_factories[0].Create[IMigrationHook[IEnumerable[ContentMigrationItem[IUser]]]](services)
-        hook_result = hook.ExecuteAsync(users, CancellationToken(False)).GetAwaiter().GetResult()
+        # set property to new test value
+        py.status = None if testValue is None else PyFilterStatus(testValue.value__)
+        
+        # assert value
+        assert py.status == None if testValue is None else PyFilterStatus(testValue.value__)
+    
 
-        assert len(list(users)) - 1 == len(list(hook_result))
-        
+# endregion
+

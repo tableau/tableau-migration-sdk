@@ -21,6 +21,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using AutoFixture;
 using Moq;
@@ -28,9 +29,11 @@ using Tableau.Migration.Api;
 using Tableau.Migration.Api.Models.Cloud;
 using Tableau.Migration.Api.Rest;
 using Tableau.Migration.Api.Rest.Models.Types;
+using Tableau.Migration.Content;
 using Tableau.Migration.Content.Schedules;
 using Tableau.Migration.Content.Schedules.Cloud;
 using Tableau.Migration.Content.Schedules.Server;
+using Tableau.Migration.Tests.Unit;
 using Tableau.Migration.Tests.Unit.Content.Schedules;
 using Xunit;
 
@@ -126,7 +129,7 @@ namespace Tableau.Migration.Tests.Unit.Api
         public class DeleteExtractRefreshTaskAsync : TasksApiClientTest
         {
             [Fact]
-            public async Task Success()
+            public async Task SuccessAsync()
             {
                 //Setup
                 var extractRefreshTaskId = Guid.NewGuid();
@@ -147,7 +150,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async Task Failure()
+            public async Task FailureAsync()
             {
                 //Setup
                 var extractRefreshTaskId = Guid.NewGuid();
@@ -205,7 +208,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             public class GetAllExtractRefreshTasksAsync : CloudTasksApiClientTest
             {
                 [Fact]
-                public async Task Gets_datasource_extract_refreshes()
+                public async Task GetsDatasourceExtractRefreshesAsync()
                 {
                     MockSessionProvider.SetupGet(p => p.InstanceType).Returns(TableauInstanceType.Cloud);
 
@@ -225,7 +228,7 @@ namespace Tableau.Migration.Tests.Unit.Api
                 }
 
                 [Fact]
-                public async Task Gets_workbook_extract_refreshes()
+                public async Task GetsWorkbookExtractRefreshesAsync()
                 {
                     MockSessionProvider.SetupGet(p => p.InstanceType).Returns(TableauInstanceType.Cloud);
 
@@ -245,7 +248,7 @@ namespace Tableau.Migration.Tests.Unit.Api
                 }
 
                 [Fact]
-                public async Task Ignores_personal_spaces_workbook_tasks()
+                public async Task IgnoresPersonalSpacesWorkbookTasksAsync()
                 {
                     MockSessionProvider.SetupGet(p => p.InstanceType).Returns(TableauInstanceType.Cloud);
 
@@ -271,7 +274,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             public class CreateExtractRefreshTaskAsync : CloudTasksApiClientTest
             {
                 [Fact]
-                public async Task Creates_extract_refresh_for_workbook_successfully()
+                public async Task CreatesExtractRefreshForWorkbookSuccessfullyAsync()
                 {
                     // Arrange
                     MockSessionProvider.SetupGet(p => p.InstanceType).Returns(TableauInstanceType.Cloud);
@@ -304,7 +307,7 @@ namespace Tableau.Migration.Tests.Unit.Api
                 }
 
                 [Fact]
-                public async Task Creates_extract_refresh_for_datasource_successfully()
+                public async Task CreatesExtractRefreshForDatasourceSuccessfullyAsync()
                 {
                     // Arrange
                     MockSessionProvider.SetupGet(p => p.InstanceType).Returns(TableauInstanceType.Cloud);
@@ -337,7 +340,7 @@ namespace Tableau.Migration.Tests.Unit.Api
                 }
 
                 [Fact]
-                public async Task Fails_to_create_extract_refresh()
+                public async Task FailsToCreateExtractRefreshAsync()
                 {
                     // Arrange
                     MockSessionProvider.SetupGet(p => p.InstanceType).Returns(TableauInstanceType.Cloud);
@@ -362,7 +365,7 @@ namespace Tableau.Migration.Tests.Unit.Api
                 }
 
                 [Fact]
-                public async Task Fails_content_reference_not_found()
+                public async Task FailsContentReferenceNotFoundAsync()
                 {
                     // Arrange
                     MockSessionProvider.SetupGet(p => p.InstanceType).Returns(TableauInstanceType.Cloud);
@@ -387,6 +390,210 @@ namespace Tableau.Migration.Tests.Unit.Api
                     // Assert
                     result.AssertFailure();
                     Assert.IsType<ArgumentNullException>(result.Errors.Single());
+                }
+            }
+
+            #endregion
+
+            #region - CreateCloudFlowTaskAsync -
+
+            public class CreateCloudFlowTaskAsync : CloudTasksApiClientTest
+            {
+                [Fact]
+                public async Task SucceedsAsync()
+                {
+                    // Arrange
+                    MockSessionProvider.SetupGet(p => p.InstanceType).Returns(TableauInstanceType.Cloud);
+                    var flowReference = AutoFixture.Create<IContentReference>();
+                    var cloudSchedule = AutoFixture.Create<ICloudSchedule>();
+                    var createTaskOptions = new CreateCloudFlowTaskOptions(
+                        flowReference.Id,
+                        cloudSchedule);
+
+                    var response = AutoFixture.CreateResponse<CloudResponses.CreateCloudFlowTaskResponse>();
+                    response.Item!.FlowRun!.Flow!.Id = flowReference.Id;
+                    response.Item.FlowRun.Schedule!.Frequency = cloudSchedule.Frequency;
+
+                    SetupSuccessResponse(response);
+                    var mockFlowFinder = MockContentFinderFactory.SetupMockFinder<IFlow>(AutoFixture);
+                    mockFlowFinder.Setup(f => f.FindByIdAsync(flowReference.Id, It.IsAny<CancellationToken>()))
+                        .ReturnsAsync(flowReference);
+
+                    // Act
+                    var result = await CloudTasksApiClient.CreateCloudFlowTaskAsync(
+                        createTaskOptions,
+                        Cancel);
+
+                    // Assert
+                    Assert.True(result.Success);
+                    Assert.Equal(cloudSchedule.Frequency, result.Value.Schedule.Frequency);
+                    Assert.Equal(flowReference.Id, result.Value.Flow.Id);
+                }
+
+                [Fact]
+                public async Task FailsToCreateCloudFlowTaskAsync()
+                {
+                    // Arrange
+                    MockSessionProvider.SetupGet(p => p.InstanceType).Returns(TableauInstanceType.Cloud);
+                    var flowReference = AutoFixture.Create<IContentReference>();
+                    var cloudSchedule = AutoFixture.Create<ICloudSchedule>();
+                    var createTaskOptions = new CreateCloudFlowTaskOptions(
+                        flowReference.Id,
+                        cloudSchedule);
+
+                    SetupErrorResponse<CloudResponses.CreateCloudFlowTaskResponse>(error => error.Code = RestErrorCodes.BAD_REQUEST);
+
+                    // Act
+                    var result = await CloudTasksApiClient.CreateCloudFlowTaskAsync(
+                        createTaskOptions,
+                        Cancel);
+
+                    // Assert
+                    Assert.False(result.Success);
+                    Assert.Null(result.Value);
+                }
+
+                [Fact]
+                public async Task FailsFlowReferenceNotFoundAsync()
+                {
+                    // Arrange
+                    MockSessionProvider.SetupGet(p => p.InstanceType).Returns(TableauInstanceType.Cloud);
+                    var flowReference = AutoFixture.Create<IContentReference>();
+                    var cloudSchedule = AutoFixture.Create<ICloudSchedule>();
+                    var createTaskOptions = new CreateCloudFlowTaskOptions(
+                        flowReference.Id,
+                        cloudSchedule);
+
+                    var response = AutoFixture.CreateResponse<CloudResponses.CreateCloudFlowTaskResponse>();
+                    response.Item!.FlowRun!.Flow!.Id = flowReference.Id;
+                    response.Item.FlowRun.Schedule!.Frequency = cloudSchedule.Frequency;
+
+                    SetupSuccessResponse(response);
+                    var mockFlowFinder = MockContentFinderFactory.SetupMockFinder<IFlow>(AutoFixture);
+                    mockFlowFinder.Setup(f => f.FindByIdAsync(flowReference.Id, It.IsAny<CancellationToken>()))
+                        .ReturnsAsync((IContentReference?)null);
+
+                    // Act
+                    var result = await CloudTasksApiClient.CreateCloudFlowTaskAsync(createTaskOptions, Cancel);
+
+                    // Assert
+                    result.AssertFailure();
+                    Assert.IsType<ArgumentNullException>(result.Errors.Single());
+                }
+            }
+
+            #endregion
+
+            #region - GetAllFlowRunTasksAsync -
+
+            public class GetAllFlowRunTasksAsync : CloudTasksApiClientTest
+            {
+                [Fact]
+                public async Task GetsFlowRunTasksAsync()
+                {
+                    MockSessionProvider.SetupGet(p => p.InstanceType).Returns(TableauInstanceType.Cloud);
+                    var response = AutoFixture.CreateResponse<ServerResponses.FlowRunTasksResponse>();
+
+                    // Setup flow finders for all flow IDs in the response
+                    var flowIds = response.Items
+                        .Where(t => t.FlowRun?.Flow?.Id != null && t.FlowRun.Flow.Id != Guid.Empty)
+                        .Select(t => t.FlowRun!.Flow!.Id)
+                        .Distinct();
+
+                    var mockFlowFinder = MockContentFinderFactory.SetupMockFinder<IFlow>(AutoFixture);
+                    foreach (var flowId in flowIds)
+                    {
+                        var mockFlowReference = AutoFixture.Create<Mock<IContentReference>>();
+                        mockFlowReference.SetupGet(r => r.Id).Returns(flowId);
+                        var flowReference = mockFlowReference.Object;
+                        mockFlowFinder.Setup(f => f.FindByIdAsync(flowId, It.IsAny<CancellationToken>()))
+                            .ReturnsAsync(flowReference);
+                    }
+
+                    SetupSuccessResponse(response);
+
+                    var result = await CloudTasksApiClient.GetAllFlowRunTasksAsync(Cancel);
+
+                    Assert.NotNull(result);
+                    Assert.True(result.Success);
+                    Assert.Empty(result.Errors);
+
+                    var actualFlowRunTasks = result.Value?.ToList();
+                    Assert.NotNull(actualFlowRunTasks);
+                    Assert.Equal(response.Items.Count(t => t.FlowRun != null), actualFlowRunTasks.Count);
+
+                    MockHttpClient.AssertSingleRequest(r =>
+                    {
+                        r.AssertHttpMethod(HttpMethod.Get);
+                        r.AssertRelativeUri($"/api/{TableauServerVersion.RestApiVersion}/sites/{SiteId}/tasks/runFlow");
+                    });
+                }
+
+                [Fact]
+                public async Task ReturnsEmptyListWhenNoTasksAsync()
+                {
+                    MockSessionProvider.SetupGet(p => p.InstanceType).Returns(TableauInstanceType.Cloud);
+                    var response = AutoFixture.CreateResponse<ServerResponses.FlowRunTasksResponse>();
+                    response.Items = Array.Empty<ServerResponses.FlowRunTasksResponse.TaskType>();
+
+                    SetupSuccessResponse(response);
+
+                    var result = await CloudTasksApiClient.GetAllFlowRunTasksAsync(Cancel);
+
+                    Assert.NotNull(result);
+                    Assert.True(result.Success);
+                    Assert.Empty(result.Errors);
+                    Assert.Empty(result.Value!);
+                }
+
+                [Fact]
+                public async Task IgnoresTasksWithMissingFlowReferencesAsync()
+                {
+                    MockSessionProvider.SetupGet(p => p.InstanceType).Returns(TableauInstanceType.Cloud);
+                    var response = AutoFixture.CreateResponse<ServerResponses.FlowRunTasksResponse>();
+
+                    // Setup flow finder to return null for all flows (simulating missing references)
+                    var mockFlowFinder = MockContentFinderFactory.SetupMockFinder<IFlow>(AutoFixture);
+                    var flowIds = response.Items
+                        .Where(t => t.FlowRun?.Flow?.Id != null && t.FlowRun.Flow.Id != Guid.Empty)
+                        .Select(t => t.FlowRun!.Flow!.Id)
+                        .Distinct();
+
+                    foreach (var flowId in flowIds)
+                    {
+                        mockFlowFinder.Setup(f => f.FindByIdAsync(flowId, It.IsAny<CancellationToken>()))
+                            .ReturnsAsync((IContentReference?)null);
+                    }
+
+                    SetupSuccessResponse(response);
+
+                    var result = await CloudTasksApiClient.GetAllFlowRunTasksAsync(Cancel);
+
+                    Assert.NotNull(result);
+                    Assert.True(result.Success);
+                    Assert.Empty(result.Errors);
+                    // All tasks should be filtered out due to missing flow references
+                    Assert.Empty(result.Value!);
+                }
+
+                [Fact]
+                public async Task ReturnsFailureOnErrorAsync()
+                {
+                    MockSessionProvider.SetupGet(p => p.InstanceType).Returns(TableauInstanceType.Cloud);
+
+                    SetupErrorResponse<ServerResponses.FlowRunTasksResponse>(error => error.Code = RestErrorCodes.BAD_REQUEST);
+
+                    var result = await CloudTasksApiClient.GetAllFlowRunTasksAsync(Cancel);
+
+                    Assert.NotNull(result);
+                    Assert.False(result.Success);
+                    Assert.Null(result.Value);
+
+                    MockHttpClient.AssertSingleRequest(r =>
+                    {
+                        r.AssertHttpMethod(HttpMethod.Get);
+                        r.AssertRelativeUri($"/api/{TableauServerVersion.RestApiVersion}/sites/{SiteId}/tasks/runFlow");
+                    });
                 }
             }
 
@@ -430,7 +637,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             public class GetAllExtractRefreshTasksAsync : ServerTasksApiClientTest
             {
                 [Fact]
-                public async Task Gets_workbook_extract_refreshes()
+                public async Task GetsWorkbookExtractRefreshesAsync()
                 {
                     MockSessionProvider.SetupGet(p => p.InstanceType).Returns(TableauInstanceType.Server);
                     var response = CreateServerResponse(ExtractRefreshContentType.Workbook);
@@ -449,7 +656,7 @@ namespace Tableau.Migration.Tests.Unit.Api
                 }
 
                 [Fact]
-                public async Task Gets_datasource_extract_refreshes()
+                public async Task GetsDatasourceExtractRefreshesAsync()
                 {
                     MockSessionProvider.SetupGet(p => p.InstanceType).Returns(TableauInstanceType.Server);
 
@@ -469,7 +676,7 @@ namespace Tableau.Migration.Tests.Unit.Api
                 }
 
                 [Fact]
-                public async Task Ignores_personal_spaces_workbook_tasks()
+                public async Task IgnoresPersonalSpacesWorkbookTasksAsync()
                 {
                     MockSessionProvider.SetupGet(p => p.InstanceType).Returns(TableauInstanceType.Server);
 
@@ -485,6 +692,81 @@ namespace Tableau.Migration.Tests.Unit.Api
                     var expectedExtractRefreshes = response.Items.ToList();
 
                     Assert.Equal(expectedExtractRefreshes.Count - 1, actualExtractRefreshes.Count);
+                }
+            }
+
+            #endregion
+
+            #region - GetAllFlowRunTasksAsync -
+
+            public class GetAllFlowRunTasksAsync : ServerTasksApiClientTest
+            {
+                [Fact]
+                public async Task SucceedsAsync()
+                {
+                    MockSessionProvider.SetupGet(p => p.InstanceType).Returns(TableauInstanceType.Server);
+                    var response = AutoFixture.CreateResponse<ServerResponses.FlowRunTasksResponse>();
+
+                    SetupSuccessResponse(response);
+
+                    var result = await ServerTasksApiClient.GetAllFlowRunTasksAsync(Cancel);
+
+                    Assert.NotNull(result);
+                    Assert.True(result.Success);
+                    Assert.Empty(result.Errors);
+
+                    var actualFlowRunTasks = result.Value?.ToList();
+                    Assert.NotNull(actualFlowRunTasks);
+                    Assert.Equal(response.Items.Count(t => t.FlowRun != null), actualFlowRunTasks.Count);
+
+                    MockHttpClient.AssertSingleRequest(r =>
+                    {
+                        r.AssertHttpMethod(HttpMethod.Get);
+                        r.AssertRelativeUri($"/api/{TableauServerVersion.RestApiVersion}/sites/{SiteId}/tasks/runFlow");
+                    });
+                }
+
+                [Fact]
+                public async Task ReturnsEmptyListWhenNoTasksAsync()
+                {
+                    MockSessionProvider.SetupGet(p => p.InstanceType).Returns(TableauInstanceType.Server);
+                    var response = AutoFixture.CreateResponse<ServerResponses.FlowRunTasksResponse>();
+                    response.Items = Array.Empty<ServerResponses.FlowRunTasksResponse.TaskType>();
+
+                    SetupSuccessResponse(response);
+
+                    var result = await ServerTasksApiClient.GetAllFlowRunTasksAsync(Cancel);
+
+                    Assert.NotNull(result);
+                    Assert.True(result.Success);
+                    Assert.Empty(result.Errors);
+                    Assert.Empty(result.Value!);
+
+                    MockHttpClient.AssertSingleRequest(r =>
+                    {
+                        r.AssertHttpMethod(HttpMethod.Get);
+                        r.AssertRelativeUri($"/api/{TableauServerVersion.RestApiVersion}/sites/{SiteId}/tasks/runFlow");
+                    });
+                }
+
+                [Fact]
+                public async Task ReturnsFailureOnErrorAsync()
+                {
+                    MockSessionProvider.SetupGet(p => p.InstanceType).Returns(TableauInstanceType.Server);
+
+                    SetupErrorResponse<ServerResponses.FlowRunTasksResponse>(error => error.Code = RestErrorCodes.BAD_REQUEST);
+
+                    var result = await ServerTasksApiClient.GetAllFlowRunTasksAsync(Cancel);
+
+                    Assert.NotNull(result);
+                    Assert.False(result.Success);
+                    Assert.Null(result.Value);
+
+                    MockHttpClient.AssertSingleRequest(r =>
+                    {
+                        r.AssertHttpMethod(HttpMethod.Get);
+                        r.AssertRelativeUri($"/api/{TableauServerVersion.RestApiVersion}/sites/{SiteId}/tasks/runFlow");
+                    });
                 }
             }
 

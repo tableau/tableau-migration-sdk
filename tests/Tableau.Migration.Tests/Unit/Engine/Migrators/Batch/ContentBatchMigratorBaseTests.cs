@@ -24,6 +24,7 @@ using Moq;
 using Tableau.Migration.Engine;
 using Tableau.Migration.Engine.Migrators.Batch;
 using Tableau.Migration.Engine.Pipelines;
+using Tableau.Migration.Engine.Preparation;
 using Xunit;
 
 namespace Tableau.Migration.Tests.Unit.Engine.Migrators.Batch
@@ -36,8 +37,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Migrators.Batch
         {
             public Dictionary<ContentMigrationItem<TestContentType>, IResult> PublishResultOverrides { get; }
 
-            public TestContentBatchMigrator(
-                IMigrationPipeline pipeline)
+            public TestContentBatchMigrator(IMigrationPipeline pipeline)
                 : base(pipeline)
             {
                 PublishResultOverrides = new();
@@ -92,13 +92,13 @@ namespace Tableau.Migration.Tests.Unit.Engine.Migrators.Batch
             }
 
             [Fact]
-            public async Task RethrowsMigrationCancellationException()
+            public async Task RethrowsMigrationCancellationExceptionAsync()
             {
                 MockPreparer.Setup(x => x.PrepareAsync(Items[0], It.IsAny<CancellationToken>()))
                     .ReturnsAsync(() =>
                     {
                         CancelSource.Cancel();
-                        return (IResult<TestPublishType>)Result<TestPublishType>.Succeeded(new());
+                        return ContentItemPreparationResult<TestPublishType>.Succeeded(new());
                     });
 
                 await Assert.ThrowsAsync<OperationCanceledException>(() => _batchMigrator.MigrateAsync(Items, Cancel));
@@ -107,7 +107,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Migrators.Batch
             }
 
             [Fact]
-            public async Task CatchesBatchCancellationException()
+            public async Task CatchesBatchCancellationExceptionAsync()
             {
                 MockPreparer.Setup(x => x.PrepareAsync(Items[0], It.IsAny<CancellationToken>()))
                     .ThrowsAsync(new OperationCanceledException());
@@ -127,7 +127,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Migrators.Batch
                 MockPreparer.Setup(x => x.PrepareAsync(Items[0], It.IsAny<CancellationToken>()))
                     .ReturnsAsync(() =>
                     {
-                        return (IResult<TestPublishType>)Result<TestPublishType>.Failed(errors);
+                        return ContentItemPreparationResult<TestPublishType>.Failed(errors);
                     });
 
                 var result = await _batchMigrator.MigrateAsync(Items, Cancel);
@@ -138,6 +138,26 @@ namespace Tableau.Migration.Tests.Unit.Engine.Migrators.Batch
 
                 MockManifestEntries[0].Verify(x => x.SetFailed((IEnumerable<Exception>)errors), Times.Once);
                 Assert.All(MockManifestEntries.Skip(1), e => e.Verify(x => x.SetFailed(It.IsAny<IEnumerable<Exception>>()), Times.Never));
+            }
+
+            [Fact]
+            public async Task ItemPreparationSkippedAbortsItemMigrationAsync()
+            {
+                MockPreparer.Setup(x => x.PrepareAsync(Items[0], It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(() =>
+                    {
+                        return ContentItemPreparationResult<TestPublishType>.Skipped;
+                    });
+
+                var result = await _batchMigrator.MigrateAsync(Items, Cancel);
+
+                result.AssertSuccess();
+
+                Assert.All(Items, i => Assert.NotNull(result.ItemResults.SingleOrDefault(r => object.ReferenceEquals(i.ManifestEntry, r.ManifestEntry))));
+
+                Assert.True(result.ItemResults[0].IsSkipped);
+                MockManifestEntries[0].Verify(x => x.SetFailed(It.IsAny<IEnumerable<Exception>>()), Times.Never);
+                MockManifestEntries[0].Verify(x => x.SetMigrated(), Times.Never);
             }
 
             [Fact]

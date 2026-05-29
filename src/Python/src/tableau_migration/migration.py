@@ -323,28 +323,28 @@ class PyEmptyIdContentReference(PyContentReference):
 class PyMigrationCompletionStatus(IntEnum):
     """Enumeration of the various ways a migration can reach completion."""
     
-    """The migration reached completion normally."""
+    #: The migration reached completion normally.
     COMPLETED = 0
     
-    """The migration was canceled before completion."""
+    #: The migration was canceled before completion.
     CANCELED = 1
     
-    """The migration had a fatal error that interrupted completion."""
+    #: The migration had a fatal error that interrupted completion.
     FATAL_ERROR = 2
     
 class PyPipelineProfile(IntEnum):
     """Enumeration of the various supported migration pipeline profiles."""
     
-    """A custom pipeline supplied by the migration plan is used."""
+    #: A custom pipeline supplied by the migration plan is used.
     CUSTOM = 1
     
-    """The pipeline to bulk migrate content from a Tableau Server site to a Tableau Cloud site."""
+    #: The pipeline to bulk migrate content from a Tableau Server site to a Tableau Cloud site.
     SERVER_TO_CLOUD = 2
     
-    """The pipeline to bulk migrate content from a Tableau Server site to a Tableau Server site."""
+    #: The pipeline to bulk migrate content from a Tableau Server site to a Tableau Server site.
     SERVER_TO_SERVER = 3
     
-    """The pipeline to bulk migrate content from a Tableau Cloud site to a Tableau Cloud site."""
+    #: The pipeline to bulk migrate content from a Tableau Cloud site to a Tableau Cloud site.
     CLOUD_TO_CLOUD = 4
     
 class PyResult():

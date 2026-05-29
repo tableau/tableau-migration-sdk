@@ -114,6 +114,40 @@ namespace Tableau.Migration.Api.Rest.Models.Responses
             }
 
             /// <summary>
+            /// The default parameterless constructor.
+            /// </summary>
+            public FlowType()
+            { }
+
+            /// <summary>
+            /// Constructor to build from <see cref="IFlowType"/>.
+            /// </summary>
+            /// <param name="flow">The <see cref="IFlowType"/> object.</param>
+            public FlowType(IFlowType flow)
+            {
+                Id = flow.Id;
+                Name = flow.Name;
+                Description = flow.Description;
+                WebpageUrl = flow.WebpageUrl;
+                FileType = flow.FileType;
+                CreatedAt = flow.CreatedAt;
+                UpdatedAt = flow.UpdatedAt;
+
+                Project = flow.Project is null ?
+                    null :
+                    new ProjectType(flow.Project);
+
+                if (flow.Owner is not null)
+                {
+                    Owner = new OwnerType(flow.Owner);
+                }
+
+                Tags = flow.Tags.IsNullOrEmpty() ?
+                    Array.Empty<TagType>() :
+                    flow.Tags.Select(t => new TagType(t)).ToArray();
+            }
+
+            /// <summary>
             /// Class representing a REST API project response.
             /// </summary>
             public class ProjectType : IProjectNamedReferenceType
@@ -129,6 +163,22 @@ namespace Tableau.Migration.Api.Rest.Models.Responses
                 /// </summary>
                 [XmlAttribute("name")]
                 public string? Name { get; set; }
+
+                /// <summary>
+                /// The default parameterless constructor.
+                /// </summary>
+                public ProjectType()
+                { }
+
+                /// <summary>
+                /// Constructor to build from <see cref="IProjectNamedReferenceType"/>.
+                /// </summary>
+                /// <param name="project">The <see cref="IProjectNamedReferenceType"/> object.</param>
+                public ProjectType(IProjectNamedReferenceType project)
+                {
+                    Id = project.Id;
+                    Name = project.Name;
+                }
             }
 
             /// <summary>
@@ -147,6 +197,21 @@ namespace Tableau.Migration.Api.Rest.Models.Responses
                 /// </summary>
                 [XmlAttribute("name")]
                 public string? Name { get; set; }
+
+                /// <summary>
+                /// The default parameterless constructor.
+                /// </summary>
+                public OwnerType()
+                { }
+
+                /// <summary>
+                /// Constructor to build from <see cref="IRestIdentifiable"/>.
+                /// </summary>
+                /// <param name="owner">The <see cref="IRestIdentifiable"/> object.</param>
+                public OwnerType(IRestIdentifiable owner)
+                {
+                    Id = owner.Id;
+                }
             }
 
             /// <summary>

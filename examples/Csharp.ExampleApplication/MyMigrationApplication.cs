@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -12,6 +12,7 @@ using Csharp.ExampleApplication.Hooks.InitializeMigration;
 using Csharp.ExampleApplication.Hooks.Mappings;
 using Csharp.ExampleApplication.Hooks.MigrationActionCompleted;
 using Csharp.ExampleApplication.Hooks.PostPublish;
+using Csharp.ExampleApplication.Hooks.Pulled;
 using Csharp.ExampleApplication.Hooks.Transformers;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -120,6 +121,11 @@ namespace Csharp.ExampleApplication
             _planBuilder.Filters.Add<SharedCustomViewFilter, ICustomView>();
             #endregion
 
+            // Add pulled hooks
+            #region CustomViewDefaultUsersTransformer-Registration
+            _planBuilder.Hooks.Add<DataSourceConnectionPulled>();
+            #endregion
+
             // Add post-publish hooks
             #region UpdatePermissionsHook-Registration
             _planBuilder.Hooks.Add<UpdatePermissionsHook<IPublishableDataSource, IDataSourceDetails>>();
@@ -151,6 +157,10 @@ namespace Csharp.ExampleApplication
 
             #region ActionUrlXmlTransformer-Registration
             _planBuilder.Transformers.Add<ActionUrlXmlTransformer, IPublishableWorkbook>();
+            #endregion
+
+            #region FlowConnectionServerJsonTransformer-Registration
+            _planBuilder.Transformers.Add<FlowConnectionServerJsonTransformer, IPublishableFlow>();
             #endregion
 
             #region ModifyPermissionsTransformer-Registration

@@ -16,9 +16,11 @@
 //
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Tableau.Migration.Api.Rest.Models.Requests;
 using Tableau.Migration.Content.Schedules.Server;
 using Tableau.Migration.Paging;
 
@@ -54,5 +56,19 @@ namespace Tableau.Migration.Api
         Task<IResult<IImmutableList<IScheduleExtractRefreshTask>>> GetAllScheduleExtractRefreshTasksAsync(
             Guid scheduleId,
             CancellationToken cancel);
+
+        /// <summary>
+        /// Adds a flow task to an existing schedule.
+        /// </summary>
+        /// <param name="scheduleId">The schedule's ID. The schedule must have Flow as the schedule type.</param>
+        /// <param name="flowId">The ID of the flow to add to the schedule.</param>
+        /// <param name="flowParameterSpecs">Optional flow parameter specifications.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
+        /// <returns>The flow run task result.</returns>
+        Task<IResult<IScheduleFlowRunTask>> AddFlowTaskToScheduleAsync(
+            Guid scheduleId,
+            Guid flowId,
+            IEnumerable<FlowParameterSpec>? flowParameterSpecs = null,
+            CancellationToken cancel = default);
     }
 }

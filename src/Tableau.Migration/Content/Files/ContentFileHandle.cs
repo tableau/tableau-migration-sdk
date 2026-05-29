@@ -49,6 +49,14 @@ namespace Tableau.Migration.Content.Files
             return editor.GetXmlStream();
         }
 
+        /// <inheritdoc />
+        public virtual async Task<ITableauFileJsonStream> GetJsonStreamAsync(CancellationToken cancel)
+        {
+            //We expect the editor/stream will be disposed automatically by the preparer before publish. 
+            var editor = await Store.GetTableauFileEditorAsync(this, cancel).ConfigureAwait(false);
+            return editor.GetJsonStream();
+        }
+
         #region - IAsyncDisposable Implementation -
 
         /// <summary>

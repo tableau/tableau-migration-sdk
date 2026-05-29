@@ -41,7 +41,7 @@ namespace Tableau.Migration.Tests.Unit.Net
                     .AddHttpServices();
 
             [Fact]
-            public async Task Registers_expected_services()
+            public async Task RegistersExpectedServicesAsync()
             {
                 // Please, respect the same order on the method IServiceCollectionExtensions.AddHttpServices
                 await AssertServiceAsync<ITableauSerializer, TableauSerializer>(ServiceLifetime.Singleton);
@@ -87,7 +87,7 @@ namespace Tableau.Migration.Tests.Unit.Net
             }
 
             [Fact]
-            public async Task ServiceProvider_GetTwoIHttpClient_ReturnsNotSameObject()
+            public async Task ServiceProviderGetTwoIHttpClientReturnsNotSameObjectAsync()
             {
                 await using var scope = ServiceProvider.CreateAsyncScope();
 
@@ -133,7 +133,7 @@ namespace Tableau.Migration.Tests.Unit.Net
             }
 
             [Fact]
-            public async Task Uses_scoped_services_in_handlers()
+            public async Task UsesScopedServicesInHandlersAsync()
             {
                 var services = new ServiceCollection()
                     .AddScoped<ScopedService>()
@@ -192,7 +192,7 @@ namespace Tableau.Migration.Tests.Unit.Net
             protected override void ConfigureServices(IServiceCollection services) => services.AddScopedHttpClient(Create<string>());
 
             [Fact]
-            public async Task Registers_scoped_client_factories()
+            public async Task RegistersScopedClientFactoriesAsync()
             {
                 await using var scope1 = ServiceProvider.CreateAsyncScope();
                 var scope1ClientFactory1 = scope1.ServiceProvider.GetRequiredService<IHttpClientFactory>();
@@ -210,7 +210,7 @@ namespace Tableau.Migration.Tests.Unit.Net
             }
 
             [Fact]
-            public async Task Registers_scoped_handler_factories()
+            public async Task RegistersScopedHandlerFactoriesAsync()
             {
                 await using var scope1 = ServiceProvider.CreateAsyncScope();
                 var scope1HandlerFactory1 = scope1.ServiceProvider.GetRequiredService<IHttpMessageHandlerFactory>();
@@ -228,7 +228,7 @@ namespace Tableau.Migration.Tests.Unit.Net
             }
 
             [Fact]
-            public async Task Client_factory_and_handler_factory_are_same_instance()
+            public async Task ClientFactoryAndHandlerFactoryAreSameInstanceAsync()
             {
                 await using var scope = ServiceProvider.CreateAsyncScope();
                 var clientFactory = scope.ServiceProvider.GetRequiredService<IHttpClientFactory>();

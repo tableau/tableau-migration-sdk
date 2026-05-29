@@ -42,7 +42,7 @@ namespace Tableau.Migration.Tests.Unit.Net
         public class TryDeserializeErrorAsync : HttpContentSerializerTest
         {
             [Fact]
-            public async Task Returns_null_when_no_error_found()
+            public async Task ReturnsNullWhenNoErrorFoundAsync()
             {
                 var tsResponse = new EmptyTableauServerResponse();
 
@@ -54,7 +54,7 @@ namespace Tableau.Migration.Tests.Unit.Net
             }
 
             [Fact]
-            public async Task Returns_error()
+            public async Task ReturnsErrorAsync()
             {
                 var tsResponse = new EmptyTableauServerResponse(new());
 
@@ -72,7 +72,7 @@ namespace Tableau.Migration.Tests.Unit.Net
             }
 
             [Fact]
-            public async Task Returns_null_on_deserialization_error()
+            public async Task ReturnsNullOnDeserializationErrorAsync()
             {
                 var error = await MockSerializer.Object.TryDeserializeErrorAsync(MockContent.Object, Cancel);
 

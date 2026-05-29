@@ -124,26 +124,129 @@ function Clear-Directory {
 }
 }
 
-function Write-Sdk-Version {
+function Get-DotnetSdk-Requirements {
 	<#
 .SYNOPSIS
-    Generate a Migration SDK version metadata file for docfx to use.
+    Read .NET target framework version(s) from Tableau.Migration.csproj and return a minimum-version string.
+.OUTPUTS
+    E.g. "8.0 or later".
 #>
-	$versionSourceFileName = "Directory.Build.props";
-	$docfxMetadataFileName = "migration_sdk_metadata.json";
+	$migrationCsprojRelativePath = Join-Path "src" (Join-Path "Tableau.Migration" "Tableau.Migration.csproj");
+	$migrationCsprojPath = Join-Path $root_dir $migrationCsprojRelativePath;
 
-	Write-Host-With-Timestamp("Writing Tableau Migration SDK from $versionSourceFileName for docfx.");
-		
-	$buildPropsXml = (Run-Command ("[Xml] (Get-Content (Join-Path $root_dir $versionSourceFileName))"));
-	
+	$csprojXml = [Xml](Get-Content $migrationCsprojPath)
+	# TargetFrameworks is semicolon-separated; TargetFramework is single
+	$targetFrameworksValue = $null
+	foreach ($propertyGroup in $csprojXml.Project.PropertyGroup) {
+		if ($propertyGroup.TargetFrameworks) { $targetFrameworksValue = $propertyGroup.TargetFrameworks; break }
+		if ($propertyGroup.TargetFramework)  { $targetFrameworksValue = $propertyGroup.TargetFramework; break }
+	}
+	if (-not $targetFrameworksValue) { return "" }
+
+	$targetFrameworkStrings = $targetFrameworksValue -split ';' | ForEach-Object { $_.Trim() } | Where-Object { $_ }
+	# Strip "net" prefix (e.g. net8.0 -> 8.0)
+	$versions = $targetFrameworkStrings | ForEach-Object {
+		if ($_ -match '^net(.+)$') { $matches[1] } else { $_ }
+	} | Where-Object { $_ }
+
+	if ($versions.Count -eq 0) { return "" }
+	$minVersion = ($versions | Sort-Object { [version]$_ })[0]
+	return "$minVersion or later"
+}
+
+function Get-Python-Requirements {
+	<#
+.SYNOPSIS
+    Read Python version(s) from src\Python\pyproject.toml and return a minimum-version string.
+    Prefer the test matrix (tool.hatch.envs.test.matrix python = ["3.10", ...]); otherwise use requires-python (e.g. ">=3.10").
+.OUTPUTS
+    E.g. "3.10 or later".
+#>
+	$pyprojectFileName = "pyproject.toml";
+	$pyprojectPath = Join-Path $python_dir $pyprojectFileName;
+
+	$pyprojectContent = Get-Content $pyprojectPath -Raw
+	# Prefer: python = ["3.10", "3.11", "3.12", "3.13"] (test matrix, lines 74-75)
+	if ($pyprojectContent -match 'python\s*=\s*\[\s*([^\]]+)\s*\]') {
+		$versionArrayContent = $matches[1]
+		$versions = $versionArrayContent -split ',' | ForEach-Object { $_.Trim().Trim('"') } | Where-Object { $_ }
+		if ($versions.Count -gt 0) {
+			$minVersion = ($versions | Sort-Object { [version]$_ })[0]
+			return "$minVersion or later"
+		}
+	}
+	# Fallback: requires-python = ">=3.10" (line 14)
+	if ($pyprojectContent -match 'requires-python\s*=\s*"([^"]+)"') {
+		$spec = $matches[1]
+		if ($spec -match '>=(\d+\.\d+)') { return "$($matches[1]) or later" }
+		return $spec
+	}
+	return ""
+}
+
+function Write-Prerequisites {
+	<#
+.SYNOPSIS
+    Generate HTML include files with the current .NET and Python version strings.
+    The API index pages reference these includes so the markdown stays static.
+#>
+	param(
+		[string]$DotnetSdkVersions,
+		[string]$PythonVersions
+	)
+
+	$includes_dir = Join-Path $main_docs_dir "includes";
+
+	$csharpPrerequisitesHtml = "<p><a href=`"https://dotnet.microsoft.com/en-us/download`">.NET Runtime</a> $DotnetSdkVersions.</p>";
+	$csharpPrerequisitesPath = Join-Path $includes_dir "csharp-prerequisites.html";
+	Set-Content -Path $csharpPrerequisitesPath -Value $csharpPrerequisitesHtml;
+
+	$pythonPrerequisitesHtml = "<p><a href=`"https://www.python.org/downloads/`">Python</a> $PythonVersions.</p>";
+	$pythonPrerequisitesPath = Join-Path $includes_dir "python-prerequisites.html";
+	Set-Content -Path $pythonPrerequisitesPath -Value $pythonPrerequisitesHtml;
+
+	Write-Host-With-Timestamp "Generated prerequisites HTML includes.";
+}
+
+function Get-Sdk-Version {
+	<#
+.SYNOPSIS
+    Read the Migration SDK version from Directory.Build.props and return it.
+.OUTPUTS
+    The SDK version string (e.g. "6.0.0").
+#>
+	$buildPropsFileName = "Directory.Build.props";
+
+	$buildPropsXml = (Run-Command ("[Xml] (Get-Content (Join-Path $root_dir $buildPropsFileName))"));
+
 	$sdkVersion = $buildPropsXml.Project.PropertyGroup.Version;
+	Write-Host "Tableau Migration SDK version is $sdkVersion";
 
-	Write-Host("Tableau Migration SDK version is $sdkVersion");
+	return $sdkVersion;
+}
 
-	$fileContent = "{""_comment"": ""This is an auto-generated file. Do not modify."", ""_migrationSdkVersion"": ""$sdkVersion""}";
-	$filePath = Join-Path $main_docs_dir $docfxMetadataFileName;
+function Write-Metadata {
+	<#
+.SYNOPSIS
+    Generate docfx metadata: SDK version, prerequisites includes, and metadata JSON file.
+#>
+	Write-Host-With-Timestamp "Writing Tableau Migration SDK version metadata for docfx.";
 
-	Run-Command ("Out-File -FilePath '$filePath' -InputObject '$($fileContent | Out-String)'");	
+	$sdkVersion = Get-Sdk-Version;
+
+	$dotnetSdkVersions = Get-DotnetSdk-Requirements;
+	Write-Host ".NET SDK version(s) from Tableau.Migration.csproj: $dotnetSdkVersions";
+
+	$pythonVersions = Get-Python-Requirements;
+	Write-Host "Python version(s) from src\Python\pyproject.toml: $pythonVersions";
+
+	Write-Prerequisites -DotnetSdkVersions $dotnetSdkVersions -PythonVersions $pythonVersions;
+
+	$metadataJsonContent = "{""_comment"": ""This is an auto-generated file. Do not modify."", ""_migrationSdkVersion"": ""$sdkVersion""}";
+	$metadata_file_name = "migration_sdk_metadata.json";
+	$metadataFilePath = Join-Path $main_docs_dir $metadata_file_name;
+
+	Run-Command ("Out-File -FilePath '$metadataFilePath' -InputObject '$($metadataJsonContent | Out-String)'");
 }
 
 function Write-Python-docs {
@@ -353,5 +456,5 @@ if(!$SkipPythonDocGeneration) {
 
 Copy-Python-Docs;
 Write-Python-Docs-Toc;
-Write-Sdk-Version;
+Write-Metadata;
 Write-Final-Docs;

@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 using Csharp.ExampleApplication.Config;
 using Csharp.ExampleApplication.Hooks.BatchMigrationCompleted;
 using Csharp.ExampleApplication.Hooks.Filters;
@@ -6,6 +6,7 @@ using Csharp.ExampleApplication.Hooks.InitializeMigration;
 using Csharp.ExampleApplication.Hooks.Mappings;
 using Csharp.ExampleApplication.Hooks.MigrationActionCompleted;
 using Csharp.ExampleApplication.Hooks.PostPublish;
+using Csharp.ExampleApplication.Hooks.Pulled;
 using Csharp.ExampleApplication.Hooks.Transformers;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -82,6 +83,10 @@ namespace Csharp.ExampleApplication
             services.AddScoped<SharedCustomViewFilter>();
             #endregion
 
+            #region DataSourceConnectionPulled-DI
+            services.AddScoped<DataSourceConnectionPulled>();
+            #endregion
+
             #region UpdatePermissionsHook-DI
             services.AddScoped(typeof(UpdatePermissionsHook<,>));
             #endregion
@@ -110,6 +115,10 @@ namespace Csharp.ExampleApplication
 
             #region ActionUrlXmlTransformer-DI
             services.AddScoped<ActionUrlXmlTransformer>();
+            #endregion
+
+            #region FlowConnectionServerJsonTransformer-DI
+            services.AddScoped<FlowConnectionServerJsonTransformer>();
             #endregion
 
             #region ModifyPermissionsTransformer-DI

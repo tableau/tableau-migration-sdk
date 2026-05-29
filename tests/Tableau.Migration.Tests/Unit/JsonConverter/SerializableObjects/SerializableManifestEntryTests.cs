@@ -24,7 +24,7 @@ using Xunit;
 
 namespace Tableau.Migration.Tests.Unit.JsonConverter.SerializableObjects
 {
-    public class TestSerializableManifestEntry : AutoFixtureTestBase
+    public class SerializableManifestEntryTests : AutoFixtureTestBase
     {
         private readonly Mock<IMigrationManifestEntryBuilder> mockPartition = new();
 
@@ -62,6 +62,40 @@ namespace Tableau.Migration.Tests.Unit.JsonConverter.SerializableObjects
             Assert.Equal(input.Status, output.Status.ToString());
             Assert.Equal(input.HasMigrated, output.HasMigrated);
             Assert.Equal(input?.Errors?.Select(e => e.Error), output.Errors);
+        }
+
+        [Theory]
+        [InlineData(MigrationManifestEntryStatus.Migrated, null)]
+        [InlineData(MigrationManifestEntryStatus.Skipped, false)]
+        [InlineData(MigrationManifestEntryStatus.Skipped, true)]
+        public void RoundtripCascadeSkip(MigrationManifestEntryStatus status, bool? cascadeSkip)
+        {
+            var mockEntry = Create<Mock<IMigrationManifestEntry>>();
+            mockEntry.SetupGet(x => x.Status).Returns(status);
+            mockEntry.SetupGet(x => x.CascadeSkip).Returns(cascadeSkip);
+
+            var serialized = new SerializableManifestEntry(mockEntry.Object);
+
+            var deserialized = serialized.AsMigrationManifestEntry(mockPartition.Object);
+
+            Assert.Equal(mockEntry.Object.Status.ToString(), serialized.Status);
+            Assert.Equal(mockEntry.Object.Status, deserialized.Status);
+
+            Assert.Equal(mockEntry.Object.CascadeSkip, serialized.CascadeSkip);
+            Assert.Equal(mockEntry.Object.CascadeSkip, deserialized.CascadeSkip);
+        }
+
+        [Fact]
+        public void UpgradeCascadeSkip()
+        {
+            var input = Create<SerializableManifestEntry>();
+            input.Status = MigrationManifestEntryStatus.Skipped.ToString();
+            input.CascadeSkip = null;
+
+            var deserialized = input.AsMigrationManifestEntry(mockPartition.Object);
+
+            Assert.Equal(MigrationManifestEntryStatus.Skipped, deserialized.Status);
+            Assert.False(deserialized.CascadeSkip);
         }
 
         [Fact]

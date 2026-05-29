@@ -102,7 +102,7 @@ namespace Tableau.Migration.Tests.Unit.Api.EmbeddedCredentials
             }
 
             [Fact]
-            public async Task Success_with_empty_users_Async()
+            public async Task SuccessWithEmptyUsersAsync()
             {
                 var retrieveKeychainResponse = AutoFixture
                     .Build<RetrieveKeychainResponse>()

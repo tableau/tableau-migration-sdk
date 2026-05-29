@@ -26,6 +26,7 @@ from tableau_migration.migration import (  # noqa: E402, F401
 from typing import (  # noqa: E402, F401
     Generic,
     TypeVar,
+    Optional,
     Sequence
 )
 
@@ -33,6 +34,7 @@ from System import TimeOnly # noqa: E402, F401
 from System.Collections.Generic import List as DotnetList # noqa: E402, F401
 from Tableau.Migration.Content.Schedules import (  # noqa: E402, F401
     IExtractRefreshTask,
+    ExtractRefreshContentType,
     IFrequencyDetails,
     IInterval,
     ISchedule,
@@ -44,13 +46,13 @@ TSchedule = TypeVar("TSchedule")
 class PyExtractRefreshContentType(IntEnum):
     """Enum of extract refresh content types."""
     
-    """Unknown content type."""
+    #: Unknown content type.
     UNKNOWN = 0
     
-    """Workbook content type."""
+    #: Workbook content type.
     WORKBOOK = 1
     
-    """Data source content type."""
+    #: Data source content type.
     DATA_SOURCE = 2
     
 class PyWithSchedule(Generic[TSchedule], PyContentReference):
@@ -106,7 +108,7 @@ class PyExtractRefreshTask(Generic[TSchedule], PyWithSchedule[TSchedule]):
     @content_type.setter
     def content_type(self, value: PyExtractRefreshContentType) -> None:
         """Gets the extract refresh task's content type."""
-        self._dotnet.ContentType.value__ = PyExtractRefreshContentType(value)
+        self._dotnet.ContentType = ExtractRefreshContentType(value)
     
     @property
     def content(self) -> PyContentReference:
@@ -134,12 +136,12 @@ class PyInterval():
         self._dotnet = interval
         
     @property
-    def hours(self) -> int:
+    def hours(self) -> Optional[int]:
         """Gets the interval hour value."""
         return self._dotnet.Hours
     
     @property
-    def minutes(self) -> int:
+    def minutes(self) -> Optional[int]:
         """Gets the interval minute value."""
         return self._dotnet.Minutes
     
@@ -169,22 +171,22 @@ class PyFrequencyDetails():
         self._dotnet = frequency_details
         
     @property
-    def start_at(self) -> time:
+    def start_at(self) -> Optional[time]:
         """Gets the schedule's start time."""
         return None if self._dotnet.StartAt is None else time(self._dotnet.StartAt.Hour, self._dotnet.StartAt.Minute, self._dotnet.StartAt.Second, self._dotnet.StartAt.Millisecond * 1000)
     
     @start_at.setter
-    def start_at(self, value: time) -> None:
+    def start_at(self, value: Optional[time]) -> None:
         """Gets the schedule's start time."""
         self._dotnet.StartAt = None if value is None else TimeOnly.Parse(str(value))
     
     @property
-    def end_at(self) -> time:
+    def end_at(self) -> Optional[time]:
         """Gets the schedule's end time."""
         return None if self._dotnet.EndAt is None else time(self._dotnet.EndAt.Hour, self._dotnet.EndAt.Minute, self._dotnet.EndAt.Second, self._dotnet.EndAt.Millisecond * 1000)
     
     @end_at.setter
-    def end_at(self, value: time) -> None:
+    def end_at(self, value: Optional[time]) -> None:
         """Gets the schedule's end time."""
         self._dotnet.EndAt = None if value is None else TimeOnly.Parse(str(value))
     

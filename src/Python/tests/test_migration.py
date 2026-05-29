@@ -269,8 +269,8 @@ class TestPyResultGenerated(AutoFixtureTestBase):
     def test_errors_getter(self):
         dotnet = self.create(IResult)
         py = PyResult(dotnet)
-        assert len(dotnet.Errors) != 0
-        assert len(py.errors) == len(dotnet.Errors)
+        assert dotnet.Errors.Count != 0
+        assert len(py.errors) == dotnet.Errors.Count
     
 
 # endregion

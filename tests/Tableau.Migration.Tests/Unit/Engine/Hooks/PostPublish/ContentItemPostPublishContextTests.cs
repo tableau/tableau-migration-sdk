@@ -49,7 +49,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.PostPublish
             public class ToTask : ContentItemPostPublishContextTest
             {
                 [Fact]
-                public async Task CreatesCompletedTask()
+                public async Task CreatesCompletedTaskAsync()
                 {
                     var ctx = Create<ContentItemPostPublishContext<TestPublishType, TestContentType>>();
 
@@ -91,7 +91,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.PostPublish
             public class ToTask : ContentItemPostPublishContextTest
             {
                 [Fact]
-                public async Task CreatesCompletedTask()
+                public async Task CreatesCompletedTaskAsync()
                 {
                     var ctx = Create<ContentItemPostPublishContext<SourceContentType, DestinationContentType>>();
 

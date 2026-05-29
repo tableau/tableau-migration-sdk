@@ -16,7 +16,7 @@
 """Interoperability utility."""
 
 from abc import ABC, abstractmethod
-from typing import Any, Callable, get_args, Union
+from typing import Any, Callable, get_args, Optional, Union
 from uuid import uuid4
 
 from System import IServiceProvider
@@ -29,7 +29,7 @@ def _get_type_args(t: Union[type, Any]) -> tuple[type, ...]:
 
 
 def _init_wrapper_object(inner_type: type, python_generic_types: tuple[type, ...], dotnet_generic_types: tuple[type, ...], extra_init: Union[Callable, None]) -> Callable:
-    from migration_services import ScopedMigrationServices
+    from tableau_migration.migration_services import ScopedMigrationServices
     
     def _init(self, scoped_services: IServiceProvider) -> None:
         self.python_generic_types = python_generic_types
@@ -60,7 +60,7 @@ class _PyWrapperBuilderBase(ABC):
         ...
 
 
-    def __init__(self, inner_type: Union[type, None]) -> None:
+    def __init__(self, inner_type: Optional[type]) -> None:
 
         self.inner_type = inner_type
 

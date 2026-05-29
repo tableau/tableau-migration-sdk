@@ -29,6 +29,7 @@ using Tableau.Migration.Content;
 using Tableau.Migration.Content.Permissions;
 using Tableau.Migration.Engine.Endpoints.Search;
 using Tableau.Migration.Engine.Hooks.Transformers.Default;
+using Tableau.Migration.Engine.Manifest;
 using Xunit;
 
 namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
@@ -65,39 +66,40 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
         public class ExecuteAsync : PermissionsTransformerTest
         {
             protected readonly Dictionary<Guid, Guid> _idMap;
+            private MigrationManifestEntryStatus _granteeEntryStatus = MigrationManifestEntryStatus.Migrated;
 
             public ExecuteAsync()
             {
                 _idMap = new();
 
                 MockUserContentFinder
-                    .Setup(f => f.FindBySourceIdAsync(It.IsAny<Guid>(), Cancel))
+                    .Setup(f => f.FindResultBySourceIdAsync(It.IsAny<Guid>(), Cancel))
                     .ReturnsAsync((Guid id, CancellationToken cancel) =>
                     {
                         if (_idMap.TryGetValue(id, out var destinationId))
-                            return CreateContentReference(destinationId);
+                            return new(_granteeEntryStatus, CreateContentReference(destinationId));
                         else
-                            return null;
+                            return DestinationContentReferenceResult.Empty;
                     });
 
                 MockGroupContentFinder
-                    .Setup(f => f.FindBySourceIdAsync(It.IsAny<Guid>(), Cancel))
+                    .Setup(f => f.FindResultBySourceIdAsync(It.IsAny<Guid>(), Cancel))
                     .ReturnsAsync((Guid id, CancellationToken cancel) =>
                     {
                         if (_idMap.TryGetValue(id, out var destinationId))
-                            return CreateContentReference(destinationId);
+                            return new(_granteeEntryStatus, CreateContentReference(destinationId));
                         else
-                            return null;
+                            return DestinationContentReferenceResult.Empty;
                     });
 
                 MockGroupSetContentFinder
-                    .Setup(f => f.FindBySourceIdAsync(It.IsAny<Guid>(), Cancel))
+                    .Setup(f => f.FindResultBySourceIdAsync(It.IsAny<Guid>(), Cancel))
                     .ReturnsAsync((Guid id, CancellationToken cancel) =>
                     {
                         if (_idMap.TryGetValue(id, out var destinationId))
-                            return CreateContentReference(destinationId);
+                            return new(_granteeEntryStatus, CreateContentReference(destinationId));
                         else
-                            return null;
+                            return DestinationContentReferenceResult.Empty;
                     });
             }
 
@@ -119,13 +121,13 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
                     switch(granteeCapability.GranteeType)
                     {
                         case GranteeType.Group:
-                            MockGroupContentFinder.Verify(f => f.FindBySourceIdAsync(sourceId, Cancel), Times.AtLeastOnce);
+                            MockGroupContentFinder.Verify(f => f.FindResultBySourceIdAsync(sourceId, Cancel), Times.AtLeastOnce);
                             break;
                         case GranteeType.GroupSet:
-                            MockGroupSetContentFinder.Verify(f => f.FindBySourceIdAsync(sourceId, Cancel), Times.AtLeastOnce);
+                            MockGroupSetContentFinder.Verify(f => f.FindResultBySourceIdAsync(sourceId, Cancel), Times.AtLeastOnce);
                             break;
                         case GranteeType.User:
-                            MockUserContentFinder.Verify(f => f.FindBySourceIdAsync(sourceId, Cancel), Times.AtLeastOnce);
+                            MockUserContentFinder.Verify(f => f.FindResultBySourceIdAsync(sourceId, Cancel), Times.AtLeastOnce);
                             break;
                         default:
                             throw new NotSupportedException($"Grantee type {granteeCapability.GranteeType} is not supported in tests. Add support to {nameof(VerifyGranteeMapping)}.");
@@ -318,6 +320,28 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
 
                 Assert.Equal(capabilities.Length - 1, resultGrantee.Capabilities.Count);
                 Assert.DoesNotContain(resultGrantee.Capabilities, c => c.Name == PermissionsCapabilityNames.CreateRefreshMetrics);
+            }
+
+            [Fact]
+            public async Task AutomaticCascadeFilterManyToManyAsync()
+            {
+                _granteeEntryStatus = MigrationManifestEntryStatus.Skipped;
+
+                var allGranteeTypes = Enum.GetValues<GranteeType>();
+                var mockCapabilities = CreateMany<Mock<IGranteeCapability>>(allGranteeTypes.Length).ToImmutableArray();
+
+                for (int i = 0; i < mockCapabilities.Length; i++)
+                {
+                    mockCapabilities[i].SetupGet(x => x.GranteeType).Returns(allGranteeTypes[i]);
+                    _idMap.Add(mockCapabilities[i].Object.Grantee.Id, Create<Guid>());
+                }
+
+                var permissions = new Permissions(null, mockCapabilities.Select(x => x.Object).ToList());
+
+                var result = await Transformer.ExecuteAsync(permissions, Cancel);
+
+                Assert.NotNull(result);
+                Assert.Empty(result.GranteeCapabilities);
             }
         }
     }

@@ -56,6 +56,13 @@ namespace Tableau.Migration.Engine.Manifest
         bool HasMigrated { get; }
 
         /// <summary>
+        /// Gets whether or not the <see cref="MigrationManifestEntryStatus.Skipped"/> status
+        /// should also cause items of other content types that rely on this item to be skipped.
+        /// Null if the status of this item is not <see cref="MigrationManifestEntryStatus.Skipped"/>.
+        /// </summary>
+        bool? CascadeSkip { get; }
+
+        /// <summary>
         /// Gets errors that occurred while migrating the content item.
         /// </summary>
         IReadOnlyList<Exception> Errors { get; }

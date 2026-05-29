@@ -19,16 +19,13 @@ namespace Tableau.Migration.PythonGenerator.Writers
 {
     internal class PythonEnumValueWriter : PythonMemberWriter, IPythonEnumValueWriter
     {
-        private readonly IPythonDocstringWriter _docWriter;
-
-        public PythonEnumValueWriter(IPythonDocstringWriter docWriter)
-        {
-            _docWriter = docWriter;
-        }
-
         public void Write(IndentingStringBuilder builder, PythonType type, PythonEnumValue enumValue)
         {
-            _docWriter.Write(builder, enumValue.Documentation);
+            // Enumeration docstrings must use a special form or they don't get picked up correctly by sphinx.
+            if (enumValue.Documentation is not null)
+            {
+                builder.AppendLine("#: " + enumValue.Documentation.Summary);
+            }
 
             string enumValueToken;
             if (enumValue.Value is string)

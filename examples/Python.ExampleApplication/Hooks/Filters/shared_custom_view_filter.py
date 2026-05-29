@@ -1,11 +1,11 @@
 from tableau_migration import (
     ICustomView,
-    ContentMigrationItem,
-    ContentFilterBase)
-    
+    ContentFilterBase,
+    ContentFilterContextItem,
+    FilterStatus)
+
 
 class SharedCustomViewFilter(ContentFilterBase[ICustomView]):
-    def should_migrate(self, item: ContentMigrationItem[ICustomView]) -> bool:
+    def filter(self, item: ContentFilterContextItem[ICustomView]) -> None:
         if item.source_item.shared == True:
-            return False
-        return True
+            item.status = FilterStatus.SKIP

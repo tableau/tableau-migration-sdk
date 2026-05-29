@@ -1,0 +1,115 @@
+# Copyright (c) 2025, Salesforce, Inc.
+# SPDX-License-Identifier: Apache-2
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""Wrapper for classes in Tableau.Migration.Engine.Hooks namespace."""
+
+from inspect import isclass
+from typing import Callable, get_args, get_origin, Optional, Union
+from typing_extensions import Self
+
+from tableau_migration.migration_engine_hooks import PyMigrationHookFactoryCollection
+
+from System import Func, IServiceProvider
+from Tableau.Migration.Engine.Hooks import IMigrationHookBuilder
+
+
+def _get_wrapper_builder_from_callback_context(t: type) -> Optional[type]:
+    from tableau_migration.migration_engine_actions import PyMigrationActionResult
+    from tableau_migration.migration_engine_hooks_interop import (
+        _PyContentBatchMigrationCompletedHookWrapperBuilder, 
+        _PyInitializeMigrationHookWrapperBuilder,
+        _PyMigrationActionCompletedHookWrapperBuilder
+    )
+    from tableau_migration.migration_engine_hooks_postpublish import PyBulkPostPublishContext, PyContentItemPostPublishContext
+    from tableau_migration.migration_engine_hooks_postpublish_interop import _PyBulkPostPublishHookWrapperBuilder, _PyContentItemPostPublishHookWrapperBuilder
+    from tableau_migration.migration_engine_hooks_pulled import PyContentItemPulledContext
+    from tableau_migration.migration_engine_hooks_pulled_interop import _PyContentItemPulledHookWrapperBuilder
+    from tableau_migration.migration_engine_hooks_initializemigration import PyInitializeMigrationHookResult
+    from tableau_migration.migration_engine_migrators_batch import PyContentBatchMigrationResult
+
+    types = {
+        PyBulkPostPublishContext.__name__: _PyBulkPostPublishHookWrapperBuilder,
+        PyContentBatchMigrationResult.__name__: _PyContentBatchMigrationCompletedHookWrapperBuilder,
+        PyContentItemPostPublishContext.__name__: _PyContentItemPostPublishHookWrapperBuilder,
+        PyContentItemPulledContext.__name__: _PyContentItemPulledHookWrapperBuilder,
+        PyInitializeMigrationHookResult.__name__: _PyInitializeMigrationHookWrapperBuilder,
+        PyMigrationActionResult.__name__: _PyMigrationActionCompletedHookWrapperBuilder
+    }
+
+    if t.__name__ not in types:
+        return None
+
+    return types[t.__name__]
+
+
+class PyMigrationHookBuilder():
+    """Default IMigrationHookBuilder implementation."""
+
+    _dotnet_base = IMigrationHookBuilder
+
+    def __init__(self, migration_hook_builder: IMigrationHookBuilder) -> None:
+        """Default init.
+
+        Args:
+            migration_hook_builder: An object that contains the hooks to execute at various points during the migration, determined by hook type.
+        
+        Returns: None.
+        """
+        self._migration_hook_builder = migration_hook_builder
+
+
+    def clear(self) -> Self:
+        """Removes all currently registered hooks.
+
+        Returns:
+            The same hook builder object for fluent API calls.
+        """
+        self._migration_hook_builder.Clear()
+        return self
+
+    
+    def add(self, input_0: type, input_1: Union[Callable, None] = None) -> Self:
+        """Adds an object or function to execute hooks.
+
+        Args:
+            input_0: Either: 
+                1) The hook type to execute, or
+                2) The hook context type for a callback function
+            input_1: Either:
+                1) The callback function to execute, or
+                2) None
+
+        Returns:
+            The same mapping builder object for fluent API calls.
+        """
+        if input_1 is None:
+            wrapper_builder = input_0._wrapper_builder(input_0)
+        else:
+            t = input_0 if isclass(input_0) else get_origin(input_0)
+            wrap_type = _get_wrapper_builder_from_callback_context(t)
+            wrapper_builder = wrap_type(list(get_args(input_0)), input_1)
+        
+        self._migration_hook_builder.Add[wrapper_builder.wrapper_type](Func[IServiceProvider, wrapper_builder.wrapper_type](wrapper_builder.factory))
+
+        return self
+
+
+    def build(self) -> PyMigrationHookFactoryCollection:
+        """Builds an immutable collection from the currently added hooks.
+
+        Returns:
+            The created collection.
+        """
+        return PyMigrationHookFactoryCollection(self._migration_hook_builder.Build())

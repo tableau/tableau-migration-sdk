@@ -22,7 +22,7 @@ using Xunit;
 
 namespace Tableau.Migration.Tests.Unit.JsonConverter.SerializableObjects
 {
-    public class TestSerializableContentReference : AutoFixtureTestBase
+    public class SerializableContentReferenceTests : AutoFixtureTestBase
     {
         [Fact]
         public void AsContentReferenceStub()

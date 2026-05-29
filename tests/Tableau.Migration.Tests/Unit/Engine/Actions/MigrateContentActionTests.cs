@@ -97,7 +97,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Actions
             }
 
             [Fact]
-            public async Task Skips_migration_when_disabled()
+            public async Task SkipsMigrationWhenDisabledAsync()
             {
                 MockCapabilities.Setup(x => x.ContentTypesDisabledAtDestination)
                     .Returns([typeof(TestContentType)]);
@@ -111,7 +111,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Actions
             }
 
             [Fact]
-            public async Task Migrates_when_not_disabled()
+            public async Task MigratesWhenNotDisabledAsync()
             {
                 MockCapabilities.Setup(x => x.ContentTypesDisabledAtDestination)
                     .Returns([]);

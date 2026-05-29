@@ -38,7 +38,7 @@ jobs:
       # Create Release
       - name: Create Release
         id: create-release
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         env:
           RELEASE_VERSION: ${{ inputs.release-version }}
         with:
@@ -71,19 +71,19 @@ jobs:
 
       # Download Docs
       - name: Download Docs
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: docs
 
       # Download NuGet Package
       - name: Download NuGet Package
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: nuget-package-Release-net${{ inputs.dotnet-build-version }}
 
       # Download PyPI Package
       - name: Download PyPI Package
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: pypi-package-bundle
 
@@ -95,7 +95,7 @@ jobs:
       # Attach Release Artifacts
       - name: Attach Artifacts to Github Release
         id: upload-docs
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         env:
           RELEASE_VERSION: ${{ inputs.release-version }}
           RELEASE_ID: ${{ steps.create-release.outputs.result }}

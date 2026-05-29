@@ -23,7 +23,7 @@ namespace Tableau.Migration.Content.Files
 {
     /// <summary>
     /// Interface for an object that can edit content in Tableau file formats 
-    /// including TDS, TDSX, TWB, and TWBX.
+    /// including TDS, TDSX, TWB, TWBX, TFL, and TFLX.
     /// All changes made to the content is persisted upon disposal
     /// </summary>
     public interface ITableauFileEditor : IAsyncDisposable
@@ -49,5 +49,13 @@ namespace Tableau.Migration.Content.Files
         /// </summary>
         /// <returns>The XML stream to edit.</returns>
         ITableauFileXmlStream GetXmlStream();
+
+        /// <summary>
+        /// Gets the current read/write stream to the JSON content of the Tableau file,
+        /// opening a new stream if necessary.
+        /// Changes to the stream will be automatically saved before publishing.
+        /// </summary>
+        /// <returns>The JSON stream to edit.</returns>
+        ITableauFileJsonStream GetJsonStream();
     }
 }

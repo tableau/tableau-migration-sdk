@@ -111,7 +111,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
             { }
 
             [Fact]
-            public async Task GetServerTasks_Returns_ServerTasksApiClient()
+            public async Task GetServerTasksReturnsServerTasksApiClientAsync()
             {
                 // Arrange 
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
@@ -121,7 +121,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
             }
 
             [Fact]
-            public async Task GetCloudTasks_Throws_Exception()
+            public async Task GetCloudTasksThrowsExceptionAsync()
             {
                 // Arrange 
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
@@ -138,7 +138,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
             { }
 
             [Fact]
-            public async Task GetServerTasks_Throws_Exception()
+            public async Task GetServerTasksThrowsExceptionAsync()
             {
                 // Arrange 
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
@@ -148,7 +148,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
             }
 
             [Fact]
-            public async Task GetCloudTasks_Returns_CloudTasksApiClient()
+            public async Task GetCloudTasksReturnsCloudTasksApiClientAsync()
             {
                 // Arrange 
                 await using var sitesClient = await GetSitesClientAsync(Cancel);

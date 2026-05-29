@@ -161,10 +161,10 @@ namespace Tableau.Migration.Engine.Manifest
         #region - IMigrationManifestBuilder Implementation -
 
         /// <inheritdoc />
-        public IMigrationManifestContentTypePartitionEditor GetOrCreatePartition<TContent>() => GetOrCreatePartition(typeof(TContent));
+        public IMigrationManifestContentTypePartitionEditor? GetPartition<TContent>() => GetPartition(typeof(TContent));
 
         /// <inheritdoc />
-        public IMigrationManifestContentTypePartitionEditor GetOrCreatePartition(Type contentType)
+        public IMigrationManifestContentTypePartitionEditor? GetPartition(Type contentType)
         {
             foreach (var partition in _partitions)
             {
@@ -172,6 +172,22 @@ namespace Tableau.Migration.Engine.Manifest
                 {
                     return partition;
                 }
+            }
+
+            return null;
+        }
+
+
+        /// <inheritdoc />
+        public IMigrationManifestContentTypePartitionEditor GetOrCreatePartition<TContent>() => GetOrCreatePartition(typeof(TContent));
+
+        /// <inheritdoc />
+        public IMigrationManifestContentTypePartitionEditor GetOrCreatePartition(Type contentType)
+        {
+            var partition = GetPartition(contentType);
+            if(partition is not null)
+            {
+                return partition;
             }
 
             var newPartition = CreateParition(contentType);

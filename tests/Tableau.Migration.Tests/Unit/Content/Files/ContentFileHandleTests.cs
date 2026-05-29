@@ -89,7 +89,7 @@ namespace Tableau.Migration.Tests.Unit.Content.Files
             }
 
             [Fact]
-            public async Task DisposeTwiceCallDeleteOnce()
+            public async Task DisposeTwiceCallDeleteOnceAsync()
             {
                 await Handle.DisposeAsync();
                 await Handle.DisposeAsync();

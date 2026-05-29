@@ -16,6 +16,7 @@
 //
 
 using System;
+using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Tableau.Migration.Content.Files;
 
@@ -26,9 +27,13 @@ namespace Tableau.Migration.Content
         /// <inheritdoc />
         public IContentFileHandle File { get; set; }
 
-        public PublishableFlow(IFlow flow, IContentFileHandle file)
+        /// <inheritdoc />
+        public IImmutableList<IConnection> Connections { get; }
+
+        public PublishableFlow(IFlow flow, IImmutableList<IConnection> connections, IContentFileHandle file)
             : base(flow)
         {
+            Connections = connections;
             File = file;
         }
 

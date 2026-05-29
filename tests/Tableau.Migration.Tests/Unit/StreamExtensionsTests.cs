@@ -53,7 +53,7 @@ namespace Tableau.Migration.Tests.Unit
         public class ProcessChunksAsync : StreamExtensionsTest
         {
             [Fact]
-            public async Task Processes_chunks()
+            public async Task ProcessesChunksAsync()
             {
                 using var stream = CreateStream(100);
 
@@ -74,7 +74,7 @@ namespace Tableau.Migration.Tests.Unit
             }
 
             [Fact]
-            public async Task Breaks_when_specified()
+            public async Task BreaksWhenSpecifiedAsync()
             {
                 using var stream = CreateStream(50);
 
@@ -95,7 +95,7 @@ namespace Tableau.Migration.Tests.Unit
             }
 
             [Fact]
-            public async Task Throws_when_canceled()
+            public async Task ThrowsWhenCanceledAsync()
             {
                 using var stream = CreateStream(50);
 

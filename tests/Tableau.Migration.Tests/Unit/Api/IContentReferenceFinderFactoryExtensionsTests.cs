@@ -142,7 +142,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             {
                 var response = new WithGroupType { Id = Guid.NewGuid() };
 
-                await Assert.ThrowsAsync<InvalidOperationException>(() => 
+                await Assert.ThrowsAsync<InvalidOperationException>(() =>
                     MockFinderFactory.Object.FindGroupAsync(response, MockLogger.Object, SharedResourcesLocalizer, true, Cancel)
                 );
             }
@@ -155,7 +155,7 @@ namespace Tableau.Migration.Tests.Unit.Api
         public sealed class FindProjectAsync : IContentReferenceFinderFactoryExtensionsTest
         {
             [Fact]
-            public async Task Throws_when_response_is_null()
+            public async Task ThrowsWhenResponseIsNullAsync()
             {
                 await Assert.ThrowsAsync<ArgumentNullException>(() =>
                     MockFinderFactory.Object.FindProjectAsync<WithProjectNamedReferenceType>(
@@ -167,7 +167,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async Task Throws_when_response_project_is_null()
+            public async Task ThrowsWhenResponseProjectIsNullAsync()
             {
                 await Assert.ThrowsAsync<ArgumentNullException>(() =>
                     MockFinderFactory.Object.FindProjectAsync(
@@ -179,7 +179,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async Task Throws_when_response_project_id_is_default()
+            public async Task ThrowsWhenResponseProjectIdIsDefaultAsync()
             {
                 var mockProjectReference = new Mock<IProjectNamedReferenceType>();
                 mockProjectReference.SetupGet(p => p.Id).Returns(Guid.Empty);
@@ -196,7 +196,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async Task Returns_project_when_found()
+            public async Task ReturnsProjectWhenFoundAsync()
             {
                 var mockContentReference = new Mock<IContentReference>();
                 mockContentReference.SetupGet(p => p.Id).Returns(Guid.NewGuid());
@@ -219,7 +219,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async Task Returns_null_when_not_found_and_throw_is_false()
+            public async Task ReturnsNullWhenNotFoundAndThrowIsFalseAsync()
             {
                 var response = new WithProjectNamedReferenceType { Project = Create<Mock<IProjectNamedReferenceType>>().Object };
 
@@ -234,7 +234,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async Task Throws_when_not_found_and_throw_is_true()
+            public async Task ThrowsWhenNotFoundAndThrowIsTrueAsync()
             {
                 var response = new WithProjectNamedReferenceType { Project = Create<Mock<IProjectNamedReferenceType>>().Object };
 
@@ -254,7 +254,7 @@ namespace Tableau.Migration.Tests.Unit.Api
         public sealed class FindOwnerAsync : IContentReferenceFinderFactoryExtensionsTest
         {
             [Fact]
-            public async Task Throws_when_response_is_null()
+            public async Task ThrowsWhenResponseIsNullAsync()
             {
                 await Assert.ThrowsAsync<ArgumentNullException>(() =>
                     MockFinderFactory.Object.FindOwnerAsync<WithOwnerType>(
@@ -266,7 +266,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async Task Throws_when_response_owner_is_null()
+            public async Task ThrowsWhenResponseOwnerIsNullAsync()
             {
                 await Assert.ThrowsAsync<ArgumentNullException>(() =>
                     MockFinderFactory.Object.FindOwnerAsync(
@@ -278,7 +278,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async Task Throws_when_response_owner_id_is_default()
+            public async Task ThrowsWhenResponseOwnerIdIsDefaultAsync()
             {
                 var mockOwnerReference = new Mock<IRestIdentifiable>();
                 mockOwnerReference.SetupGet(o => o.Id).Returns(Guid.Empty);
@@ -295,7 +295,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async Task Returns_owner_when_found()
+            public async Task ReturnsOwnerWhenFoundAsync()
             {
                 var mockContentReference = new Mock<IContentReference>();
                 mockContentReference.SetupGet(o => o.Id).Returns(Guid.NewGuid());
@@ -318,7 +318,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async Task Returns_null_when_not_found_and_throw_is_false()
+            public async Task ReturnsNullWhenNotFoundAndThrowIsFalseAsync()
             {
                 var response = new WithOwnerType { Owner = Create<Mock<IRestIdentifiable>>().Object };
 
@@ -333,7 +333,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async Task Throws_when_not_found_and_throw_is_true()
+            public async Task ThrowsWhenNotFoundAndThrowIsTrueAsync()
             {
                 var response = new WithOwnerType { Owner = Create<Mock<IRestIdentifiable>>().Object };
 
@@ -353,7 +353,7 @@ namespace Tableau.Migration.Tests.Unit.Api
         public sealed class FindUserAsync : IContentReferenceFinderFactoryExtensionsTest
         {
             [Fact]
-            public async Task Throws_when_response_is_null()
+            public async Task ThrowsWhenResponseIsNullAsync()
             {
                 await Assert.ThrowsAsync<ArgumentNullException>(() =>
                     MockFinderFactory.Object.FindUserAsync<WithUserType>(
@@ -365,7 +365,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async Task Throws_when_response_user_is_default()
+            public async Task ThrowsWhenResponseUserIsDefaultAsync()
             {
                 await Assert.ThrowsAsync<ArgumentException>(() =>
                     MockFinderFactory.Object.FindUserAsync(
@@ -377,7 +377,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async Task Returns_user_when_found()
+            public async Task ReturnsUserWhenFoundAsync()
             {
                 var mockContentReference = new Mock<IContentReference>();
                 mockContentReference.SetupGet(o => o.Id).Returns(Guid.NewGuid());
@@ -397,7 +397,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async Task Returns_null_when_not_found_and_throw_is_false()
+            public async Task ReturnsNullWhenNotFoundAndThrowIsFalseAsync()
             {
                 var response = new WithUserType { Id = Guid.NewGuid() };
 
@@ -412,7 +412,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async Task Throws_when_not_found_and_throw_is_true()
+            public async Task ThrowsWhenNotFoundAndThrowIsTrueAsync()
             {
                 var response = new WithUserType { Id = Guid.NewGuid() };
 
@@ -432,7 +432,7 @@ namespace Tableau.Migration.Tests.Unit.Api
         public sealed class FindWorkbookAsync : IContentReferenceFinderFactoryExtensionsTest
         {
             [Fact]
-            public async Task Throws_when_response_is_null()
+            public async Task ThrowsWhenResponseIsNullAsync()
             {
                 await Assert.ThrowsAsync<ArgumentNullException>(() =>
                     MockFinderFactory.Object.FindWorkbookAsync<WithWorkbookNamedReferenceType>(
@@ -444,7 +444,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async Task Throws_when_response_workbook_is_null()
+            public async Task ThrowsWhenResponseWorkbookIsNullAsync()
             {
                 await Assert.ThrowsAsync<ArgumentNullException>(() =>
                     MockFinderFactory.Object.FindWorkbookAsync(
@@ -456,7 +456,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async Task Throws_when_response_workbook_id_is_default()
+            public async Task ThrowsWhenResponseWorkbookIdIsDefaultAsync()
             {
                 var mockWorkbookReference = new Mock<IWorkbookReferenceType>();
                 mockWorkbookReference.SetupGet(o => o.Id).Returns(Guid.Empty);
@@ -473,7 +473,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async Task Returns_workbook_when_found()
+            public async Task ReturnsWorkbookWhenFoundAsync()
             {
                 var mockContentReference = new Mock<IContentReference>();
                 mockContentReference.SetupGet(o => o.Id).Returns(Guid.NewGuid());
@@ -496,7 +496,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async Task Returns_null_when_not_found_and_throw_is_false()
+            public async Task ReturnsNullWhenNotFoundAndThrowIsFalseAsync()
             {
                 var response = new WithWorkbookNamedReferenceType { Workbook = Create<Mock<IWorkbookReferenceType>>().Object };
 
@@ -511,7 +511,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async Task Throws_when_not_found_and_throw_is_true()
+            public async Task ThrowsWhenNotFoundAndThrowIsTrueAsync()
             {
                 var response = new WithWorkbookNamedReferenceType { Workbook = Create<Mock<IWorkbookReferenceType>>().Object };
 

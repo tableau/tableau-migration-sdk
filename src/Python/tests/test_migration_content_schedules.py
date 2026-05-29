@@ -24,6 +24,7 @@ from tableau_migration.migration import (  # noqa: E402, F401
 from typing import (  # noqa: E402, F401
     Generic,
     TypeVar,
+    Optional,
     Sequence
 )
 
@@ -31,6 +32,7 @@ from System import TimeOnly # noqa: E402, F401
 from System.Collections.Generic import List as DotnetList # noqa: E402, F401
 from Tableau.Migration.Content.Schedules import (  # noqa: E402, F401
     IExtractRefreshTask,
+    ExtractRefreshContentType,
     IFrequencyDetails,
     IInterval,
     ISchedule,
@@ -167,8 +169,8 @@ class TestPyFrequencyDetailsGenerated(AutoFixtureTestBase):
     def test_intervals_getter(self):
         dotnet = self.create(IFrequencyDetails)
         py = PyFrequencyDetails(dotnet)
-        assert len(dotnet.Intervals) != 0
-        assert len(py.intervals) == len(dotnet.Intervals)
+        assert dotnet.Intervals.Count != 0
+        assert len(py.intervals) == dotnet.Intervals.Count
     
     def test_intervals_setter(self):
         dotnet = self.create(IFrequencyDetails)
