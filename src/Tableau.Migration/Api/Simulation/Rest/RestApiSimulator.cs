@@ -104,6 +104,11 @@ namespace Tableau.Migration.Api.Simulation.Rest
         public CustomViewsRestApiSimulator CustomViews { get; }
 
         /// <summary>
+        /// Gets the simulated flow API methods.
+        /// </summary>
+        public FlowsRestApiSimulator Flows { get; }
+
+        /// <summary>
         /// Gets the simulated file uploads API methods.
         /// </summary>
         public FileUploadsRestApiSimulator Files { get; }
@@ -180,6 +185,7 @@ namespace Tableau.Migration.Api.Simulation.Rest
             Files = new(simulator);
             Views = new(simulator);
             CustomViews = new(simulator);
+            Flows = new(simulator);
             Favorites = new(simulator);
 
             QueryServerInfo = simulator.SetupRestGet<ServerInfoResponse, ServerInfoResponse.ServerInfoType>(RestApiUrl(RestUrlKeywords.ServerInfo), d => d.ServerInfo, requiresAuthentication: false);

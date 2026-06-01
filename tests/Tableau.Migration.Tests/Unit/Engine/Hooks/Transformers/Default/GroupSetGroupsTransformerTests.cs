@@ -25,6 +25,7 @@ using Moq;
 using Tableau.Migration.Content;
 using Tableau.Migration.Engine.Endpoints.Search;
 using Tableau.Migration.Engine.Hooks.Transformers.Default;
+using Tableau.Migration.Engine.Manifest;
 using Xunit;
 
 namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
@@ -38,19 +39,25 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
             protected readonly GroupSetGroupsTransformer Transformer;
 
             protected Dictionary<ContentLocation, IContentReference> GroupMappings { get; set; } = new();
+            protected Dictionary<ContentLocation, MigrationManifestEntryStatus> StatusMappings { get; set; } = new();
 
             public GroupSetGroupsTransformerTest()
             {
                 MockGroupFinder = Freeze<Mock<IDestinationContentReferenceFinder<IGroup>>>();
-                MockGroupFinder.Setup(x => x.FindBySourceLocationAsync(It.IsAny<ContentLocation>(), Cancel))
+                MockGroupFinder.Setup(x => x.FindResultBySourceLocationAsync(It.IsAny<ContentLocation>(), Cancel))
                     .ReturnsAsync((ContentLocation loc, CancellationToken c) =>
                     {
                         if (GroupMappings.TryGetValue(loc, out var result))
                         {
-                            return result;
+                            if(StatusMappings.TryGetValue(loc, out var status))
+                            {
+                                return new(status, result);
+                            }
+
+                            return new(MigrationManifestEntryStatus.Migrated, result);
                         }
 
-                        return null;
+                        return DestinationContentReferenceResult.Empty;
                     });
 
                 var mockFinderFactory = Freeze<Mock<IDestinationContentReferenceFinderFactory>>();
@@ -76,6 +83,21 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
                 Assert.Same(groupSet, result);
 
                 Assert.Equal(GroupMappings.Values, result.Groups);
+            }
+
+            [Fact]
+            public async Task AutomaticCascadeFilterManyToManyAsync()
+            {
+                var groupSet = Create<IPublishableGroupSet>();
+                GroupMappings = groupSet.Groups.ToDictionary(g => g.Location, g => Create<IContentReference>());
+                StatusMappings = groupSet.Groups.ToDictionary(g => g.Location, g => MigrationManifestEntryStatus.Skipped);
+
+                var result = await Transformer.TransformAsync(groupSet, Cancel);
+
+                Assert.NotNull(result);
+                Assert.Same(groupSet, result);
+
+                Assert.Empty(result.Groups);
             }
 
             [Fact]

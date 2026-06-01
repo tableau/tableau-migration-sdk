@@ -56,13 +56,13 @@ namespace Tableau.Migration.Engine.Hooks.Filters
         }
 
         /// <inheritdoc />
-        public virtual IContentFilterBuilder Add<TContent>(Func<IEnumerable<ContentMigrationItem<TContent>>, CancellationToken, Task<IEnumerable<ContentMigrationItem<TContent>>?>> callback)
+        public virtual IContentFilterBuilder Add<TContent>(Func<ContentFilterContext<TContent>, CancellationToken, Task<ContentFilterContext<TContent>?>> callback)
             where TContent : IContentReference
             => (IContentFilterBuilder)Add(typeof(IContentFilter<TContent>),
-                   s => new CallbackHookWrapper<IContentFilter<TContent>, IEnumerable<ContentMigrationItem<TContent>>>(callback));
+                   s => new CallbackHookWrapper<IContentFilter<TContent>, ContentFilterContext<TContent>>(callback));
 
         /// <inheritdoc />
-        public IContentFilterBuilder Add<TContent>(Func<IEnumerable<ContentMigrationItem<TContent>>, IEnumerable<ContentMigrationItem<TContent>>?> callback)
+        public IContentFilterBuilder Add<TContent>(Func<ContentFilterContext<TContent>, ContentFilterContext<TContent>?> callback)
             where TContent : IContentReference
             => Add<TContent>((ctx, cancel) => Task.FromResult(callback(ctx)));
 

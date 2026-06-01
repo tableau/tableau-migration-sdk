@@ -20,6 +20,7 @@ using System.Collections.Immutable;
 using Microsoft.Extensions.DependencyInjection;
 using Tableau.Migration.Config;
 using Tableau.Migration.Content;
+using Tableau.Migration.Content.Schedules;
 using Tableau.Migration.Content.Schedules.Server;
 using Tableau.Migration.Engine.Actions;
 using Tableau.Migration.Engine.Migrators.Batch;
@@ -41,10 +42,12 @@ namespace Tableau.Migration.Engine.Pipelines
             MigrationPipelineContentType.GroupSets,
             MigrationPipelineContentType.Projects,
             MigrationPipelineContentType.DataSources,
+            MigrationPipelineContentType.Flows,
             MigrationPipelineContentType.Workbooks,
             MigrationPipelineContentType.ServerToServerExtractRefreshTasks,
             MigrationPipelineContentType.CustomViews,
             MigrationPipelineContentType.ServerToServerSubscriptions,
+            MigrationPipelineContentType.ServerToServerFlowRunTasks,
             MigrationPipelineContentType.Favorites
         ];
 
@@ -66,6 +69,10 @@ namespace Tableau.Migration.Engine.Pipelines
             => CreateMigrateContentAction<IServerSubscription>();
 
         /// <inheritdoc />
+        protected override IMigrationAction CreateFlowRunTaskAction()
+            => CreateMigrateContentAction<IServerFlowRunTask>();
+
+        /// <inheritdoc />
         public override IContentBatchMigrator<TContent> GetBatchMigrator<TContent>()
         {
             switch (typeof(TContent))
@@ -74,6 +81,9 @@ namespace Tableau.Migration.Engine.Pipelines
                     return Services.GetRequiredService<ItemPublishContentBatchMigrator<TContent>>();
 
                 case Type subscription when subscription == typeof(IServerSubscription):
+                    return Services.GetRequiredService<ItemPublishContentBatchMigrator<TContent>>();
+
+                case Type flowRunTask when flowRunTask == typeof(IServerFlowRunTask):
                     return Services.GetRequiredService<ItemPublishContentBatchMigrator<TContent>>();
 
                 default:

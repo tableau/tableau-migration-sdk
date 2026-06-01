@@ -25,6 +25,20 @@ namespace Tableau.Migration.Engine.Manifest
     public interface IMigrationManifestEntryCollectionEditor : IMigrationManifestEntryCollection
     {
         /// <summary>
+        /// Gets the partition of manifest entries for a given content type, or null.
+        /// </summary>
+        /// <typeparam name="TContent">The content type.</typeparam>
+        /// <returns>The editable partition.</returns>
+        IMigrationManifestContentTypePartitionEditor? GetPartition<TContent>();
+
+        /// <summary>
+        /// Gets the partition of manifest entries for a given content type, or null.
+        /// </summary>
+        /// <param name="contentType">The content type.</param>
+        /// <returns>The editable partition.</returns>
+        IMigrationManifestContentTypePartitionEditor? GetPartition(Type contentType);
+
+        /// <summary>
         /// Creates a partition of manifest entries for a given content type.
         /// </summary>
         /// <typeparam name="TContent">The content type.</typeparam>

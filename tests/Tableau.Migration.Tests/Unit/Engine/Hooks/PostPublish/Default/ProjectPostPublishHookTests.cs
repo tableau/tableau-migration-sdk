@@ -144,7 +144,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.PostPublish.Default
             }
 
             [Fact]
-            public async Task Does_not_run_when_not_enabled()
+            public async Task DoesNotRunWhenNotEnabledAsync()
             {
                 MockMigration.SetupGet(m => m.Source).Returns(new Mock<ISourceEndpoint>().Object);
                 MockMigration.SetupGet(m => m.Destination).Returns(new Mock<IDestinationEndpoint>().Object);
@@ -162,7 +162,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.PostPublish.Default
             }
 
             [Fact]
-            public async Task Does_not_run_when_parent_locked()
+            public async Task DoesNotRunWhenParentLockedAsync()
             {
                 var context = Create<ContentItemPostPublishContext<IProject, IProject>>();
 

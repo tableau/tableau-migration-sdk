@@ -27,6 +27,7 @@ using Tableau.Migration.Api.Publishing;
 using Tableau.Migration.Api.Tags;
 using Tableau.Migration.Config;
 using Tableau.Migration.Content;
+using Tableau.Migration.Content.Files;
 using Tableau.Migration.Content.Schedules.Server;
 using Tableau.Migration.Content.Search;
 using Tableau.Migration.Net;
@@ -55,6 +56,8 @@ namespace Tableau.Migration.Tests.Unit.Api
         public TestHttpStreamProcessor HttpStreamProcessor { get; }
         public Mock<IDataSourcePublisher> MockDataSourcePublisher { get; } = new();
         public Mock<IWorkbookPublisher> MockWorkbookPublisher { get; } = new();
+        public Mock<IFlowPublisher> MockFlowPublisher { get; } = new();
+        public Mock<IContentFileStore> MockFileStore { get; } = new();
         public Mock<ITagsApiClientFactory> MockTagsApiClientFactory { get; } = new();
         public Mock<ITagsApiClient> MockTagsApiClient { get; } = new();
 

@@ -17,9 +17,9 @@
 
 from typing import Callable, Generic, TypeVar
 
-from migration_content import PyUser
-from migration_engine_hooks_mappings import PyContentMappingContext
-from migration_engine_hooks_interop import _PyHookWrapperBuilderBase
+from tableau_migration.migration_content import PyUser
+from tableau_migration.migration_engine_hooks_mappings import PyContentMappingContext
+from tableau_migration.migration_engine_hooks_interop import _PyHookWrapperBuilderBase
 
 from Tableau.Migration.Engine.Hooks.Mappings import ContentMappingBase, ContentMappingContext
 from Tableau.Migration.Engine.Hooks.Mappings.Default import ITableauCloudUsernameMapping

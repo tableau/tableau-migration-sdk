@@ -34,7 +34,7 @@ namespace Tableau.Migration.Tests.Unit.Api.Simulation.Rest.Net.Responses
         public class RespondAsync : RestGetByIdResponseBuilderTest
         {
             [Fact]
-            public async Task Creates_response()
+            public async Task CreatesResponseAsync()
             {
                 var data = new TableauData(Create<UsersResponse.UserType>());
 

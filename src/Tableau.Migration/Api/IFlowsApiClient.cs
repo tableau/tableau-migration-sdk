@@ -18,8 +18,11 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Tableau.Migration.Api.EmbeddedCredentials;
 using Tableau.Migration.Api.Models;
 using Tableau.Migration.Api.Paging;
+using Tableau.Migration.Api.Permissions;
+using Tableau.Migration.Api.Tags;
 using Tableau.Migration.Content;
 using Tableau.Migration.Paging;
 
@@ -30,12 +33,14 @@ namespace Tableau.Migration.Api
     /// </summary>
     public interface IFlowsApiClient :
         IApiFilteredPageAccessor<IFlow>, INameSearchApiClient<IFlow>,
+        IReadApiClient<IFlowDetails>,
         IPullApiClient<IFlow, IPublishableFlow>,
-        IPublishApiClient<IPublishableFlow, IFlow>
-    /*IOwnershipApiClient,
-    ITagsContentApiClient,
-    IPermissionsContentApiClient,
-    */
+        IPublishApiClient<IPublishableFlow, IFlow>,
+        IConnectionsApiClient,
+        IOwnershipApiClient,
+        ITagsContentApiClient,
+        IPermissionsContentApiClient,
+        IEmbeddedCredentialsContentApiClient
     {
         /// <summary>
         /// Downloads the prep flow file for the given ID.
@@ -52,5 +57,19 @@ namespace Tableau.Migration.Api
         /// <param name="cancel">A cancellation token to obey.</param>
         /// <returns>The published prep flow.</returns>
         Task<IResult<IFlow>> PublishFlowAsync(IPublishFlowOptions options, CancellationToken cancel);
+
+        /// <summary>
+        /// Updates the flow.
+        /// </summary>
+        /// <param name="flowId">The ID for the flow to update.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
+        /// <param name="newProjectId">The LUID of a project to move the flow to, or null to not update the project.</param>
+        /// <param name="newOwnerId">The LUID of a user to assign the flow to as owner, or null to not update the owner.</param>
+        /// <returns>The update result.</returns>
+        Task<IResult<IUpdateFlowResult>> UpdateFlowAsync(
+            Guid flowId,
+            CancellationToken cancel,
+            Guid? newProjectId = null,
+            Guid? newOwnerId = null);
     }
 }

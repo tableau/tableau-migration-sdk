@@ -113,7 +113,7 @@ namespace Tableau.Migration.Tests.Unit.Content.Files
 
             [Theory]
             [EnumData<CryptoStreamMode>]
-            public async Task Disposes_inner_stream_when_leaveOpen_is_false(CryptoStreamMode mode)
+            public async Task DisposesInnerStreamWhenLeaveOpenIsFalseAsync(CryptoStreamMode mode)
             {
                 var mockInnerStream = CreateMockInnerStream(mode);
 
@@ -128,7 +128,7 @@ namespace Tableau.Migration.Tests.Unit.Content.Files
 
             [Theory]
             [EnumData<CryptoStreamMode>]
-            public async Task Does_not_dispose_inner_stream_when_leaveOpen_is_true(CryptoStreamMode mode)
+            public async Task DoesNotDisposeInnerStreamWhenLeaveOpenIsTrueAsync(CryptoStreamMode mode)
             {
                 var mockInnerStream = CreateMockInnerStream(mode);
 
@@ -143,7 +143,7 @@ namespace Tableau.Migration.Tests.Unit.Content.Files
 
             [Theory]
             [Values(true, false)]
-            public async Task Respects_leaveOpen_flag(bool leaveOpen)
+            public async Task RespectsLeaveOpenFlagAsync(bool leaveOpen)
             {
                 var mode = Create<CryptoStreamMode>();
 
@@ -162,7 +162,7 @@ namespace Tableau.Migration.Tests.Unit.Content.Files
         public class Position : SeekableCryptoStreamTest
         {
             [Fact]
-            public async Task Gets()
+            public async Task GetsAsync()
             {
                 var length = 25;
 
@@ -179,7 +179,7 @@ namespace Tableau.Migration.Tests.Unit.Content.Files
             }
 
             [Fact]
-            public async Task Sets()
+            public async Task SetsAsync()
             {
                 var length = 25;
 
@@ -197,7 +197,7 @@ namespace Tableau.Migration.Tests.Unit.Content.Files
         public class Roundtrip : SeekableCryptoStreamTest
         {
             [Fact]
-            public async Task Reads_and_writes()
+            public async Task ReadsAndWritesAsync()
             {
                 var content = CreateString(100);
 

@@ -34,6 +34,7 @@ namespace Tableau.Migration.Content.Files
         private readonly CancellationToken _disposalCancel;
 
         private ITableauFileXmlStream? _xmlStream;
+        private ITableauFileJsonStream? _jsonStream;
         private bool _disposed = false;
 
         /// <inheritdoc />
@@ -42,9 +43,9 @@ namespace Tableau.Migration.Content.Files
         /// <inheritdoc />
         public ZipArchive? Archive { get; }
 
-        private bool XmlStreamOwnsContent => Archive is not null;
+        private bool StreamOwnsContent => Archive is not null;
 
-        private bool CleanupContent => !XmlStreamOwnsContent || _xmlStream is null;
+        private bool CleanupContent => !StreamOwnsContent || (_xmlStream is null || _jsonStream is null);
 
         /// <summary>
         /// Creates a new <see cref="TableauFileEditor"/> object.
@@ -81,6 +82,13 @@ namespace Tableau.Migration.Content.Files
             };
         }
 
+        internal static bool IsJsonFile(string fileName)
+        {
+            // For flow files, we need to find the specific "flow" file (no extension)
+            // Other JSON files in the archive are not edited
+            return string.Equals(fileName, "flow", StringComparison.OrdinalIgnoreCase);
+        }
+
         /// <inheritdoc />
         public ITableauFileXmlStream GetXmlStream()
         {
@@ -89,7 +97,7 @@ namespace Tableau.Migration.Content.Files
                 return _xmlStream;
             }
 
-            var leaveOpen = !XmlStreamOwnsContent;
+            var leaveOpen = !StreamOwnsContent;
             if (Archive is null)
             {
                 _xmlStream = new TableauFileXmlStream(Content, _disposalCancel, leaveOpen: leaveOpen);
@@ -101,6 +109,28 @@ namespace Tableau.Migration.Content.Files
             }
 
             return _xmlStream;
+        }
+
+        /// <inheritdoc />
+        public ITableauFileJsonStream GetJsonStream()
+        {
+            if (_jsonStream is not null)
+            {
+                return _jsonStream;
+            }
+
+            var leaveOpen = !StreamOwnsContent;
+            if (Archive is null)
+            {
+                _jsonStream = new TableauFileJsonStream(Content, _disposalCancel, leaveOpen: leaveOpen);
+            }
+            else
+            {
+                var jsonEntry = Archive.Entries.Single(e => IsJsonFile(e.Name));
+                _jsonStream = new TableauFileJsonStream(jsonEntry.Open(), _disposalCancel, leaveOpen: leaveOpen);
+            }
+
+            return _jsonStream;
         }
 
         /// <summary>
@@ -160,6 +190,11 @@ namespace Tableau.Migration.Content.Files
             if (_xmlStream is not null)
             {
                 await _xmlStream.DisposeAsync().ConfigureAwait(false);
+            }
+
+            if (_jsonStream is not null)
+            {
+                await _jsonStream.DisposeAsync().ConfigureAwait(false);
             }
 
             if (Archive is not null)

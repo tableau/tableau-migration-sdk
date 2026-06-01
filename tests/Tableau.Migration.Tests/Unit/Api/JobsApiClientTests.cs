@@ -56,7 +56,7 @@ namespace Tableau.Migration.Tests.Unit.Api
         public class GetJobStatusAsync : JobsApiClientTest
         {
             [Fact]
-            public async Task Returns_success()
+            public async Task ReturnsSuccessAsync()
             {
                 var jobResponse = AutoFixture.CreateResponse<JobResponse>();
 
@@ -76,7 +76,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async Task Returns_failure()
+            public async Task ReturnsFailureAsync()
             {
                 var exception = new Exception();
 
@@ -100,7 +100,7 @@ namespace Tableau.Migration.Tests.Unit.Api
         public class WaitForJobAsync : JobsApiClientTest
         {
             [Fact]
-            public async Task Returns_success()
+            public async Task ReturnsSuccessAsync()
             {
                 var progress = 0;
 
@@ -132,7 +132,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async Task Returns_timeout()
+            public async Task ReturnsTimeoutAsync()
             {
                 var mockJobPullRate = TimeSpan.FromMilliseconds(50);
                 var mockJobTimeout = TimeSpan.FromMilliseconds(100);
@@ -184,7 +184,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async Task Returns_failure_api_error()
+            public async Task ReturnsFailureApiErrorAsync()
             {
                 var exception = new InvalidOperationException();
 
@@ -210,7 +210,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async Task Returns_failure_job_finish_code()
+            public async Task ReturnsFailureJobFinishCodeAsync()
             {
                 var jobResponse = AutoFixture.CreateResponse<JobResponse>();
                 jobResponse.Item!.Progress = 100;
@@ -235,7 +235,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async Task Returns_failure_job_status_note()
+            public async Task ReturnsFailureJobStatusNoteAsync()
             {
                 var jobResponse = AutoFixture.CreateResponse<JobResponse>();
                 jobResponse.Item!.Progress = 100;
@@ -263,7 +263,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async Task Throws_when_canceled()
+            public async Task ThrowsWhenCanceledAsync()
             {
                 using var cancellationTokenSource = new CancellationTokenSource();
 

@@ -59,7 +59,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
         public class GetServerInfoAsync : ApiClientTest
         {
             [Fact]
-            public async Task Returns_server_info_on_success()
+            public async Task ReturnsServerInfoOnSuccessAsync()
             {
                 var restApiVersion = "9.99";
                 var productVersion = "9999.9";
@@ -82,7 +82,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
             }
 
             [Fact]
-            public async Task Returns_error_on_failure()
+            public async Task ReturnsErrorOnFailureAsync()
             {
                 Api.RestApi.QueryServerInfo.RespondWithError();
 
@@ -105,7 +105,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
             { }
 
             [Fact]
-            public async Task Returns_Tableau_Server()
+            public async Task ReturnsTableauServerAsync()
             {
                 var result = await ApiClient.GetInstanceTypeAsync(Cancel);
 
@@ -113,7 +113,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
             }
 
             [Fact]
-            public async Task Returns_Unknown()
+            public async Task ReturnsUnknownAsync()
             {
                 Api.RestApi.QuerySites.RespondWithError();
 
@@ -130,7 +130,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
             { }
 
             [Fact]
-            public async Task Returns_Tableau_Cloud()
+            public async Task ReturnsTableauCloudAsync()
             {
                 var result = await ApiClient.GetInstanceTypeAsync(Cancel);
 
@@ -138,7 +138,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
             }
 
             [Fact]
-            public async Task Returns_Unknown()
+            public async Task ReturnsUnknownAsync()
             {
                 Api.RestApi.QuerySites.RespondWithError();
 
@@ -151,7 +151,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
         public class SignInAsync : ApiClientTest
         {
             [Fact]
-            public async Task Returns_site_client_on_success()
+            public async Task ReturnsSiteClientOnSuccessAsync()
             {
                 var signIn = Create<SignInResponse.CredentialsType>();
 
@@ -179,7 +179,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
             }
 
             [Fact]
-            public async Task Returns_error_on_failure()
+            public async Task ReturnsErrorOnFailureAsync()
             {
                 Api.RestApi.Auth.SignIn.RespondWithError();
 
@@ -205,7 +205,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
             }
 
             [Fact]
-            public async Task Returns_error_on_invalid_credentials()
+            public async Task ReturnsErrorOnInvalidCredentialsAsync()
             {
                 var errorBuilder = new StaticRestErrorBuilder(
                     HttpStatusCode.Unauthorized,
@@ -244,7 +244,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
         public class SignOutAsync : ApiClientTest
         {
             [Fact]
-            public async Task Returns_success()
+            public async Task ReturnsSuccessAsync()
             {
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
 
@@ -261,7 +261,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
             }
 
             [Fact]
-            public async Task Returns_error_on_failure()
+            public async Task ReturnsErrorOnFailureAsync()
             {
                 Api.RestApi.Auth.SignOut.RespondWithError();
 

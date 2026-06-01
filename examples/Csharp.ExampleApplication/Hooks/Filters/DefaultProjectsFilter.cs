@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
 using Tableau.Migration.Content;
-using Tableau.Migration.Engine;
 using Tableau.Migration.Engine.Hooks.Filters;
 using Tableau.Migration.Resources;
 
@@ -13,9 +12,12 @@ namespace Csharp.ExampleApplication.Hooks.Filters
             ISharedResourcesLocalizer localizer,
             ILogger<IContentFilter<IProject>> logger) : base(localizer, logger) { }
 
-        public override bool ShouldMigrate(ContentMigrationItem<IProject> item)
+        public override void Filter(ContentFilterContextItem<IProject> item)
         {
-            return !string.Equals(item.SourceItem.Name, "default", System.StringComparison.OrdinalIgnoreCase);
+            if (string.Equals(item.SourceItem.Name, "default", System.StringComparison.OrdinalIgnoreCase))
+            {
+                item.Status = FilterStatus.CascadeSkip;
+            }
         }
     }
     #endregion

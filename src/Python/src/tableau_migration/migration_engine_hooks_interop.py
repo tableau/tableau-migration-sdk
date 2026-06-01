@@ -17,13 +17,13 @@
 
 from abc import abstractmethod
 from inspect import signature
-from typing import Any, Callable, Generic, TypeVar, Union
+from typing import Any, Callable, Generic, Optional, TypeVar, Union
 from uuid import uuid4
 
-from migration_engine_actions import PyMigrationActionResult
-from migration_engine_hooks_initializemigration import PyInitializeMigrationHookResult
-from migration_engine_migrators_batch import PyContentBatchMigrationResult
-from migration_interop import _PyWrapperBuilderBase, _unwrap, _unwrap_async
+from tableau_migration.migration_engine_actions import PyMigrationActionResult
+from tableau_migration.migration_engine_hooks_initializemigration import PyInitializeMigrationHookResult
+from tableau_migration.migration_engine_migrators_batch import PyContentBatchMigrationResult
+from tableau_migration.migration_interop import _PyWrapperBuilderBase, _unwrap, _unwrap_async
 
 from System import IServiceProvider
 from Tableau.Migration.Engine.Actions import IMigrationActionResult
@@ -34,7 +34,7 @@ from Tableau.Migration.Interop.Hooks import ISyncContentBatchMigrationCompletedH
 TContent = TypeVar("TContent")
 
 def _wrapper_init_callback() -> Callable:
-    from migration_services import ScopedMigrationServices
+    from tableau_migration.migration_services import ScopedMigrationServices
     
     def _init(self, scoped_services: IServiceProvider) -> None:
         self.services = ScopedMigrationServices(scoped_services)
@@ -60,7 +60,7 @@ class _PyHookWrapperBuilderBase(_PyWrapperBuilderBase):
         return hasattr(self, "callback")
 
 
-    def __init__(self, t: Union[type, list], callback: Union[Callable, None] = None) -> None:
+    def __init__(self, t: Union[type, list], callback: Optional[Callable] = None) -> None:
         if callback is None:
             super().__init__(t)
             return

@@ -381,7 +381,7 @@ namespace Tableau.Migration.Tests.Unit.Engine
                 ConfigureValidServerToCloudBuilder()
                     .Filters.Add(Create<IContentFilter<IUser>>());
 
-                var errors = Builder.ValidateFilterContentTypes(Builder.GetListContentTypes());
+                var errors = Builder.ValidateFilterContentTypes(Builder.GetListContentTypes(), Builder.GetPublishContentTypes());
 
                 Assert.Empty(errors);
             }
@@ -392,7 +392,7 @@ namespace Tableau.Migration.Tests.Unit.Engine
                 ConfigureValidServerToCloudBuilder()
                     .Filters.Add(Create<IContentFilter<TestContentType>>());
 
-                var errors = Builder.ValidateFilterContentTypes(Builder.GetListContentTypes());
+                var errors = Builder.ValidateFilterContentTypes(Builder.GetListContentTypes(), Builder.GetPublishContentTypes());
 
                 Assert.NotEmpty(errors);
             }

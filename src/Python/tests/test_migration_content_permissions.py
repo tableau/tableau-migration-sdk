@@ -19,6 +19,7 @@ from enum import IntEnum # noqa: E402, F401
 from tableau_migration.migration import PyContentReference # noqa: E402, F401
 from typing import (  # noqa: E402, F401
     Set,
+    Optional,
     Sequence
 )
 from uuid import UUID # noqa: E402, F401
@@ -107,8 +108,8 @@ class TestPyGranteeCapabilityGenerated(AutoFixtureTestBase):
     def test_capabilities_getter(self):
         dotnet = self.create(IGranteeCapability)
         py = PyGranteeCapability(dotnet)
-        assert len(dotnet.Capabilities) != 0
-        assert len(py.capabilities) == len(dotnet.Capabilities)
+        assert dotnet.Capabilities.Count != 0
+        assert len(py.capabilities) == dotnet.Capabilities.Count
     
 class TestPyPermissionsGenerated(AutoFixtureTestBase):
     
@@ -132,8 +133,8 @@ class TestPyPermissionSetGenerated(AutoFixtureTestBase):
     def test_grantee_capabilities_getter(self):
         dotnet = self.create(IPermissionSet)
         py = PyPermissionSet(dotnet)
-        assert len(dotnet.GranteeCapabilities) != 0
-        assert len(py.grantee_capabilities) == len(dotnet.GranteeCapabilities)
+        assert dotnet.GranteeCapabilities.Count != 0
+        assert len(py.grantee_capabilities) == dotnet.GranteeCapabilities.Count
     
     def test_grantee_capabilities_setter(self):
         dotnet = self.create(IPermissionSet)

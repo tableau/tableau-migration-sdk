@@ -33,18 +33,25 @@ namespace Tableau.Migration.Engine.Migrators
         public bool IsCanceled { get; }
 
         /// <inheritdoc />
+        public bool IsSkipped { get; }
+
+        /// <inheritdoc />
         public IMigrationManifestEntry ManifestEntry { get; }
 
-        protected ContentItemMigrationResult(bool success, bool continueBatch, IMigrationManifestEntry manifestEntry, bool isCanceled, params IEnumerable<Exception> errors)
+        protected ContentItemMigrationResult(bool success, bool continueBatch, 
+            IMigrationManifestEntry manifestEntry, bool isCanceled, bool isSkipped,
+            params IEnumerable<Exception> errors)
             : base(success, errors)
         {
             ContinueBatch = continueBatch;
             ManifestEntry = manifestEntry;
             IsCanceled = isCanceled;
+            IsSkipped = isSkipped;
         }
 
-        protected ContentItemMigrationResult(IResult baseResult, bool continueBatch, IMigrationManifestEntry manifestEntry, bool isCanceled)
-            : this(baseResult.Success, continueBatch, manifestEntry, isCanceled, baseResult.Errors)
+        protected ContentItemMigrationResult(IResult baseResult, bool continueBatch, IMigrationManifestEntry manifestEntry, 
+            bool isCanceled, bool isSkipped)
+            : this(baseResult.Success, continueBatch, manifestEntry, isCanceled, isSkipped, baseResult.Errors)
         { }
 
         /// <summary>
@@ -54,7 +61,7 @@ namespace Tableau.Migration.Engine.Migrators
         /// <param name="continueBatch">Whether or not the current migration batch should continue.</param>
         /// <returns>A new <see cref="ContentItemMigrationResult{TContent}"/> instance.</returns>
         public static ContentItemMigrationResult<TContent> Succeeded(IMigrationManifestEntry manifestEntry, bool continueBatch = true)
-            => new(true, continueBatch, manifestEntry, false);
+            => new(success: true, continueBatch, manifestEntry, isCanceled: false, isSkipped: false);
 
         /// <summary>
         /// Creates a new <see cref="ContentItemMigrationResult{TContent}"/> instance for failed operations.
@@ -64,7 +71,7 @@ namespace Tableau.Migration.Engine.Migrators
         /// <param name="continueBatch">Whether or not the current migration batch should continue.</param>
         /// <returns>A new <see cref="ContentItemMigrationResult{TContent}"/> instance.</returns>
         public static ContentItemMigrationResult<TContent> Failed(IMigrationManifestEntry manifestEntry, IEnumerable<Exception> errors, bool continueBatch = true)
-            => new(false, continueBatch, manifestEntry, false, errors);
+            => new(success: false, continueBatch, manifestEntry, isCanceled: false, isSkipped: false, errors);
 
         /// <summary>
         /// Creates a new <see cref="ContentItemMigrationResult{TContent}"/> instance.
@@ -74,7 +81,7 @@ namespace Tableau.Migration.Engine.Migrators
         /// <param name="continueBatch">Whether or not the current migration batch should continue.</param>
         /// <returns>A new <see cref="ContentItemMigrationResult{TContent}"/> instance.</returns>
         public static ContentItemMigrationResult<TContent> FromResult(IResult result, IMigrationManifestEntry manifestEntry, bool continueBatch = true)
-            => new(result.Success, continueBatch, manifestEntry, false, result.Errors);
+            => new(result.Success, continueBatch, manifestEntry, isCanceled: false, isSkipped: false, result.Errors);
 
         /// <summary>
         /// Creates a new <see cref="ContentItemMigrationResult{TContent}"/> instance for canceled operations.
@@ -84,10 +91,18 @@ namespace Tableau.Migration.Engine.Migrators
         /// <param name="continueBatch">Whether or not the current migration batch should continue.</param>
         /// <returns>A new <see cref="ContentItemMigrationResult{TContent}"/> instance.</returns>
         public static ContentItemMigrationResult<TContent> Canceled(IMigrationManifestEntry manifestEntry, IEnumerable<Exception> errors, bool continueBatch = true)
-            => new(false, continueBatch, manifestEntry, true, errors);
+            => new(success: false, continueBatch, manifestEntry, isCanceled: true, isSkipped: false, errors);
+
+        /// <summary>
+        /// Creates a new <see cref="ContentItemMigrationResult{TContent}"/> instance for filtered out/skipped items.
+        /// </summary>
+        /// <param name="manifestEntry">The migration manifest entry.</param>
+        /// <returns>A new <see cref="ContentItemMigrationResult{TContent}"/> instance.</returns>
+        public static ContentItemMigrationResult<TContent> Skipped(IMigrationManifestEntry manifestEntry)
+            => new(success: true, true, manifestEntry, isCanceled: false, isSkipped: true);
 
         /// <inheritdoc />
         public IContentItemMigrationResult<TContent> ForContinueBatch(bool continueBatch)
-            => new ContentItemMigrationResult<TContent>(Success, continueBatch, ManifestEntry, IsCanceled, Errors);
+            => new ContentItemMigrationResult<TContent>(Success, continueBatch, ManifestEntry, IsCanceled, IsSkipped, Errors);
     }
 }

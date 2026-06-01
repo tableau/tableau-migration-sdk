@@ -68,7 +68,7 @@ jobs:
 
       # Download built binaries
       - name: Download Build Output
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: build-output-${{ matrix.config }}-net${{ inputs.dotnet-build-version }}
           path: ./
@@ -101,7 +101,7 @@ jobs:
       # Upload test results
       - name: Upload Test Results
         if: ${{ always() }}
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: dotnet-results-${{ matrix.os }}-${{ matrix.config }}-net${{ matrix.dotnet-version }}
           path: TestResults-${{ matrix.os }}-${{ matrix.config }}-net${{ matrix.dotnet-version }}

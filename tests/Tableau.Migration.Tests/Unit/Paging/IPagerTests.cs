@@ -108,7 +108,7 @@ namespace Tableau.Migration.Tests.Unit.Paging
             }
 
             [Fact]
-            public async Task GetsAllItemsLastPageIncomplete()
+            public async Task GetsAllItemsLastPageIncompleteAsync()
             {
                 var items = CreateMany<TestContentType>(10);
 
@@ -129,7 +129,7 @@ namespace Tableau.Migration.Tests.Unit.Paging
             }
 
             [Fact]
-            public async Task GetsAllItemsTwoPagesIncomplete()
+            public async Task GetsAllItemsTwoPagesIncompleteAsync()
             {
                 var items = CreateMany<TestContentType>(10);
 

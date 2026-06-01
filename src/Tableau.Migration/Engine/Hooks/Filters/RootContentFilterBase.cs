@@ -15,7 +15,6 @@
 //  limitations under the License.
 //
 
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -57,6 +56,6 @@ namespace Tableau.Migration.Engine.Hooks.Filters
         }
 
         /// <inheritdoc />
-        public abstract Task<IEnumerable<ContentMigrationItem<TContent>>?> ExecuteAsync(IEnumerable<ContentMigrationItem<TContent>> ctx, CancellationToken cancel);
+        public abstract Task<ContentFilterContext<TContent>?> ExecuteAsync(ContentFilterContext<TContent> ctx, CancellationToken cancel);
     }
 }

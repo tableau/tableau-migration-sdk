@@ -1,8 +1,20 @@
 # Introduction
 
-Welcome to the Python API Reference for the Migration SDK.
+This section is the **Python API Reference** for the Migration SDK. It documents the types and functions in the Python wrapper package you use when building migration applications in Python.
 
-The Migration SDK is written in .NET. It has a Python wrapper package that provides access to most of this functionality.
+Below you’ll find requirements, installation, capabilities, and a minimal getting-started example. For concepts, configuration, and more samples, see [Articles](~/articles/index.md) and [Code Samples](~/samples/index.md).
+
+## Prerequisites
+
+[!include[](~/includes/python-prerequisites.html)]
+
+## Hardware requirements
+
+The Migration SDK downloads copies of content items onto the machine that the Migration SDK is installed on. Make sure there's enough disk space on the machine to sequentially download content during the migration process.
+
+## Installation
+
+To use the Migration SDK for Python, download the [Python package](https://pypi.org/project/tableau-migration/). For information about installing Python packages, see [Installing Packages](https://packaging.python.org/en/latest/tutorials/installing-packages/) in the Python documentation.
 
 ## Capabilities
 

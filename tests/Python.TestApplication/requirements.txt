@@ -1,5 +1,5 @@
-﻿typing_extensions==4.15.0
+typing_extensions==4.15.0
 cffi==2.0.0
-pycparser==2.23
+pycparser==3.0
 pythonnet==3.0.5
 configparser==7.2.0

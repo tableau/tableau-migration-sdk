@@ -22,6 +22,7 @@ using Microsoft.Extensions.Logging;
 using Tableau.Migration.Content;
 using Tableau.Migration.Content.Search;
 using Tableau.Migration.Engine.Endpoints.Search;
+using Tableau.Migration.Engine.Manifest;
 using Tableau.Migration.Resources;
 
 namespace Tableau.Migration.Engine.Hooks.Transformers.Default
@@ -53,24 +54,31 @@ namespace Tableau.Migration.Engine.Hooks.Transformers.Default
             IPublishableCustomView sourceCustomView,
             CancellationToken cancel)
         {
+            var transformedUsers = new List<IContentReference>(sourceCustomView.DefaultUsers.Count);
             var missingUsers = new List<ContentLocation>();
 
-            for (var i = 0; i < sourceCustomView.DefaultUsers.Count; i++)
+            foreach(var defaultUser in sourceCustomView.DefaultUsers)
             {
-                var destinationUser = await _userFinder.FindBySourceLocationAsync(sourceCustomView.DefaultUsers[i].Location, cancel)
+                var destinationUser = await _userFinder.FindResultBySourceLocationAsync(defaultUser.Location, cancel)
                     .ConfigureAwait(false);
 
-                if (destinationUser is null)
+                if(destinationUser.Status is MigrationManifestEntryStatus.Skipped)
                 {
-                    missingUsers.Add(sourceCustomView.DefaultUsers[i].Location);
                     continue;
                 }
 
-                sourceCustomView.DefaultUsers[i] = destinationUser;
+                if (destinationUser.Destination is null)
+                {
+                    missingUsers.Add(defaultUser.Location);
+                    continue;
+                }
+
+                transformedUsers.Add(destinationUser.Destination);
             }
 
             missingUsers.ThrowOnMissingContentReferences<IUser>(Localizer, "custom view default users");
 
+            sourceCustomView.DefaultUsers = transformedUsers;
             return sourceCustomView;
         }
     }

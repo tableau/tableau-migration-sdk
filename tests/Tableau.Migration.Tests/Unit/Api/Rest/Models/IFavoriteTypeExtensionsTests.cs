@@ -33,7 +33,7 @@ namespace Tableau.Migration.Tests.Unit.Api.Rest.Models
 
                 var result = new FavoritesResponse.FavoriteType();
 
-                switch(contentType)
+                switch (contentType)
                 {
                     case FavoriteContentType.DataSource:
                         result.DataSource = new() { Id = contentId.Value };
@@ -57,7 +57,8 @@ namespace Tableau.Migration.Tests.Unit.Api.Rest.Models
                         break;
                     default:
                         throw new ArgumentException("Invalid content type for test, add support to IFavoriteTypeExtensionsTest.SetupFavorite to test.");
-                };
+                }
+                ;
 
                 return result;
             }

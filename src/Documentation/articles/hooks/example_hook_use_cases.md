@@ -12,8 +12,8 @@ This will allow default hooks to update user references to the alternate users.
 The filter and mapping are then [registered as custom hooks](custom_hooks.md#registration) with the migration plan.
 
 ## Filter Out Content Under Certain Projects
-To increase flexibility, filters do not cascade, so filtering projects does not automatically filter content within a project.
-To filter this content, create a [filter](~/samples/filters/index.md) for data sources, workbooks, and other content types as desired.
+To filter out a project and all content within it, create a project filter and [cascade](~/articles/hooks/filter_cascading.md) the filter.
+To filter only some content from a project, create a [filter](~/samples/filters/index.md) for data sources, workbooks, and other content types as desired.
 The filters should check the [Location](xref:Tableau.Migration.IContentReference.Location) property to determine if the content is in a project that has been filtered.
 This can be done by comparing the path of the location's [Parent](xref:Tableau.Migration.ContentLocation.Parent) method result to either a known set of project paths, or by looking up the project in the the [migration manifest](xref:Tableau.Migration.IMigrationManifest) to see if the project was migrated.
 

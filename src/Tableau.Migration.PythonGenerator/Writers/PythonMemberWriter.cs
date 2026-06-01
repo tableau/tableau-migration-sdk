@@ -108,6 +108,13 @@ namespace Tableau.Migration.PythonGenerator.Writers
                     return BuildWrapExpression(expression, wrapCtor, $"{expression}.value__");
                 case ConversionMode.WrapTimeOnly:
                     return BuildWrapExpression(expression, wrapCtor, $"{expression}.Hour, {expression}.Minute, {expression}.Second, {expression}.Millisecond * 1000");
+                case ConversionMode.Optional:
+                    if (typeRef.GenericTypes is null || typeRef.GenericTypes.Value.Length != 1)
+                    {
+                        throw new InvalidOperationException("Optional type requires a single generic type.");
+                    }
+
+                    return ToPythonType(typeRef.GenericTypes.Value.Single(), expression);
                 case ConversionMode.Direct:
                 default:
                     return expression;
@@ -130,6 +137,13 @@ namespace Tableau.Migration.PythonGenerator.Writers
                     return BuildWrapExpression(expression, typeRef.DotNetParseFunction!, $"str({expression})");
                 case ConversionMode.WrapTimeOnly:
                     return BuildWrapExpression(expression, typeRef.DotNetParseFunction!, $"str({expression})");
+                case ConversionMode.Optional:
+                    if (typeRef.GenericTypes is null || typeRef.GenericTypes.Value.Length != 1)
+                    {
+                        throw new InvalidOperationException("Optional type requires a single generic type.");
+                    }
+
+                    return ToDotNetType(typeRef.GenericTypes.Value.Single(), expression, skipNoneCheck);
                 case ConversionMode.Direct:
                 default:
                     return expression;

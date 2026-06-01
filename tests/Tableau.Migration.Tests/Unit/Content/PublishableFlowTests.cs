@@ -15,6 +15,8 @@
 //  limitations under the License.
 //
 
+using System.Collections.Immutable;
+using System.Linq;
 using System.Threading.Tasks;
 using Moq;
 using Tableau.Migration.Content;
@@ -25,15 +27,51 @@ namespace Tableau.Migration.Tests.Unit.Content
 {
     public class PublishableFlowTests
     {
+        public class Ctor : AutoFixtureTestBase
+        {
+            [Fact]
+            public void InitializesWithConnections()
+            {
+                var innerFlow = Create<IFlow>();
+                var connections = CreateMany<IConnection>(3).ToImmutableList();
+                var mockFile = Create<Mock<IContentFileHandle>>();
+
+                var result = new PublishableFlow(innerFlow, connections, mockFile.Object);
+
+                Assert.Equal(innerFlow.Id, result.Id);
+                Assert.Equal(innerFlow.Name, result.Name);
+                Assert.Equal(3, result.Connections.Count);
+                Assert.Same(connections, result.Connections);
+                Assert.Same(mockFile.Object, result.File);
+            }
+
+            [Fact]
+            public void InitializesWithEmptyConnections()
+            {
+                var innerFlow = Create<IFlow>();
+                var connections = ImmutableList<IConnection>.Empty;
+                var mockFile = Create<Mock<IContentFileHandle>>();
+
+                var result = new PublishableFlow(innerFlow, connections, mockFile.Object);
+
+                Assert.Equal(innerFlow.Id, result.Id);
+                Assert.Equal(innerFlow.Name, result.Name);
+                Assert.Empty(result.Connections);
+                Assert.Same(connections, result.Connections);
+                Assert.Same(mockFile.Object, result.File);
+            }
+        }
+
         public class DisposeAsync : AutoFixtureTestBase
         {
             [Fact]
             public async Task DisposesFileAsync()
             {
                 var innerFlow = Create<IFlow>();
+                var connections = ImmutableList<IConnection>.Empty;
                 var mockFile = Create<Mock<IContentFileHandle>>();
 
-                await using (var pf = new PublishableFlow(innerFlow, mockFile.Object))
+                await using (var pf = new PublishableFlow(innerFlow, connections, mockFile.Object))
                 { }
 
                 mockFile.Verify(x => x.DisposeAsync(), Times.Once);

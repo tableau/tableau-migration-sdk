@@ -39,7 +39,7 @@ namespace Tableau.Migration.Tests.Unit
         public class Dispose
         {
             [Fact]
-            public async Task DisposesValue()
+            public async Task DisposesValueAsync()
             {
                 var value = new AsyncDisposableTestClass();
 
@@ -53,7 +53,7 @@ namespace Tableau.Migration.Tests.Unit
         public class Succeeded
         {
             [Fact]
-            public async Task Initializes()
+            public async Task InitializesAsync()
             {
                 var value = new AsyncDisposableTestClass();
 
@@ -69,7 +69,7 @@ namespace Tableau.Migration.Tests.Unit
             public class SingleException
             {
                 [Fact]
-                public async Task Initializes()
+                public async Task InitializesAsync()
                 {
                     var error = new Exception();
 
@@ -83,7 +83,7 @@ namespace Tableau.Migration.Tests.Unit
             public class ExceptionCollection
             {
                 [Fact]
-                public async Task Initializes()
+                public async Task InitializesAsync()
                 {
                     var errors = new[]
                     {
@@ -124,7 +124,7 @@ namespace Tableau.Migration.Tests.Unit
             }
 
             [Fact]
-            public async Task CatchesExceptions()
+            public async Task CatchesExceptionsAsync()
             {
                 var exception = new Exception();
 
@@ -138,7 +138,7 @@ namespace Tableau.Migration.Tests.Unit
             }
 
             [Fact]
-            public async Task Creates()
+            public async Task CreatesAsync()
             {
                 var value = new object();
 

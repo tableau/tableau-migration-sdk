@@ -74,7 +74,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.PostPublish.Default
         public class ExecuteAsync : PermissionsItemPostPublishHookTest
         {
             [Fact]
-            public async Task Returns_when_source_permissions_fails()
+            public async Task ReturnsWhenSourcePermissionsFailsAsync()
             {
                 var context = Create<ContentItemPostPublishContext<PermissionsContentType, ResultContentType>>();
 
@@ -90,7 +90,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.PostPublish.Default
             }
 
             [Fact]
-            public async Task Transforms_permissions()
+            public async Task TransformsPermissionsAsync()
             {
                 var manifestEntry = Create<IMigrationManifestEntryEditor>();
                 var sourceItem = Create<PermissionsContentType>();
@@ -129,7 +129,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.PostPublish.Default
             }
 
             [Fact]
-            public async Task Does_not_run_when_parent_locked()
+            public async Task DoesNotRunWhenParentLockedAsync()
             {
                 var context = Create<ContentItemPostPublishContext<PermissionsContentType, ResultContentType>>();
 

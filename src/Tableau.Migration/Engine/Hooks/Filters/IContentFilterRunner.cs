@@ -15,7 +15,7 @@
 //  limitations under the License.
 //
 
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -33,7 +33,7 @@ namespace Tableau.Migration.Engine.Hooks.Filters
         /// <param name="itemsToFilter">The items to filter.</param>
         /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>A lazy-evaluated collection of filterered items.</returns>
-        Task<IEnumerable<ContentMigrationItem<TContent>>> ExecuteAsync<TContent>(IEnumerable<ContentMigrationItem<TContent>> itemsToFilter, CancellationToken cancel)
+        Task<ImmutableArray<ContentMigrationItem<TContent>>> ExecuteAsync<TContent>(ImmutableArray<ContentMigrationItem<TContent>> itemsToFilter, CancellationToken cancel)
             where TContent : IContentReference;
     }
 }

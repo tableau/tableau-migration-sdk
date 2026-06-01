@@ -134,7 +134,7 @@ namespace Tableau.Migration.Engine.Hooks.PostPublish.Default
                     return ctx;
                 }
 
-                var uploadSavedCredsResult = await UploadUserSavedCredentials(ctx, item.DestinationUserId, userSavedCredsResult.Value, cancel)
+                var uploadSavedCredsResult = await UploadUserSavedCredentialsAsync(ctx, item.DestinationUserId, userSavedCredsResult.Value, cancel)
                     .ConfigureAwait(false);
 
                 if (!uploadSavedCredsResult.Success)
@@ -294,7 +294,7 @@ namespace Tableau.Migration.Engine.Hooks.PostPublish.Default
             return;
         }
 
-        private async Task<IResult> UploadUserSavedCredentials(
+        private async Task<IResult> UploadUserSavedCredentialsAsync(
             ContentItemPostPublishContext<TPublish, TResult> ctx,
             Guid userId,
             IEmbeddedCredentialKeychainResult userSavedCreds,

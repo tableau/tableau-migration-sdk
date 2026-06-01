@@ -29,8 +29,10 @@ using Tableau.Migration.Content.Schedules.Server;
 using Tableau.Migration.Content.Search;
 using Tableau.Migration.Engine;
 using Tableau.Migration.Engine.Actions;
+using Tableau.Migration.Engine.Hooks.Filters;
 using Tableau.Migration.Engine.Hooks.Mappings;
 using Tableau.Migration.Engine.Hooks.PostPublish;
+using Tableau.Migration.Engine.Hooks.Pulled;
 using Tableau.Migration.Engine.Manifest;
 using Tableau.Migration.Engine.Migrators;
 using Tableau.Migration.Engine.Migrators.Batch;
@@ -76,12 +78,16 @@ namespace Tableau.Migration.PythonGenerator
             typeof(ISizeContent),
             typeof(IDataSource),
             typeof(IWorkbook),
+            typeof(IFlow),
             typeof(IConnection),
             typeof(IDataSourceDetails),
+            typeof(IFlowDetails),
+            typeof(IFlowOutputStep),
             typeof(IView),
             typeof(ITag),
             typeof(IPublishableDataSource),
             typeof(IPublishableWorkbook),
+            typeof(IPublishableFlow),
             typeof(IGroupUser),
             typeof(IWorkbookDetails),
             typeof(ILabel),
@@ -116,16 +122,30 @@ namespace Tableau.Migration.PythonGenerator
 
         #endregion
 
-        #region - Tableau.Migration.Engine.Hooks.Mappings  -
+        #region - Tableau.Migration.Engine.Hooks.Filters -
+
+            typeof(ContentFilterContext<>),
+            typeof(ContentFilterContextItem<>),
+            typeof(FilterStatus),
+
+        #endregion
+
+        #region - Tableau.Migration.Engine.Hooks.Mappings -
 
             typeof(ContentMappingContext<>),
 
         #endregion
 
-        #region - Tableau.Migration.Engine.Hooks.PostPublish  -
+        #region - Tableau.Migration.Engine.Hooks.PostPublish -
 
             typeof(BulkPostPublishContext<>),
             typeof(ContentItemPostPublishContext<,>),
+
+        #endregion
+
+        #region - Tableau.Migration.Engine.Hooks.Pulled -
+
+            typeof(ContentItemPulledContext<>),
 
         #endregion
 
@@ -170,6 +190,7 @@ namespace Tableau.Migration.PythonGenerator
 
             typeof(AuthenticationTypes),
             typeof(DataSourceFileTypes),
+            typeof(FlowFileTypes),
             typeof(WorkbookFileTypes),
 
         #endregion

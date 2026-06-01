@@ -1,4 +1,4 @@
-﻿//
+//
 //  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
@@ -38,7 +38,7 @@ namespace Tableau.Migration.Tests.Unit.Content.Schedules
         public class SingleThread : VolatileCacheTest<(ExtractRefreshContentType, Guid), ImmutableList<ICloudExtractRefreshTask>>
         {
             [Fact]
-            public async Task EmptyList_LoadsOnce()
+            public async Task EmptyListLoadsOnceAsync()
             {
                 var loaded = 0;
                 Cache = new(
@@ -49,9 +49,9 @@ namespace Tableau.Migration.Tests.Unit.Content.Schedules
                             new Dictionary<(ExtractRefreshContentType, Guid), ImmutableList<ICloudExtractRefreshTask>>());
                     });
 
-                var result1 = await Cache.GetAndRelease((ExtractRefreshContentType.DataSource, Guid.NewGuid()), Cancel);
+                var result1 = await Cache.GetAndReleaseAsync((ExtractRefreshContentType.DataSource, Guid.NewGuid()), Cancel);
 
-                var result2 = await Cache.GetAndRelease((ExtractRefreshContentType.Workbook, Guid.NewGuid()), Cancel);
+                var result2 = await Cache.GetAndReleaseAsync((ExtractRefreshContentType.Workbook, Guid.NewGuid()), Cancel);
 
                 Assert.Null(result1);
                 Assert.Null(result2);
@@ -59,7 +59,7 @@ namespace Tableau.Migration.Tests.Unit.Content.Schedules
             }
 
             [Fact]
-            public async Task SingleItem_LoadsAndReturnsOnce()
+            public async Task SingleItemLoadsAndReturnsOnceAsync()
             {
                 var loaded = 0;
                 var id = Guid.NewGuid();
@@ -76,9 +76,9 @@ namespace Tableau.Migration.Tests.Unit.Content.Schedules
                     });
 
 
-                var result1 = await Cache.GetAndRelease((ExtractRefreshContentType.DataSource, id), Cancel);
+                var result1 = await Cache.GetAndReleaseAsync((ExtractRefreshContentType.DataSource, id), Cancel);
 
-                var result2 = await Cache.GetAndRelease((ExtractRefreshContentType.DataSource, id), Cancel);
+                var result2 = await Cache.GetAndReleaseAsync((ExtractRefreshContentType.DataSource, id), Cancel);
 
                 Assert.NotNull(result1);
                 Assert.Equal(list, result1);
@@ -87,7 +87,7 @@ namespace Tableau.Migration.Tests.Unit.Content.Schedules
             }
 
             [Fact]
-            public async Task MultipleItems_LoadsAndReturnsOnce()
+            public async Task MultipleItemsLoadsAndReturnsOnceAsync()
             {
                 var loaded = 0;
                 var id1 = Guid.NewGuid();
@@ -109,11 +109,11 @@ namespace Tableau.Migration.Tests.Unit.Content.Schedules
                             });
                     });
 
-                var result1 = await Cache.GetAndRelease((ExtractRefreshContentType.DataSource, id1), Cancel);
+                var result1 = await Cache.GetAndReleaseAsync((ExtractRefreshContentType.DataSource, id1), Cancel);
 
-                var result2 = await Cache.GetAndRelease((ExtractRefreshContentType.Workbook, id2), Cancel);
+                var result2 = await Cache.GetAndReleaseAsync((ExtractRefreshContentType.Workbook, id2), Cancel);
 
-                var emptyResult = await Cache.GetAndRelease((ExtractRefreshContentType.DataSource, Guid.NewGuid()), Cancel);
+                var emptyResult = await Cache.GetAndReleaseAsync((ExtractRefreshContentType.DataSource, Guid.NewGuid()), Cancel);
 
                 Assert.NotNull(result1);
                 Assert.Equal(list1, result1);
@@ -127,7 +127,7 @@ namespace Tableau.Migration.Tests.Unit.Content.Schedules
         public class MultiThread : VolatileCacheTest<Guid, ICloudExtractRefreshTask>
         {
             [Fact]
-            public async Task EmptyList_LoadsOnce()
+            public async Task EmptyListLoadsOnceAsync()
             {
                 var loaded = 0;
                 Cache = new(
@@ -142,7 +142,7 @@ namespace Tableau.Migration.Tests.Unit.Content.Schedules
                 var tasks = Enumerable
                     .Range(1, totalThreads)
                     .Select(x => Cache
-                        .GetAndRelease(
+                        .GetAndReleaseAsync(
                             Guid.NewGuid(),
                             Cancel))
                     .ToList();
@@ -157,7 +157,7 @@ namespace Tableau.Migration.Tests.Unit.Content.Schedules
             }
 
             [Fact]
-            public async Task SingleItem_LoadsAndReturnsOnce()
+            public async Task SingleItemLoadsAndReturnsOnceAsync()
             {
                 var loaded = 0;
                 var item = Create<ICloudExtractRefreshTask>();
@@ -176,7 +176,7 @@ namespace Tableau.Migration.Tests.Unit.Content.Schedules
                 var tasks = Enumerable
                     .Range(1, totalThreads)
                     .Select(x => Cache
-                        .GetAndRelease(
+                        .GetAndReleaseAsync(
                             id,
                             Cancel))
                     .ToList();
@@ -192,7 +192,7 @@ namespace Tableau.Migration.Tests.Unit.Content.Schedules
             }
 
             [Fact]
-            public async Task MultipleItems_LoadsAndReturnsOnce()
+            public async Task MultipleItemsLoadsAndReturnsOnceAsync()
             {
                 var loaded = 0;
                 var item1 = Create<ICloudExtractRefreshTask>();
@@ -219,7 +219,7 @@ namespace Tableau.Migration.Tests.Unit.Content.Schedules
                 var tasks = Enumerable
                     .Range(1, totalThreads)
                     .Select(x => Cache
-                        .GetAndRelease(
+                        .GetAndReleaseAsync(
                             x % 3 != 0
                                 ? x % 3 != 1
                                     ? Guid.NewGuid()

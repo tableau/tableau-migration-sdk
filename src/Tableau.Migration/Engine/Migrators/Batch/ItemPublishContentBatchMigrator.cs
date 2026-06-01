@@ -33,7 +33,7 @@ namespace Tableau.Migration.Engine.Migrators.Batch
     /// <typeparam name="TResult">The post-publish result type.</typeparam>
     public class ItemPublishContentBatchMigrator<TContent, TPrepare, TPublish, TResult> : ParallelContentBatchMigratorBatchBase<TContent, TPrepare, TPublish>
         where TContent : class, IContentReference
-        where TPrepare : class
+        where TPrepare : class, IContentReference
         where TPublish : class
         where TResult : class, IContentReference
     {
@@ -86,7 +86,7 @@ namespace Tableau.Migration.Engine.Migrators.Batch
     /// <typeparam name="TResult"><inheritdoc /></typeparam>
     public class ItemPublishContentBatchMigrator<TContent, TPublish, TResult> : ItemPublishContentBatchMigrator<TContent, TPublish, TPublish, TResult>
         where TContent : class, IContentReference
-        where TPublish : class
+        where TPublish : class, IContentReference
         where TResult : class, IContentReference
     {
         /// <summary>
@@ -108,7 +108,7 @@ namespace Tableau.Migration.Engine.Migrators.Batch
     /// <typeparam name="TPrepare"><inheritdoc /></typeparam>
     public class ItemPublishContentBatchMigrator<TContent, TPrepare> : ItemPublishContentBatchMigrator<TContent, TPrepare, TPrepare, TContent>
         where TContent : class, IContentReference
-        where TPrepare : class
+        where TPrepare : class, IContentReference
     {
         /// <summary>
         /// Creates a new <see cref="ItemPublishContentBatchMigrator{TContent}"/> object.

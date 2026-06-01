@@ -57,12 +57,24 @@ namespace Tableau.Migration.Api.Simulation.Rest.Net.Responses
             HttpRequestMessage request, CancellationToken cancel)
         {
             var sessionId = request.GetQueryStringValue("uploadSessionId");
-
-            var file = Data.Files.First(ds => ds.Key == sessionId).Value.ToArray();
-
-            if (file is null)
+            if (string.IsNullOrEmpty(sessionId))
             {
-                return BuildEmptyErrorResponse(HttpStatusCode.BadRequest, 0, "No file found to commit.", "");
+                return BuildEmptyErrorResponse(HttpStatusCode.BadRequest, 0, "Missing uploadSessionId.", "The uploadSessionId query parameter is required.");
+            }
+
+            if (!Data.Files.TryGetValue(sessionId, out var fileEnumerable))
+            {
+                return BuildEmptyErrorResponse(
+                    HttpStatusCode.BadRequest,
+                    0,
+                    "No file found to commit.",
+                    $"No file found for upload session {sessionId}. Ensure file upload (initiate + update) and commit target the same server.");
+            }
+
+            var file = fileEnumerable.ToArray();
+            if (file is null || file.Length == 0)
+            {
+                return BuildEmptyErrorResponse(HttpStatusCode.BadRequest, 0, "No file found to commit.", "The upload session has no file data.");
             }
 
             var commitRequest = await GetCommitRequestAsync(request).ConfigureAwait(false);

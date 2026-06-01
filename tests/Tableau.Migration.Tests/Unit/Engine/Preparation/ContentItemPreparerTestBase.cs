@@ -23,22 +23,26 @@ using Tableau.Migration.Content.Files;
 using Tableau.Migration.Engine;
 using Tableau.Migration.Engine.Conversion;
 using Tableau.Migration.Engine.Endpoints.Search;
+using Tableau.Migration.Engine.Hooks;
+using Tableau.Migration.Engine.Hooks.Pulled;
 using Tableau.Migration.Engine.Hooks.Transformers;
 using Tableau.Migration.Engine.Manifest;
 using Tableau.Migration.Engine.Pipelines;
 
 namespace Tableau.Migration.Tests.Unit.Engine.Preparation
 {
-    public class ContentItemPreparerTestBase<TPrepare, TPublish> : AutoFixtureTestBase
-        where TPrepare : class
+    public class ContentItemPreparerTestBase<TContent, TPrepare, TPublish> : AutoFixtureTestBase
+        where TContent : class, IContentReference
+        where TPrepare : class, IContentReference
         where TPublish : class
     {
         protected readonly Mock<IMigrationPipeline> MockPipeline;
+        protected readonly Mock<IMigrationHookRunner> MockHookRunner;
         protected readonly Mock<IContentTransformerRunner> MockTransformerRunner;
         protected readonly Mock<IMigrationManifestEntryEditor> MockManifestEntry;
         protected readonly Mock<IDestinationContentReferenceFinder<IProject>> MockProjectFinder;
         protected readonly Mock<IContentFileStore> MockFileStore;
-        protected readonly ContentMigrationItem<TPrepare> Item;
+        protected readonly ContentMigrationItem<TContent> Item;
 
         protected ContentLocation MappedLocation { get; set; }
 
@@ -51,6 +55,21 @@ namespace Tableau.Migration.Tests.Unit.Engine.Preparation
                     var genericArgs = invocation.Method.GetGenericArguments();
                     return Activator.CreateInstance(typeof(DirectContentItemConverter<,>).MakeGenericType(genericArgs))!;
                 }));
+
+            MockHookRunner = Freeze<Mock<IMigrationHookRunner>>();
+            MockHookRunner.Setup(x => x.ExecuteAsync<IContentItemPulledHook<TPrepare>, ContentItemPulledContext<TPrepare>>(
+                It.IsAny<ContentItemPulledContext<TPrepare>>(),
+                It.IsAny<Action<string, ContentItemPulledContext<TPrepare>, ContentItemPulledContext<TPrepare>>>(),
+                It.IsAny<CancellationToken>())
+                )
+                .ReturnsAsync((
+                    ContentItemPulledContext<TPrepare> ctx, 
+                    Action<string, ContentItemPulledContext<TPrepare>, ContentItemPulledContext<TPrepare>> afterAction, 
+                    CancellationToken c) =>
+                {
+                    afterAction?.Invoke("test hook", ctx, ctx);
+                    return ctx;
+                });
 
             MockTransformerRunner = Freeze<Mock<IContentTransformerRunner>>();
             MockTransformerRunner.Setup(x => x.ExecuteAsync(It.IsAny<TPublish>(), Cancel))
@@ -71,11 +90,16 @@ namespace Tableau.Migration.Tests.Unit.Engine.Preparation
 
             MockFileStore = Freeze<Mock<IContentFileStore>>();
 
-            Item = Create<ContentMigrationItem<TPrepare>>();
+            Item = Create<ContentMigrationItem<TContent>>();
         }
     }
 
-    public class ContentItemPreparerTestBase<TPrepare> : ContentItemPreparerTestBase<TPrepare, TPrepare>
-        where TPrepare : class
+    public class ContentItemPreparerTestBase<TPrepare, TPublish> : ContentItemPreparerTestBase<TPrepare, TPrepare, TPublish>
+        where TPrepare : class, IContentReference
+        where TPublish : class
+    { }
+
+    public class ContentItemPreparerTestBase<TPrepare> : ContentItemPreparerTestBase<TPrepare, TPrepare, TPrepare>
+        where TPrepare : class, IContentReference
     { }
 }

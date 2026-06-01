@@ -63,7 +63,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
         public abstract class ExecuteAsync<TIExtractContent> : EncryptExtractTransformerTest<TIExtractContent> where TIExtractContent : IContentReference, IExtractContent
         {
             [Fact]
-            public async Task Returns_encrypt_extract_true_when_enforced()
+            public async Task ReturnsEncryptExtractTrueWhenEnforcedAsync()
             {
                 MockDestinationSettings.Setup(m => m.ExtractEncryptionMode).Returns(ExtractEncryptionModes.Enforced);
                 var result = await Transformer.ExecuteAsync(Create<TIExtractContent>(), Cancel);
@@ -73,7 +73,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
             }
 
             [Fact]
-            public async Task Returns_encrypt_extract_false_when_disabled()
+            public async Task ReturnsEncryptExtractFalseWhenDisabledAsync()
             {
                 MockDestinationSettings.Setup(m => m.ExtractEncryptionMode).Returns(ExtractEncryptionModes.Disabled);
                 var result = await Transformer.ExecuteAsync(Create<TIExtractContent>(), Cancel);
@@ -83,7 +83,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
             }
 
             [Fact]
-            public async Task Returns_encrypt_extract_same()
+            public async Task ReturnsEncryptExtractSameAsync()
             {
                 var data = Create<TIExtractContent>();
 

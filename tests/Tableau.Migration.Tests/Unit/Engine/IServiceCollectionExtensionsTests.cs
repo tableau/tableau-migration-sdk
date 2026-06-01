@@ -38,6 +38,7 @@ using Tableau.Migration.Engine.Endpoints.Caching;
 using Tableau.Migration.Engine.Endpoints.Search;
 using Tableau.Migration.Engine.Hooks;
 using Tableau.Migration.Engine.Hooks.Filters.Default;
+using Tableau.Migration.Engine.Hooks.Filters.Default.Cascade;
 using Tableau.Migration.Engine.Hooks.Mappings.Default;
 using Tableau.Migration.Engine.Hooks.PostPublish.Default;
 using Tableau.Migration.Engine.Hooks.Transformers.Default;
@@ -525,6 +526,19 @@ namespace Tableau.Migration.Tests.Unit.Engine
                 await using var scope = await InitializeMigrationScopeAsync();
 
                 AssertService<LazyContentReferenceCacheLoadStrategyProvider<TestContentType>>(scope, ServiceLifetime.Singleton);
+            }
+
+            [Fact]
+            public async Task RegistersScopedCascadingFiltersAsync()
+            {
+                await using var scope = await InitializeMigrationScopeAsync();
+
+                AssertService<BasicCascadingFilter<TestContentType>>(scope, ServiceLifetime.Scoped);
+                AssertService<CloudExtractRefreshTaskCascadingFilter>(scope, ServiceLifetime.Scoped);
+                AssertService<CloudSubscriptionCascadingFilter>(scope, ServiceLifetime.Scoped);
+                AssertService<FavoriteCascadingFilter>(scope, ServiceLifetime.Scoped);
+                AssertService<ServerExtractRefreshTaskCascadingFilter>(scope, ServiceLifetime.Scoped);
+                AssertService<ServerSubscriptionCascadingFilter>(scope, ServiceLifetime.Scoped);
             }
         }
     }

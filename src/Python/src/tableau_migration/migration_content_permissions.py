@@ -21,6 +21,7 @@ from enum import IntEnum # noqa: E402, F401
 from tableau_migration.migration import PyContentReference # noqa: E402, F401
 from typing import (  # noqa: E402, F401
     Set,
+    Optional,
     Sequence
 )
 from uuid import UUID # noqa: E402, F401
@@ -65,13 +66,13 @@ class PyCapability():
 class PyGranteeType(IntEnum):
     """Enum of grantee types."""
     
-    """The group grantee type."""
+    #: The group grantee type.
     GROUP = 0
     
-    """The user grantee type."""
+    #: The user grantee type.
     USER = 1
     
-    """The group set grantee type."""
+    #: The group set grantee type.
     GROUP_SET = 2
     
 class PyGranteeCapability():
@@ -165,7 +166,7 @@ class PyPermissions(PyPermissionSet):
         self._dotnet = permissions
         
     @property
-    def parent_id(self) -> UUID:
+    def parent_id(self) -> Optional[UUID]:
         """The ID of the parent content item that is determining permissions, such as a locked project. The parent content can be one of the types in ParentContentTypeNames, and will be null if the permissions are determined by the content item directly."""
         return None if self._dotnet.ParentId is None else UUID(self._dotnet.ParentId.ToString())
     

@@ -21,8 +21,10 @@ using System.Collections.Immutable;
 using Microsoft.Extensions.DependencyInjection;
 using Tableau.Migration.Config;
 using Tableau.Migration.Content;
+using Tableau.Migration.Content.Schedules;
 using Tableau.Migration.Content.Schedules.Cloud;
 using Tableau.Migration.Content.Schedules.Server;
+using Tableau.Migration.Engine.Preparation;
 using Tableau.Migration.Content.Search;
 using Tableau.Migration.Engine.Actions;
 using Tableau.Migration.Engine.Conversion;
@@ -31,7 +33,6 @@ using Tableau.Migration.Engine.Endpoints.Caching;
 using Tableau.Migration.Engine.Endpoints.Search;
 using Tableau.Migration.Engine.Migrators;
 using Tableau.Migration.Engine.Migrators.Batch;
-using Tableau.Migration.Engine.Preparation;
 
 namespace Tableau.Migration.Engine.Pipelines
 {
@@ -136,6 +137,9 @@ namespace Tableau.Migration.Engine.Pipelines
                 case Type dataSource when dataSource == typeof(IDataSource):
                     return Services.GetRequiredService<ItemPublishContentBatchMigrator<TContent, IPublishableDataSource, IDataSourceDetails>>();
 
+                case Type flow when flow == typeof(IFlow):
+                    return Services.GetRequiredService<ItemPublishContentBatchMigrator<TContent, IPublishableFlow, IFlow>>();
+
                 case Type workbook when workbook == typeof(IWorkbook):
                     return Services.GetRequiredService<ItemPublishContentBatchMigrator<TContent, IPublishableWorkbook, IWorkbookDetails>>();
 
@@ -149,8 +153,8 @@ namespace Tableau.Migration.Engine.Pipelines
 
         /// <inheritdoc />
         public virtual IContentItemPreparer<TContent, TPublish> GetItemPreparer<TContent, TPrepare, TPublish>()
-            where TContent : class
-            where TPrepare : class
+            where TContent : class, IContentReference
+            where TPrepare : class, IContentReference
             where TPublish : class
         {
             switch (typeof(TContent))
@@ -161,6 +165,8 @@ namespace Tableau.Migration.Engine.Pipelines
                     return Services.GetRequiredService<SourceContentItemPreparer<TContent, TPublish>>();
                 case Type source when source == typeof(IServerExtractRefreshTask) && typeof(TPublish) == typeof(ICloudExtractRefreshTask):
                     return (IContentItemPreparer<TContent, TPublish>)Services.GetRequiredService<ExtractRefreshTaskServerToCloudPreparer>();
+                case Type source when source == typeof(IServerFlowRunTask) && typeof(TPublish) == typeof(ICloudFlowRunTask):
+                    return (IContentItemPreparer<TContent, TPublish>)Services.GetRequiredService<FlowRunTaskServerToCloudPreparer>();
                 default:
                     return Services.GetRequiredService<EndpointContentItemPreparer<TContent, TPrepare, TPublish>>();
             }

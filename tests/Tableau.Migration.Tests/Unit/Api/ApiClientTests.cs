@@ -54,7 +54,7 @@ namespace Tableau.Migration.Tests.Unit.Api
         public class GetServerInfoAsync : ApiClientTest
         {
             [Fact]
-            public async Task Returns_server_info()
+            public async Task ReturnsServerInfoAsync()
             {
                 MockSessionProvider.SetupGet(p => p.Version).Returns((TableauServerVersion?)null);
 
@@ -76,7 +76,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async Task Uses_configured_Rest_Api_version()
+            public async Task UsesConfiguredRestApiVersionAsync()
             {
                 var originalVersion = TableauServerVersion;
 
@@ -98,7 +98,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async Task Returns_error()
+            public async Task ReturnsErrorAsync()
             {
                 var serverInfoResponse = AutoFixture.CreateErrorResponse<ServerInfoResponse>();
 
@@ -121,7 +121,7 @@ namespace Tableau.Migration.Tests.Unit.Api
         public class SignInAsync : ApiClientTest
         {
             [Fact]
-            public async Task Returns_site_client()
+            public async Task ReturnsSiteClientAsync()
             {
                 var signInResponse = AutoFixture.CreateResponse<SignInResponse>();
 
@@ -171,7 +171,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async Task Gets_Rest_Api_version_if_not_set()
+            public async Task GetsRestApiVersionIfNotSetAsync()
             {
                 MockSessionProvider.SetupGet(p => p.Version).Returns((TableauServerVersion?)null);
 
@@ -200,7 +200,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async Task Returns_error()
+            public async Task ReturnsErrorAsync()
             {
                 var signInResponse = AutoFixture.CreateErrorResponse<SignInResponse>();
 
@@ -224,7 +224,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             [InlineData(HttpStatusCode.Forbidden, TableauInstanceType.Unknown)]
             [InlineData(HttpStatusCode.NotFound, TableauInstanceType.Unknown)]
             [InlineData(HttpStatusCode.Redirect, TableauInstanceType.Unknown)]
-            public async Task Returns_correct_instance_type(HttpStatusCode statusCode, TableauInstanceType expectedInstanceType)
+            public async Task ReturnsCorrectInstanceTypeAsync(HttpStatusCode statusCode, TableauInstanceType expectedInstanceType)
             {
                 var mockSitesResponse = new MockHttpResponseMessage();
                 mockSitesResponse.Setup(p => p.StatusCode).Returns(statusCode);
@@ -239,7 +239,7 @@ namespace Tableau.Migration.Tests.Unit.Api
                 request.AssertRelativeUri($"/api/{TableauServerVersion.RestApiVersion}/sites");
             }
             [Fact]
-            public async Task Returns_cloud_instance_type()
+            public async Task ReturnsCloudInstanceTypeAsync()
             {
                 var mockSitesResponse = new MockHttpResponseMessage();
                 var tsResponse = new EmptyTableauServerResponse(
@@ -281,7 +281,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async Task Returns_error()
+            public async Task ReturnsErrorAsync()
             {
                 var sessionResponse = AutoFixture.CreateErrorResponse<ServerSessionResponse>();
                 var mockResponse = new MockHttpResponseMessage<ServerSessionResponse>(sessionResponse);

@@ -52,14 +52,24 @@ class TestManifestSaveLoad(AutoFixtureTestBase):
 
 from enum import IntEnum # noqa: E402, F401
 from tableau_migration.migration import (  # noqa: E402, F401
-    PyContentLocation,
-    PyContentReference
+    PyContentReference,
+    PyContentLocation
+)
+from typing import (  # noqa: E402, F401
+    Optional,
+    Sequence
 )
 from typing_extensions import Self # noqa: E402, F401
 
-from Tableau.Migration.Engine.Manifest import IMigrationManifestEntryEditor # noqa: E402, F401
+import System # noqa: E402
+
+from Tableau.Migration.Engine.Manifest import (  # noqa: E402, F401
+    IMigrationManifestEntry,
+    IMigrationManifestEntryEditor
+)
 
 from tableau_migration.migration_engine_manifest import (  # noqa: E402, F401
+    PyMigrationManifestEntry,
     PyMigrationManifestEntryEditor,
     PyMigrationManifestEntryStatus
 )
@@ -70,6 +80,54 @@ from Tableau.Migration.Engine.Manifest import MigrationManifestEntryStatus
 # Extra imports for tests.
 from tests.helpers.autofixture import AutoFixtureTestBase # noqa: E402, F401
 
+class TestPyMigrationManifestEntryGenerated(AutoFixtureTestBase):
+    
+    def test_ctor(self):
+        dotnet = self.create(IMigrationManifestEntry)
+        py = PyMigrationManifestEntry(dotnet)
+        assert py._dotnet == dotnet
+    
+    def test_source_getter(self):
+        dotnet = self.create(IMigrationManifestEntry)
+        py = PyMigrationManifestEntry(dotnet)
+        assert py.source == None if dotnet.Source is None else PyContentReference(dotnet.Source)
+    
+    def test_mapped_location_getter(self):
+        dotnet = self.create(IMigrationManifestEntry)
+        py = PyMigrationManifestEntry(dotnet)
+        assert py.mapped_location == None if dotnet.MappedLocation is None else PyContentLocation(dotnet.MappedLocation)
+    
+    def test_destination_getter(self):
+        dotnet = self.create(IMigrationManifestEntry)
+        py = PyMigrationManifestEntry(dotnet)
+        assert py.destination == None if dotnet.Destination is None else PyContentReference(dotnet.Destination)
+    
+    def test_status_getter(self):
+        dotnet = self.create(IMigrationManifestEntry)
+        py = PyMigrationManifestEntry(dotnet)
+        assert py.status.value == (None if dotnet.Status is None else PyMigrationManifestEntryStatus(dotnet.Status.value__)).value
+    
+    def test_has_migrated_getter(self):
+        dotnet = self.create(IMigrationManifestEntry)
+        py = PyMigrationManifestEntry(dotnet)
+        assert py.has_migrated == dotnet.HasMigrated
+    
+    def test_cascade_skip_getter(self):
+        dotnet = self.create(IMigrationManifestEntry)
+        py = PyMigrationManifestEntry(dotnet)
+        assert py.cascade_skip == dotnet.CascadeSkip
+    
+    def test_errors_getter(self):
+        dotnet = self.create(IMigrationManifestEntry)
+        py = PyMigrationManifestEntry(dotnet)
+        assert dotnet.Errors.Count != 0
+        assert len(py.errors) == dotnet.Errors.Count
+    
+    def test_skipped_reason_getter(self):
+        dotnet = self.create(IMigrationManifestEntry)
+        py = PyMigrationManifestEntry(dotnet)
+        assert py.skipped_reason == dotnet.SkippedReason
+    
 class TestPyMigrationManifestEntryEditorGenerated(AutoFixtureTestBase):
     
     def test_ctor(self):

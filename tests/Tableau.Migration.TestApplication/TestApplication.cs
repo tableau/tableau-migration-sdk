@@ -1,4 +1,4 @@
-﻿//
+//
 //  Copyright (c) 2026, Salesforce, Inc.
 //  SPDX-License-Identifier: Apache-2
 //  
@@ -43,6 +43,7 @@ namespace Tableau.Migration.TestApplication
         private IServerToCloudMigrationPlanBuilder _planBuilder;
         private readonly IMigrator _migrator;
         private readonly TestApplicationOptions _options;
+        private readonly CommandLineOptions _commandLineOptions;
         private readonly ILogger<TestApplication> _logger;
         private readonly MigrationManifestSerializer _manifestSerializer;
 
@@ -53,6 +54,7 @@ namespace Tableau.Migration.TestApplication
             IMigrationPlanBuilder planBuilder,
             IMigrator migrator,
             IOptions<TestApplicationOptions> options,
+            CommandLineOptions commandLineOptions,
             ILogger<TestApplication> logger,
             MigrationManifestSerializer manifestSerializer)
         {
@@ -62,6 +64,7 @@ namespace Tableau.Migration.TestApplication
             _planBuilder = planBuilder.ForServerToCloud();
             _migrator = migrator;
             _options = options.Value;
+            _commandLineOptions = commandLineOptions;
             _logger = logger;
             _manifestSerializer = manifestSerializer;
 
@@ -98,8 +101,7 @@ namespace Tableau.Migration.TestApplication
                 if (contentType is null)
                 {
                     _logger.LogCritical($"Could not find type Tableau.Migration.Content.{skipTypeStr} to skip.");
-                    Console.WriteLine("Press any key to exit");
-                    Console.ReadKey();
+                    ConsolePromptHelper.WaitForExitIfInteractive();
                     _appLifetime.StopApplication();
                     return;
                 }
@@ -192,33 +194,38 @@ namespace Tableau.Migration.TestApplication
 
             _logger.LogInformation(MigrationSummaryBuilder.Build(result, startTime, endTime, _timer.Elapsed));
 
-            Console.WriteLine("Press any key to exit");
-            Console.ReadKey();
+            ConsolePromptHelper.WaitForExitIfInteractive();
             _appLifetime.StopApplication();
         }
 
         private void AskIfTsmHasBeenRun()
         {
-            ConsoleKey key;
-            do
+            if (_commandLineOptions.CredentialMigrationEnabled)
             {
-                Console.Write("Has the ");
-                Console.ForegroundColor = ConsoleColor.Blue;
-                Console.Write("tsm security authorize-credential");
-                Console.ResetColor();
-                Console.Write(" command been run? [Y/n] ");
-                key = Console.ReadKey().Key;
-                Console.WriteLine();
-            } while (key is not ConsoleKey.Enter && key is not ConsoleKey.Y && key is not ConsoleKey.N);
-
-            if (key is ConsoleKey.N)
-            {
-                Console.WriteLine("Please run the tsm command before proceeding.");
-                Console.WriteLine("Press any key to exit");
-                Console.ReadKey();
-                _appLifetime.StopApplication();
+                _logger.LogInformation($"{CommandLineArgKeys.CredentialMigrationEnabled} flag detected. Skipping tsm authorize-credential prompt.");
                 return;
             }
+
+            var key = ConsolePromptHelper.ReadYesNo(
+                prompt: "Has the tsm security authorize-credential command been run? [Y/n] ",
+                interactivePromptRenderer: () =>
+                {
+                    Console.Write("Has the ");
+                    Console.ForegroundColor = ConsoleColor.Blue;
+                    Console.Write("tsm security authorize-credential");
+                    Console.ResetColor();
+                    Console.Write(" command been run? [Y/n] ");
+                });
+
+            if (key.IsYes())
+            {
+                return;
+            }
+
+            Console.WriteLine("Please run the tsm command before proceeding.");
+            ConsolePromptHelper.WaitForExitIfInteractive();
+            _appLifetime.StopApplication();
+            return;
         }
 
         public Task StopAsync(CancellationToken cancel) => Task.CompletedTask;
@@ -229,24 +236,26 @@ namespace Tableau.Migration.TestApplication
             var manifest = await _manifestSerializer.LoadAsync(manifestFilepath, cancel);
             if (manifest is not null)
             {
-                ConsoleKey key;
-                do
+                if (_commandLineOptions.UseExistingManifest)
                 {
-                    Console.Write($"Existing Manifest found at {manifestFilepath}. Should it be used? [Y/n] ");
-                    key = Console.ReadKey().Key;
-                    Console.WriteLine(); // make Console logs prettier
-                } while (key is not ConsoleKey.Enter && key is not ConsoleKey.Y && key is not ConsoleKey.N);
-
-                if (key is ConsoleKey.N)
-                {
-                    return null;
+                    _logger.LogInformation($"{CommandLineArgKeys.UseExistingManifest} flag detected. Using previous manifest from {manifestFilepath}");
+                    return manifest;
                 }
 
-                _logger.LogInformation($"Using previous manifest from {manifestFilepath}");
-                return manifest;
+                var key = ConsolePromptHelper.ReadYesNo(
+                    $"Existing Manifest found at {manifestFilepath}. Should it be used? [Y/n] ");
+
+                if (key.IsYes())
+                {
+                    _logger.LogInformation($"Using previous manifest from {manifestFilepath}");
+                    return manifest;
+                }
+
+                return null;
             }
 
             return null;
         }
+
     }
 }

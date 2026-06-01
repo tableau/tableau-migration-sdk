@@ -22,7 +22,7 @@ license = "Apache-2.0"
 dependencies = [
     "typing_extensions==4.15.0",
     "cffi==2.0.0",
-    "pycparser==2.23",
+    "pycparser==3.0",
     "pythonnet==3.0.5"
 ]
 
@@ -35,7 +35,7 @@ validate-bump = false
 
 [tool.hatch.envs.docs]
 dependencies = [
-  "sphinx-markdown-builder==0.6.8"
+  "sphinx-markdown-builder==0.6.9"
 ]
 
 [tool.hatch.envs.docs.scripts]

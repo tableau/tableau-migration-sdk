@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
 using Tableau.Migration.Content;
-using Tableau.Migration.Engine;
 using Tableau.Migration.Engine.Hooks.Filters;
 using Tableau.Migration.Resources;
 
@@ -14,9 +13,12 @@ namespace Csharp.ExampleApplication.Hooks.Filters
             ILogger<IContentFilter<ICustomView>> logger)
                 : base(localizer, logger) { }
 
-        public override bool ShouldMigrate(ContentMigrationItem<ICustomView> item)
+        public override void Filter(ContentFilterContextItem<ICustomView> item)
         {
-            return !item.SourceItem.Shared;
+            if (item.SourceItem.Shared)
+            {
+                item.Status = FilterStatus.Skip;
+            }
         }
     }
     #endregion

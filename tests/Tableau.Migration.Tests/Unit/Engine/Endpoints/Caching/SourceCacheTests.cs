@@ -87,6 +87,12 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints.Caching
                 Assert.Equal(manifestEntries, ManifestPartition);
 
                 MockMappingRunner.Verify(x => x.ExecuteAsync(It.IsAny<ContentMappingContext<TestContentType>>(), Cancel), Times.Never);
+
+                Assert.All(ManifestPartition, e =>
+                {
+                    Assert.NotEqual(MigrationManifestEntryStatus.Skipped, e.Status);
+                    Assert.Null(e.CascadeSkip);
+                });
             }
 
             [Fact]
@@ -103,14 +109,21 @@ namespace Tableau.Migration.Tests.Unit.Engine.Endpoints.Caching
                 
                 foreach(var sourceItem in EndpointContent)
                 {
-                    Assert.Contains(ManifestPartition, e => new ContentReferenceStub(sourceItem).Equals(e.Source));
+                    var sourceStub = new ContentReferenceStub(sourceItem);
+                    var manifestEntry = Assert.Single(ManifestPartition, e => sourceStub.Equals(e.Source));
 
                     if(itemsToAdd.Contains(sourceItem))
                     {
+                        Assert.Equal(MigrationManifestEntryStatus.Skipped, manifestEntry.Status);
+                        Assert.False(manifestEntry.CascadeSkip);
+
                         MockMappingRunner.Verify(x => x.ExecuteAsync(It.Is<ContentMappingContext<TestContentType>>(ctx => ctx.ContentItem == sourceItem), Cancel), Times.Once);
                     }
                     else
                     {
+                        Assert.NotEqual(MigrationManifestEntryStatus.Skipped, manifestEntry.Status);
+                        Assert.Null(manifestEntry.CascadeSkip);
+
                         MockMappingRunner.Verify(x => x.ExecuteAsync(It.Is<ContentMappingContext<TestContentType>>(ctx => ctx.ContentItem == sourceItem), Cancel), Times.Never);
                     }
                 }

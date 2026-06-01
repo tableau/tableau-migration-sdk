@@ -44,7 +44,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
         public class GetAllProjectsAsync : ProjectsApiClientTest
         {
             [Fact]
-            public async Task Returns_success_on_success()
+            public async Task ReturnsSuccessOnSuccessAsync()
             {
                 // Arrange 
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
@@ -65,7 +65,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
             }
 
             [Fact]
-            public async Task Returns_success_with_no_item_when_no_users_exist()
+            public async Task ReturnsSuccessWithNoItemWhenNoUsersExistAsync()
             {
                 // Arrange 
                 Api.Data.Projects.Clear();
@@ -84,7 +84,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
         public class GetPermissionsAsync : ProjectsApiClientTest
         {
             [Fact]
-            public async Task Returns_success_on_success()
+            public async Task ReturnsSuccessOnSuccessAsync()
             {
                 // Arrange 
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
@@ -138,7 +138,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
         public class CreateProjectAsync : ProjectsApiClientTest
         {
             [Fact]
-            public async Task Returns_success_on_success()
+            public async Task ReturnsSuccessOnSuccessAsync()
             {
                 // Arrange 
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
@@ -155,7 +155,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
             }
 
             [Fact]
-            public async Task Returns_success_for_child_project()
+            public async Task ReturnsSuccessForChildProjectAsync()
             {
                 // Arrange 
                 var parentProject = Create<ProjectsResponse.ProjectType>();
@@ -178,7 +178,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
         public class PublishAsync : ProjectsApiClientTest
         {
             [Fact]
-            public async Task Returns_success_on_success()
+            public async Task ReturnsSuccessOnSuccessAsync()
             {
                 // Arrange 
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
@@ -194,7 +194,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
             }
 
             [Fact]
-            public async Task Returns_success_for_child_project()
+            public async Task ReturnsSuccessForChildProjectAsync()
             {
                 // Arrange 
                 var parentProject = Create<ProjectsResponse.ProjectType>();

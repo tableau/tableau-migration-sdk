@@ -32,7 +32,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Preparation
                 var result = await preparer.PrepareAsync(Item, Cancel);
 
                 result.AssertSuccess();
-                Assert.Same(Item.SourceItem, result.Value);
+                Assert.Same(Item.SourceItem, result.PublishItem);
             }
         }
     }

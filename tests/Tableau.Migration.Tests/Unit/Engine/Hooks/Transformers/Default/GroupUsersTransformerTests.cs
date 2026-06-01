@@ -24,6 +24,7 @@ using Moq;
 using Tableau.Migration.Content;
 using Tableau.Migration.Engine.Endpoints.Search;
 using Tableau.Migration.Engine.Hooks.Transformers.Default;
+using Tableau.Migration.Engine.Manifest;
 using Tableau.Migration.Resources;
 using Xunit;
 
@@ -61,8 +62,8 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
                     var destinationUser = Create<IContentReference>();
                     destinationUsers.Add(destinationUser);
 
-                    MockUserContentFinder.Setup(x => x.FindBySourceLocationAsync(user.User.Location, Cancel))
-                        .ReturnsAsync(destinationUser);
+                    MockUserContentFinder.Setup(x => x.FindResultBySourceLocationAsync(user.User.Location, Cancel))
+                        .ReturnsAsync(new DestinationContentReferenceResult(MigrationManifestEntryStatus.Migrated, destinationUser));
                 }
 
                 var result = await Transformer.TransformAsync(group, Cancel);
@@ -73,8 +74,34 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.Transformers.Default
             }
 
             [Fact]
+            public async Task AutomaticCascadeFilterManyToManyAsync()
+            {
+                var group = Create<IPublishableGroup>();
+                group.Users = CreateMany<GroupUser>().Cast<IGroupUser>().ToList();
+
+                var destinationUsers = new List<IContentReference>();
+                foreach (var user in group.Users)
+                {
+                    var destinationUser = Create<IContentReference>();
+                    destinationUsers.Add(destinationUser);
+
+                    MockUserContentFinder.Setup(x => x.FindResultBySourceLocationAsync(user.User.Location, Cancel))
+                        .ReturnsAsync(new DestinationContentReferenceResult(MigrationManifestEntryStatus.Skipped, destinationUser));
+                }
+
+                var result = await Transformer.TransformAsync(group, Cancel);
+
+                Assert.NotNull(result);
+                Assert.Same(group, result);
+                Assert.Empty(result.Users);
+            }
+
+            [Fact]
             public async Task ThrowsWhenUserFoundAsync()
             {
+                MockUserContentFinder.Setup(x => x.FindResultBySourceLocationAsync(It.IsAny<ContentLocation>(), Cancel))
+                        .ReturnsAsync(DestinationContentReferenceResult.Empty);
+
                 var group = Create<IPublishableGroup>();
 
                 await Assert.ThrowsAsync<Exception>(() => Transformer.TransformAsync(group, Cancel));

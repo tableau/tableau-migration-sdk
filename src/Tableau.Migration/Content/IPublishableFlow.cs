@@ -21,6 +21,6 @@ namespace Tableau.Migration.Content
     /// Interface for a <see cref="IFlow"/> that has been downloaded
     /// and has full information necessary for re-publishing.
     /// </summary>
-    public interface IPublishableFlow : IFlow, IFileContent
+    public interface IPublishableFlow : IFlow, IFileContent, IConnectionsContent
     { }
 }

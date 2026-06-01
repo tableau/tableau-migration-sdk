@@ -240,7 +240,7 @@ namespace Tableau.Migration.Tests.Unit.Api
         public class SignOutAsync : SitesApiClientTest
         {
             [Fact]
-            public async Task Returns_success()
+            public async Task ReturnsSuccessAsync()
             {
                 MockSessionProvider.SetupGet(p => p.UserId).Returns(Guid.NewGuid());
 
@@ -260,7 +260,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async Task Returns_failure()
+            public async Task ReturnsFailureAsync()
             {
                 MockSessionProvider.SetupGet(p => p.UserId).Returns(Guid.NewGuid());
 
@@ -283,7 +283,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async Task Skips_when_no_current_user()
+            public async Task SkipsWhenNoCurrentUserAsync()
             {
                 MockSessionProvider.SetupGet(p => p.UserId).Returns((Guid?)null);
 
@@ -302,7 +302,7 @@ namespace Tableau.Migration.Tests.Unit.Api
         public class DisposeAsync : SitesApiClientTest
         {
             [Fact]
-            public async Task Signs_out()
+            public async Task SignsOutAsync()
             {
                 MockSessionProvider.SetupGet(p => p.UserId).Returns(Guid.NewGuid());
 
@@ -320,7 +320,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async Task Catches_errors()
+            public async Task CatchesErrorsAsync()
             {
                 MockSessionProvider.SetupGet(p => p.UserId).Returns(Guid.NewGuid());
 

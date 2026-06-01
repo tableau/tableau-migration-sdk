@@ -45,7 +45,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
             { }
 
             [Fact]
-            public async Task ForServer_Returns_ServerTasksApiClient()
+            public async Task ForServerReturnsServerTasksApiClientAsync()
             {
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
 
@@ -59,7 +59,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
             }
 
             [Fact]
-            public async Task ForCloud_Throws_Exception()
+            public async Task ForCloudThrowsExceptionAsync()
             {
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
 
@@ -80,7 +80,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
             { }
 
             [Fact]
-            public async Task Returns_success_on_success()
+            public async Task ReturnsSuccessOnSuccessAsync()
             {
                 // Arrange 
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
@@ -99,7 +99,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
             }
 
             [Fact]
-            public async Task Returns_success_with_empty()
+            public async Task ReturnsSuccessWithEmptyAsync()
             {
                 // Arrange 
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
@@ -124,7 +124,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
             { }
 
             [Fact]
-            public async Task ForServer_Throws_Exception()
+            public async Task ForServerThrowsExceptionAsync()
             {
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
 
@@ -138,7 +138,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
             }
 
             [Fact]
-            public async Task ForCloud_Returns_CloudTasksApiClient()
+            public async Task ForCloudReturnsCloudTasksApiClientAsync()
             {
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
 
@@ -159,7 +159,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
             { }
 
             [Fact]
-            public async Task Returns_success_on_success()
+            public async Task ReturnsSuccessOnSuccessAsync()
             {
                 // Arrange 
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
@@ -178,7 +178,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
             }
 
             [Fact]
-            public async Task Returns_success_with_empty()
+            public async Task ReturnsSuccessWithEmptyAsync()
             {
                 // Arrange 
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
@@ -199,7 +199,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
             { }
 
             [Fact]
-            public async Task Returns_success_on_workbook_extract_refresh()
+            public async Task ReturnsSuccessOnWorkbookExtractRefreshAsync()
             {
                 // Arrange
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
@@ -253,7 +253,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
             }
 
             [Fact]
-            public async Task Returns_success_on_datasource_extract_refresh()
+            public async Task ReturnsSuccessOnDatasourceExtractRefreshAsync()
             {
                 // Arrange
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
@@ -314,7 +314,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
             { }
 
             [Fact]
-            public async Task Returns_success_on_existing_workbook_extract_refresh()
+            public async Task ReturnsSuccessOnExistingWorkbookExtractRefreshAsync()
             {
                 // Arrange
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
@@ -337,7 +337,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
             }
 
             [Fact]
-            public async Task Returns_success_on_existing_datasource_extract_refresh()
+            public async Task ReturnsSuccessOnExistingDatasourceExtractRefreshAsync()
             {
                 // Arrange
                 await using var sitesClient = await GetSitesClientAsync(Cancel);

@@ -1,6 +1,6 @@
 # Sample: Changing Default Users for Custom View
 
-This sample illustrates how to change the default users for a custom view
+This sample illustrates how to change the default users for a custom view.
 
 Both the Python and C# transformer classes inherit from a base class that handles the core functionality, then create versions for `IPublishableCustomView`.
 

@@ -21,11 +21,15 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Tableau.Migration.Api.EmbeddedCredentials;
 using Tableau.Migration.Api.Models;
 using Tableau.Migration.Api.Paging;
+using Tableau.Migration.Api.Permissions;
 using Tableau.Migration.Api.Publishing;
 using Tableau.Migration.Api.Rest;
+using Tableau.Migration.Api.Rest.Models.Requests;
 using Tableau.Migration.Api.Rest.Models.Responses;
+using Tableau.Migration.Api.Tags;
 using Tableau.Migration.Content;
 using Tableau.Migration.Content.Files;
 using Tableau.Migration.Content.Search;
@@ -40,6 +44,7 @@ namespace Tableau.Migration.Api
     {
         private readonly IContentFileStore _fileStore;
         private readonly IFlowPublisher _flowPublisher;
+        private readonly IConnectionManager _connectionManager;
 
         public FlowsApiClient(
             IRestRequestBuilderFactory restRequestBuilderFactory,
@@ -47,12 +52,41 @@ namespace Tableau.Migration.Api
             ILoggerFactory loggerFactory,
             ISharedResourcesLocalizer sharedResourcesLocalizer,
             IContentFileStore fileStore,
-            IFlowPublisher flowPublisher)
+            IFlowPublisher flowPublisher,
+            IConnectionManager connectionManager,
+            IPermissionsApiClientFactory permissionsClientFactory,
+            IEmbeddedCredentialsApiClientFactory embeddedCredentialsApiClientFactory,
+            ITagsApiClientFactory tagsClientFactory)
             : base(restRequestBuilderFactory, finderFactory, loggerFactory, sharedResourcesLocalizer)
         {
             _fileStore = fileStore;
             _flowPublisher = flowPublisher;
+            _connectionManager = connectionManager;
+            Permissions = permissionsClientFactory.Create(this);
+            EmbeddedCredentials = embeddedCredentialsApiClientFactory.Create(this);
+            Tags = tagsClientFactory.Create(this);
         }
+
+        #region - IPermissionsContentApiClient Implementation -
+
+        /// <inheritdoc />
+        public IPermissionsApiClient Permissions { get; }
+
+        #endregion
+
+        #region - IEmbeddedCredentialsContentApiClient Implementation -
+
+        /// <inheritdoc />
+        public IEmbeddedCredentialsApiClient EmbeddedCredentials { get; }
+
+        #endregion
+
+        #region - ITagsContentApiClient Implementation -
+
+        /// <inheritdoc />
+        public ITagsApiClient Tags { get; }
+
+        #endregion
 
         private async Task<IPagedResult<IFlow>> GetAllFlowsAsync(int pageNumber, int pageSize, IEnumerable<Filter> filters, CancellationToken cancel)
         {
@@ -82,7 +116,7 @@ namespace Tableau.Migration.Api
                         }
                     }
 
-                    // Produce immutable list of type IDataSource and return.
+                    // Produce immutable list of type IFlow and return.
                     return (IImmutableList<IFlow>)results.ToImmutable();
                 }, SharedResourcesLocalizer, cancel)
                 .ConfigureAwait(false);
@@ -110,6 +144,27 @@ namespace Tableau.Migration.Api
         /// <inheritdoc />
         public async Task<IResult<IFlow>> PublishFlowAsync(IPublishFlowOptions options, CancellationToken cancel)
             => await _flowPublisher.PublishAsync(options, cancel).ConfigureAwait(false);
+
+        /// <inheritdoc />
+        public async Task<IResult<IUpdateFlowResult>> UpdateFlowAsync(
+            Guid flowId,
+            CancellationToken cancel,
+            Guid? newProjectId = null,
+            Guid? newOwnerId = null)
+        {
+            var updateResult = await RestRequestBuilderFactory
+                .CreateUri($"{UrlPrefix}/{flowId.ToUrlSegment()}")
+                .ForPutRequest()
+                .WithXmlContent(
+                    new UpdateFlowRequest(
+                        newProjectId,
+                        newOwnerId))
+                .SendAsync<UpdateFlowResponse>(cancel)
+                .ToResultAsync<UpdateFlowResponse, IUpdateFlowResult>(r => new UpdateFlowResult(r), SharedResourcesLocalizer)
+                .ConfigureAwait(false);
+
+            return updateResult;
+        }
 
         #region - IApiPageAccessor<IFlow> Implementation -
 
@@ -149,11 +204,45 @@ namespace Tableau.Migration.Api
 
         #endregion
 
+        #region - IReadApiClient<IFlowDetails> Implementation -
+
+        /// <inheritdoc />
+        public async Task<IResult<IFlowDetails>> GetByIdAsync(Guid contentId, CancellationToken cancel)
+        {
+            var getResult = await RestRequestBuilderFactory
+                .CreateUri($"{UrlPrefix}/{contentId.ToUrlSegment()}")
+                .ForGetRequest()
+                .SendAsync<FlowResponse>(cancel)
+                .ToResultAsync(async (response, cancel) =>
+                {
+                    var flow = Guard.AgainstNull(response.Item, () => response.Item);
+
+                    // Copy the flow output steps from the response to the flow item
+                    flow.FlowOutputSteps = response.FlowOutputSteps;
+
+                    var project = await FindProjectAsync(flow, true, cancel).ConfigureAwait(false);
+                    var owner = await FindOwnerAsync(flow, true, cancel).ConfigureAwait(false);
+
+                    return (IFlowDetails)new FlowDetails(flow, project, owner);
+                }, SharedResourcesLocalizer, cancel)
+                .ConfigureAwait(false);
+
+            return getResult;
+        }
+
+        #endregion
+
         #region - IPullApiClient<IFlow, IPublishableFlow> Implementation -
 
         /// <inheritdoc />
         public async Task<IResult<IPublishableFlow>> PullAsync(IFlow contentItem, CancellationToken cancel)
         {
+            var connectionsResult = await GetConnectionsAsync(contentItem.Id, cancel).ConfigureAwait(false);
+            if (!connectionsResult.Success)
+            {
+                return connectionsResult.CastFailure<IPublishableFlow>();
+            }
+
             var downloadResult = await DownloadFlowAsync(contentItem.Id, cancel).ConfigureAwait(false);
             if (!downloadResult.Success)
             {
@@ -162,9 +251,27 @@ namespace Tableau.Migration.Api
 
             await using (downloadResult)
             {
-                var file = await _fileStore.CreateAsync(contentItem, downloadResult.Value, cancel).ConfigureAwait(false);
+                var file = await _fileStore.CreateAsync(
+                    contentItem,
+                    downloadResult.Value,
+                    cancel)
+                    .ConfigureAwait(false);
 
-                var publishableFlow = new PublishableFlow(contentItem, file);
+                /* If we throw/fail (even from cancellation) before we can return the file handle,
+                 * make sure the file is disposed. We clean up orphaned
+                 * files at the end of the DI scope, but we don't want to 
+                 * bloat disk usage when we're processing future pages of items.*/
+                var flowResult = await file.DisposeOnThrowOrFailureAsync(
+                    async () => await GetByIdAsync(contentItem.Id, cancel).ConfigureAwait(false)
+                ).ConfigureAwait(false);
+
+                if (!flowResult.Success)
+                {
+                    return flowResult.CastFailure<IPublishableFlow>();
+                }
+
+                var publishableFlow = new PublishableFlow(flowResult.Value, connectionsResult.Value, file);
+
                 return Result<IPublishableFlow>.Succeeded(publishableFlow);
             }
         }
@@ -176,6 +283,50 @@ namespace Tableau.Migration.Api
         /// <inheritdoc />
         public async Task<IResult<IFlow>> PublishAsync(IPublishableFlow item, CancellationToken cancel)
             => await PublishFlowAsync(new PublishFlowOptions(item), cancel).ConfigureAwait(false);
+
+        #endregion
+
+        #region - IOwnershipApiClient Implementation -
+
+        /// <inheritdoc />
+        public async Task<IResult> ChangeOwnerAsync(
+            Guid flowId,
+            Guid newOwnerId,
+            CancellationToken cancel)
+        {
+            var result = await UpdateFlowAsync(flowId, cancel, newOwnerId: newOwnerId)
+                .ConfigureAwait(false);
+
+            return result;
+        }
+
+        #endregion
+
+        #region - IConnectionsApiClient Implementation -
+
+        /// <inheritdoc/>
+        public async Task<IResult<ImmutableList<IConnection>>> GetConnectionsAsync(
+            Guid flowId,
+            CancellationToken cancel)
+            => await _connectionManager.ListConnectionsAsync(
+                UrlPrefix,
+                flowId,
+                cancel)
+                .ConfigureAwait(false);
+
+        /// <inheritdoc/>
+        public async Task<IResult<IConnection>> UpdateConnectionAsync(
+            Guid flowId,
+            Guid connectionId,
+            IUpdateConnectionOptions options,
+            CancellationToken cancel)
+            => await _connectionManager.UpdateConnectionAsync(
+                UrlPrefix,
+                flowId,
+                connectionId,
+                options,
+                cancel)
+                .ConfigureAwait(false);
 
         #endregion
     }

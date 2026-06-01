@@ -17,6 +17,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -25,6 +26,7 @@ using Tableau.Migration.Api.Paging;
 using Tableau.Migration.Api.Rest;
 using Tableau.Migration.Api.Rest.Models.Requests.Cloud;
 using Tableau.Migration.Api.Rest.Models.Responses;
+using Tableau.Migration.Content;
 using Tableau.Migration.Content.Schedules;
 using Tableau.Migration.Content.Schedules.Cloud;
 using Tableau.Migration.Content.Schedules.Server;
@@ -34,6 +36,7 @@ using Tableau.Migration.Net.Rest;
 using Tableau.Migration.Paging;
 using Tableau.Migration.Resources;
 
+using CloudRequests = Tableau.Migration.Api.Rest.Models.Requests.Cloud;
 using CloudResponses = Tableau.Migration.Api.Rest.Models.Responses.Cloud;
 using ServerResponses = Tableau.Migration.Api.Rest.Models.Responses.Server;
 
@@ -143,6 +146,71 @@ namespace Tableau.Migration.Api
                 .ConfigureAwait(false);
         }
 
+        /// <inheritdoc />
+        async Task<IResult<IImmutableList<ICloudFlowRunTask>>> ICloudTasksApiClient.GetAllFlowRunTasksAsync(CancellationToken cancel)
+        {
+            return await RestRequestBuilderFactory
+                .CreateUri($"{UrlPrefix}/runFlow")
+                .ForGetRequest()
+                .SendAsync<ServerResponses.FlowRunTasksResponse>(cancel)
+                .ToResultAsync(
+                    async (r, c) => await CloudFlowRunTask.CreateManyAsync(
+                        r,
+                        ContentFinderFactory,
+                        Logger,
+                        c)
+                        .ConfigureAwait(false),
+                    SharedResourcesLocalizer,
+                    cancel)
+                .ConfigureAwait(false);
+        }
+
+        /// <inheritdoc />
+        async Task<IResult<ICloudFlowRunTask>> ICloudTasksApiClient.CreateCloudFlowTaskAsync(
+            ICreateCloudFlowTaskOptions options,
+            CancellationToken cancel)
+        {
+            var result = await RestRequestBuilderFactory
+                .CreateUri($"{UrlPrefix}/{RestUrlKeywords.Flows}")
+                .ForPostRequest()
+                .WithXmlContent(new CloudRequests.CreateCloudFlowTaskRequest(options))
+                .SendAsync<CloudResponses.CreateCloudFlowTaskResponse>(cancel)
+                .ToResultAsync(async (r, c) =>
+                {
+                    var item = Guard.AgainstNull(r.Item, () => r.Item);
+                    var task = Guard.AgainstNull(item.FlowRun, () => item.FlowRun);
+                    var flow = Guard.AgainstNull(task.Flow, () => task.Flow);
+                    var schedule = Guard.AgainstNull(task.Schedule, () => task.Schedule);
+
+                    var finder = ContentFinderFactory.ForContentType<IFlow>();
+                    var flowReference = await finder.FindByIdAsync(flow.Id, cancel).ConfigureAwait(false);
+
+                    // Since we published with a flow reference, we expect the reference returned is valid/knowable.
+                    Guard.AgainstNull(flowReference, () => flowReference);
+
+                    return CloudFlowRunTask.Create(task, schedule, flowReference);
+                }, SharedResourcesLocalizer, cancel)
+                .ConfigureAwait(false);
+
+            return result;
+        }
+
+        /// <inheritdoc />
+        public async Task<IResult<ICloudFlowRunTask>> PublishAsync(
+            ICloudFlowRunTask item,
+            CancellationToken cancel)
+        {
+            var options = new CreateCloudFlowTaskOptions(
+                item.Flow.Id,
+                item.Schedule,
+                flowParameterSpecs: null,
+                flowOutputStepIds: null);
+
+            return await ForCloud()
+                .CreateCloudFlowTaskAsync(options, cancel)
+                .ConfigureAwait(false);
+        }
+
         #endregion
 
         #region - IServerTasksApiClient -
@@ -153,6 +221,25 @@ namespace Tableau.Migration.Api
                 (r, c) => ServerExtractRefreshTask.CreateManyAsync(r, ContentFinderFactory, _contentCacheFactory, Logger, SharedResourcesLocalizer, c),
                 cancel)
                 .ConfigureAwait(false);
+
+        /// <inheritdoc />
+        async Task<IResult<IImmutableList<IScheduleFlowRunTask>>> IServerTasksApiClient.GetAllFlowRunTasksAsync(CancellationToken cancel)
+        {
+            return await RestRequestBuilderFactory
+                .CreateUri($"{UrlPrefix}/runFlow")
+                .ForGetRequest()
+                .SendAsync<ServerResponses.FlowRunTasksResponse>(cancel)
+                .ToResultAsync(
+                    (r, c) => Task.FromResult<IImmutableList<IScheduleFlowRunTask>>(
+                        r.Items
+                            .Where(t => t.FlowRun != null)
+                            .Select(t => new ScheduleFlowRunTask(t.FlowRun!))
+                            .Cast<IScheduleFlowRunTask>()
+                            .ToImmutableList()),
+                    SharedResourcesLocalizer,
+                    cancel)
+                .ConfigureAwait(false);
+        }
 
         #endregion
 
@@ -187,6 +274,113 @@ namespace Tableau.Migration.Api
             }
 
             return PagedResult<IServerExtractRefreshTask>.Succeeded(
+                loadResult.Value!,
+                pageNumber,
+                loadResult.Value.Count,
+                loadResult.Value.Count,
+                true);
+        }
+
+        #endregion
+
+        #region - IPagedListApiClient<IServerFlowRunTask> Implementation -
+
+        /// <inheritdoc />
+        IPager<IServerFlowRunTask> IPagedListApiClient<IServerFlowRunTask>.GetPager(int pageSize)
+            => new ApiListPager<IServerFlowRunTask>(this, pageSize);
+
+        #endregion
+
+        #region - IApiPageAccessor<IServerFlowRunTask> Implementation -
+
+        /// <inheritdoc />
+        async Task<IPagedResult<IServerFlowRunTask>> IApiPageAccessor<IServerFlowRunTask>.GetPageAsync(int pageNumber, int pageSize, CancellationToken cancel)
+        {
+            if (pageNumber != 1)
+            {
+                return PagedResult<IServerFlowRunTask>.Succeeded(
+                    ImmutableArray<IServerFlowRunTask>.Empty,
+                    pageNumber,
+                    pageSize,
+                    0,
+                    true);
+            }
+
+            var loadResult = await RestRequestBuilderFactory
+                .CreateUri($"{UrlPrefix}/runFlow")
+                .ForGetRequest()
+                .SendAsync<ServerResponses.FlowRunTasksResponse>(cancel)
+                .ToResultAsync(
+                    async (r, c) => await ServerFlowRunTask.CreateManyAsync(
+                        r,
+                        ContentFinderFactory,
+                        _contentCacheFactory,
+                        Logger,
+                        c)
+                        .ConfigureAwait(false),
+                    SharedResourcesLocalizer,
+                    cancel)
+                .ConfigureAwait(false);
+
+            if (!loadResult.Success)
+            {
+                return PagedResult<IServerFlowRunTask>.Failed(loadResult.Errors);
+            }
+
+            return PagedResult<IServerFlowRunTask>.Succeeded(
+                loadResult.Value!,
+                pageNumber,
+                loadResult.Value.Count,
+                loadResult.Value.Count,
+                true);
+        }
+
+        #endregion
+
+        #region - IPagedListApiClient<ICloudFlowRunTask> Implementation -
+
+        /// <inheritdoc />
+        IPager<ICloudFlowRunTask> IPagedListApiClient<ICloudFlowRunTask>.GetPager(int pageSize)
+            => new ApiListPager<ICloudFlowRunTask>(this, pageSize);
+
+        #endregion
+
+        #region - IApiPageAccessor<ICloudFlowRunTask> Implementation -
+
+        /// <inheritdoc />
+        async Task<IPagedResult<ICloudFlowRunTask>> IApiPageAccessor<ICloudFlowRunTask>.GetPageAsync(int pageNumber, int pageSize, CancellationToken cancel)
+        {
+            if (pageNumber != 1)
+            {
+                return PagedResult<ICloudFlowRunTask>.Succeeded(
+                    ImmutableArray<ICloudFlowRunTask>.Empty,
+                    pageNumber,
+                    pageSize,
+                    0,
+                    true);
+            }
+
+            var loadResult = await RestRequestBuilderFactory
+                .CreateUri($"{UrlPrefix}/runFlow")
+                .ForGetRequest()
+                .SendAsync<ServerResponses.FlowRunTasksResponse>(cancel)
+                .ToResultAsync(
+                    async (r, c) => await CloudFlowRunTask.CreateManyAsync(
+                        r,
+                        ContentFinderFactory,
+                        Logger,
+                        c)
+                        .ConfigureAwait(false),
+                    SharedResourcesLocalizer,
+                    cancel)
+                .ConfigureAwait(false);
+
+            if (!loadResult.Success)
+            {
+                return PagedResult<ICloudFlowRunTask>.Failed(loadResult.Errors);
+            }
+
+            return PagedResult<ICloudFlowRunTask>.Succeeded(
                 loadResult.Value!,
                 pageNumber,
                 loadResult.Value.Count,

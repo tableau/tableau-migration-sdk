@@ -25,7 +25,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Preparation
 {
     public class EndpointContentItemPreparerTests
     {
-        public class PullAsync : ContentItemPreparerTestBase<TestContentType, TestPublishType>
+        public class PullAsync : ContentItemPreparerTestBase<TestContentType, TestPublishType, TestPublishType>
         {
             private readonly Mock<ISourceEndpoint> _mockSourceEndpoint;
             private readonly EndpointContentItemPreparer<TestContentType, TestPublishType, TestPublishType> _preparer;
@@ -46,7 +46,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Preparation
                 var result = await _preparer.PrepareAsync(Item, Cancel);
 
                 result.AssertSuccess();
-                Assert.Same(pullResult.Value, result.Value);
+                Assert.Same(pullResult.Value, result.PublishItem);
                 _mockSourceEndpoint.Verify(x => x.PullAsync<TestContentType, TestPublishType>(Item.SourceItem, Cancel), Times.Once);
             }
         }

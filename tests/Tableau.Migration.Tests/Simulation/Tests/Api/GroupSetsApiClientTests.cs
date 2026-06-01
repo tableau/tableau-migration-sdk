@@ -33,7 +33,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
         public class GetAllGroupSetsAsync : GroupSetsApiClientTest
         {
             [Fact]
-            public async Task Success()
+            public async Task SuccessAsync()
             {
                 // Arrange 
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
@@ -63,7 +63,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
         public class GetByIdAsync : GroupSetsApiClientTest
         {
             [Fact]
-            public async Task Returns_success_with_groups()
+            public async Task ReturnsSuccessWithGroupsAsync()
             {
                 // Arrange 
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
@@ -99,7 +99,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
         public class AddGroupToGroupSetAsync : GroupSetsApiClientTest
         {
             [Fact]
-            public async Task Adds_group_to_group_set()
+            public async Task AddsGroupToGroupSetAsync()
             {
                 // Arrange 
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
@@ -133,7 +133,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
         public class RemoveGroupFromGroupSetAsync : GroupSetsApiClientTest
         {
             [Fact]
-            public async Task Removes_group_from_group_set()
+            public async Task RemovesGroupFromGroupSetAsync()
             {
                 // Arrange 
                 await using var sitesClient = await GetSitesClientAsync(Cancel);

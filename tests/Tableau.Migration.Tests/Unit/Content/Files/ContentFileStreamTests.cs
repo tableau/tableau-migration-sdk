@@ -46,7 +46,7 @@ namespace Tableau.Migration.Tests.Unit.Content.Files
         public class Ctor
         {
             [Fact]
-            public async Task Initializes()
+            public async Task InitializesAsync()
             {
                 var stream = new MemoryStream();
                 await using var fileStream = new ContentFileStream(stream);
@@ -58,7 +58,7 @@ namespace Tableau.Migration.Tests.Unit.Content.Files
         public class DisposeAsync
         {
             [Fact]
-            public async Task DisposesStream()
+            public async Task DisposesStreamAsync()
             {
                 var stream = new TestStream();
                 var fileStream = new ContentFileStream(stream);

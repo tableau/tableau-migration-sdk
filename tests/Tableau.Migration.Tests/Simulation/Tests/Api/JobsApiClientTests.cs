@@ -31,7 +31,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
         public class GetJobStatusAsync : JobsApiClientTest
         {
             [Fact]
-            public async Task Returns_job_on_success()
+            public async Task ReturnsJobOnSuccessAsync()
             {
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
 
@@ -46,7 +46,7 @@ namespace Tableau.Migration.Tests.Simulation.Tests.Api
             }
 
             [Fact]
-            public async Task Returns_error_when_not_found()
+            public async Task ReturnsErrorWhenNotFoundAsync()
             {
                 await using var sitesClient = await GetSitesClientAsync(Cancel);
 

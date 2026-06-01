@@ -15,6 +15,7 @@
 
 """Interoperability utility for transformers."""
 
+import json
 from inspect import signature
 from typing import Callable, Generic, TypeVar
 from xml.etree import ElementTree
@@ -24,7 +25,7 @@ from migration_engine_hooks_interop import _PyHookWrapperBuilderBase
 
 import System # System.Xml.Linq must be imported as System
 from System.Threading.Tasks import Task
-from Tableau.Migration.Engine.Hooks.Transformers import ContentTransformerBase, IXmlContentTransformer
+from Tableau.Migration.Engine.Hooks.Transformers import ContentTransformerBase, IJsonContentTransformer, IXmlContentTransformer
 
 TPublish = TypeVar("TPublish")
 
@@ -132,6 +133,70 @@ class _PyXmlTransformerWrapperBuilder(_PyTransformerWrapperBuilder):
             return w._inner.needs_xml_transforming(wrap_context(ctx))
 
         members["NeedsXmlTransforming"] = _wrap_needs_transforming
+
+class _PyJsonTransformerWrapperBuilder(_PyTransformerWrapperBuilder):
+
+    @classmethod
+    def read_json(cls, json_node: System.Text.Json.Nodes.JsonNode):
+        return json.loads(json_node.ToJsonString())
+
+    @classmethod
+    def write_json(cls, orig_json: System.Text.Json.Nodes.JsonNode, new_json) -> None:
+        new_json_node = System.Text.Json.Nodes.JsonNode.Parse(json.dumps(new_json))
+
+        # Json transformers operate on file roots, which are expected to be JSON objects.
+        # Copy values into the original root so references held by the SDK remain valid.
+        if isinstance(orig_json, System.Text.Json.Nodes.JsonObject) and isinstance(new_json_node, System.Text.Json.Nodes.JsonObject):
+            orig_obj = orig_json.AsObject()
+            new_obj = new_json_node.AsObject()
+
+            orig_obj.Clear()
+            for kvp in new_obj:
+                value = None if kvp.Value is None else kvp.Value.DeepClone()
+                orig_obj.Add(kvp.Key, value)
+            return
+
+        raise TypeError("JSON transformer root must be a JSON object.")
+
+    def get_wrapper_base_type(self) -> type:
+        return IJsonContentTransformer[self.dotnet_publish_type]
+
+    def _wrap_execute_method(self) -> Callable:
+        def _wrap_transform_json(w):
+            return w._inner._transform_json
+
+        return _wrap_transform_json
+
+    def build_wrapper_execute(self, wrap_method: Callable, wrap_context: Callable, ctx_type: type, is_async: bool) -> Callable:
+        def _transform_async(s, ctx, json_node, cancel):
+            wrap_method(s)(wrap_context(ctx), json_node)
+            return Task.CompletedTask
+
+        return _transform_async
+
+    def build_wrapper_execute_callback(self, callback: Callable, wrap_context: Callable, ctx_type: type, is_async: bool) -> Callable:
+        def _transform_async(s, ctx, json_node, cancel):
+            py_json = self.read_json(json_node)
+            callback(wrap_context(ctx), py_json)
+            self.write_json(json_node, py_json)
+
+            return Task.CompletedTask
+
+        def _transform_services_async(s, ctx, json_node, cancel):
+            py_json = self.read_json(json_node)
+            callback(wrap_context(ctx), py_json, s.services)
+            self.write_json(json_node, py_json)
+
+            return Task.CompletedTask
+
+        return _transform_async if len(signature(callback).parameters) == 2 else _transform_services_async
+
+    def set_extra_wrapper_members(self, members: dict, wrap_context: Callable) -> None:
+
+        def _wrap_needs_transforming(w, ctx):
+            return w._inner.needs_json_transforming(wrap_context(ctx))
+
+        members["NeedsJsonTransforming"] = _wrap_needs_transforming
     
 class PyXmlContentTransformerBase(Generic[TPublish]):
     """Generic base class for XML transformers."""
@@ -159,5 +224,34 @@ class PyXmlContentTransformerBase(Generic[TPublish]):
         Args:
             ctx: The content item being transformed.
             xml: The XML of the content item to transform. Any changes made to the XML are persisted back to the file before publishing.
+        """
+        pass
+
+class PyJsonContentTransformerBase(Generic[TPublish]):
+    """Generic base class for JSON transformers."""
+
+    _wrapper_builder = _PyJsonTransformerWrapperBuilder
+
+    def needs_json_transforming(self, ctx: TPublish) -> bool:
+        """Finds whether the content item needs any JSON changes, returning false prevents file IO from occurring.
+
+        Args:
+            ctx: The content item to inspect.
+
+        Returns: Whether or not the content item needs JSON changes.
+        """
+        return True
+
+    def _transform_json(self, ctx: TPublish, json_node) -> None:
+        py_json = _PyJsonTransformerWrapperBuilder.read_json(json_node)
+        self.transform(ctx, py_json)
+        _PyJsonTransformerWrapperBuilder.write_json(json_node, py_json)
+
+    def transform(self, ctx: TPublish, json_obj) -> None:
+        """Transforms the JSON of the content item.
+
+        Args:
+            ctx: The content item being transformed.
+            json_obj: The JSON of the content item to transform. Any changes made to the JSON are persisted back to the file before publishing.
         """
         pass

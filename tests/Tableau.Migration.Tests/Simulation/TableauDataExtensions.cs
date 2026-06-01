@@ -26,6 +26,7 @@ using Tableau.Migration.Api.Rest.Models.Responses.Server;
 using Tableau.Migration.Api.Rest.Models.Types;
 using Tableau.Migration.Api.Simulation;
 using Tableau.Migration.Net;
+using Tableau.Migration.Tests.Simulation.DataPreparation;
 using CloudResponse = Tableau.Migration.Api.Rest.Models.Responses.Cloud;
 
 namespace Tableau.Migration.Tests.Simulation
@@ -533,14 +534,35 @@ namespace Tableau.Migration.Tests.Simulation
             return simulatedWorkbook;
         }
 
-        public static FlowsResponse.FlowType CreateFlow(this TableauData data, IFixture autoFixture)
+        public static FlowResponse.FlowType CreateFlow(
+            this TableauData data,
+            IFixture autoFixture,
+            ProjectsResponse.ProjectType project,
+            UsersResponse.UserType user,
+            byte[]? fileData = null)
         {
-            var flow = autoFixture.Build<FlowsResponse.FlowType>()
+            var flow = autoFixture.Build<FlowResponse.FlowType>()
+                .With(f => f.Project, new FlowResponse.FlowType.ProjectType
+                {
+                    Id = project.Id,
+                    Name = project.Name
+                })
+                .With(f => f.Owner, new FlowResponse.FlowType.OwnerType()
+                {
+                    Id = user.Id
+                })
                 .Create();
 
-            data.AddFlow(flow);
+            fileData ??= Constants.DefaultEncoding.GetBytes(FlowsDataPreparation.MinimalFlowJson);
+
+            data.AddFlow(flow, fileData);
 
             return flow;
+        }
+
+        public static FlowResponse.FlowType CreateFlow(this TableauData data, IFixture autoFixture)
+        {
+            return data.CreateFlow(autoFixture, data.CreateProject(autoFixture), data.CreateUser(autoFixture));
         }
     }
 }

@@ -83,7 +83,7 @@ namespace Tableau.Migration.ManifestExplorer.ViewModels
             IsLoading = false;
         }
 
-        public async void Initialize(string[] args)
+        public async void InitializeAsync(string[] args)
         {
             if (args.Length > 0 && !string.IsNullOrEmpty(args[0]))
             {

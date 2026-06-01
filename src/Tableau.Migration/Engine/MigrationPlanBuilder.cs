@@ -24,14 +24,15 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Tableau.Migration.Api.Simulation;
 using Tableau.Migration.Content;
-using Tableau.Migration.Content.Files;
 using Tableau.Migration.Content.Permissions;
 using Tableau.Migration.Content.Schedules.Cloud;
+using Tableau.Migration.Content.Schedules.Server;
 using Tableau.Migration.Engine.Endpoints;
 using Tableau.Migration.Engine.Endpoints.Caching;
 using Tableau.Migration.Engine.Hooks;
 using Tableau.Migration.Engine.Hooks.Filters;
 using Tableau.Migration.Engine.Hooks.Filters.Default;
+using Tableau.Migration.Engine.Hooks.Filters.Default.Cascade;
 using Tableau.Migration.Engine.Hooks.InitializeMigration.Default;
 using Tableau.Migration.Engine.Hooks.Mappings;
 using Tableau.Migration.Engine.Hooks.Mappings.Default;
@@ -58,7 +59,7 @@ namespace Tableau.Migration.Engine
         private ServerToCloudMigrationPlanBuilder? _serverToCloudBuilder;
 
         private PipelineProfile _pipelineProfile;
-        private IImmutableList<MigrationPipelineContentType> _supportedContentTypes = ImmutableArray<MigrationPipelineContentType>.Empty;
+        private IImmutableDictionary<Type, MigrationPipelineContentType> _supportedContentTypes = ImmutableDictionary<Type, MigrationPipelineContentType>.Empty;
 
         /// <summary>
         /// Creates a new <see cref="MigrationPlanBuilder"/> object.
@@ -176,6 +177,24 @@ namespace Tableau.Migration.Engine
             void AppendDefaultFilters()
             {
                 Filters.Add(typeof(PreviouslyMigratedFilter<>), GetAllContentTypes());
+
+                // Cascading filters.
+                Filters.Add<BasicCascadingFilter<IProject>, IProject>();
+                Filters.Add<BasicCascadingFilter<IDataSource>, IDataSource>();
+                Filters.Add<BasicCascadingFilter<IWorkbook>, IWorkbook>();
+                Filters.Add<BasicCascadingFilter<ICustomView>, ICustomView>();
+                Filters.Add<FavoriteCascadingFilter, IFavorite>();
+
+                if (HasContentType<IServerExtractRefreshTask>())
+                    Filters.Add<ServerExtractRefreshTaskCascadingFilter, IServerExtractRefreshTask>();
+                if (HasContentType<ICloudExtractRefreshTask>())
+                    Filters.Add<CloudExtractRefreshTaskCascadingFilter, ICloudExtractRefreshTask>();
+
+                if (HasContentType<IServerSubscription>())
+                    Filters.Add<ServerSubscriptionCascadingFilter, IServerSubscription>();
+                if (HasContentType<ICloudSubscription>())
+                    Filters.Add<CloudSubscriptionCascadingFilter, ICloudSubscription>();
+
                 Filters.Add<GroupAllUsersFilter, IGroup>();
                 Filters.Add(typeof(SystemOwnershipFilter<>), GetContentTypesByInterface<IWithOwner>());
                 Filters.Add<FavoriteFilter, IFavorite>();
@@ -211,6 +230,8 @@ namespace Tableau.Migration.Engine
                 Transformers.Add<SubscriptionTransformer, ICloudSubscription>();
                 Transformers.Add<FavoriteTransformer, IFavorite>();
                 Transformers.Add<PermissionsTransformer, IPermissionSet>();
+                Transformers.Add<TableauServerConnectionUrlFlowTransformer, IPublishableFlow>();
+                Transformers.Add<FlowRunTaskFlowIdTransformer, ICloudFlowRunTask>();
             }
         }
 
@@ -310,20 +331,23 @@ namespace Tableau.Migration.Engine
         private void SetPipelineProfile(PipelineProfile pipelineProfile, IEnumerable<MigrationPipelineContentType> supportedContentTypes)
         {
             _pipelineProfile = pipelineProfile;
-            _supportedContentTypes = supportedContentTypes.ToImmutableArray();
+            _supportedContentTypes = supportedContentTypes.ToImmutableDictionary(t => t.ContentType, t => t);
         }
 
         private IImmutableList<Type[]> GetAllContentTypes()
-            => _supportedContentTypes.Select(t => new[] { t.ContentType }).ToImmutableArray();
+            => _supportedContentTypes.Keys.Select(t => new[] { t }).ToImmutableArray();
+
+        private bool HasContentType<TContent>()
+            => _supportedContentTypes.ContainsKey(typeof(TContent));
 
         private IImmutableList<Type[]> GetContentTypesByInterface<TInterface>()
-            => _supportedContentTypes.WithContentTypeInterface<TInterface>();
+            => _supportedContentTypes.Values.WithContentTypeInterface<TInterface>();
 
         private IImmutableList<Type[]> GetPostPublishTypesByInterface<TInterface>()
-            => _supportedContentTypes.WithPostPublishTypeInterface<TInterface>();
+            => _supportedContentTypes.Values.WithPostPublishTypeInterface<TInterface>();
 
         private IImmutableList<Type[]> GetPublishTypesByInterface<TInterface>()
-            => _supportedContentTypes.WithPublishTypeInterface<TInterface>();
+            => _supportedContentTypes.Values.WithPublishTypeInterface<TInterface>();
 
         private IResult ValidateHookContentTypes()
         {
@@ -338,7 +362,7 @@ namespace Tableau.Migration.Engine
             var listContentTypes = GetListContentTypes();
             var publishContentTypes = GetPublishContentTypes();
 
-            errors.AddRange(ValidateFilterContentTypes(listContentTypes));
+            errors.AddRange(ValidateFilterContentTypes(listContentTypes, publishContentTypes));
             errors.AddRange(ValidateMappingContentTypes(listContentTypes));
             errors.AddRange(ValidateTransformerContentTypes(listContentTypes, publishContentTypes));
 
@@ -346,18 +370,18 @@ namespace Tableau.Migration.Engine
         }
 
         internal ImmutableHashSet<Type> GetListContentTypes()
-            => _supportedContentTypes.Select(x => x.ContentType).ToImmutableHashSet();
+            => _supportedContentTypes.Keys.ToImmutableHashSet();
 
         internal ImmutableHashSet<Type> GetPublishContentTypes()
-            => _supportedContentTypes.Select(x => x.PublishType).ToImmutableHashSet();
+            => _supportedContentTypes.Values.Select(x => x.PublishType).ToImmutableHashSet();
 
-        internal List<ValidationException> ValidateFilterContentTypes(ImmutableHashSet<Type> listContentTypes)
+        internal List<ValidationException> ValidateFilterContentTypes(ImmutableHashSet<Type> listContentTypes, ImmutableHashSet<Type> publishContentTypes)
         {
             var errors = new List<ValidationException>();
 
             foreach (var filterType in Filters.ByContentType())
             {
-                if (listContentTypes.Contains(filterType.Key))
+                if (listContentTypes.Contains(filterType.Key) || publishContentTypes.Contains(filterType.Key))
                 {
                     continue;
                 }
@@ -408,7 +432,7 @@ namespace Tableau.Migration.Engine
                  */
                 if (listContentTypes.Contains(transformerType.Key))
                 {
-                    var hintType = _supportedContentTypes.First(x
+                    var hintType = _supportedContentTypes.Values.First(x
                         => x.ContentType == transformerType.Key)
                         .PublishType;
 

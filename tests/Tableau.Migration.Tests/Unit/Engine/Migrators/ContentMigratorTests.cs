@@ -137,8 +137,8 @@ namespace Tableau.Migration.Tests.Unit.Engine.Migrators
                 MockPipeline.Setup(x => x.GetBatchMigrator<TestContentType>()).Returns(MockBatchMigrator.Object);
 
                 MockFilterRunner = Freeze<Mock<IContentFilterRunner>>();
-                MockFilterRunner.Setup(x => x.ExecuteAsync(It.IsAny<IEnumerable<ContentMigrationItem<TestContentType>>>(), Cancel))
-                    .ReturnsAsync((IEnumerable<ContentMigrationItem<TestContentType>> items, CancellationToken c) => items);
+                MockFilterRunner.Setup(x => x.ExecuteAsync(It.IsAny<ImmutableArray<ContentMigrationItem<TestContentType>>>(), Cancel))
+                    .ReturnsAsync((ImmutableArray<ContentMigrationItem<TestContentType>> items, CancellationToken c) => items);
 
                 MockMappingRunner = Freeze<Mock<IContentMappingRunner>>();
                 MockMappingRunner.Setup(x => x.ExecuteAsync(It.IsAny<ContentMappingContext<TestContentType>>(), Cancel))
@@ -209,10 +209,10 @@ namespace Tableau.Migration.Tests.Unit.Engine.Migrators
             [Fact]
             public async Task AppliesFiltersAsync()
             {
-                MockFilterRunner.Setup(x => x.ExecuteAsync<TestContentType>(It.IsAny<IEnumerable<ContentMigrationItem<TestContentType>>>(), Cancel))
+                MockFilterRunner.Setup(x => x.ExecuteAsync<TestContentType>(It.IsAny<ImmutableArray<ContentMigrationItem<TestContentType>>>(), Cancel))
                     .ReturnsAsync((IEnumerable<ContentMigrationItem<TestContentType>> items, CancellationToken c) =>
                     {
-                        return items.Skip(1);
+                        return items.Skip(1).ToImmutableArray();
                     });
 
                 var result = await Migrator.MigrateAsync(Cancel);

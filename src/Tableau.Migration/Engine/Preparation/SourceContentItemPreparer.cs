@@ -17,7 +17,9 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Tableau.Migration.Engine.Endpoints.Search;
+using Tableau.Migration.Engine.Hooks;
 using Tableau.Migration.Engine.Hooks.Transformers;
 using Tableau.Migration.Engine.Pipelines;
 using Tableau.Migration.Resources;
@@ -31,22 +33,26 @@ namespace Tableau.Migration.Engine.Preparation
     /// <typeparam name="TContent"><inheritdoc /></typeparam>
     /// <typeparam name="TPublish"><inheritdoc /></typeparam>
     public class SourceContentItemPreparer<TContent, TPublish> : ContentItemPreparerBase<TContent, TContent, TPublish>
-        where TContent : class
+        where TContent : class, IContentReference
         where TPublish : class
     {
         /// <summary>
         /// Creates a new <see cref="SourceContentItemPreparer{TContent, TPublish}"/>.
         /// </summary>
         /// <param name="pipeline"><inheritdoc /></param>
-        /// <param name="transformerRunner"><inheritdoc /></param>
+        /// <param name="hooks"><inheritdoc /></param>
+        /// <param name="transformers"><inheritdoc /></param>
         /// <param name="destinationFinderFactory"><inheritdoc /></param>
+        /// <param name="logger"><inheritdoc /></param>
         /// <param name="localizer"><inheritdoc /></param>
         public SourceContentItemPreparer(
             IMigrationPipeline pipeline,
-            IContentTransformerRunner transformerRunner,
+            IMigrationHookRunner hooks,
+            IContentTransformerRunner transformers,
             IDestinationContentReferenceFinderFactory destinationFinderFactory,
+            ILogger<SourceContentItemPreparer<TContent, TPublish>> logger,
             ISharedResourcesLocalizer localizer)
-            : base(pipeline, transformerRunner, destinationFinderFactory, localizer)
+            : base(pipeline, hooks, transformers, destinationFinderFactory, logger, localizer)
         { }
 
         /// <inheritdoc />
@@ -63,21 +69,25 @@ namespace Tableau.Migration.Engine.Preparation
     /// </summary>
     /// <typeparam name="TContent"><inheritdoc /></typeparam>
     public class SourceContentItemPreparer<TContent> : SourceContentItemPreparer<TContent, TContent>
-        where TContent : class
+        where TContent : class, IContentReference
     {
         /// <summary>
         /// Creates a new <see cref="SourceContentItemPreparer{TContent}"/>.
         /// </summary>
         /// <param name="pipeline"><inheritdoc /></param>
-        /// <param name="transformerRunner"><inheritdoc /></param>
+        /// <param name="hooks"><inheritdoc /></param>
+        /// <param name="transformers"><inheritdoc /></param>
         /// <param name="destinationFinderFactory"><inheritdoc /></param>
+        /// <param name="logger"><inheritdoc /></param>
         /// <param name="localizer"><inheritdoc /></param>
         public SourceContentItemPreparer(
             IMigrationPipeline pipeline,
-            IContentTransformerRunner transformerRunner,
+            IMigrationHookRunner hooks,
+            IContentTransformerRunner transformers,
             IDestinationContentReferenceFinderFactory destinationFinderFactory,
+            ILogger<SourceContentItemPreparer<TContent>> logger,
             ISharedResourcesLocalizer localizer)
-            : base(pipeline, transformerRunner, destinationFinderFactory, localizer)
+            : base(pipeline, hooks, transformers, destinationFinderFactory, logger, localizer)
         { }
     }
 }

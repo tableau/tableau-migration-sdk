@@ -45,9 +45,7 @@ namespace Tableau.Migration.TestApplication.Hooks.Filters
             _skippedParentProject = ContentLocation.FromPath(options.Value.SkippedProject);
         }
 
-        public async Task<IEnumerable<ContentMigrationItem<TContent>>?> ExecuteAsync(
-            IEnumerable<ContentMigrationItem<TContent>> ctx,
-            CancellationToken cancel)
+        public async Task<ContentFilterContext<TContent>?> ExecuteAsync(ContentFilterContext<TContent> ctx,CancellationToken cancel)
         {
             if (_skippedParentProject.IsEmpty)
             {
@@ -56,15 +54,16 @@ namespace Tableau.Migration.TestApplication.Hooks.Filters
 
             var filteredList = new List<ContentMigrationItem<TContent>>();
 
-            foreach (var item in ctx)
+            foreach (var item in ctx.Items)
             {
                 var parent = item.SourceItem.Location.Parent();
 
                 if (_skippedParentProject != parent)
                 {
-                    filteredList.Add(item);
                     continue;
                 }
+
+                item.Status = FilterStatus.Skip;
 
                 var contentReference = await _sourceProjectContentReferenceFinder
                     .FindBySourceLocationAsync(parent, cancel)
@@ -73,7 +72,7 @@ namespace Tableau.Migration.TestApplication.Hooks.Filters
                 _logger.LogInformation($"Skipping {typeof(TContent).Name} that belongs to \"{nameof(TestApplicationOptions.SkippedProject)}\"  (Project Id: {contentReference?.Id})");
             }
 
-            return filteredList;
+            return ctx;
         }
     }
 }

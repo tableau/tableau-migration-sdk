@@ -30,6 +30,7 @@ from tableau_migration.migration_content_schedules import PyWithSchedule # noqa:
 from tableau_migration.migration_content_schedules_cloud import PyCloudSchedule # noqa: E402, F401
 from tableau_migration.migration_content_schedules_server import PyServerSchedule # noqa: E402, F401
 from typing import (  # noqa: E402, F401
+    Optional,
     Sequence,
     Generic,
     TypeVar
@@ -56,6 +57,9 @@ from Tableau.Migration.Content import (  # noqa: E402, F401
     IDescriptionContent,
     IExtractContent,
     IFavorite,
+    IFlow,
+    IFlowDetails,
+    IFlowOutputStep,
     IGroup,
     IGroupSet,
     IGroupUser,
@@ -63,6 +67,7 @@ from Tableau.Migration.Content import (  # noqa: E402, F401
     IProject,
     IPublishableCustomView,
     IPublishableDataSource,
+    IPublishableFlow,
     IPublishableGroup,
     IPublishableGroupSet,
     IPublishableWorkbook,
@@ -308,7 +313,7 @@ class PyConnection():
         return self._dotnet.ConnectionUsername
     
     @property
-    def query_tagging_enabled(self) -> bool:
+    def query_tagging_enabled(self) -> Optional[bool]:
         """Gets the query tagging enabled flag for the response. This is returned only for administrator users."""
         return self._dotnet.QueryTaggingEnabled
     
@@ -318,12 +323,12 @@ class PyConnection():
         return self._dotnet.AuthenticationType
     
     @property
-    def use_o_auth_managed_keychain(self) -> bool:
+    def use_o_auth_managed_keychain(self) -> Optional[bool]:
         """Gets whether to use OAuth managed keychain."""
         return self._dotnet.UseOAuthManagedKeychain
     
     @property
-    def embed_password(self) -> bool:
+    def embed_password(self) -> Optional[bool]:
         """Gets whether to embed the password."""
         return self._dotnet.EmbedPassword
     
@@ -671,25 +676,25 @@ class PyDataSourceDetails(PyDataSource):
 class PyFavoriteContentType(IntEnum):
     """Enum of content types for favorites."""
     
-    """Unknown content type."""
+    #: Unknown content type.
     UNKNOWN = 0
     
-    """Project content type."""
+    #: Project content type.
     PROJECT = 1
     
-    """Workbook content type."""
+    #: Workbook content type.
     WORKBOOK = 2
     
-    """View content type."""
+    #: View content type.
     VIEW = 3
     
-    """Data source content type."""
+    #: Data source content type.
     DATA_SOURCE = 4
     
-    """Flow content type."""
+    #: Flow content type.
     FLOW = 5
     
-    """Collection content type."""
+    #: Collection content type.
     COLLECTION = 6
     
 class PyFavorite(PyEmptyIdContentReference):
@@ -741,6 +746,66 @@ class PyFavorite(PyEmptyIdContentReference):
     def content_type(self) -> PyFavoriteContentType:
         """Gets the content type for the favorite."""
         return None if self._dotnet.ContentType is None else PyFavoriteContentType(self._dotnet.ContentType.value__)
+    
+class PyFlow(PyPublishedContent, PyDescriptionContent, PyWithTags, PyContainerContent, PyWithOwner):
+    """Interface for a prep flow content item."""
+    
+    _dotnet_base = IFlow
+    
+    def __init__(self, flow: IFlow) -> None:
+        """Creates a new PyFlow object.
+        
+        Args:
+            flow: A IFlow object.
+        
+        Returns: None.
+        """
+        self._dotnet = flow
+        
+    @property
+    def file_type(self) -> str:
+        """Get or sets the prep flow file type."""
+        return self._dotnet.FileType
+    
+    @file_type.setter
+    def file_type(self, value: str) -> None:
+        """Get or sets the prep flow file type."""
+        self._dotnet.FileType = value
+    
+class PyFlowOutputStep(PyRestIdentifiable):
+    """Interface for a flow output step."""
+    
+    _dotnet_base = IFlowOutputStep
+    
+    def __init__(self, flow_output_step: IFlowOutputStep) -> None:
+        """Creates a new PyFlowOutputStep object.
+        
+        Args:
+            flow_output_step: A IFlowOutputStep object.
+        
+        Returns: None.
+        """
+        self._dotnet = flow_output_step
+        
+class PyFlowDetails(PyFlow):
+    """Interface for a flow object with extended information, from a GET query for example."""
+    
+    _dotnet_base = IFlowDetails
+    
+    def __init__(self, flow_details: IFlowDetails) -> None:
+        """Creates a new PyFlowDetails object.
+        
+        Args:
+            flow_details: A IFlowDetails object.
+        
+        Returns: None.
+        """
+        self._dotnet = flow_details
+        
+    @property
+    def flow_output_steps(self) -> Sequence[PyFlowOutputStep]:
+        """Gets the flow output step metadata."""
+        return None if self._dotnet.FlowOutputSteps is None else list((None if x is None else PyFlowOutputStep(x)) for x in self._dotnet.FlowOutputSteps)
     
 class PyWithDomain():
     """Interface for content items with a domain."""
@@ -1003,6 +1068,21 @@ class PyPublishableDataSource(PyDataSourceDetails, PyConnectionsContent):
         """
         self._dotnet = publishable_data_source
         
+class PyPublishableFlow(PyFlow, PyConnectionsContent):
+    """Interface for a IFlow that has been downloaded and has full information necessary for re-publishing."""
+    
+    _dotnet_base = IPublishableFlow
+    
+    def __init__(self, publishable_flow: IPublishableFlow) -> None:
+        """Creates a new PyPublishableFlow object.
+        
+        Args:
+            publishable_flow: A IPublishableFlow object.
+        
+        Returns: None.
+        """
+        self._dotnet = publishable_flow
+        
 class PyPublishableGroup(PyGroup):
     """Interface for a group content item with users."""
     
@@ -1146,12 +1226,12 @@ class PyPublishableWorkbook(PyWorkbookDetails, PyConnectionsContent):
         self._dotnet = publishable_workbook
         
     @property
-    def thumbnails_user_id(self) -> UUID:
+    def thumbnails_user_id(self) -> Optional[UUID]:
         """Gets the ID of the user to generate thumbnails as."""
         return None if self._dotnet.ThumbnailsUserId is None else UUID(self._dotnet.ThumbnailsUserId.ToString())
     
     @thumbnails_user_id.setter
-    def thumbnails_user_id(self, value: UUID) -> None:
+    def thumbnails_user_id(self, value: Optional[UUID]) -> None:
         """Gets the ID of the user to generate thumbnails as."""
         self._dotnet.ThumbnailsUserId = None if value is None else Guid.Parse(str(value))
     
@@ -1212,7 +1292,7 @@ class PyUserAuthenticationType():
         return self._dotnet.AuthenticationType
     
     @property
-    def idp_configuration_id(self) -> UUID:
+    def idp_configuration_id(self) -> Optional[UUID]:
         """Gets the IdP configuration ID, or null if the site uses AuthenticationTypes."""
         return None if self._dotnet.IdpConfigurationId is None else UUID(self._dotnet.IdpConfigurationId.ToString())
     

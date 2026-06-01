@@ -51,9 +51,10 @@ namespace Tableau.Migration.Engine.Manifest
         /// <summary>
         /// Sets the entry to skipped status.
         /// </summary>
+        /// <param name="cascade">Cascade the skipped status to other content items that require this item.</param>
         /// <param name="skippedReason">Reason this item was skipped. Generally the skipped filter name.</param>
         /// <returns>The current entry editor, for fluent API usage.</returns>
-        IMigrationManifestEntryEditor SetSkipped(string? skippedReason);
+        IMigrationManifestEntryEditor SetSkipped(bool cascade, string? skippedReason);
 
         /// <summary>
         /// Sets the entry to failed status and adding errors to the entry.

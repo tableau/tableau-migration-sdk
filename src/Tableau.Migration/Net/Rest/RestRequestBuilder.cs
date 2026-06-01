@@ -18,11 +18,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Tableau.Migration.Api.Rest;
 using Tableau.Migration.Net.Rest.Fields;
 using Tableau.Migration.Net.Rest.Filtering;
 using Tableau.Migration.Net.Rest.Paging;
 using Tableau.Migration.Net.Rest.Sorting;
-using Tableau.Migration.Api.Rest;
 
 namespace Tableau.Migration.Net.Rest
 {

@@ -74,6 +74,11 @@ class PyMigrationPipelineContentType():
         return None if MigrationPipelineContentType.Workbooks is None else PyMigrationPipelineContentType(MigrationPipelineContentType.Workbooks)
     
     @classmethod
+    def get_flows(cls) -> Self:
+        """Gets the flow MigrationPipelineContentType."""
+        return None if MigrationPipelineContentType.Flows is None else PyMigrationPipelineContentType(MigrationPipelineContentType.Flows)
+    
+    @classmethod
     def get_views(cls) -> Self:
         """Gets the view MigrationPipelineContentType."""
         return None if MigrationPipelineContentType.Views is None else PyMigrationPipelineContentType(MigrationPipelineContentType.Views)
@@ -112,6 +117,21 @@ class PyMigrationPipelineContentType():
     def get_cloud_to_cloud_subscriptions(cls) -> Self:
         """Gets the cloud to cloud subscription MigrationPipelineContentType."""
         return None if MigrationPipelineContentType.CloudToCloudSubscriptions is None else PyMigrationPipelineContentType(MigrationPipelineContentType.CloudToCloudSubscriptions)
+    
+    @classmethod
+    def get_server_to_server_flow_run_tasks(cls) -> Self:
+        """Gets the server to server flow run task MigrationPipelineContentType."""
+        return None if MigrationPipelineContentType.ServerToServerFlowRunTasks is None else PyMigrationPipelineContentType(MigrationPipelineContentType.ServerToServerFlowRunTasks)
+    
+    @classmethod
+    def get_server_to_cloud_flow_run_tasks(cls) -> Self:
+        """Gets the server to cloud flow run task MigrationPipelineContentType."""
+        return None if MigrationPipelineContentType.ServerToCloudFlowRunTasks is None else PyMigrationPipelineContentType(MigrationPipelineContentType.ServerToCloudFlowRunTasks)
+    
+    @classmethod
+    def get_cloud_to_cloud_flow_run_tasks(cls) -> Self:
+        """Gets the cloud to cloud flow run task MigrationPipelineContentType."""
+        return None if MigrationPipelineContentType.CloudToCloudFlowRunTasks is None else PyMigrationPipelineContentType(MigrationPipelineContentType.CloudToCloudFlowRunTasks)
     
     @classmethod
     def get_favorites(cls) -> Self:

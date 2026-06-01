@@ -45,7 +45,7 @@ namespace Tableau.Migration.Tests.Unit
         public class GetOrAddAsync : ConcurrentDictionaryExtensionsTest
         {
             [Fact]
-            public async Task Gets()
+            public async Task GetsAsync()
             {
                 var kvp = AddItem();
 
@@ -55,7 +55,7 @@ namespace Tableau.Migration.Tests.Unit
             }
 
             [Fact]
-            public async Task Adds()
+            public async Task AddsAsync()
             {
                 var kvp = CreateItem();
 

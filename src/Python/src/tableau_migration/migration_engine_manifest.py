@@ -78,7 +78,10 @@ from tableau_migration.migration import (  # noqa: E402, F401
     PyContentReference,
     PyContentLocation
 )
-from typing import Sequence # noqa: E402, F401
+from typing import (  # noqa: E402, F401
+    Optional,
+    Sequence
+)
 from typing_extensions import Self # noqa: E402, F401
 
 import System # noqa: E402
@@ -91,19 +94,19 @@ from Tableau.Migration.Engine.Manifest import (  # noqa: E402, F401
 class PyMigrationManifestEntryStatus(IntEnum):
     """An enumeration of the various migration statuses states of a content item."""
     
-    """The content item has not yet been processed."""
+    #: The content item has not yet been processed.
     PENDING = 0
     
-    """The content item was not migrated due to filtering."""
+    #: The content item was not migrated due to filtering.
     SKIPPED = 1
     
-    """The content item was migrated successfully."""
+    #: The content item was migrated successfully.
     MIGRATED = 2
     
-    """An attempt was made to migrate the content item, but it resulted in one or more errors. The content item may be missing on the destination or may be partially migrated."""
+    #: An attempt was made to migrate the content item, but it resulted in one or more errors. The content item may be missing on the destination or may be partially migrated.
     ERROR = 3
     
-    """An attempt was made to migrate the content item, but the process was canceled mid-migration. The content item may be missing on the destination or may be partially migrated."""
+    #: An attempt was made to migrate the content item, but the process was canceled mid-migration. The content item may be missing on the destination or may be partially migrated.
     CANCELED = 4
     
 class PyMigrationManifestEntry():
@@ -145,6 +148,11 @@ class PyMigrationManifestEntry():
     def has_migrated(self) -> bool:
         """Gets whether or not the content item has been migrated, either in a previous run or the current run."""
         return self._dotnet.HasMigrated
+    
+    @property
+    def cascade_skip(self) -> Optional[bool]:
+        """Gets whether or not the Skipped."""
+        return self._dotnet.CascadeSkip
     
     @property
     def errors(self) -> Sequence[System.Exception]:
@@ -201,15 +209,16 @@ class PyMigrationManifestEntryEditor(PyMigrationManifestEntry):
         result = self._dotnet.DestinationFound(None if destination_info is None else destination_info._dotnet)
         return None if result is None else PyMigrationManifestEntryEditor(result)
     
-    def set_skipped(self, skipped_reason: str) -> Self:
+    def set_skipped(self, cascade: bool, skipped_reason: str) -> Self:
         """Sets the entry to skipped status.
         
         Args:
+            cascade: Cascade the skipped status to other content items that require this item.
             skipped_reason: Reason this item was skipped. Generally the skipped filter name.
         
         Returns: The current entry editor, for fluent API usage.
         """
-        result = self._dotnet.SetSkipped(skipped_reason)
+        result = self._dotnet.SetSkipped(cascade, skipped_reason)
         return None if result is None else PyMigrationManifestEntryEditor(result)
     
     def set_canceled(self) -> Self:

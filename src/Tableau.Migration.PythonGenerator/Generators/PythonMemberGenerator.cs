@@ -97,7 +97,17 @@ namespace Tableau.Migration.PythonGenerator.Generators
             return typeHints.ExcludeMembers.Any(m => string.Equals(m, member.Name, StringComparison.Ordinal));
         }
 
-        protected ImmutableArray<PythonTypeReference>? GetGenericTypes(ITypeSymbol t)
+        protected static PythonTypeReference GetNullableType(ITypeSymbol t)
+        {
+            var nullableType = GetGenericTypes(t)!.Value.Single();
+
+            return new(Py.Types.OPTIONAL, Py.Modules.TYPING, ConversionMode.Optional,
+                GenericTypes: [nullableType],
+                DotNetParseFunction: nullableType.DotNetParseFunction,
+                ExtraImports: nullableType.ExtraImports);
+        }
+
+        protected static ImmutableArray<PythonTypeReference>? GetGenericTypes(ITypeSymbol t)
         {
             if (t is INamedTypeSymbol nt)
             {
@@ -113,7 +123,7 @@ namespace Tableau.Migration.PythonGenerator.Generators
             return null;
         }
 
-        protected ImmutableArray<ITypeSymbol>? GetDotnetGenericTypes(ITypeSymbol t)
+        protected static ImmutableArray<ITypeSymbol>? GetDotnetGenericTypes(ITypeSymbol t)
         {
             if (t is INamedTypeSymbol nt)
             {
@@ -127,7 +137,7 @@ namespace Tableau.Migration.PythonGenerator.Generators
             return null;
         }
 
-        protected PythonTypeReference ToPythonType(ITypeSymbol t)
+        protected static PythonTypeReference ToPythonType(ITypeSymbol t)
         {
             if (t.Kind is SymbolKind.TypeParameter)
             {
@@ -169,6 +179,12 @@ namespace Tableau.Migration.PythonGenerator.Generators
                         DotnetTypes: GetDotnetGenericTypes(t));
 
                 case nameof(ImmutableArray<int>):
+                    return new(
+                        Py.Types.SEQUENCE,
+                        ImportModule: Py.Modules.TYPING,
+                        ConversionMode.WrapArray,
+                        WrapType: "list",
+                        GenericTypes: GetGenericTypes(t));
                 case nameof(IImmutableList<int>):
                 case nameof(IReadOnlyList<int>):
                 case nameof(IEnumerable<int>):
@@ -184,7 +200,7 @@ namespace Tableau.Migration.PythonGenerator.Generators
                 case nameof(Int64):
                     return INT;
                 case nameof(Nullable):
-                    return GetGenericTypes(t)!.Value.Single();
+                    return GetNullableType(t);
                 case Dotnet.Types.STRING_SIMPLIFIED:
                 case nameof(String):
                     return STRING;

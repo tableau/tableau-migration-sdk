@@ -20,6 +20,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Tableau.Migration.Api.Models.Cloud;
+using Tableau.Migration.Api.Paging;
 using Tableau.Migration.Content.Schedules.Cloud;
 
 namespace Tableau.Migration.Api
@@ -30,7 +31,10 @@ namespace Tableau.Migration.Api
     public interface ICloudTasksApiClient :
         IContentApiClient,
         IReadApiClient<ICloudExtractRefreshTask>,
-        IPublishApiClient<ICloudExtractRefreshTask>
+        IPublishApiClient<ICloudExtractRefreshTask>,
+        IPublishApiClient<ICloudFlowRunTask>,
+        IApiPageAccessor<ICloudFlowRunTask>,
+        IPagedListApiClient<ICloudFlowRunTask>
     {
         /// <summary>
         /// Gets a list of extract refresh tasks.
@@ -56,6 +60,23 @@ namespace Tableau.Migration.Api
         /// <returns></returns>
         Task<IResult> DeleteExtractRefreshTaskAsync(
             Guid extractRefreshTaskId,
+            CancellationToken cancel);
+
+        /// <summary>
+        /// Gets a list of flow run tasks for the site.
+        /// </summary>
+        /// <param name="cancel">The cancellation token to obey.</param>
+        /// <returns>The flow run tasks for the site.</returns>
+        Task<IResult<IImmutableList<ICloudFlowRunTask>>> GetAllFlowRunTasksAsync(CancellationToken cancel);
+
+        /// <summary>
+        /// Create a cloud flow run task.
+        /// </summary>
+        /// <param name="options">The new flow run task's details.</param>
+        /// <param name="cancel">The cancellation token to obey.</param>
+        /// <returns>The created flow run task.</returns>
+        Task<IResult<ICloudFlowRunTask>> CreateCloudFlowTaskAsync(
+            ICreateCloudFlowTaskOptions options,
             CancellationToken cancel);
     }
 }

@@ -43,7 +43,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.PostPublish
         public class ToTask : BulkPostPublishContextTest
         {
             [Fact]
-            public async Task CreatesCompletedTask()
+            public async Task CreatesCompletedTaskAsync()
             {
                 var sourceItems = CreateMany<TestContentType>(5);
 

@@ -96,7 +96,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.InitializeMigration.Capabili
         public class SetMigrationCapabilityAsync : EmbeddedCredentialsCapabilityManagerTests
         {
             [Fact]
-            public async Task Doesnot_disable_when_embedded_creds_setup()
+            public async Task DoesnotDisableWhenEmbeddedCredsSetupAsync()
             {
                 // Arrange
                 SetupRetrieveKeychainAsync(CreateMany<string>());
@@ -111,7 +111,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.InitializeMigration.Capabili
             }
 
             [Fact]
-            public async Task Disables_when_embedded_creds_not_setup()
+            public async Task DisablesWhenEmbeddedCredsNotSetupAsync()
             {
                 // Arrange
                 var restException = CreateRestException(RestErrorCodes.FEATURE_DISABLED);
@@ -127,7 +127,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.InitializeMigration.Capabili
             }
 
             [Fact]
-            public async Task Doesnot_disable_on_other_errors()
+            public async Task DoesnotDisableOnOtherErrorsAsync()
             {
                 // Arrange
                 var restException = CreateRestException(RestErrorCodes.BAD_REQUEST);

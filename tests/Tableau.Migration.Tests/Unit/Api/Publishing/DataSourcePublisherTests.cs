@@ -43,7 +43,7 @@ namespace Tableau.Migration.Tests.Unit.Api.Publishing
         public class PublishAsync : DataSourcePublisherTest
         {
             [Fact]
-            public async Task Publishes()
+            public async Task PublishesAsync()
             {
                 var initiateResponse = SetupSuccessResponse<FileUploadResponse, FileUploadResponse.FileUploadType>();
                 var getDataSourceResponse = SetupSuccessResponse<DataSourceResponse, DataSourceResponse.DataSourceType>();

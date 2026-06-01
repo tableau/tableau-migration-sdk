@@ -26,6 +26,7 @@ using Tableau.Migration.ContentConverters.Schedules;
 using Tableau.Migration.Engine.Actions;
 using Tableau.Migration.Engine.Conversion;
 using Tableau.Migration.Engine.Conversion.ExtractRefreshTasks;
+using Tableau.Migration.Engine.Conversion.FlowRunTasks;
 using Tableau.Migration.Engine.Conversion.Schedules;
 using Tableau.Migration.Engine.Conversion.Subscriptions;
 using Tableau.Migration.Engine.Endpoints;
@@ -35,6 +36,7 @@ using Tableau.Migration.Engine.Endpoints.Search;
 using Tableau.Migration.Engine.Hooks;
 using Tableau.Migration.Engine.Hooks.Filters;
 using Tableau.Migration.Engine.Hooks.Filters.Default;
+using Tableau.Migration.Engine.Hooks.Filters.Default.Cascade;
 using Tableau.Migration.Engine.Hooks.InitializeMigration.Capabilities;
 using Tableau.Migration.Engine.Hooks.InitializeMigration.Default;
 using Tableau.Migration.Engine.Hooks.Mappings;
@@ -124,6 +126,7 @@ namespace Tableau.Migration.Engine
             //Register concrete types so that the easy way to get interface types is through IMigrationPipeline.
             .AddScoped(typeof(EndpointContentItemPreparer<,,>))
             .AddScoped(typeof(ExtractRefreshTaskServerToCloudPreparer))
+            .AddScoped(typeof(FlowRunTaskServerToCloudPreparer))
             .AddScoped(typeof(SourceContentItemPreparer<>))
             .AddScoped(typeof(SourceContentItemPreparer<,>))
             .AddScoped(typeof(BulkPublishContentBatchMigrator<>))
@@ -142,7 +145,8 @@ namespace Tableau.Migration.Engine
             .AddSingleton<IScheduleValidator<ICloudSchedule>, CloudScheduleValidator>()
             .AddSingleton<IScheduleConverter<IServerSchedule, ICloudSchedule>, ServerToCloudScheduleConverter>()
             .AddSingleton<IExtractRefreshTaskConverter<IServerExtractRefreshTask, ICloudExtractRefreshTask>, ServerToCloudExtractRefreshTaskConverter>()
-            .AddSingleton<ISubscriptionConverter<IServerSubscription, ICloudSubscription>, ServerToCloudSubscriptionConverter>();
+            .AddSingleton<ISubscriptionConverter<IServerSubscription, ICloudSubscription>, ServerToCloudSubscriptionConverter>()
+            .AddSingleton<IFlowRunTaskConverter<IServerFlowRunTask, ICloudFlowRunTask>, ServerToCloudFlowRunTaskConverter>();
 
         private static IServiceCollection AddCacheServices(this IServiceCollection services) => services
             //Register concrete types so that the easy way to get interface types is through IMigrationPipeline.
@@ -186,14 +190,20 @@ namespace Tableau.Migration.Engine
             .AddScoped<InitializeCapabilitiesHook>();
 
         private static IServiceCollection AddDefaultFilterServices(this IServiceCollection services) => services
-            .AddScoped(typeof(PreviouslyMigratedFilter<>))
-            .AddScoped(typeof(SkipAllFilter<>))
-            .AddScoped<GroupAllUsersFilter>()
-            .AddScoped<UserSiteRoleSupportUserFilter>()
-            .AddScoped(typeof(SystemOwnershipFilter<>))
+            .AddScoped(typeof(BasicCascadingFilter<>))
+            .AddScoped<CloudExtractRefreshTaskCascadingFilter>()
+            .AddScoped<CloudSubscriptionCascadingFilter>()
+            .AddScoped<FavoriteCascadingFilter>()
             .AddScoped<FavoriteFilter>()
+            .AddScoped<GroupAllUsersFilter>()
             .AddScoped(typeof(LargeContentFilter<>))
-            .AddScoped<ServerSubscriptionFilter>();
+            .AddScoped(typeof(PreviouslyMigratedFilter<>))
+            .AddScoped<ServerExtractRefreshTaskCascadingFilter>()
+            .AddScoped<ServerSubscriptionCascadingFilter>()
+            .AddScoped<ServerSubscriptionFilter>()
+            .AddScoped(typeof(SkipAllFilter<>))
+            .AddScoped(typeof(SystemOwnershipFilter<>))
+            .AddScoped<UserSiteRoleSupportUserFilter>();
 
         private static IServiceCollection AddDefaultMappingServices(this IServiceCollection services) => services
             .AddScoped<AuthenticationTypeDomainMapping>()
@@ -213,7 +223,9 @@ namespace Tableau.Migration.Engine
             .AddScoped(typeof(WorkbookReferenceTransformer<>))
             .AddScoped<CustomViewDefaultUserReferencesTransformer>()
             .AddScoped<SubscriptionTransformer>()
-            .AddScoped<FavoriteTransformer>();
+            .AddScoped<FavoriteTransformer>()
+            .AddScoped<TableauServerConnectionUrlFlowTransformer>()
+            .AddScoped<FlowRunTaskFlowIdTransformer>();
 
         private static IServiceCollection AddDefaultActionCompletedHookServices(this IServiceCollection services) => services;
 

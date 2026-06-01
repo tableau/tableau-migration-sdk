@@ -174,6 +174,9 @@ namespace Tableau.Migration.PythonGenerator.Writers
             {
                 case ConversionMode.WrapImmutableCollection:
                 case ConversionMode.WrapMutableCollection:
+                    builder.AppendLine($"assert {dotnetPropValue}.Count != 0");
+                    builder.AppendLine($"assert len({pythonPropValue}) == {dotnetPropValue}.Count");
+                    break;
                 case ConversionMode.WrapArray:
                     builder.AppendLine($"assert len({dotnetPropValue}) != 0");
                     builder.AppendLine($"assert len({pythonPropValue}) == len({dotnetPropValue})");

@@ -40,6 +40,11 @@ namespace Tableau.Migration.Api.Simulation.Rest.Api
         public MethodSimulator ListServerExtractRefreshTasks { get; }
 
         /// <summary>
+        /// Gets the simulated flow run tasks query API method.
+        /// </summary>
+        public MethodSimulator ListServerFlowRunTasks { get; }
+
+        /// <summary>
         /// Creates a new <see cref="TasksRestApiSimulator"/> object.
         /// </summary>
         /// <param name="simulator">A response simulator to setup with REST API methods.</param>
@@ -57,6 +62,12 @@ namespace Tableau.Migration.Api.Simulation.Rest.Api
                         (d, r) => d.CloudExtractRefreshTasks,
                         null,
                         true);
+
+            ListServerFlowRunTasks = simulator.SetupRestGetList<ServerResponse.FlowRunTasksResponse, ServerResponse.FlowRunTasksResponse.TaskType>(
+                SiteUrl($"{RestUrlKeywords.Tasks}/runFlow"),
+                (d, r) => d.ServerFlowRunTasks,
+                null,
+                true);
 
             simulator.SetupRestPost(
                 SiteUrl($"{RestUrlKeywords.Tasks}/{RestUrlKeywords.ExtractRefreshes}"),

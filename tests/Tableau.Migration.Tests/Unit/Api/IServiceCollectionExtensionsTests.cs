@@ -165,7 +165,7 @@ namespace Tableau.Migration.Tests.Unit.Api
             }
 
             [Fact]
-            public async Task Uses_existing_DefaultPermissionsContentTypeOptionsAsync()
+            public async Task UsesExistingDefaultPermissionsContentTypeOptionsAsync()
             {
                 var existingOptions = new DefaultPermissionsContentTypeOptions();
 

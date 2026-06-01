@@ -17,8 +17,8 @@
 
 from typing import Callable, Generic, TypeVar
 
-from migration_engine_hooks_interop import _PyHookWrapperBuilderBase
-from migration_engine_hooks_postpublish import PyBulkPostPublishContext, PyContentItemPostPublishContext
+from tableau_migration.migration_engine_hooks_interop import _PyHookWrapperBuilderBase
+from tableau_migration.migration_engine_hooks_postpublish import PyBulkPostPublishContext, PyContentItemPostPublishContext
 
 from Tableau.Migration.Engine.Hooks.PostPublish import (
     BulkPostPublishContext, BulkPostPublishHookBase, 

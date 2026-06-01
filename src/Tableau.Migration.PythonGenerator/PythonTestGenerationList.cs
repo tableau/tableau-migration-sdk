@@ -30,6 +30,7 @@ using Tableau.Migration.Engine;
 using Tableau.Migration.Engine.Actions;
 using Tableau.Migration.Engine.Hooks.Mappings;
 using Tableau.Migration.Engine.Hooks.PostPublish;
+using Tableau.Migration.Engine.Hooks.Pulled;
 using Tableau.Migration.Engine.Manifest;
 using Tableau.Migration.Engine.Migrators;
 using Tableau.Migration.Engine.Migrators.Batch;
@@ -45,7 +46,7 @@ namespace Tableau.Migration.PythonGenerator
 
         #region - Tableau.Migration.Engine.Manifest -   
 
-            typeof(IMigrationManifestEntry),
+            //typeof(IMigrationManifestEntry),
 
         #endregion
 
@@ -57,6 +58,7 @@ namespace Tableau.Migration.PythonGenerator
 
         #region - Tableau.Migration.Engine.Hooks.PostPublish  -
 
+            typeof(BulkPostPublishContext<>),
             typeof(ContentItemPostPublishContext<,>),
 
         #endregion
@@ -64,11 +66,6 @@ namespace Tableau.Migration.PythonGenerator
         #region - Tableau.Migration.Engine.Hooks.Mappings  -
 
             typeof(ContentMappingContext<>),
-
-        #endregion
-
-        #region - Tableau.Migration.Engine.Hooks.PostPublish  -
-            typeof(BulkPostPublishContext<>),
 
         #endregion
 
@@ -106,6 +103,7 @@ namespace Tableau.Migration.PythonGenerator
 
             typeof(AuthenticationTypes),
             typeof(DataSourceFileTypes),
+            typeof(FlowFileTypes),
             typeof(WorkbookFileTypes),
 
         #endregion
@@ -163,6 +161,13 @@ namespace Tableau.Migration.PythonGenerator
                     DotnetListImport,
                     GetDotnetImportedModule(typeof(ExtractRefreshContentType))
                 }
+            },
+            {
+                typeof(ContentItemPulledContext<>).Namespace!,
+                [
+                    IContentReferenceImport,
+                    GetPythonImportedModule(typeof(IContentReference))
+                ]
             }
         };
 

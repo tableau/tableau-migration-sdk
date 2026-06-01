@@ -182,7 +182,7 @@ namespace Tableau.Migration.Tests.Unit.Content.Files
             }
 
             [Fact]
-            public async Task ZipReturnsXmlEntryFileStream()
+            public async Task ZipReturnsXmlEntryFileStreamAsync()
             {
                 await using var editor = CreateZipArchiveEditor();
 
@@ -368,7 +368,7 @@ namespace Tableau.Migration.Tests.Unit.Content.Files
             }
 
             [Fact]
-            public async Task PersistsXmlDisposeTwiceNoErrors()
+            public async Task PersistsXmlDisposeTwiceNoErrorsAsync()
             {
                 const string OUTPUT_XML = "<workbook>changed</workbook>";
                 var dataStream = CreateMemoryStream(TEST_XML);
@@ -420,7 +420,7 @@ namespace Tableau.Migration.Tests.Unit.Content.Files
             }
 
             [Fact]
-            public async Task PersistsZipAsyncDisposeTwiceNoErrors()
+            public async Task PersistsZipAsyncDisposeTwiceNoErrorsAsync()
             {
                 const string OUTPUT_XML = "<workbook>changed</workbook>";
 

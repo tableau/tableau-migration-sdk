@@ -15,25 +15,31 @@
 //  limitations under the License.
 //
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.Extensions.Options;
+using Tableau.Migration.PythonGenerator.Config;
 
 namespace Tableau.Migration.PythonGenerator.Generators
 {
     internal sealed class PythonTypeGenerator : IPythonTypeGenerator
     {
+        private readonly PythonGeneratorOptions _options;
         private readonly IPythonPropertyGenerator _propertyGenerator;
         private readonly IPythonMethodGenerator _methodGenerator;
         private readonly IPythonEnumValueGenerator _enumValueGenerator;
         private readonly IPythonDocstringGenerator _docGenerator;
 
-        public PythonTypeGenerator(IPythonPropertyGenerator propertyGenerator,
+        public PythonTypeGenerator(IOptions<PythonGeneratorOptions> options,
+            IPythonPropertyGenerator propertyGenerator,
             IPythonMethodGenerator methodGenerator,
             IPythonEnumValueGenerator enumValueGenerator,
             IPythonDocstringGenerator docGenerator)
         {
+            _options = options.Value;
             _propertyGenerator = propertyGenerator;
             _methodGenerator = methodGenerator;
             _enumValueGenerator = enumValueGenerator;
@@ -62,6 +68,10 @@ namespace Tableau.Migration.PythonGenerator.Generators
             GenerateInheritedTypes(ImmutableHashSet<string> dotNetTypeNames, INamedTypeSymbol dotNetType)
         {
             var inheritedTypes = ImmutableArray.CreateBuilder<PythonTypeReference>();
+            
+            var typeHint = _options.Hints.ForType(dotNetType);
+            bool IgnoreInheritedType(INamedTypeSymbol t)
+                => typeHint is not null && typeHint.ExcludeInheritedTypes.Contains(t.Name);
 
             if (dotNetType.TypeArguments.Any())
             {
@@ -85,13 +95,29 @@ namespace Tableau.Migration.PythonGenerator.Generators
             {
                 inheritedTypes.Add(new("StrEnum", "migration_enum", ConversionMode.Direct));
             }
+            else if (!dotNetType.IsValueType && dotNetType.BaseType is not null)
+            {
+                switch(dotNetType.BaseType.Name)
+                {
+                    case nameof(Object):
+                    case nameof(ValueType):
+                        break;
+                    default:
+                        if(!IgnoreInheritedType(dotNetType.BaseType))
+                        {
+                            inheritedTypes.Add(PythonTypeReference.ForDotNetType(dotNetType.BaseType));
+                        }
+                        break;
+                }
+            }
 
             var interfaces = new List<INamedTypeSymbol>();
             var excludedInterfaces = ImmutableArray.CreateBuilder<INamedTypeSymbol>();
 
             foreach (var interfaceType in dotNetType.AllInterfaces)
             {
-                if (dotNetTypeNames.Contains(interfaceType.ConstructedFrom.ToDisplayString()))
+                if (dotNetTypeNames.Contains(interfaceType.ConstructedFrom.ToDisplayString()) &&
+                    !IgnoreInheritedType(interfaceType))
                 {
                     interfaces.Add(interfaceType);
                 }

@@ -60,6 +60,9 @@ namespace Tableau.Migration.JsonConverters.SerializableObjects
         /// </summary>
         public bool HasMigrated { get; set; }
 
+        /// <inheritdoc />
+        public bool? CascadeSkip { get; set; }
+
         /// <summary>
         /// Gets or sets the list of errors encountered during the migration of this entry.
         /// </summary>
@@ -82,6 +85,7 @@ namespace Tableau.Migration.JsonConverters.SerializableObjects
             Status = entry.Status.ToString();
             SkippedReason = entry.SkippedReason;
             HasMigrated = entry.HasMigrated;
+            CascadeSkip = entry.CascadeSkip;
 
             Errors = entry.Errors.Select(e => new SerializableException(e)).ToList();
         }
@@ -98,11 +102,25 @@ namespace Tableau.Migration.JsonConverters.SerializableObjects
 
         bool IMigrationManifestEntry.HasMigrated => HasMigrated;
 
+        bool? IMigrationManifestEntry.CascadeSkip
+        {
+            get
+            {
+                // Supply default value from previous manifests that didn't track this property.
+                if(CascadeSkip is null && ((IMigrationManifestEntry)this).Status is MigrationManifestEntryStatus.Skipped)
+                {
+                    return false;
+                }
+
+                return CascadeSkip;
+            }
+        }
+
         IReadOnlyList<Exception> IMigrationManifestEntry.Errors
         {
             get
             {
-                if (Errors == null)
+                if (Errors is null)
                 {
                     return Array.Empty<Exception>();
                 }

@@ -41,12 +41,28 @@ namespace Tableau.Migration.Engine.Endpoints.Search
         Task<IContentReference?> FindBySourceLocationAsync(ContentLocation sourceLocation, CancellationToken cancel);
 
         /// <summary>
+        /// Finds the destination content reference for the source content reference location.
+        /// </summary>
+        /// <param name="sourceLocation">The source content reference location.</param>
+        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <returns>The found destination content reference, or null if no content reference was found.</returns>
+        Task<DestinationContentReferenceResult> FindResultBySourceLocationAsync(ContentLocation sourceLocation, CancellationToken cancel);
+
+        /// <summary>
         /// Finds the destination content reference for the mapped destination content reference location.
         /// </summary>
         /// <param name="mappedLocation">The destination mapped content reference location.</param>
         /// <param name="cancel">A cancellation token to obey.</param>
         /// <returns>The found destination content reference, or null if no content reference was found.</returns>
         Task<IContentReference?> FindByMappedLocationAsync(ContentLocation mappedLocation, CancellationToken cancel);
+
+        /// <summary>
+        /// Finds the destination content reference for the source content reference unique identifier.
+        /// </summary>
+        /// <param name="sourceId">The source content reference unique identifier.</param>
+        /// <param name="cancel">A cancellation token to obey.</param>
+        /// <returns>The found destination content reference, or null if no content reference was found.</returns>
+        Task<DestinationContentReferenceResult> FindResultBySourceIdAsync(Guid sourceId, CancellationToken cancel);
 
         /// <summary>
         /// Finds the destination content reference for the source content reference unique identifier.

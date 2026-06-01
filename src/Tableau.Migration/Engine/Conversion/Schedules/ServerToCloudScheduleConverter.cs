@@ -168,6 +168,11 @@ namespace Tableau.Migration.Engine.Conversion.Schedules
                     changeMessage.AppendLine(_localizer[SharedResourceKeys.ScheduleUpdatedHoursMessage, hourInterval.Hours, newHourInterval.Hours!]);
                 }
             }
+            else
+            {
+                schedule.FrequencyDetails.Intervals.Add(Interval.WithHours(24));
+                changeMessage.AppendLine(_localizer[SharedResourceKeys.ScheduleUpdatedHoursMessage, "none", Interval.WithHours(24)]);
+            }
 
             if (schedule.FrequencyDetails.Intervals.Any(interval => interval.Hours.HasValue))
             {

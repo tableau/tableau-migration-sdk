@@ -33,7 +33,7 @@ namespace Tableau.Migration.Engine.Migrators.Batch
     /// <typeparam name="TPublish">The publish type.</typeparam>
     public abstract class ContentBatchMigratorBase<TContent, TPrepare, TPublish> : IContentBatchMigrator<TContent>
         where TContent : class, IContentReference
-        where TPrepare : class
+        where TPrepare : class, IContentReference
         where TPublish : class
     {
         private readonly IContentItemPreparer<TContent, TPublish> _itemPreparer;
@@ -79,9 +79,13 @@ namespace Tableau.Migration.Engine.Migrators.Batch
             try
             {
                 var prepareResult = await _itemPreparer.PrepareAsync(item, itemCancel).ConfigureAwait(false);
-                if (prepareResult.Success)
+                if(prepareResult.IsSkipped)
                 {
-                    var publishItem = prepareResult.Value;
+                    itemResult = ContentItemMigrationResult<TContent>.Skipped(item.ManifestEntry);
+                }
+                else if (prepareResult.IsPrepared)
+                {
+                    var publishItem = prepareResult.PublishItem;
                     batch.PublishItems.AddOrUpdate(item, publishItem, (i, p) => publishItem);
 
                     var migrateResult = await MigratePreparedItemAsync(item, publishItem, itemCancel).ConfigureAwait(false);

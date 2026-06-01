@@ -57,7 +57,7 @@ namespace Tableau.Migration.Tests.Unit.Engine.Hooks.PostPublish.Default
         public class ExecuteAsync : OwnerItemPostPublishHookTest
         {
             [Fact]
-            public async Task Succeeds()
+            public async Task SucceedsAsync()
             {
                 var manifestEntry = Create<IMigrationManifestEntryEditor>();
                 var sourceItem = Create<OwnerUpdateContentType>();

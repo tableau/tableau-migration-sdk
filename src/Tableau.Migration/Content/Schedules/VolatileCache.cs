@@ -49,7 +49,7 @@ namespace Tableau.Migration.Content.Schedules
         /// <param name="keyValue">The content key.</param>
         /// <param name="cancel">The cancellation token to obey.</param>
         /// <returns>The cached value, or null.</returns>
-        public async Task<TContent?> GetAndRelease(
+        public async Task<TContent?> GetAndReleaseAsync(
             TKey keyValue,
             CancellationToken cancel)
         {

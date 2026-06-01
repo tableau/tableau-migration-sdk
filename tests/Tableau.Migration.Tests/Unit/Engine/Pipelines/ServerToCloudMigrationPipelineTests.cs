@@ -22,11 +22,13 @@ using System.Linq;
 using Moq;
 using Tableau.Migration.Config;
 using Tableau.Migration.Content;
+using Tableau.Migration.Content.Schedules;
 using Tableau.Migration.Content.Schedules.Cloud;
 using Tableau.Migration.Content.Schedules.Server;
 using Tableau.Migration.Engine.Actions;
 using Tableau.Migration.Engine.Conversion;
 using Tableau.Migration.Engine.Conversion.ExtractRefreshTasks;
+using Tableau.Migration.Engine.Conversion.FlowRunTasks;
 using Tableau.Migration.Engine.Conversion.Subscriptions;
 using Tableau.Migration.Engine.Migrators.Batch;
 using Tableau.Migration.Engine.Pipelines;
@@ -100,18 +102,20 @@ namespace Tableau.Migration.Tests.Unit.Engine.Pipelines
             {
                 var actions = Pipeline.BuildActions();
 
-                Assert.Equal(11, actions.Length);
+                Assert.Equal(13, actions.Length);
                 Assert.IsType<PreflightAction>(actions[0]);
                 Assert.IsType<MigrateContentAction<IUser>>(actions[1]);
                 Assert.IsType<MigrateContentAction<IGroup>>(actions[2]);
                 Assert.IsType<MigrateContentAction<IGroupSet>>(actions[3]);
                 Assert.IsType<MigrateContentAction<IProject>>(actions[4]);
                 Assert.IsType<MigrateContentAction<IDataSource>>(actions[5]);
-                Assert.IsType<MigrateContentAction<IWorkbook>>(actions[6]);
-                Assert.IsType<MigrateContentAction<IServerExtractRefreshTask>>(actions[7]);
-                Assert.IsType<MigrateContentAction<ICustomView>>(actions[8]);
-                Assert.IsType<MigrateContentAction<IServerSubscription>>(actions[9]);
-                Assert.IsType<MigrateContentAction<IFavorite>>(actions[10]);
+                Assert.IsType<MigrateContentAction<IFlow>>(actions[6]);
+                Assert.IsType<MigrateContentAction<IWorkbook>>(actions[7]);
+                Assert.IsType<MigrateContentAction<IServerExtractRefreshTask>>(actions[8]);
+                Assert.IsType<MigrateContentAction<ICustomView>>(actions[9]);
+                Assert.IsType<MigrateContentAction<IServerSubscription>>(actions[10]);
+                Assert.IsType<MigrateContentAction<IServerFlowRunTask>>(actions[11]);
+                Assert.IsType<MigrateContentAction<IFavorite>>(actions[12]);
             }
 
             [Fact]
@@ -197,6 +201,14 @@ namespace Tableau.Migration.Tests.Unit.Engine.Pipelines
                 var converter = Pipeline.GetItemConverter<IServerSubscription, ICloudSubscription>();
 
                 Assert.IsAssignableFrom<ISubscriptionConverter<IServerSubscription, ICloudSubscription>>(converter);
+            }
+
+            [Fact]
+            public void CreatesFlowRunTaskConverter()
+            {
+                var converter = Pipeline.GetItemConverter<IServerFlowRunTask, ICloudFlowRunTask>();
+
+                Assert.IsAssignableFrom<IFlowRunTaskConverter<IServerFlowRunTask, ICloudFlowRunTask>>(converter);
             }
 
             [Fact]

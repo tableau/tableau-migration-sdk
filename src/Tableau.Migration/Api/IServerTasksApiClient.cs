@@ -30,12 +30,21 @@ namespace Tableau.Migration.Api
         IContentApiClient,
         IApiPageAccessor<IServerExtractRefreshTask>,
         IReadApiClient<IServerExtractRefreshTask>,
-        IPagedListApiClient<IServerExtractRefreshTask>
+        IPagedListApiClient<IServerExtractRefreshTask>,
+        IApiPageAccessor<IServerFlowRunTask>,
+        IPagedListApiClient<IServerFlowRunTask>
     {
         /// <summary>
         /// Gets a list of extract refresh tasks.
         /// </summary>
         /// <param name="cancel">The cancellation token to obey.</param>
         Task<IResult<IImmutableList<IServerExtractRefreshTask>>> GetAllExtractRefreshTasksAsync(CancellationToken cancel);
+
+        /// <summary>
+        /// Gets a list of flow run tasks for the site.
+        /// </summary>
+        /// <param name="cancel">The cancellation token to obey.</param>
+        /// <returns>The flow run tasks for the site.</returns>
+        Task<IResult<IImmutableList<IScheduleFlowRunTask>>> GetAllFlowRunTasksAsync(CancellationToken cancel);
     }
 }

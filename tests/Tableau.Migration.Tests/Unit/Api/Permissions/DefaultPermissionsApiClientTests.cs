@@ -77,7 +77,7 @@ namespace Tableau.Migration.Tests.Unit.Api.Permissions
         {
             [Theory]
             [DefaultPermissionsContentTypeUrlSegmentData]
-            public async Task Calls_inner_client(string contentTypeUrlSegment)
+            public async Task CallsInnerClientAsync(string contentTypeUrlSegment)
             {
                 var projectId = Create<Guid>();
                 var permissions = Create<IPermissions>();
@@ -101,7 +101,7 @@ namespace Tableau.Migration.Tests.Unit.Api.Permissions
         {
             [Theory]
             [DefaultPermissionsContentTypeUrlSegmentData]
-            public async Task Calls_inner_client(string contentTypeUrlSegment)
+            public async Task CallsInnerClientAsync(string contentTypeUrlSegment)
             {
                 var projectId = Create<Guid>();
                 var granteeId = Create<Guid>();
@@ -126,7 +126,7 @@ namespace Tableau.Migration.Tests.Unit.Api.Permissions
         public class GetAllPermissionsAsync : DefaultPermissionsApiClientTest
         {
             [Fact]
-            public async Task Calls_inner_clients_successfully()
+            public async Task CallsInnerClientsSuccessfullyAsync()
             {
                 var projectId = Create<Guid>();
 
@@ -160,7 +160,7 @@ namespace Tableau.Migration.Tests.Unit.Api.Permissions
             }
 
             [Fact]
-            public async Task Calls_inner_clients_some_failures()
+            public async Task CallsInnerClientsSomeFailuresAsync()
             {
                 var projectId = Create<Guid>();
 
@@ -205,7 +205,7 @@ namespace Tableau.Migration.Tests.Unit.Api.Permissions
             }
 
             [Fact]
-            public async Task Calls_inner_clients_failed()
+            public async Task CallsInnerClientsFailedAsync()
             {
                 var projectId = Create<Guid>();
 
@@ -233,7 +233,7 @@ namespace Tableau.Migration.Tests.Unit.Api.Permissions
         {
             [Theory]
             [DefaultPermissionsContentTypeUrlSegmentData]
-            public async Task Calls_inner_client(string contentTypeUrlSegment)
+            public async Task CallsInnerClientAsync(string contentTypeUrlSegment)
             {
                 var projectId = Create<Guid>();
 

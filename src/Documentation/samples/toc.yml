@@ -4,6 +4,9 @@
 - name: Mappings
   href: mappings/toc.yml
   homepage: mappings/index.md
+- name: Pulled Hooks
+  href: pulled/toc.yml
+  homepage: pulled/index.md
 - name: Transformers
   href: transformers/toc.yml
   homepage: transformers/index.md

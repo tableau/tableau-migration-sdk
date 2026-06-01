@@ -173,7 +173,7 @@ namespace Tableau.Migration
         /// <param name="segment">The path segment to escape.</param>
         /// <param name="pathSeparator">The path separator to escape.</param>
         /// <returns>The escaped segment.</returns>
-        private static string EscapeSegment(string segment, string pathSeparator)
+        internal static string EscapeSegment(string segment, string pathSeparator)
         {
             if (string.IsNullOrEmpty(segment))
                 return segment;

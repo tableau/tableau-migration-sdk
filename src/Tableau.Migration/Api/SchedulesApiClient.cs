@@ -16,12 +16,14 @@
 //
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Tableau.Migration.Api.Rest;
 using Tableau.Migration.Api.Rest.Models;
+using Tableau.Migration.Api.Rest.Models.Requests;
 using Tableau.Migration.Api.Rest.Models.Responses.Server;
 using Tableau.Migration.Config;
 using Tableau.Migration.Content.Schedules.Server;
@@ -122,6 +124,26 @@ namespace Tableau.Migration.Api
 
             var refreshTasks = await pager.GetAllPagesAsync(cancel).ConfigureAwait(false);
             return refreshTasks;
+        }
+
+        /// <inheritdoc />
+        public async Task<IResult<IScheduleFlowRunTask>> AddFlowTaskToScheduleAsync(
+            Guid scheduleId,
+            Guid flowId,
+            IEnumerable<FlowParameterSpec>? flowParameterSpecs = null,
+            CancellationToken cancel = default)
+        {
+            var result = await RestRequestBuilderFactory
+                .CreateUri($"/{RestUrlKeywords.Schedules}/{scheduleId.ToUrlSegment()}/{RestUrlKeywords.Flows}")
+                .ForPutRequest()
+                .WithXmlContent(new AddFlowTaskToScheduleRequest(flowId, flowParameterSpecs))
+                .SendAsync<AddFlowTaskToScheduleResponse>(cancel)
+                .ToResultAsync<AddFlowTaskToScheduleResponse, IScheduleFlowRunTask>(
+                    response => new ScheduleFlowRunTask(response.Item?.FlowRun ?? throw new InvalidOperationException("Response did not contain a flow run task.")),
+                    SharedResourcesLocalizer)
+                .ConfigureAwait(false);
+
+            return result;
         }
     }
 }

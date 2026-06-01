@@ -271,7 +271,7 @@ namespace Tableau.Migration.Tests.Unit.Net
         public class ReadAsEncodedStringAsync
         {
             [Fact]
-            public async Task SupportsUtf8CharSet()
+            public async Task SupportsUtf8CharSetAsync()
             {
                 const string HTML = @"<html><head>
                           <title>404 Not Found</title>

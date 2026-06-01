@@ -97,7 +97,7 @@ namespace Tableau.Migration.Engine.Endpoints.Caching
 
             foreach (var newManifestEntry in newManifestEntries)
             {
-                newManifestEntry.SetSkipped($"Lazy loaded after {MigrationPipelineContentType.GetDisplayNameForType(typeof(TContent))} migration.");
+                newManifestEntry.SetSkipped(cascade: false, $"Lazy loaded after {MigrationPipelineContentType.GetDisplayNameForType(typeof(TContent))} migration.");
             }
         }
 

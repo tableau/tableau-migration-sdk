@@ -44,7 +44,7 @@ namespace Tableau.Migration.Tests.Unit.Api.Publishing
         public class PublishAsync : CustomViewPublisherTest
         {
             [Fact]
-            public async Task Publishes()
+            public async Task PublishesAsync()
             {
                 var initiateResponse = SetupSuccessResponse<FileUploadResponse, FileUploadResponse.FileUploadType>();
                 var getCustomViewResponse = SetupSuccessResponse<CustomViewResponse, CustomViewResponse.CustomViewType>();

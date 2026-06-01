@@ -17,8 +17,10 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Tableau.Migration.Engine.Endpoints;
 using Tableau.Migration.Engine.Endpoints.Search;
+using Tableau.Migration.Engine.Hooks;
 using Tableau.Migration.Engine.Hooks.Transformers;
 using Tableau.Migration.Engine.Pipelines;
 using Tableau.Migration.Resources;
@@ -33,7 +35,7 @@ namespace Tableau.Migration.Engine.Preparation
     /// <typeparam name="TPrepare"><inheritdoc /></typeparam>
     /// <typeparam name="TPublish"><inheritdoc /></typeparam>
     public class EndpointContentItemPreparer<TContent, TPrepare, TPublish> : ContentItemPreparerBase<TContent, TPrepare, TPublish>
-        where TPrepare : class
+        where TPrepare : class, IContentReference
         where TPublish : class
     {
         private readonly ISourceEndpoint _source;
@@ -43,16 +45,20 @@ namespace Tableau.Migration.Engine.Preparation
         /// </summary>
         /// <param name="source">The source endpoint.</param>
         /// <param name="pipeline"><inheritdoc /></param>
-        /// <param name="transformerRunner"><inheritdoc /></param>
+        /// <param name="hooks"><inheritdoc /></param>
+        /// <param name="transformers"><inheritdoc /></param>
         /// <param name="destinationFinderFactory"><inheritdoc /></param>
+        /// <param name="logger"><inheritdoc /></param>
         /// <param name="localizer"><inheritdoc /></param>
         public EndpointContentItemPreparer(
             ISourceEndpoint source,
             IMigrationPipeline pipeline,
-            IContentTransformerRunner transformerRunner,
+            IMigrationHookRunner hooks,
+            IContentTransformerRunner transformers,
             IDestinationContentReferenceFinderFactory destinationFinderFactory,
+            ILogger<EndpointContentItemPreparer<TContent, TPrepare, TPublish>> logger,
             ISharedResourcesLocalizer localizer)
-            : base(pipeline, transformerRunner, destinationFinderFactory, localizer)
+            : base(pipeline, hooks, transformers, destinationFinderFactory, logger, localizer)
         {
             _source = source;
         }

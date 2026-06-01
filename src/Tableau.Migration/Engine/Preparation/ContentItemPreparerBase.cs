@@ -18,11 +18,16 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Tableau.Migration.Content;
 using Tableau.Migration.Content.Files;
 using Tableau.Migration.Engine.Conversion;
 using Tableau.Migration.Engine.Endpoints.Search;
+using Tableau.Migration.Engine.Hooks;
+using Tableau.Migration.Engine.Hooks.Filters;
+using Tableau.Migration.Engine.Hooks.Pulled;
 using Tableau.Migration.Engine.Hooks.Transformers;
+using Tableau.Migration.Engine.Manifest;
 using Tableau.Migration.Engine.Pipelines;
 using Tableau.Migration.Resources;
 
@@ -35,29 +40,37 @@ namespace Tableau.Migration.Engine.Preparation
     /// <typeparam name="TPrepare">The pull return type.</typeparam>
     /// <typeparam name="TPublish">The publish type.</typeparam>
     public abstract class ContentItemPreparerBase<TContent, TPrepare, TPublish> : IContentItemPreparer<TContent, TPublish>
-        where TPrepare : class
+        where TPrepare : class, IContentReference
         where TPublish : class
     {
+        private readonly IMigrationHookRunner _hooks;
         private readonly IContentItemConverter<TPrepare, TPublish> _converter;
-        private readonly IContentTransformerRunner _transformerRunner;
+        private readonly IContentTransformerRunner _transformers;
         private readonly IDestinationContentReferenceFinderFactory _destinationFinderFactory;
+        private readonly ILogger<ContentItemPreparerBase<TContent, TPrepare, TPublish>> _logger;
         private readonly ISharedResourcesLocalizer _localizer;
 
         /// <summary>
         /// Creates a new <see cref="ContentItemPreparerBase{TContent, TPrepare, TPublish}"/> object.
         /// </summary>
         /// <param name="pipeline">The migration pipeline.</param>
-        /// <param name="transformerRunner">A transformer runner.</param>
+        /// <param name="hooks">The hooks runner.</param>
+        /// <param name="transformers">The transformer runner.</param>
         /// <param name="destinationFinderFactory">The destination finder factory.</param>
+        /// <param name="logger">A logger.</param>
         /// <param name="localizer">A localizer.</param>
         public ContentItemPreparerBase(IMigrationPipeline pipeline,
-            IContentTransformerRunner transformerRunner,
+            IMigrationHookRunner hooks,
+            IContentTransformerRunner transformers,
             IDestinationContentReferenceFinderFactory destinationFinderFactory,
+            ILogger<ContentItemPreparerBase<TContent, TPrepare, TPublish>> logger,
             ISharedResourcesLocalizer localizer)
         {
             _converter = pipeline.GetItemConverter<TPrepare, TPublish>();
-            _transformerRunner = transformerRunner;
+            _hooks = hooks;
+            _transformers = transformers;
             _destinationFinderFactory = destinationFinderFactory;
+            _logger = logger;
             _localizer = localizer;
         }
 
@@ -77,7 +90,7 @@ namespace Tableau.Migration.Engine.Preparation
         /// <returns>The item to use for publishing.</returns>
         protected virtual async Task<IResult<TPublish>> TransformAsync(TPublish publishItem, CancellationToken cancel)
         {
-            var transformedItem = await _transformerRunner.ExecuteAsync(publishItem, cancel).ConfigureAwait(false);
+            var transformedItem = await _transformers.ExecuteAsync(publishItem, cancel).ConfigureAwait(false);
             return Result<TPublish>.Succeeded(transformedItem);
         }
 
@@ -90,45 +103,55 @@ namespace Tableau.Migration.Engine.Preparation
         /// <returns>The result of the mapping application.</returns>
         protected virtual async Task ApplyMappingAsync(TPublish publishItem, ContentLocation mappedLocation, CancellationToken cancel)
         {
-            /* We do interface inspection by default
+            /* 
+             * We do interface inspection by default
              * because using generic type resolution
              * would require generic constraints to bubble up to
-             * at least the content migrator level.*/
+             * at least the content migrator level.
+             */
 
-            /* If this logic gets more complicated it 
+            /* 
+             * If this logic gets more complicated it 
              * can be moved into a pipeline-resolved service
              * but will still likely be better casting instead of
-             * generics.*/
+             * generics.
+             */
 
-            /* Applying mapping means that content item properties
+            /* 
+             * Applying mapping means that content item properties
              * that are involved in mapping (name, parent project, etc.)
              * should be readonly so transformers don't change values that
-             * can't be reflected in mapping.*/
+             * can't be reflected in mapping.
+             */
 
             if (publishItem is IMappableContainerContent containerContent)
             {
-                /* Item belongs to a mappable container, i.e. projects and personal spaces.
+                /* 
+                 * Item belongs to a mappable container, i.e. projects and personal spaces.
                  * We update the container reference based on the mapped container location so publishing has the right information.
                  * Some content types (projects) this container is optional,
-                 * while others (e.g. data sources and workbooks) require a container.*/
+                 * while others (e.g. data sources and workbooks) require a container.
+                 */
 
                 IContentReference? newParent;
                 var mappedParentLocation = mappedLocation.Parent();
 
                 if (mappedParentLocation.IsEmpty)
                 {
-                    //Item is explicitly mapped to the top-level, so should not have a parent container.
+                    // Item is explicitly mapped to the top-level, so should not have a parent container.
                     newParent = null;
                 }
                 else if (mappedParentLocation != containerContent.Container?.Location)
                 {
-                    /* Item was pre-mapped for us, but assigned a new parent container.
-                     * Find the destination project reference to assign without double-mapping.*/
+                    /* 
+                     * Item was pre-mapped for us, but assigned a new parent container.
+                     * Find the destination project reference to assign without double-mapping.
+                     */
                     var destinationFinder = _destinationFinderFactory.ForDestinationContentType<IProject>();
                     newParent = await destinationFinder.FindByMappedLocationAsync(mappedLocation.Parent(), cancel)
                         .ConfigureAwait(false);
 
-                    //Without a valid destination container we cannot publish.
+                    // Without a valid destination container we cannot publish.
                     if (newParent is null)
                     {
                         throw new Exception(string.Format(_localizer[SharedResourceKeys.ContainerParentNotFound], mappedLocation.Parent(), mappedLocation));
@@ -136,13 +159,15 @@ namespace Tableau.Migration.Engine.Preparation
                 }
                 else if (containerContent.Container is not null)
                 {
-                    /* Item was mapped without any change to the container path.
-                     * We apply project mapping to find where the container was mapped to.*/
+                    /* 
+                     * Item was mapped without any change to the container path.
+                     * We apply project mapping to find where the container was mapped to.
+                     */
                     var destinationFinder = _destinationFinderFactory.ForDestinationContentType<IProject>();
                     newParent = await destinationFinder.FindBySourceLocationAsync(containerContent.Container.Location, cancel)
                         .ConfigureAwait(false);
 
-                    //Without a valid destination container we cannot publish.
+                    // Without a valid destination container we cannot publish.
                     if (newParent is null)
                     {
                         throw new Exception(string.Format(_localizer[SharedResourceKeys.ContainerParentNotFound], string.Empty, containerContent.Container.Location));
@@ -150,7 +175,7 @@ namespace Tableau.Migration.Engine.Preparation
                 }
                 else
                 {
-                    //Item has a null container.
+                    // Item has a null container.
                     newParent = null;
                 }
 
@@ -171,15 +196,17 @@ namespace Tableau.Migration.Engine.Preparation
         /// <returns>A task to await.</returns>
         protected virtual async Task FinalizeAsync(TPublish publishItem, CancellationToken cancel)
         {
-            //If the item has a file we close any open editor
-            //so that changes are persisted to disk and ready for file upload.
+            /* 
+             * If the item has a file we close any open editor,
+             * so that changes are persisted to disk and ready for file upload.
+             */
             if (publishItem is IFileContent fileContent)
             {
                 await fileContent.File.CloseTableauFileEditorAsync(cancel).ConfigureAwait(false);
             }
         }
 
-        private async Task<IResult<TPublish>> PreparePublishItemAsync(ContentMigrationItem<TContent> item, TPublish publishItem, CancellationToken cancel)
+        private async Task<IContentItemPreparationResult<TPublish>> PreparePublishItemAsync(ContentMigrationItem<TContent> item, TPublish publishItem, CancellationToken cancel)
         {
             bool finalizeAttempted = false;
 
@@ -187,11 +214,13 @@ namespace Tableau.Migration.Engine.Preparation
             {
                 cancel.ThrowIfCancellationRequested();
 
-                /* Apply the mapped location to the item to publish.
+                /* 
+                 * Apply the mapped location to the item to publish.
                  * This is done here instead of in a transformer
                  * so that users can't remove (accidentally or otherwise)
                  * a core expectation of publishing logic, namely that mapping
-                 * content actually applies any renames/etc.*/
+                 * content actually applies any renames/etc.
+                 */
                 await ApplyMappingAsync(publishItem, item.ManifestEntry.MappedLocation, cancel)
                     .ConfigureAwait(false);
 
@@ -199,26 +228,30 @@ namespace Tableau.Migration.Engine.Preparation
 
                 var transformResult = await TransformAsync(publishItem, cancel).ConfigureAwait(false);
 
-                /* Finalize the transformed item to publish.
+                /* 
+                 * Finalize the transformed item to publish.
                  * This is done here instead of in a transformer
                  * so that we know that all transformers have run,
-                 * and publishing hasn't started.*/
+                 * and publishing hasn't started.
+                 */
                 finalizeAttempted = true;
                 await FinalizeAsync(publishItem, cancel).ConfigureAwait(false);
 
                 if (!transformResult.Success)
                 {
                     item.ManifestEntry.SetFailed(transformResult.Errors);
-                    return transformResult;
+                    return ContentItemPreparationResult<TPublish>.Failed(transformResult.Errors);
                 }
 
                 publishItem = transformResult.Value;
-                return Result<TPublish>.Succeeded(publishItem);
+                return ContentItemPreparationResult<TPublish>.Succeeded(publishItem);
             }
             catch (Exception ex)
             {
-                //First try to close any open file editors, 
-                //but skip this if finalization is what caused us to throw.
+                /* 
+                 * First try to close any open file editors, 
+                 * but skip this if finalization is what caused us to throw.
+                 */
                 if (!finalizeAttempted)
                 {
                     try
@@ -227,8 +260,10 @@ namespace Tableau.Migration.Engine.Preparation
                     }
                     catch (Exception finalizeEx)
                     {
-                        //If finalize throws we still want to attempt to dispose,
-                        //but don't want to lose the exception.
+                        /*
+                         * If finalize throws we still want to attempt to dispose,
+                         * but don't want to lose the exception.
+                         */
                         throw new AggregateException(ex, finalizeEx);
                     }
                 }
@@ -238,35 +273,67 @@ namespace Tableau.Migration.Engine.Preparation
         }
 
         /// <inheritdoc />
-        public async Task<IResult<TPublish>> PrepareAsync(ContentMigrationItem<TContent> item, CancellationToken cancel)
+        public async Task<IContentItemPreparationResult<TPublish>> PrepareAsync(ContentMigrationItem<TContent> item, CancellationToken cancel)
         {
-            /* Some content types require more information than the source paging provides.
+            /* 
+             * Some content types require more information than the source paging provides.
              * The 'pull' step allows for making one or more API calls to fully load the item to publish.
-             * By default the pull step just re-uses the source list item.*/
+             * By default the pull step just re-uses the source list item.
+             */
             cancel.ThrowIfCancellationRequested();
 
             var pullResult = await PullAsync(item, cancel).ConfigureAwait(false);
             if (!pullResult.Success)
             {
                 item.ManifestEntry.SetFailed(pullResult.Errors);
-                return pullResult.CastFailure<TPublish>();
+                return ContentItemPreparationResult< TPublish>.Failed(pullResult.Errors);
             }
 
             var prepareItem = pullResult.Value;
 
-            /* If we throw (even from cancellation) before we can return the publish item,
+            /* 
+             * If we throw (even from cancellation) before we can return the publish item,
              * make sure the item is disposed as there may be files using disk space.
              * We clean up orphaned files at the end of the DI scope, but we don't want to 
-             * bloat disk usage when we're processing future pages of items.*/
+             * bloat disk usage when we're processing future pages of items.
+             */
+
+            var abortPrepare = await prepareItem.DisposeOnThrowAsync(async () =>
+            {
+                /*
+                 * Call user post-pulled hooks,
+                 * which also act as a second filtering pass in case
+                 * filtering requires the data acquired in the pull
+                 * to make filtering decisions.
+                 */
+                var pulledHookResult = new ContentItemPulledContext<TPrepare>(item.ManifestEntry, prepareItem);
+                pulledHookResult = await _hooks.ExecuteAsync<IContentItemPulledHook<TPrepare>, ContentItemPulledContext<TPrepare>>(
+                    pulledHookResult, 
+                    (hookName, inContext, outContext) => outContext.ApplyFilterAfterHook(hookName, _logger, _localizer), 
+                    cancel).ConfigureAwait(false);
+
+                return pulledHookResult.ManifestEntry.Status is MigrationManifestEntryStatus.Skipped;
+            }).ConfigureAwait(false);
+
+            if(abortPrepare)
+            {
+                return ContentItemPreparationResult<TPublish>.Skipped;
+            }
+
+            // Complete preparation.
             var prepareResult = await prepareItem.DisposeOnThrowAsync(async () =>
             {
-                /* Convert step: Convert the pulled item to a publishable item,
+                /* 
+                 * Convert step: Convert the pulled item to a publishable item,
                  * which may be for different endpoint flavors.
-                 * For example, a Tableau Server schedule needs conversion to a Tableau Cloud schedule. */
+                 * For example, a Tableau Server schedule needs conversion to a Tableau Cloud schedule.
+                 */
                 var publishItem = await _converter.ConvertAsync(prepareItem, cancel).ConfigureAwait(false);
 
-                /* Map and transform the publishable item.
-                 * Disposing if any exception prevents our return. */
+                /* 
+                 * Map and transform the publishable item.
+                 * Disposing if any exception prevents our return.
+                 */
                 return await publishItem.DisposeOnThrowAsync(async () =>
                     await PreparePublishItemAsync(item, publishItem, cancel).ConfigureAwait(false)
                 ).ConfigureAwait(false);
