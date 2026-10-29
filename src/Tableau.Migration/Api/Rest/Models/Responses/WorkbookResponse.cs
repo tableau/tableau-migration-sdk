@@ -175,6 +175,7 @@ namespace Tableau.Migration.Api.Rest.Models.Responses
             /// <summary>
             /// Gets or sets the data acceleration config for the response.
             /// </summary>
+            [Obsolete("View Acceleration has been sunset. Tableau no longer returns dataAccelerationConfig, and this property is no longer deserialized. It will be removed in a future release.")]
             [XmlElement("dataAccelerationConfig")]
             public DataAccelerationConfigType? DataAccelerationConfig { get; set; }
 
@@ -377,6 +378,7 @@ namespace Tableau.Migration.Api.Rest.Models.Responses
         /// <summary>
         /// Class representing a REST API data acceleration config response.
         /// </summary>
+        [Obsolete("View Acceleration has been sunset. Tableau no longer returns dataAccelerationConfig, and this type is no longer deserialized. It will be removed in a future release.")]
         public class DataAccelerationConfigType
         {
             /// <summary>

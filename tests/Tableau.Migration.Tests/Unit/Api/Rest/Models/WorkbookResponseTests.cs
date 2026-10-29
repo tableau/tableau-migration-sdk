@@ -62,11 +62,12 @@ namespace Tableau.Migration.Tests.Unit.Api.Rest.Models
                 Assert.Equal(expected.CreatedAt, actual.CreatedAt);
                 Assert.Equal(expected.UpdatedAt, actual.UpdatedAt);
                 Assert.Equal(expected.DefaultViewId, actual.DefaultViewId);
-                Assert.NotNull(actual.DataAccelerationConfig);
-                Assert.NotNull(expected.DataAccelerationConfig);
-                Assert.Equal(
-                    expected.DataAccelerationConfig.AccelerationEnabled,
-                    actual.DataAccelerationConfig.AccelerationEnabled);
+
+                // View Acceleration is deprecated. XmlSerializer ignores [Obsolete] members, so
+                // dataAccelerationConfig is tolerated in the XML but no longer deserialized.
+#pragma warning disable CS0618
+                Assert.Null(actual.DataAccelerationConfig);
+#pragma warning restore CS0618
             }
 
             private static void AssertViews(
@@ -129,7 +130,6 @@ namespace Tableau.Migration.Tests.Unit.Api.Rest.Models
                 Assert.NotNull(wb.Project);
                 Assert.NotNull(wb.Location);
                 Assert.NotNull(wb.Owner);
-                Assert.NotNull(wb.DataAccelerationConfig);
 
                 var view1 = views[0];
                 var view2 = views[1];
@@ -158,7 +158,7 @@ namespace Tableau.Migration.Tests.Unit.Api.Rest.Models
                 </tags>
             </view>
         </views>
-        <dataAccelerationConfig accelerationEnabled=""{wb.DataAccelerationConfig.AccelerationEnabled.ToString().ToLower()}""/>
+        <dataAccelerationConfig accelerationEnabled=""true""/>
     </workbook>
 </tsResponse>";
 
